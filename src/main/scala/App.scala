@@ -1,0 +1,1 @@
+case class App(name: String, location: String)
