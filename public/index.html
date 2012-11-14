@@ -12,6 +12,22 @@
         body {
             padding-top: 60px;
         }
+        
+        .tab-content {
+            overflow: visible;
+        }
+        
+        #appManager .controls {
+            padding-top: 10px;
+        }
+        
+        #appManager .control-group {
+            margin-bottom: 0px;
+        }
+        
+        #appManager .progress {
+            margin-bottom: 0px;
+        }
     </style>
     
     <link rel="shortcut icon" href="/images/favicon.png">
@@ -21,7 +37,7 @@
     <script>
         $(function() {
             
-            $("#inputAppName").keyup(function(event) {
+            $("#inputNewAppName").keyup(function(event) {
                 updateAppLocation()
             })
             
@@ -43,6 +59,20 @@
                 // todo
             })
             
+            $("#buttonCreateApp").click(function(event) {
+                event.preventDefault()
+                
+                var appName = $("#inputNewAppName").val()
+                var appLocation = $("#inputNewAppLocation").val()
+                
+                $(".appName").text(appName)
+                $(".appLocation").text(appLocation)
+                
+                var tabListItem = $("#appManagerListItem")
+                tabListItem.show()
+                
+                tabListItem.children("a").tab('show')
+            })
         })
         
         // todo: inputNewAppLocation could be a giter8 url
@@ -50,10 +80,12 @@
         // todo: inputExistingAppLocation could be a git url
         
         function updateAppLocation() {
-            $("#inputNewAppLocation").val("/home/jamesw/Desktop/" + $("#inputAppName").val())
+            $("#inputNewAppLocation").val("/home/jamesw/Desktop/" + $("#inputNewAppName").val())
         }
         
         updateAppLocation()
+
+        
     </script>
 </head>
 
@@ -69,18 +101,25 @@
 
 <div class="container" style="">
 
-    <ul id="createOrOpenTabList" class="nav nav-tabs">
-        <li class="active"><a href="#createApp" data-toggle="tab">Create App</a></li>
-        <li><a href="#openExistingApp" data-toggle="tab">Open Existing App</a></li>
+    <ul id="tabList" class="nav nav-tabs">
+        <li class="active">
+            <a href="#createApp" data-toggle="tab">Create App</a>
+        </li>
+        <li>
+            <a href="#openExistingApp" data-toggle="tab">Open Existing App</a>
+        </li>
+        <li id="appManagerListItem" class="hide">
+            <a href="#appManager" data-toggle="tab"><span class="appName"></span></a>
+        </li>
     </ul>
 
     <div id="createOrOpenTabContents" class="tab-content">
-        <div class="tab-pane active" id="createApp">
+        <div id="createApp" class="tab-pane active">
             <form class="form-horizontal">
                 <div class="control-group">
-                    <label class="control-label" for="inputAppName">Name</label>
+                    <label class="control-label" for="inputNewAppName">Name</label>
                     <div class="controls">
-                        <input class="span5" id="inputAppName" type="text">
+                        <input class="span5" id="inputNewAppName" type="text">
                     </div>
                 </div>
                 <div class="control-group">
@@ -93,20 +132,20 @@
                     </div>
                 </div>
                 <div class="control-group">
-                    <label class="control-label" for="inputTemplate">Template</label>
+                    <label class="control-label" for="inputNewAppTemplate">Template</label>
                     <div class="controls">
                         <div class="input-append">
-                            <input class="span5" id="inputTemplate" type="text" data-provide="typeahead" data-source='["typesafe-stack-2.1", "play-2.1-java", "play-2.1-scala", "scala-2.10", "akka-2.1"]'>
+                            <input class="span5" id="inputNewAppTemplate" type="text" data-provide="typeahead" data-source='["typesafe-stack-2.1", "play-2.1-java", "play-2.1-scala", "scala-2.10", "akka-2.1"]'>
                             <button id="buttonBrowseTemplate" class="btn" type="button">Browse...</button>
                         </div>
                     </div>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary btn-large disabled">Go!</button>
+                    <button id="buttonCreateApp" type="submit" class="btn btn-primary btn-large">Go!</button> <!-- todo: disabled by default -->
                 </div>
             </form>
         </div>
-        <div class="tab-pane" id="openExistingApp">
+        <div id="openExistingApp" class="tab-pane">
 
             <form class="form-horizontal">
                 <div class="control-group">
@@ -132,10 +171,84 @@
                     </div>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary btn-large disabled">Go!</button>
+                    <button type="submit" class="btn btn-primary btn-large">Go!</button> <!-- todo: disabled by default -->
                 </div>
             </form>
             
+        </div>
+        <div id="appManager" class="tab-pane">
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label btn-group">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                            Source
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#editInWebBrowser">Edit in Web Browser</a></li>
+                            <li><a href="#editInEclipse">Edit in Eclipse</a></li>
+                            <li><a href="#editInIDEA">Edit in IntelliJ IDEA</a></li>
+                            <li><a href="#openInFileExplorer">Open in File Explorer</a></li>
+                        </ul>
+                    </label>
+                    <div class="controls">
+                        <span class="appLocation"></span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label btn-group">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                            App Running
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#appLogs">Logs</a></li>
+                            <li><a href="#shutdownApp">Shutdown</a></li>
+                        </ul>
+                    </label>
+                    <div class="controls">
+                        <a href="http://localhost:9000">http://localhost:9000</a>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label btn-group">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                            Tests Running
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#testsLogs">Logs</a></li>
+                            <li><a href="#shutdownTests">Shutdown</a></li>
+                        </ul>
+                    </label>
+                    <div class="controls">
+                        <div class="progress">
+                            <div class="bar bar-success" style="width: 70%;"></div>
+                            <div class="bar bar-warning" style="width: 20%;"></div>
+                            <div class="bar bar-danger" style="width: 10%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label btn-group">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                            Modules
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#manageModules">Manage</a></li>
+                        </ul>
+                    </label>
+                    <div class="controls" style="padding-top: 5px;">
+                        <button class="btn">Deploy to Heroku</button>
+                        <button class="btn">Setup CI on CloudBees</button>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary btn-large">View Docs</button>
+                    <button class="btn btn-primary btn-large">Export as Zip</button>
+                </div>
+            </form>
         </div>
     </div>
 
