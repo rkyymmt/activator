@@ -1,16 +1,19 @@
 import sbt._
-import sbt.Keys._
+import Keys._
+import PlayProject._
+import sbt.Resolver
 
-object LauncherBuild extends Build {
-  lazy val root = Project(
-    "launcher",
-    file("."),
-    settings = Defaults.defaultSettings ++ Seq(
-      organization := "com.typesafe",
-      name := "launcher",
-      version := "0.1-SNAPSHOT",
-      scalaVersion := "2.9.2",
-      libraryDependencies <+= scalaVersion { "org.scala-lang" % "scala-swing" % _ }
+object ApplicationBuild extends Build {
+
+    val appName         = "launcher"
+    val appVersion      = "1.0-SNAPSHOT"
+
+    val appDependencies = Seq(
+      "org.webjars" % "bootstrap" % "2.2.1"
     )
-  )
+
+    val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
+      resolvers += Resolver.mavenLocal
+    )
+
 }

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Typesafe Launcher</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Typesafe Launcher - The Pathway to Modern, Scalable Apps">
+    <meta name="author" content="Typesafe.com">
+
+    <link href="/webjars/bootstrap/2.2.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 60px;
+        }
+    </style>
+    
+    <link rel="shortcut icon" href="/images/favicon.png">
+    
+    <script type="text/javascript" src="/webjars/jquery/1.8.2/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/2.2.1/js/bootstrap.min.js"></script>
+    <script>
+        $(function() {
+            
+            $("#inputAppName").keyup(function(event) {
+                updateAppLocation()
+            })
+            
+            $("#inputExistingRecent").change(function(event) {
+                // todo
+                console.log($(this))
+                $("#inputExistingAppLocation").val($(this).select())
+            })
+
+            $("#buttonBrowseAppLocation").click(function(event) {
+                // todo
+            })
+            
+            $("#buttonBrowseTemplate").click(function(event) {
+                // todo
+            })
+            
+            $("#buttonBrowseExistingLocation").click(function(event) {
+                // todo
+            })
+            
+        })
+        
+        // todo: inputNewAppLocation could be a giter8 url
+        
+        // todo: inputExistingAppLocation could be a git url
+        
+        function updateAppLocation() {
+            $("#inputNewAppLocation").val("/home/jamesw/Desktop/" + $("#inputAppName").val())
+        }
+        
+        updateAppLocation()
+    </script>
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container">
+            <a class="brand" href="/"><img src="images/typesafe-logo-square.png" style="height: 30px;"/> Typesafe Launcher</a>
+        </div>
+    </div>
+</div>
+
+<div class="container" style="">
+
+    <ul id="createOrOpenTabList" class="nav nav-tabs">
+        <li class="active"><a href="#createApp" data-toggle="tab">Create App</a></li>
+        <li><a href="#openExistingApp" data-toggle="tab">Open Existing App</a></li>
+    </ul>
+
+    <div id="createOrOpenTabContents" class="tab-content">
+        <div class="tab-pane active" id="createApp">
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="inputAppName">Name</label>
+                    <div class="controls">
+                        <input class="span5" id="inputAppName" type="text">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputNewAppLocation">Location</label>
+                    <div class="controls">
+                        <div class="input-append">
+                            <input class="span5" id="inputNewAppLocation" type="text" value="/home/jamesw/Desktop">
+                            <button id="buttonBrowseAppLocation" class="btn" type="button">Browse...</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputTemplate">Template</label>
+                    <div class="controls">
+                        <div class="input-append">
+                            <input class="span5" id="inputTemplate" type="text" data-provide="typeahead" data-source='["typesafe-stack-2.1", "play-2.1-java", "play-2.1-scala", "scala-2.10", "akka-2.1"]'>
+                            <button id="buttonBrowseTemplate" class="btn" type="button">Browse...</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-large disabled">Go!</button>
+                </div>
+            </form>
+        </div>
+        <div class="tab-pane" id="openExistingApp">
+
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="inputExistingAppLocation">Location</label>
+                    <div class="controls">
+                        <div class="input-append">
+                            <input class="span5" id="inputExistingAppLocation" type="text">
+                            <button id="buttonBrowseExistingLocation" class="btn" type="button">Browse...</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputExistingRecent">Recent Apps</label>
+                    <div class="controls">
+                        <select id="inputExistingRecent" multiple="multiple" class="span5">
+                            <option>foo (/home/jamesw/projects/foo)</option>
+                            <option>bar (/home/jamesw/projects/bar)</option>
+                            <option>play2torial (/home/jamesw/projects/play2torial)</option>
+                            <option>play2bars (/home/jamesw/projects/play2bars</option>
+                            <option>asdf (/home/jamesw/Desktop/asdf</option>
+                            <option>zxcv (/home/jamesw/Desktop/zxcv</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-large disabled">Go!</button>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
