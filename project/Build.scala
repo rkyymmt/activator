@@ -5,7 +5,7 @@ import sbt.Resolver
 
 object ApplicationBuild extends Build {
 
-    val appName         = "launcher"
+    val appName         = "snap"
     val appVersion      = "1.0-SNAPSHOT"
 
     val appDependencies = Seq(
