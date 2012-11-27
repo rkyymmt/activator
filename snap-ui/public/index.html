@@ -13,19 +13,15 @@
             padding-top: 60px;
         }
         
-        .tab-content {
-            overflow: visible;
-        }
-        
-        #appManager .controls {
+        #manageApp .controls {
             padding-top: 10px;
         }
         
-        #appManager .control-group {
+        #manageApp .control-group {
             margin-bottom: 0px;
         }
         
-        #appManager .progress {
+        #manageApp .progress {
             margin-bottom: 0px;
         }
 
@@ -93,12 +89,10 @@
                         data: JSON.stringify({name: $("#inputNewAppName").val(), location: $("#inputNewAppLocation").val(), template: $("#inputNewAppTemplate").val()}),
                         success:  function(data) {
                             $(".appName").text(data.name)
-                            $(".appLocation").text(data.location)
+                            $("#appLocation").text(data.location)
 
-                            var tabListItem = $("#appManagerListItem")
-                            tabListItem.show()
-
-                            tabListItem.children("a").tab('show')
+                            $("#createApp").hide()
+                            $("#manageApp").show()
                         }
                     })
                 }
@@ -118,6 +112,36 @@
                     } else {
                         $(item).show()
                     }
+                })
+            })
+            
+            $("#projectList a").click(function(event) {
+                $(this).parent().siblings().removeClass("active")
+                $(this).parent().addClass("active")
+                
+                if ($(this).text() == "New App") {
+                    $("#createApp").show()
+                    $("#manageApp").hide()
+                }
+                else {
+                    var appPath = $(this).text().substring($(this).text().lastIndexOf("(") + 1, $(this).text().length - 1)
+                    
+                    $("#appLocation").text(appPath)
+                    
+                    $("#createApp").hide()
+                    $("#manageApp").show()
+                }
+            })
+            
+            $("#appLocation").click(function(event) {
+                event.preventDefault()
+
+                $.ajax({
+                    url: "open",
+                    type: "POST",
+                    dataType: "json",
+                    contentType: 'application/json',
+                    data: JSON.stringify({location: $("#appLocation").text()})
                 })
             })
 
@@ -140,6 +164,8 @@
             $("#inputNewAppTemplate").bind('paste', function(event) {
                 updateCreateAppButton()
             })
+
+            updateCreateAppButton()
         })
         
         // todo: inputNewAppLocation could be a giter8 url
@@ -177,34 +203,25 @@
     </div>
 </div>
 
-<div class="span3 well">
-    <h3>Snap News</h3>
-    <ul>
-        <li>New Online Scala Training</li>
-        <li>Play 2.1 Released</li>
-        <li>Akka 2.1 Released</li>
-        <li>Scala 2.10 Released</li>
+<div class="well" style="float: left; max-width: 340px; padding: 8px 0; margin-left: 20px;">
+    <ul id="projectList" class="nav nav-list">
+        <li class="nav-header">Projects</li>
+        <li class="active"><a href="#">New App</a></li>
+        <li><a href="#">foo (/home/jamesw/projects/foo)</a></li>
+        <li><a href="#">bar (/home/jamesw/projects/bar)</a></li>
+        <li><a href="#">play2torial (/home/jamesw/projects/play2torial)</a></li>
+        <li><a href="#">play2bars (/home/jamesw/projects/play2bars)</a></li>
+        <li><a href="#">asdf (/home/jamesw/Desktop/asdf)</a></li>
+        <li><a href="#">zxcv (/home/jamesw/Desktop/zxcv)</a></li>
+        <button class="btn btn-mini">Other...</button>
+        <!--<li class="divider"></li>-->
     </ul>
 </div>
 
-<div class="span1"></div>
+<div style="margin-left: 360px; overflow: hidden;">
 
-<div class="container span10">
-
-    <ul id="tabList" class="nav nav-tabs">
-        <li class="active">
-            <a href="#createApp" data-toggle="tab">Create App</a>
-        </li>
-        <li>
-            <a href="#openExistingApp" data-toggle="tab">Open Existing App</a>
-        </li>
-        <li id="appManagerListItem" class="hide">
-            <a href="#appManager" data-toggle="tab"><span class="appName"></span></a>
-        </li>
-    </ul>
-
-    <div id="createOrOpenTabContents" class="tab-content">
-        <div id="createApp" class="tab-pane active">
+    <div style="margin-top: 20px;">
+        <div id="createApp">
             <form id="createAppForm" class="form-horizontal">
                 <div class="control-group">
                     <label class="control-label" for="inputNewAppName">Name</label>
@@ -231,43 +248,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-actions">
-                    <button id="buttonCreateApp" type="submit" class="btn btn-primary btn-large disabled">Go!</button>
-                </div>
+                <button id="buttonCreateApp" type="submit" class="btn btn-primary btn-large disabled" style="margin-left: 180px;">Go!</button>
             </form>
         </div>
-        <div id="openExistingApp" class="tab-pane">
-
-            <form class="form-horizontal">
-                <div class="control-group">
-                    <label class="control-label" for="inputExistingAppLocation">Location</label>
-                    <div class="controls">
-                        <div class="input-append">
-                            <input class="span5" id="inputExistingAppLocation" type="text">
-                            <button id="buttonBrowseExistingLocation" class="btn" type="button">Browse...</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputExistingRecent">Recent Apps</label>
-                    <div class="controls">
-                        <select id="inputExistingRecent" multiple="multiple" class="span5">
-                            <option>foo (/home/jamesw/projects/foo)</option>
-                            <option>bar (/home/jamesw/projects/bar)</option>
-                            <option>play2torial (/home/jamesw/projects/play2torial)</option>
-                            <option>play2bars (/home/jamesw/projects/play2bars</option>
-                            <option>asdf (/home/jamesw/Desktop/asdf</option>
-                            <option>zxcv (/home/jamesw/Desktop/zxcv</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary btn-large">Go!</button> <!-- todo: disabled by default -->
-                </div>
-            </form>
-            
-        </div>
-        <div id="appManager" class="tab-pane">
+        
+        <div id="manageApp" class="hide" style="margin-right: 20px;">
             <form class="form-horizontal">
                 <div class="control-group">
                     <label class="control-label btn-group">
@@ -283,7 +268,7 @@
                         </ul>
                     </label>
                     <div class="controls">
-                        <span class="appLocation"></span>
+                        <span ><a id="appLocation" href="#"></a></span>
                     </div>
                 </div>
                 <div class="control-group">
@@ -331,13 +316,16 @@
                         </ul>
                     </label>
                     <div class="controls" style="padding-top: 5px;">
+                        <button class="btn">Open Typesafe Console</button>
                         <button class="btn">Deploy to Heroku</button>
                         <button class="btn">Setup CI on CloudBees</button>
                     </div>
                 </div>
-                <div class="form-actions">
+                <div style="margin-left: 20px; margin-top: 20px;">
                     <button class="btn btn-primary btn-large">View Docs</button>
                     <button class="btn btn-primary btn-large">Export as Zip</button>
+                    <button class="btn btn-primary btn-large">REPL</button>
+                    <button class="btn btn-primary btn-large">View Dependencies</button>
                 </div>
             </form>
         </div>

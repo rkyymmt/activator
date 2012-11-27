@@ -18,5 +18,18 @@ object Application extends Controller {
     
     Ok(request.body)
   }
+  
+  def openLocation = Action(parse.json) { request =>
+
+    val location = (request.body \ "location").as[String]
+    
+    val command = System.getProperty("os.name") match {
+      case "Linux" => "/usr/bin/xdg-open file://" + location
+    }
+    
+    Runtime.getRuntime().exec(command)
+
+    Ok(request.body)
+  }
 
 }
