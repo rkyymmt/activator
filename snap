@@ -6,7 +6,7 @@ while [ -h "$PRG" ] ; do
 done
 dir=`dirname $PRG`
 
-if [ "$1" = "ui" ] || [ ! -t 0 ]; then
+if [ "$1" = "ui" ] || [ ! -t 0 ] && [ "$1" = "" ]; then
   (sleep 3; xdg-open http://localhost:9999) &
   java -Dhttp.port=9999 -cp "$dir/snap-ui/target/staged/*" play.core.server.NettyServer $dir/snap-ui
   exit

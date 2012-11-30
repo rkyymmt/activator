@@ -88,11 +88,19 @@
                         contentType: 'application/json',
                         data: JSON.stringify({name: $("#inputNewAppName").val(), location: $("#inputNewAppLocation").val(), template: $("#inputNewAppTemplate").val()}),
                         success:  function(data) {
-                            $(".appName").text(data.name)
-                            $("#appLocation").text(data.location)
-
-                            $("#createApp").hide()
-                            $("#manageApp").show()
+                            var newApp = $("<a>").attr("href", "#").text(data.name + " (" + data.location + ")")
+                            $("#projectList .divider").after($("<li>").append(newApp))
+                            
+                            selectApp(newApp)
+                            
+                            startApp(data.location)
+                        },
+                        error: function(data) {
+                            $("#buttonCreateApp").before($("<div>").addClass("alert alert-error").css("margin-right", "20px")
+                                    .append($("<button>").addClass("close").attr("data-dismiss", "alert").html("&times;"))
+                                    .append($("<strong>").text("Error!"))
+                                    .append(" " + data.responseText)
+                            )
                         }
                     })
                 }
@@ -116,21 +124,7 @@
             })
             
             $("#projectList a").click(function(event) {
-                $(this).parent().siblings().removeClass("active")
-                $(this).parent().addClass("active")
-                
-                if ($(this).text() == "New App") {
-                    $("#createApp").show()
-                    $("#manageApp").hide()
-                }
-                else {
-                    var appPath = $(this).text().substring($(this).text().lastIndexOf("(") + 1, $(this).text().length - 1)
-                    
-                    $("#appLocation").text(appPath)
-                    
-                    $("#createApp").hide()
-                    $("#manageApp").show()
-                }
+                selectApp($(this))
             })
             
             $("#appLocation").click(function(event) {
@@ -166,6 +160,7 @@
             })
 
             updateCreateAppButton()
+            updateAppLocation()
         })
         
         // todo: inputNewAppLocation could be a giter8 url
@@ -189,7 +184,36 @@
             }
         }
         
-        updateAppLocation()
+        function selectApp(item) {
+            item.parent().siblings().removeClass("active")
+            item.parent().addClass("active")
+
+            if (item.text() == "New App") {
+                $("#createApp").show()
+                $("#manageApp").hide()
+            }
+            else {
+                var appPath = item.text().substring(item.text().lastIndexOf("(") + 1, item.text().length - 1)
+
+                $("#appLocation").text(appPath)
+
+                $("#createApp").hide()
+                $("#manageApp").show()
+            }
+        }
+        
+        function startApp(location) {
+            $.ajax({
+                url: "start",
+                type: "POST",
+                dataType: "json",
+                contentType: 'application/json',
+                data: JSON.stringify({location: $("#appLocation").text()}),
+                success:  function(data) {
+                    console.log("started app")
+                }
+            })
+        }
     </script>
 </head>
 
@@ -207,6 +231,7 @@
     <ul id="projectList" class="nav nav-list">
         <li class="nav-header">Projects</li>
         <li class="active"><a href="#">New App</a></li>
+        <li class="divider"></li>
         <li><a href="#">foo (/home/jamesw/projects/foo)</a></li>
         <li><a href="#">bar (/home/jamesw/projects/bar)</a></li>
         <li><a href="#">play2torial (/home/jamesw/projects/play2torial)</a></li>
@@ -214,7 +239,6 @@
         <li><a href="#">asdf (/home/jamesw/Desktop/asdf)</a></li>
         <li><a href="#">zxcv (/home/jamesw/Desktop/zxcv)</a></li>
         <button class="btn btn-mini">Other...</button>
-        <!--<li class="divider"></li>-->
     </ul>
 </div>
 

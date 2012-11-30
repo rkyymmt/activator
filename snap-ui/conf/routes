@@ -7,6 +7,7 @@
 
 POST    /clone                      controllers.Application.cloneTemplate
 POST    /open                       controllers.Application.openLocation
+POST    /start                      controllers.Application.startApp
 
 GET     /webjars/*file              controllers.WebJarAssets.at(file)
 

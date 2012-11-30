@@ -10,7 +10,8 @@ object ApplicationBuild extends Build {
 
     val appDependencies = Seq(
       "org.webjars" % "webjars-play" % "2.0",
-      "org.webjars" % "bootstrap" % "2.2.1"
+      "org.webjars" % "bootstrap" % "2.2.1",
+      "commons-io" % "commons-io" % "2.0.1"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
