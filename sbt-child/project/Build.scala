@@ -31,12 +31,13 @@ object SbtChildBuild extends Build {
     lazy val sharedSettings = ScalariformPlugin.scalariformSettings ++ Seq(
         ScalariformKeys.preferences in Compile := formatPrefs,
         ScalariformKeys.preferences in Test    := formatPrefs) ++ Seq(
-            scalacOptions := Seq("-unchecked", "-deprecation")
+            scalacOptions := Seq("-unchecked", "-deprecation"),
+            libraryDependencies += "com.novocode" % "junit-interface" % "0.7" % "test"
         )
 
     lazy val plugin = Project(id = "sbt-child",
                                base = file("plugin"),
-                               settings = pluginSettings)
+                               settings = pluginSettings) dependsOn(protocol)
 
     lazy val pluginSettings = Project.defaultSettings ++
         sharedSettings ++
