@@ -9,6 +9,8 @@ import Scope.GlobalScope
 import com.typesafe.sbtchild.IPC
 import com.typesafe.sbtchild.Protocol._
 
+// this is a Plugin but currently we don't use it as one
+// (see SetupSbtChild below)
 object SbtChild extends Plugin {
   override lazy val settings = Seq.empty
 
@@ -26,17 +28,27 @@ object SbtChild extends Plugin {
     port
   }
 
+  lazy val client = IPC.openClient(getPort())
+
   val ListenCommandName = "listen"
 
   val listen = Command.command(ListenCommandName, Help.more(ListenCommandName, "listens for remote commands")) { origState =>
-    val client = IPC.openClient(getPort())
-    val line: Option[String] = Some("") // FIXME
-    line match {
-      case Some(line) =>
-        val newState = origState.copy(onFailure = Some(ListenCommandName),
-          remainingCommands = line +: ListenCommandName +: origState.remainingCommands)
-        if (line.trim.isEmpty) newState else newState.clearGlobalLog
-      case None => origState
+    val req = client.receiveRequest
+    req match {
+      case (message, NameRequest) =>
+        client.replyName(message.serial, "foobar") // FIXME
+      case _ =>
+      // FIXME send some kind of error
     }
+
+    val newState = origState.copy(onFailure = Some(ListenCommandName),
+      remainingCommands = ListenCommandName +: origState.remainingCommands)
+    newState
+  }
+}
+
+object SetupSbtChild extends (State => State) {
+  override def apply(s: State): State = {
+    s ++ Seq(SbtChild.listen)
   }
 }
