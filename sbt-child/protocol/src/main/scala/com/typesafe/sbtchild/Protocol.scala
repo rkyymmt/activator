@@ -13,6 +13,10 @@ import java.io.BufferedOutputStream
 import java.io.IOException
 import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicLong
+import java.io.ByteArrayOutputStream
+import java.io.ObjectOutputStream
+import java.io.ByteArrayInputStream
+import java.io.ObjectInputStream
 
 object IPC {
   private val loopback = InetAddress.getByName(null)
@@ -29,21 +33,29 @@ object IPC {
   private val ServerGreeting = "I am Server: " + version
   private val ClientGreeting = "I am Client: " + version
 
+  private val utf8 = Charset.forName("UTF-8")
+
+  case class Message(length: Int, serial: Long, replyTo: Long, body: Array[Byte]) {
+    def asString: String = {
+      new String(body, utf8)
+    }
+
+    def asDeserialized: AnyRef = {
+      val inStream = new ByteArrayInputStream(body)
+      val inObjectStream = new ObjectInputStream(inStream)
+      val o = inObjectStream.readObject()
+      inObjectStream.close()
+      o
+    }
+  }
+
   abstract class Peer(protected val socket: Socket) {
     private val in = new DataInputStream(new BufferedInputStream(socket.getInputStream()))
     private val out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()))
 
-    private val utf8 = Charset.forName("UTF-8")
-
     // this would only be useful if we buffered received messages and
     // allowed replies to be sent out of order
     private var nextSerial = 1L
-
-    case class Message(length: Int, serial: Long, replyTo: Long, body: Array[Byte]) {
-      def asString: String = {
-        new String(body, utf8)
-      }
-    }
 
     protected def handshake(toSend: String, toExpect: String): Unit = {
       sendString(toSend)
@@ -96,8 +108,20 @@ object IPC {
       reply(replyTo, message.getBytes(utf8))
     }
 
-    def receiveString(): String = {
-      receive().asString
+    private def toBytes(o: AnyRef): Array[Byte] = {
+      val byteStream = new ByteArrayOutputStream()
+      val objectStream = new ObjectOutputStream(byteStream)
+      objectStream.writeObject(o)
+      objectStream.close()
+      byteStream.toByteArray()
+    }
+
+    def sendSerialized(message: AnyRef): Unit = {
+      send(toBytes(message))
+    }
+
+    def replySerialized(replyTo: Long, message: AnyRef): Unit = {
+      reply(replyTo, toBytes(message))
     }
 
     def close(): Unit = {
@@ -139,40 +163,35 @@ object IPC {
 
 object Protocol {
 
-  sealed trait Tagged {
-    def tag: String
-    def serial: Long
-  }
+  sealed trait Message extends Product with Serializable
+  sealed trait Request extends Message
+  sealed trait Response extends Message
 
-  case class Name(override val serial: Long) extends Tagged {
-    override def tag = Name.tag
-  }
-
-  object Name {
-    val tag = "name"
-  }
+  case object NameRequest extends Request
+  case class NameResponse(name: String) extends Response
 
   class ClientOps(client: IPC.Client) {
-    def receiveRequest(): Tagged = {
+    def receiveRequest(): (IPC.Message, Request) = {
       val message = client.receive()
-      val body = message.asString
-      body match {
-        case Name.tag =>
-          Name(message.serial)
+      message.asDeserialized match {
+        case req: Request => (message, req)
       }
     }
+
     def replyName(replyTo: Long, name: String) = {
-      client.replyString(replyTo, name)
+      client.replySerialized(replyTo, NameResponse(name))
     }
   }
 
   class ServerOps(server: IPC.Server) {
     def requestName(): Unit = {
-      server.sendString(Name.tag)
+      server.sendSerialized(NameRequest)
     }
 
     def receiveName(): String = {
-      server.receiveString()
+      server.receive().asDeserialized match {
+        case NameResponse(name) => name
+      }
     }
   }
 

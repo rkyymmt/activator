@@ -10,8 +10,9 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class ProtocolTest {
-  @Test
-  def exchangeMessages() {
+
+  private def testClientServer(clientBlock: (IPC.Client) => Unit,
+    serverBlock: (IPC.Server) => Unit) = {
     val executor = Executors.newCachedThreadPool()
     val serverSocket = IPC.openServerSocket()
     val port = serverSocket.getLocalPort()
@@ -24,12 +25,12 @@ class ProtocolTest {
       override def run() = {
         try {
           val server = IPC.accept(serverSocket)
-          server.requestName()
-          val name = server.receiveName()
 
-          assertEquals("foobar", name)
-
-          server.close()
+          try {
+            serverBlock(server)
+          } finally {
+            server.close()
+          }
 
           ok = true
 
@@ -45,10 +46,13 @@ class ProtocolTest {
       override def run() = {
         try {
           val client = IPC.openClient(port)
-          client.receiveRequest() match {
-            case Name(replyTo) =>
-              client.replyName(replyTo, "foobar")
+
+          try {
+            clientBlock(client)
+          } finally {
+            client.close()
           }
+
         } catch {
           case e: Exception => fail = Some(e)
         } finally {
@@ -57,11 +61,29 @@ class ProtocolTest {
       }
     })
 
+    latch.await()
+
     executor.shutdown()
     executor.awaitTermination(1000, TimeUnit.MILLISECONDS)
 
     fail foreach { e => throw e }
 
     assertTrue(ok)
+  }
+
+  @Test
+  def testRetrieveProjectName(): Unit = {
+    testClientServer(
+      { (client) =>
+        client.receiveRequest() match {
+          case (message, NameRequest) =>
+            client.replyName(message.serial, "foobar")
+        }
+      },
+      { (server) =>
+        server.requestName()
+        val name = server.receiveName()
+        assertEquals("foobar", name)
+      })
   }
 }
