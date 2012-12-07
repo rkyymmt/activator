@@ -170,6 +170,9 @@ object Protocol {
   case object NameRequest extends Request
   case class NameResponse(name: String) extends Response
 
+  case object CompileRequest extends Request
+  case object CompileResponse extends Response
+
   class ClientOps(client: IPC.Client) {
     def receiveRequest(): (IPC.Message, Request) = {
       val message = client.receive()
@@ -181,6 +184,10 @@ object Protocol {
     def replyName(replyTo: Long, name: String) = {
       client.replySerialized(replyTo, NameResponse(name))
     }
+
+    def replyCompile(replyTo: Long) = {
+      client.replySerialized(replyTo, CompileResponse)
+    }
   }
 
   class ServerOps(server: IPC.Server) {
@@ -191,6 +198,16 @@ object Protocol {
     def receiveName(): String = {
       server.receive().asDeserialized match {
         case NameResponse(name) => name
+      }
+    }
+
+    def requestCompile(): Unit = {
+      server.sendSerialized(CompileRequest)
+    }
+
+    def receiveCompile(): Unit = {
+      server.receive().asDeserialized match {
+        case CompileResponse => ()
       }
     }
   }

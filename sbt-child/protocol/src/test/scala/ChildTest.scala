@@ -5,21 +5,20 @@ import org.junit.Assert._
 import org.junit._
 import com.typesafe.sbtchild._
 import com.typesafe.sbtchild.Protocol._
+import java.io.File
 
 class ChildTest {
 
   @Test
   def testTalkToChild(): Unit = {
-    val child = SbtChild()
+    val child = SbtChild(new File("."))
 
     child.server.requestName()
     val name = child.server.receiveName()
-    println("name is " + name)
-    assertEquals("foobar", name)
+    assertEquals("root", name)
 
     child.server.requestName()
     val name2 = child.server.receiveName()
-    println("name2 is " + name2)
-    assertEquals("foobar", name2)
+    assertEquals("root", name2)
   }
 }

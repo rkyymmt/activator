@@ -34,14 +34,24 @@ object SbtChild extends Plugin {
 
   val listen = Command.command(ListenCommandName, Help.more(ListenCommandName, "listens for remote commands")) { origState =>
     val req = client.receiveRequest
-    req match {
+
+    val ref = Project.extract(origState).currentRef
+    val extracted = Extracted(Project.structure(origState), Project.session(origState), ref)(Project.showFullKey)
+
+    val afterTaskState: State = req match {
       case (message, NameRequest) =>
-        client.replyName(message.serial, "foobar") // FIXME
+        val result = extracted.get(name)
+        client.replyName(message.serial, result)
+        origState
+      case (message, CompileRequest) =>
+        val (s, result) = extracted.runTask(compile, origState)
+        client.replyCompile(message.serial)
+        s
       case _ =>
-      // FIXME send some kind of error
+        throw new Exception("Bad request: " + req)
     }
 
-    val newState = origState.copy(onFailure = Some(ListenCommandName),
+    val newState = afterTaskState.copy(onFailure = Some(ListenCommandName),
       remainingCommands = ListenCommandName +: origState.remainingCommands)
     newState
   }

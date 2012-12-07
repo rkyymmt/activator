@@ -1,8 +1,9 @@
 package com.typesafe.sbtchild
 
 import scala.sys.process.Process
+import java.io.File
 
-class SbtChild {
+class SbtChild(workingDir: File) {
   private val serverSocket = IPC.openServerSocket()
   private val port = serverSocket.getLocalPort()
 
@@ -16,7 +17,8 @@ class SbtChild {
     // command to add our special hook
     "apply com.typesafe.sbt.SetupSbtChild",
     // enter the "get stuff from the socket" loop
-    "listen"))
+    "listen"),
+    workingDir)
 
   process.run()
 
@@ -24,5 +26,5 @@ class SbtChild {
 }
 
 object SbtChild {
-  def apply() = new SbtChild
+  def apply(workingDir: File) = new SbtChild(workingDir)
 }
