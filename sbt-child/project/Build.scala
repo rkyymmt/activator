@@ -65,6 +65,7 @@ object SbtChildBuild extends Build {
 		(version) =>
 		    Seq("org.scala-sbt" % "io" % version,
 			"org.scala-sbt" % "logging" % version,
-			"org.scala-sbt" % "process" % version)
+			"org.scala-sbt" % "process" % version,
+                        "com.typesafe.akka" % "akka-actor" % "2.0.3")
             })
 }
