@@ -33,7 +33,7 @@ class ProcessActorTest {
       case stopped: ProcessStopped => true
       case _ => false
     }, resultPromise)), name = "recorder")
-    process ! Subscribe(recorder)
+    process ! SubscribeProcess(recorder)
     process ! StartProcess
 
     val result = Await.result(resultPromise, 3 seconds)

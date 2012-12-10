@@ -2,13 +2,24 @@ package com.typesafe.sbtchild
 
 import scala.sys.process.Process
 import java.io.File
+import akka.actor._
+import java.util.concurrent.atomic.AtomicInteger
 
-class SbtChild(workingDir: File) {
+// You are supposed to send this thing requests from Protocol.Request,
+// to get back Protocol.Reply
+class SbtChildActor(workingDir: File) extends Actor {
+
   private val serverSocket = IPC.openServerSocket()
   private val port = serverSocket.getLocalPort()
 
+  private val outDecoder = new ByteStringDecoder
+  private val errDecoder = new ByteStringDecoder
+
+  private var started = false
+  private var preStartBuffer = Vector.empty[MakeServerRequest]
+
   // FIXME don't hardcode my homedir (we want the launcher to be part of snap)
-  private val process = Process(Seq("java",
+  private val process = context.actorOf(Props(new ProcessActor(Seq("java",
     "-Dsnap.sbt-child-port=" + port,
     "-Dsbt.boot.directory=/home/hp/.sbt/boot",
     "-Xss1024K", "-Xmx1024M", "-XX:PermSize=512M", "-XX:+CMSClassUnloadingEnabled",
@@ -18,13 +29,64 @@ class SbtChild(workingDir: File) {
     "apply com.typesafe.sbt.SetupSbtChild",
     // enter the "get stuff from the socket" loop
     "listen"),
-    workingDir)
+    workingDir)), "sbt-process")
 
-  process.run()
+  private val server = context.actorOf(Props(new ServerActor(serverSocket)), "sbt-server")
 
-  val server = IPC.accept(serverSocket)
+  server ! SubscribeServer(self)
+  server ! StartServer
+  process ! SubscribeProcess(self)
+  process ! StartProcess
+
+  override def receive = {
+    // request for the server actor
+    case req: Protocol.Request =>
+      val message = MakeServerRequest(sender, req)
+      if (started) {
+        server ! message
+      } else {
+        preStartBuffer = preStartBuffer :+ message
+      }
+
+    // message from server actor
+    case message: Protocol.Message => message match {
+      case Protocol.Started =>
+        started = true
+        preStartBuffer foreach { m => server ! m }
+        preStartBuffer = Vector.empty
+    }
+
+    // event from process actor
+    case event: ProcessEvent => event match {
+      case ProcessStopped(status) =>
+        // FIXME do something better
+        System.err.println("sbt stopped, status: " + status)
+      case ProcessStdOut(bytes) => {
+        outDecoder.feed(bytes)
+        // FIXME do something better
+        val s = outDecoder.read.mkString
+        if (s.length > 0)
+          System.err.println("sbt out: " + s)
+      }
+      case ProcessStdErr(bytes) => {
+        errDecoder.feed(bytes)
+        // FIXME do something better
+        val s = errDecoder.read.mkString
+        if (s.length > 0)
+          System.err.println("sbt err: " + s)
+      }
+    }
+  }
+
+  override def postStop() = {
+    if (!serverSocket.isClosed())
+      serverSocket.close()
+  }
 }
 
 object SbtChild {
-  def apply(workingDir: File) = new SbtChild(workingDir)
+  def apply(system: ActorSystem, workingDir: File): ActorRef = system.actorOf(Props(new SbtChildActor(workingDir)),
+    "sbt-child-" + SbtChild.nextSerial.getAndIncrement())
+
+  private val nextSerial = new AtomicInteger(1)
 }

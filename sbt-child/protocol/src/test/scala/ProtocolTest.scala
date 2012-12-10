@@ -75,14 +75,20 @@ class ProtocolTest {
   def testRetrieveProjectName(): Unit = {
     testClientServer(
       { (client) =>
-        client.receiveRequest() match {
-          case (message, NameRequest) =>
-            client.replyName(message.serial, "foobar")
+        Protocol.Envelope(client.receive()) match {
+          case Protocol.Envelope(serial, replyTo, NameRequest) =>
+            client.replySerialized(serial, NameResponse("foobar"))
+          case Protocol.Envelope(serial, replyTo, other) =>
+            client.replySerialized(serial, ErrorResponse("did not understand request: " + other))
         }
       },
       { (server) =>
-        server.requestName()
-        val name = server.receiveName()
+        server.sendSerialized(NameRequest)
+        val name = Protocol.Envelope(server.receive()) match {
+          case Protocol.Envelope(serial, replyTo, r: NameResponse) => r.name
+          case Protocol.Envelope(serial, replyTo, r) =>
+            throw new AssertionError("unexpected response: " + r)
+        }
         assertEquals("foobar", name)
       })
   }

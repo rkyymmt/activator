@@ -35,13 +35,19 @@ object IPC {
 
   private val utf8 = Charset.forName("UTF-8")
 
-  case class Message(length: Int, serial: Long, replyTo: Long, body: Array[Byte]) {
+  trait Envelope[T] {
+    def serial: Long
+    def replyTo: Long
+    def content: T
+  }
+
+  case class WireEnvelope(length: Int, override val serial: Long, override val replyTo: Long, override val content: Array[Byte]) extends Envelope[Array[Byte]] {
     def asString: String = {
-      new String(body, utf8)
+      new String(content, utf8)
     }
 
     def asDeserialized: AnyRef = {
-      val inStream = new ByteArrayInputStream(body)
+      val inStream = new ByteArrayInputStream(content)
       val inObjectStream = new ObjectInputStream(inStream)
       val o = inObjectStream.readObject()
       inObjectStream.close()
@@ -49,6 +55,9 @@ object IPC {
     }
   }
 
+  // This is intended to support reading from one thread
+  // while writing from another, but not two threads both
+  // reading or both writing concurrently
   abstract class Peer(protected val socket: Socket) {
     private val in = new DataInputStream(new BufferedInputStream(socket.getInputStream()))
     private val out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()))
@@ -73,38 +82,41 @@ object IPC {
       }
     }
 
-    def send(message: Message): Unit = {
+    def isClosed = socket.isClosed()
+
+    def send(message: WireEnvelope): Unit = {
       out.writeInt(message.length)
       out.writeLong(message.serial)
       out.writeLong(message.replyTo)
-      out.write(message.body)
+      out.write(message.content)
       out.flush()
     }
 
-    def send(message: Array[Byte]): Unit = {
+    def send(message: Array[Byte]): Long = {
       reply(0L, message)
     }
 
-    def reply(replyTo: Long, message: Array[Byte]): Unit = {
-      send(Message(message.length, nextSerial, replyTo, message))
+    def reply(replyTo: Long, message: Array[Byte]): Long = {
+      val serial = nextSerial
       nextSerial += 1
+      send(WireEnvelope(message.length, serial, replyTo, message))
+      serial
     }
 
-    def receive(): Message = {
+    def receive(): WireEnvelope = {
       val length = in.readInt()
       val serial = in.readLong()
       val replyTo = in.readLong()
       val bytes = new Array[Byte](length)
       in.readFully(bytes)
-      val m = Message(length, serial, replyTo, bytes)
-      m
+      WireEnvelope(length, serial, replyTo, bytes)
     }
 
-    def sendString(message: String): Unit = {
+    def sendString(message: String): Long = {
       send(message.getBytes(utf8))
     }
 
-    def replyString(replyTo: Long, message: String): Unit = {
+    def replyString(replyTo: Long, message: String): Long = {
       reply(replyTo, message.getBytes(utf8))
     }
 
@@ -116,11 +128,11 @@ object IPC {
       byteStream.toByteArray()
     }
 
-    def sendSerialized(message: AnyRef): Unit = {
+    def sendSerialized(message: AnyRef): Long = {
       send(toBytes(message))
     }
 
-    def replySerialized(replyTo: Long, message: AnyRef): Unit = {
+    def replySerialized(replyTo: Long, message: AnyRef): Long = {
       reply(replyTo, toBytes(message))
     }
 
@@ -163,9 +175,11 @@ object IPC {
 
 object Protocol {
 
+  // These are wire messages on the socket
   sealed trait Message extends Product with Serializable
   sealed trait Request extends Message
   sealed trait Response extends Message
+  sealed trait Event extends Message
 
   case object NameRequest extends Request
   case class NameResponse(name: String) extends Response
@@ -173,47 +187,26 @@ object Protocol {
   case object CompileRequest extends Request
   case object CompileResponse extends Response
 
-  class ClientOps(client: IPC.Client) {
-    def receiveRequest(): (IPC.Message, Request) = {
-      val message = client.receive()
-      message.asDeserialized match {
-        case req: Request => (message, req)
-      }
-    }
+  // can be the response to anything
+  case class ErrorResponse(error: String) extends Response
 
-    def replyName(replyTo: Long, name: String) = {
-      client.replySerialized(replyTo, NameResponse(name))
-    }
+  // pseudo-wire-messages we synthesize locally
+  case object Started extends Event
+  case object Stopped extends Event
 
-    def replyCompile(replyTo: Long) = {
-      client.replySerialized(replyTo, CompileResponse)
-    }
-  }
+  // should not happen, basically
+  case class MysteryMessage(something: Any) extends Message
 
-  class ServerOps(server: IPC.Server) {
-    def requestName(): Unit = {
-      server.sendSerialized(NameRequest)
-    }
+  case class Envelope(override val serial: Long, override val replyTo: Long, override val content: Message) extends IPC.Envelope[Message]
 
-    def receiveName(): String = {
-      server.receive().asDeserialized match {
-        case NameResponse(name) => name
-      }
-    }
-
-    def requestCompile(): Unit = {
-      server.sendSerialized(CompileRequest)
-    }
-
-    def receiveCompile(): Unit = {
-      server.receive().asDeserialized match {
-        case CompileResponse => ()
+  object Envelope {
+    def apply(wire: IPC.WireEnvelope): Envelope = {
+      wire.asDeserialized match {
+        case m: Message =>
+          Envelope(wire.serial, wire.replyTo, m)
+        case other =>
+          Envelope(wire.serial, wire.replyTo, MysteryMessage(other))
       }
     }
   }
-
-  implicit def client2ops(client: IPC.Client) = new ClientOps(client)
-
-  implicit def server2ops(server: IPC.Server) = new ServerOps(server)
-
 }

@@ -68,6 +68,8 @@ class ByteStringDecoder {
   }
 
   def read(): Seq[String] = {
+    clearOutBuffer()
+
     val result = decoded
     decoded = Vector.empty
     result

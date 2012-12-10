@@ -7,10 +7,11 @@ import java.io.File
 import akka.util.ByteString
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.CountDownLatch
+import java.io.IOException
 
 sealed trait ProcessRequest
-case class Subscribe(ref: ActorRef) extends ProcessRequest
-case class Unsubscribe(ref: ActorRef) extends ProcessRequest
+case class SubscribeProcess(ref: ActorRef) extends ProcessRequest
+case class UnsubscribeProcess(ref: ActorRef) extends ProcessRequest
 case object StartProcess extends ProcessRequest
 case object DestroyProcess extends ProcessRequest
 
@@ -32,10 +33,10 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
 
   override def receive = {
     case req: ProcessRequest => req match {
-      case Subscribe(ref) =>
+      case SubscribeProcess(ref) =>
         subscribers = subscribers + ref
         context.watch(ref)
-      case Unsubscribe(ref) =>
+      case UnsubscribeProcess(ref) =>
         subscribers = subscribers - ref
         context.unwatch(ref)
       case StartProcess =>
@@ -89,11 +90,21 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
                   val bytes = new Array[Byte](256)
                   val count = out.read(bytes)
                   if (count > 0) {
+                    //try {
+                    //  val s = new String(bytes, 0, count, "UTF-8")
+                    //  System.err.println("Read from child: " + s)
+                    //} catch {
+                    //  case e: Exception =>
+                    //}
                     selfRef ! wrap(ByteString.fromArray(bytes, 0, count))
                   } else if (count == -1) {
                     eof = true
                   }
                 }
+              } catch {
+                case e: IOException =>
+                // an expected exception here is "stream closed"
+                // on stream close we end the thread.
               } finally {
                 streamLatch.countDown()
               }

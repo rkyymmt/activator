@@ -7,7 +7,7 @@ import Keys._
 import Defaults._
 import Scope.GlobalScope
 import com.typesafe.sbtchild.IPC
-import com.typesafe.sbtchild.Protocol._
+import com.typesafe.sbtchild.Protocol
 
 // this is a Plugin but currently we don't use it as one
 // (see SetupSbtChild below)
@@ -33,19 +33,21 @@ object SbtChild extends Plugin {
   val ListenCommandName = "listen"
 
   val listen = Command.command(ListenCommandName, Help.more(ListenCommandName, "listens for remote commands")) { origState =>
-    val req = client.receiveRequest
+    val req = Protocol.Envelope(client.receive())
 
     val ref = Project.extract(origState).currentRef
     val extracted = Extracted(Project.structure(origState), Project.session(origState), ref)(Project.showFullKey)
 
     val afterTaskState: State = req match {
-      case (message, NameRequest) =>
+      case Protocol.Envelope(serial, replyTo, Protocol.NameRequest) =>
         val result = extracted.get(name)
-        client.replyName(message.serial, result)
+        client.replySerialized(serial, Protocol.NameResponse(result))
         origState
-      case (message, CompileRequest) =>
+      case Protocol.Envelope(serial, replyTo, Protocol.CompileRequest) =>
+        System.err.println("Running compile...")
         val (s, result) = extracted.runTask(compile, origState)
-        client.replyCompile(message.serial)
+        System.err.println("Replying to compile...")
+        client.replySerialized(serial, Protocol.CompileResponse)
         s
       case _ =>
         throw new Exception("Bad request: " + req)
