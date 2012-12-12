@@ -5,11 +5,11 @@ import java.io.File
 import akka.actor._
 import java.util.concurrent.atomic.AtomicInteger
 
-// You are supposed to send this thing requests from Protocol.Request,
-// to get back Protocol.Reply
+// You are supposed to send this thing requests from protocol.Request,
+// to get back protocol.Reply
 class SbtChildActor(workingDir: File) extends Actor {
 
-  private val serverSocket = IPC.openServerSocket()
+  private val serverSocket = ipc.openServerSocket()
   private val port = serverSocket.getLocalPort()
 
   private val outDecoder = new ByteStringDecoder
@@ -40,7 +40,7 @@ class SbtChildActor(workingDir: File) extends Actor {
 
   override def receive = {
     // request for the server actor
-    case req: Protocol.Request =>
+    case req: protocol.Request =>
       val message = MakeServerRequest(sender, req)
       if (started) {
         server ! message
@@ -49,11 +49,14 @@ class SbtChildActor(workingDir: File) extends Actor {
       }
 
     // message from server actor
-    case message: Protocol.Message => message match {
-      case Protocol.Started =>
+    case message: protocol.Message => message match {
+      case protocol.Started =>
         started = true
         preStartBuffer foreach { m => server ! m }
         preStartBuffer = Vector.empty
+      case protocol.Stopped =>
+        // FIXME do what?
+        System.err.println("ipc stopped")
     }
 
     // event from process actor
@@ -66,14 +69,14 @@ class SbtChildActor(workingDir: File) extends Actor {
         // FIXME do something better
         val s = outDecoder.read.mkString
         if (s.length > 0)
-          System.err.println("sbt out: " + s)
+          System.err.println("sbt out: " + s.trim())
       }
       case ProcessStdErr(bytes) => {
         errDecoder.feed(bytes)
         // FIXME do something better
         val s = errDecoder.read.mkString
         if (s.length > 0)
-          System.err.println("sbt err: " + s)
+          System.err.println("sbt err: " + s.trim())
       }
     }
   }

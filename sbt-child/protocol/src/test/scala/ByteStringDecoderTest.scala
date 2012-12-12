@@ -4,7 +4,6 @@
 import org.junit.Assert._
 import org.junit._
 import com.typesafe.sbtchild._
-import com.typesafe.sbtchild.Protocol._
 import java.io.File
 import akka.util.ByteString
 

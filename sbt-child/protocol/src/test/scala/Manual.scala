@@ -18,16 +18,27 @@ object Main extends App {
 
       implicit val timeout = Timeout(60 seconds)
 
-      val name = Await.result(child ? Protocol.NameRequest, 10 seconds) match {
-        case Protocol.NameResponse(n) => n
+      val name = Await.result(child ? protocol.NameRequest, 60 seconds) match {
+        case protocol.NameResponse(n, logs) => {
+          System.err.println("logs=" + logs)
+          n
+        }
+        case protocol.ErrorResponse(error, logs) =>
+          throw new Exception("Failed to get project name: " + error)
       }
       println("Project is: " + name)
 
-      //val compiled = Await.result(child ? Protocol.CompileRequest, 60 seconds) match {
-      //  case Protocol.CompileResponse => true
-      //}
+      val compiled = Await.result(child ? protocol.CompileRequest, 60 seconds) match {
+        case protocol.CompileResponse(logs) => {
+          System.err.println("logs=" + logs)
+          true
+        }
+        case protocol.ErrorResponse(error, logs) =>
+          System.err.println("Failed to compile: " + error)
+          false
+      }
 
-      //println("compiled=" + compiled)
+      println("compiled=" + compiled)
 
     } finally {
       system.stop(child)

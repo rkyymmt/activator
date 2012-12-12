@@ -5,16 +5,15 @@ import org.junit.Assert._
 import org.junit._
 import com.typesafe.sbtchild._
 import java.util.concurrent.Executors
-import com.typesafe.sbtchild.Protocol._
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class ProtocolTest {
 
-  private def testClientServer(clientBlock: (IPC.Client) => Unit,
-    serverBlock: (IPC.Server) => Unit) = {
+  private def testClientServer(clientBlock: (ipc.Client) => Unit,
+    serverBlock: (ipc.Server) => Unit) = {
     val executor = Executors.newCachedThreadPool()
-    val serverSocket = IPC.openServerSocket()
+    val serverSocket = ipc.openServerSocket()
     val port = serverSocket.getLocalPort()
     val latch = new CountDownLatch(2)
 
@@ -24,7 +23,7 @@ class ProtocolTest {
     executor.execute(new Runnable() {
       override def run() = {
         try {
-          val server = IPC.accept(serverSocket)
+          val server = ipc.accept(serverSocket)
 
           try {
             serverBlock(server)
@@ -45,7 +44,7 @@ class ProtocolTest {
     executor.execute(new Runnable() {
       override def run() = {
         try {
-          val client = IPC.openClient(port)
+          val client = ipc.openClient(port)
 
           try {
             clientBlock(client)
@@ -75,18 +74,18 @@ class ProtocolTest {
   def testRetrieveProjectName(): Unit = {
     testClientServer(
       { (client) =>
-        Protocol.Envelope(client.receive()) match {
-          case Protocol.Envelope(serial, replyTo, NameRequest) =>
-            client.replySerialized(serial, NameResponse("foobar"))
-          case Protocol.Envelope(serial, replyTo, other) =>
-            client.replySerialized(serial, ErrorResponse("did not understand request: " + other))
+        protocol.Envelope(client.receive()) match {
+          case protocol.Envelope(serial, replyTo, protocol.NameRequest) =>
+            client.replySerialized(serial, protocol.NameResponse("foobar", List(protocol.LogMessage(1, "a message"))))
+          case protocol.Envelope(serial, replyTo, other) =>
+            client.replySerialized(serial, protocol.ErrorResponse("did not understand request: " + other, Nil))
         }
       },
       { (server) =>
-        server.sendSerialized(NameRequest)
-        val name = Protocol.Envelope(server.receive()) match {
-          case Protocol.Envelope(serial, replyTo, r: NameResponse) => r.name
-          case Protocol.Envelope(serial, replyTo, r) =>
+        server.sendSerialized(protocol.NameRequest)
+        val name = protocol.Envelope(server.receive()) match {
+          case protocol.Envelope(serial, replyTo, r: protocol.NameResponse) => r.name
+          case protocol.Envelope(serial, replyTo, r) =>
             throw new AssertionError("unexpected response: " + r)
         }
         assertEquals("foobar", name)

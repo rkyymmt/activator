@@ -4,7 +4,7 @@
 import org.junit.Assert._
 import org.junit._
 import com.typesafe.sbtchild._
-import com.typesafe.sbtchild.Protocol._
+import com.typesafe.sbtchild.protocol._
 import java.io.File
 import akka.actor._
 import akka.dispatch._
@@ -24,12 +24,12 @@ class ChildTest {
 
       try {
         val name = Await.result(child ? NameRequest, 10 seconds) match {
-          case NameResponse(n) => n
+          case NameResponse(n, logs) => n
         }
         assertEquals("root", name)
 
         val name2 = Await.result(child ? NameRequest, 10 seconds) match {
-          case NameResponse(n) => n
+          case NameResponse(n, logs) => n
         }
         assertEquals("root", name2)
 

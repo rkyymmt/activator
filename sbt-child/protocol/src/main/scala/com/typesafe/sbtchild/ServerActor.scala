@@ -12,13 +12,13 @@ sealed trait ServerActorRequest
 case class SubscribeServer(ref: ActorRef) extends ServerActorRequest
 case class UnsubscribeServer(ref: ActorRef) extends ServerActorRequest
 case object StartServer extends ServerActorRequest
-case class ServerAccepted(server: IPC.Server) extends ServerActorRequest
-case class MakeServerRequest(replyTo: ActorRef, request: Protocol.Request) extends ServerActorRequest
+case class ServerAccepted(server: ipc.Server) extends ServerActorRequest
+case class MakeServerRequest(replyTo: ActorRef, request: protocol.Request) extends ServerActorRequest
 
 class ServerActor(serverSocket: ServerSocket) extends Actor {
   var subscribers: Set[ActorRef] = Set.empty
 
-  var serverOption: Option[IPC.Server] = None
+  var serverOption: Option[ipc.Server] = None
 
   val pool = Executors.newCachedThreadPool()
 
@@ -47,7 +47,7 @@ class ServerActor(serverSocket: ServerSocket) extends Actor {
     case Terminated(ref) =>
       subscribers = subscribers - ref
 
-    case e: Protocol.Envelope =>
+    case e: protocol.Envelope =>
       if (e.replyTo != 0L) {
         // replies
         pendingReplies.get(e.replyTo) foreach { requestor =>
@@ -60,7 +60,7 @@ class ServerActor(serverSocket: ServerSocket) extends Actor {
           s ! e.content
         }
         e.content match {
-          case Protocol.Stopped =>
+          case protocol.Stopped =>
             context.stop(self)
           case _ =>
         }
@@ -70,15 +70,15 @@ class ServerActor(serverSocket: ServerSocket) extends Actor {
   def start(): Unit = {
     pool.execute(new Runnable() {
       override def run = {
-        val server = IPC.accept(serverSocket)
+        val server = ipc.accept(serverSocket)
         if (!serverSocket.isClosed())
           serverSocket.close() // we only want one connection
         selfRef ! ServerAccepted(server)
-        selfRef ! Protocol.Envelope(0L, 0L, Protocol.Started)
+        selfRef ! protocol.Envelope(0L, 0L, protocol.Started)
         try {
           while (!server.isClosed) {
             val wire = server.receive()
-            selfRef ! Protocol.Envelope(wire)
+            selfRef ! protocol.Envelope(wire)
           }
         } catch {
           case e: SocketException =>
@@ -86,7 +86,7 @@ class ServerActor(serverSocket: ServerSocket) extends Actor {
             if (!server.isClosed)
               server.close()
         } finally {
-          selfRef ! Protocol.Envelope(0L, 0L, Protocol.Stopped)
+          selfRef ! protocol.Envelope(0L, 0L, protocol.Stopped)
         }
       }
     })
