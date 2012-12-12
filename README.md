@@ -16,13 +16,28 @@ or just
 
     sbt "snap-ui/run"
 
+## Staging a distribution
+
+    sbt> snap-dist/stage
+
+or just
+
+    sbt> stage 
+
+*Note: just stage will also run `ui/stage`*
+
+Generates a distribution in the `dist/target/stage` directory.
+
 ## Building the Distribution
 
-    sbt> snap-dist/universal:package-bin
+    sbt> snap-dist/dist
+
+or just
+
+    sbt> dist
+
+*Note: just stage will also run `ui/dist`*
 
 Generates the file `dist/target/universal/snap.zip`.
-
-*Note: I plan to make this just `dist` in the future*
-
 
 # Licensing?
