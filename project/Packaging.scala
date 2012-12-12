@@ -1,6 +1,5 @@
 import sbt._
 import Keys._
-
 import SbtSupport.sbtLaunchJar
 
 package sbt {
@@ -16,6 +15,7 @@ object Packaging {
   val repackagedLaunchJar = TaskKey[File]("repackaged-launch-jar", "The SNAP launch jar.")
   val repackagedLaunchMappings = TaskKey[Seq[(File, String)]]("repackaged-launch-mappings", "New files for sbt-launch-jar")
 
+  val localRepoProjectsPublished = TaskKey[Unit]("local-repo-projects-published", "Ensures local projects are published before generating the local repo.")
   val localRepoArtifacts = SettingKey[Seq[ModuleID]]("local-repository-artifacts", "Artifacts included in the local repository.")
   val localRepoName = "install-to-local-repository"
   val localRepo = SettingKey[File]("local-repository", "The location to install a local repository.")
@@ -28,7 +28,7 @@ object Packaging {
     packageSummary := "Typesafe SNAP",
     packageDescription := """A templating and project runner for Typesafe applications.""",
     mappings in Universal <+= repackagedLaunchJar map { jar =>
-      jar -> "bin/snap-launch.jar"
+      jar -> "snap-launch.jar"
     },
     mappings in Universal <++= localRepoCreated map { repo =>
       for {
@@ -47,7 +47,10 @@ object Packaging {
     localRepo <<= target(_ / "local-repository"),
     localRepoArtifacts := Seq.empty,
     resolvers <+= localRepo apply { f => Resolver.file(localRepoName, f)(Resolver.ivyStylePatterns) },
-    localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt, streams) map { (r, m, i, s) => 
+    // This hack removes the project resolver so we don't resolve stub artifacts.
+    fullResolvers <<= (externalResolvers, sbtResolver) map (_ :+ _),
+    localRepoProjectsPublished <<= (TheSnapBuild.publishedProjects map (publishLocal in _)).dependOn,
+    localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
       createLocalRepository(m, i, s.log)
       r
     }
@@ -58,25 +61,35 @@ object Packaging {
       modules: Seq[ModuleID], 
       ivy: IvySbt, 
       log: Logger): Unit = ivy.withIvy(log) { ivy =>
-    
+
     import org.apache.ivy.core.module.id.ModuleRevisionId
     import org.apache.ivy.core.report.ResolveReport
     import org.apache.ivy.core.install.InstallOptions
     import org.apache.ivy.plugins.matcher.PatternMatcher
+    import org.apache.ivy.util.filter.FilterHelper
 
-    def installModule(module: ModuleID): ResolveReport = {
+
+    // This helper method installs a particular module and transitive dependencies.
+    def installModule(module: ModuleID): Option[ResolveReport] = {
       // TODO - Use SBT's default ModuleID -> ModuleRevisionId
       val mrid = IvySbtCheater toID module
-      ivy.install(mrid, "sbt-chain", localRepoName, 
+      val name = ivy.getResolveEngine.getSettings.getResolverName(mrid)
+      log.debug("Module: " + mrid + " should use resolver: " + name)
+      try Some(ivy.install(mrid, name, localRepoName,
                 new InstallOptions()
                     .setTransitive(true)
                     .setValidate(false)
                     .setOverwrite(true)
-                    .setConfs(Array("default", "compile"))
-                    .setMatcherName(PatternMatcher.EXACT))
-                    // Grab all Artifacts
-                    //.setArtifactFilter(FilterHelper.getArtifactTypeFilter(`type`))
+                    .setMatcherName(PatternMatcher.EXACT)
+                ))
+       catch {
+         case e: Exception =>
+           log.debug("Failed to resolve module: " + module)
+           log.trace(e)
+           None
+       }
     }
+    // Grab all Artifacts
     modules foreach installModule     
   }
 
@@ -127,13 +140,14 @@ object Packaging {
   components: xsbti
 
 [repositories]
+  snap-local: file://${snap.local.repository-${snap.home-${user.home}/.snap}/repository}, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
   local
   maven-central
   typesafe-releases: http://typesafe.artifactoryonline.com/typesafe/releases
   typesafe-ivy-releases: http://typesafe.artifactoryonline.com/typesafe/ivy-releases, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
 
 [boot]
- directory: ${dsbt.boot.directory-${dsbt.global.base-${user.home}/.sbt}/boot/}
+ directory: ${sbt.boot.directory-${sbt.global.base-${user.home}/.sbt}/boot/}
 
 [ivy]
   ivy-home: ${user.home}/.ivy2
