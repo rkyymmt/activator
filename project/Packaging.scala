@@ -20,13 +20,22 @@ object Packaging {
   val localRepoName = "install-to-local-repository"
   val localRepo = SettingKey[File]("local-repository", "The location to install a local repository.")
   val localRepoCreated = TaskKey[File]("local-repository-created", "Creates a local repository in the specified location.")
-
+  
+  // This is dirty, but play has stolen our keys, and we must mimc them here.
+  val stage = TaskKey[Unit]("stage")
+  val dist = TaskKey[File]("dist")
+  
   def settings: Seq[Setting[_]] = packagerSettings ++ Seq(
     name := "snap",
     wixConfig := <wix/>,
     maintainer := "Josh Suereth <joshua.suereth@typesafe.com>",
     packageSummary := "Typesafe SNAP",
     packageDescription := """A templating and project runner for Typesafe applications.""",
+    stage <<= (target, mappings in Universal) map { (t, m) =>
+      val to = t / "stage"
+      IO.copy(m collect { case (f, p) => f -> (to / p) })
+    },
+    dist <<= packageBin in Universal,
     mappings in Universal <+= repackagedLaunchJar map { jar =>
       jar -> "bin/snap-launch.jar"
     },
