@@ -44,14 +44,12 @@ object Packaging {
     repackagedLaunchMappings := Seq.empty,
     repackagedLaunchMappings <+= (target, scalaVersion, version) map makeLauncherProps,
 
-    // This hack removes the project resolver so we don't resolve stub artifacts.
-    fullResolvers <<= (externalResolvers, sbtResolver) map (_ :+ _),
-    localRepoProjectsPublished <<= (TheSnapBuild.publishedProjects map (publishLocal in _)).dependOn,
     localRepo <<= target(_ / "local-repository"),
     localRepoArtifacts := Seq.empty,
     resolvers <+= localRepo apply { f => Resolver.file(localRepoName, f)(Resolver.ivyStylePatterns) },
-    // We're going to add a hack here so that we ensure the other projects are published before resolving them.
-    // This is temporary until we figure out SBT's crazy Ivy usage.
+    // This hack removes the project resolver so we don't resolve stub artifacts.
+    fullResolvers <<= (externalResolvers, sbtResolver) map (_ :+ _),
+    localRepoProjectsPublished <<= (TheSnapBuild.publishedProjects map (publishLocal in _)).dependOn,
     localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
       createLocalRepository(m, i, s.log)
       r
