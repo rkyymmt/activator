@@ -16,7 +16,7 @@ object SnapBuild {
   )
 
   def SnapPlayProject(name: String): Project = (
-    play.Project("snap-" + name, "ignore-me-version", Seq.empty) 
+    play.Project("snap-" + name, path = file(name)) 
     settings(snapDefaults:_*)
   )
 }
