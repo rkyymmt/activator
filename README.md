@@ -18,7 +18,7 @@ or just
 
 ## Building the Distribution
 
-    sbt> snap-dist/univeral:package-bin`
+    sbt> snap-dist/univeral:package-bin
 
 Generates the file `dist/target/universal/snap.zip`.
 
