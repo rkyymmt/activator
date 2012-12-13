@@ -11,7 +11,8 @@ class UIMain extends AppMain {
 
   def run(configuration: AppConfiguration) = {
     // Start the Play app... (TODO - how do we know when we're done?)
-    play.core.server.NettyServer.main(configuration.arguments)
+    // TODO - Is this hack ok?
+    withContextClassloader(play.core.server.NettyServer.main(configuration.arguments))
 
     // Delay opening the browser a short bit so play can start.
     // TODO - is this worth it?
@@ -44,6 +45,14 @@ class UIMain extends AppMain {
                                    |Please point your browser at:
                                    | http://localhost:9000/""".stripMargin)
     }
+  }
+
+  def withContextClassloader[A](f: => A): A = {
+    val current = Thread.currentThread
+    val old = current.getContextClassLoader
+    current setContextClassLoader getClass.getClassLoader
+    try f
+    finally current setContextClassLoader old
   }
 
   // TODO - Is it ok to use swing?  We can detect that actually....
