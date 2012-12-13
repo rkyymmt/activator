@@ -145,7 +145,7 @@ object Packaging {
   name: snap-launcher
   version: %s
   class: snap.SnapLauncher
-  cross-versioned: true
+  cross-versioned: false
   components: xsbti
 
 [repositories]

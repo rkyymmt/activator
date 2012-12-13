@@ -7,7 +7,8 @@ object SnapBuild {
   def snapDefaults: Seq[Setting[_]] =
     Seq(
       organization := "com.typesafe.snap",
-      version := "1.0-SNAPSHOT"
+      version := "1.0-SNAPSHOT",
+      crossPaths := false
     )
 
   def SnapProject(name: String): Project = (
