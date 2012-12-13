@@ -16,6 +16,11 @@ object TheSnapBuild extends Build {
     aggregate(ui, launcher, dist)
   )
 
+  lazy val props = (
+    SnapJavaProject("props")
+    settings(Properties.makePropertyClassSetting(SnapDependencies.sbtVersion):_*)
+  )
+
   // Theser are the projects we want in the local SNAP repository
   lazy val publishedProjects = Seq(ui, launcher)
 
@@ -27,6 +32,7 @@ object TheSnapBuild extends Build {
       commonsIo,
       sbtLauncherInterface
     )
+    dependsOn(props)
   )
 
   // TODO - SBT plugin, or just SBT integration?
@@ -37,6 +43,7 @@ object TheSnapBuild extends Build {
     settings(
       Keys.scalaBinaryVersion <<= Keys.scalaVersion
     )
+    dependsOn(props)
   )
 
   lazy val dist = (

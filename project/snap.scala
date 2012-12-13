@@ -20,5 +20,13 @@ object SnapBuild {
     play.Project("snap-" + name, path = file(name)) 
     settings(snapDefaults:_*)
   )
+
+  def SnapJavaProject(name: String): Project = (
+    Project("snap-" + name, file(name))
+    settings(snapDefaults:_*)
+    settings(
+        autoScalaLibrary := false
+    )
+  )
 }
 
