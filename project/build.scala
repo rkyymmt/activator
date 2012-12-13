@@ -22,9 +22,10 @@ object TheSnapBuild extends Build {
   lazy val ui = (
     SnapPlayProject("ui")
     dependsOnRemote(
-      "org.webjars" % "webjars-play" % "2.0",
-      "org.webjars" % "bootstrap" % "2.2.1",
-      "commons-io" % "commons-io" % "2.0.1"
+      webjarsPlay,
+      webjarsBootstrap,
+      commonsIo,
+      sbtLauncherInterface
     )
   )
 
