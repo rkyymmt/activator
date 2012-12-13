@@ -23,6 +23,7 @@ realpath () {
   echo $(pwd -P)/$TARGET_FILE
 )
 }
+
 echoerr () {
   echo 1>&2 "$@"
 }
@@ -93,6 +94,13 @@ is_function_defined() {
   declare -f "$1" > /dev/null
 }
 
+# If we're *not* running in a terminal, and we don't have any arguments, then we need to add the 'ui' parameter
+detect_terminal_for_ui() {
+  [[ ! -t 0 ]] && [[ "${#residual_args}" == "0" ]] && {
+    addResidual "ui"
+  }
+}
+
 # Processes incoming arguments and places them in appropriate global variables.  called by the run method.
 process_args () {
   while [[ $# -gt 0 ]]; do
@@ -125,6 +133,7 @@ run() {
 
   # process the combined args, then reset "$@" to the residuals
   process_args "$@"
+  detect_terminal_for_ui
   set -- "${residual_args[@]}"
   argumentCount=$#
 
