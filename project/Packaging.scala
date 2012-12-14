@@ -18,6 +18,7 @@ object Packaging {
   val scriptTemplateDirectory = SettingKey[File]("script-template-directory")
   val scriptTemplateOutputDirectory = SettingKey[File]("script-template-output-directory")
   val makeBashScript = TaskKey[File]("make-bash-script")
+  val makeBatScript = TaskKey[File]("make-bat-script")
   
   val localRepoProjectsPublished = TaskKey[Unit]("local-repo-projects-published", "Ensures local projects are published before generating the local repo.")
   val localRepoArtifacts = SettingKey[Seq[ModuleID]]("local-repository-artifacts", "Artifacts included in the local repository.")
@@ -47,6 +48,7 @@ object Packaging {
       jar -> ("snap-launch-%s.jar" format (v))
     },
     mappings in Universal <+= makeBashScript map (_ -> "snap"),
+    mappings in Universal <+= makeBatScript map (_ -> "snap.bat"),
     mappings in Universal <++= localRepoCreated map { repo =>
       for {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
@@ -78,6 +80,12 @@ object Packaging {
       val template = from / "snap"
       val script = to / "snap"
       copyBashTemplate(template, script, v)
+      script
+    },
+    makeBatScript <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
+      val template = from / "snap.bat"
+      val script = to / "snap.bat"
+      copyBatTemplate(template, script, v)
       script
     }
   )
@@ -152,7 +160,13 @@ object Packaging {
     IO.write(to, nextContents)
     to
   }
-  
+  def copyBatTemplate(from: File, to: File, version: String): File = {
+    val fileContents = IO read from
+    val nextContents = fileContents.replaceAll("""\$\{\{template_declares\}\}""",
+                                               "set SNAP_VERSION=%s" format (version))
+    IO.write(to, nextContents)
+    to
+  }
 
   // NOTE; Shares boot directory with SBT, good thing or bad?  not sure.
   // TODO - Just put this in the sbt-launch.jar itself!
