@@ -33,7 +33,10 @@ object Packaging {
     packageDescription := """A templating and project runner for Typesafe applications.""",
     stage <<= (target, mappings in Universal) map { (t, m) =>
       val to = t / "stage"
-      IO.copy(m collect { case (f, p) => f -> (to / p) })
+      val copies = m collect { case (f, p) => f -> (to / p) }
+      IO.copy(copies)
+      // Now set scripts to executable as a hack thanks to Java's lack of understanding of permissions
+      (to / "snap").setExecutable(true, true)
     },
     dist <<= packageBin in Universal,
     mappings in Universal <+= repackagedLaunchJar map { jar =>
@@ -145,7 +148,7 @@ object Packaging {
   name: snap-launcher
   version: %s
   class: snap.SnapLauncher
-  cross-versioned: true
+  cross-versioned: false
   components: xsbti
 
 [repositories]

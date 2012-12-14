@@ -7,6 +7,7 @@
 .classpath
 .cache
 .project/
+.project
 .idea/
 .idea_modules/
 .settings/
