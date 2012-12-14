@@ -24,7 +24,7 @@ object SbtChildBuild extends Build {
     )
 
     lazy val root =
-        Project("root", file("."), settings = rootSettings) aggregate(protocol, plugin)
+        Project("root", file("."), settings = rootSettings) aggregate(protocol, remoteProbe)
 
     lazy val rootSettings = Project.defaultSettings ++ unpublished
 
@@ -35,11 +35,11 @@ object SbtChildBuild extends Build {
             libraryDependencies += "com.novocode" % "junit-interface" % "0.7" % "test"
         )
 
-    lazy val plugin = Project(id = "sbt-child",
-                               base = file("plugin"),
-                               settings = pluginSettings) dependsOn(protocol)
+    lazy val remoteProbe = Project(id = "sbt-child-remote-probe",
+                               base = file("remote-probe"),
+                               settings = remoteProbeSettings) dependsOn(protocol)
 
-    lazy val pluginSettings = Project.defaultSettings ++
+    lazy val remoteProbeSettings = Project.defaultSettings ++
         sharedSettings ++
         Seq(sbtPlugin := true,
             organization := "com.typesafe.sbt",
