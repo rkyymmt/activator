@@ -15,6 +15,10 @@ object Packaging {
   val repackagedLaunchJar = TaskKey[File]("repackaged-launch-jar", "The SNAP launch jar.")
   val repackagedLaunchMappings = TaskKey[Seq[(File, String)]]("repackaged-launch-mappings", "New files for sbt-launch-jar")
 
+  val scriptTemplateDirectory = SettingKey[File]("script-template-directory")
+  val scriptTemplateOutputDirectory = SettingKey[File]("script-template-output-directory")
+  val makeBashScript = TaskKey[File]("make-bash-script")
+  
   val localRepoProjectsPublished = TaskKey[Unit]("local-repo-projects-published", "Ensures local projects are published before generating the local repo.")
   val localRepoArtifacts = SettingKey[Seq[ModuleID]]("local-repository-artifacts", "Artifacts included in the local repository.")
   val localRepoName = "install-to-local-repository"
@@ -39,9 +43,10 @@ object Packaging {
       (to / "snap").setExecutable(true, true)
     },
     dist <<= packageBin in Universal,
-    mappings in Universal <+= repackagedLaunchJar map { jar =>
-      jar -> "snap-launch.jar"
+    mappings in Universal <+= (repackagedLaunchJar, version) map { (jar, v) =>
+      jar -> ("snap-launch-%s.jar" format (v))
     },
+    mappings in Universal <+= makeBashScript map (_ -> "snap"),
     mappings in Universal <++= localRepoCreated map { repo =>
       for {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
@@ -65,6 +70,15 @@ object Packaging {
     localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
       createLocalRepository(m, i, s.log)
       r
+    },
+    
+    scriptTemplateDirectory <<= (sourceDirectory) apply (_ / "templates"),
+    scriptTemplateOutputDirectory <<= (target in Compile) apply (_ / "templates"),
+    makeBashScript <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
+      val template = from / "snap"
+      val script = to / "snap"
+      copyBashTemplate(template, script, v)
+      script
     }
   )
 
@@ -130,6 +144,15 @@ object Packaging {
     nextlauncher
   }
 
+  def copyBashTemplate(from: File, to: File, version: String): File = {
+    val fileContents = IO read from
+    // Replace them
+    val nextContents = fileContents.replaceAll("\\$\\{\\{template_declares\\}\\}", """|declare -r app_version="%s"
+                                                                             |""".stripMargin format (version))
+    IO.write(to, nextContents)
+    to
+  }
+  
 
   // NOTE; Shares boot directory with SBT, good thing or bad?  not sure.
   // TODO - Just put this in the sbt-launch.jar itself!
