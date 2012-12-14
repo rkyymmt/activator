@@ -146,9 +146,9 @@ object Packaging {
 
   def copyBashTemplate(from: File, to: File, version: String): File = {
     val fileContents = IO read from
-    // Replace them
-    val nextContents = fileContents.replaceAll("\\$\\{\\{template_declares\\}\\}", """|declare -r app_version="%s"
-                                                                             |""".stripMargin format (version))
+    val nextContents = fileContents.replaceAll("""\$\{\{template_declares\}\}""", 
+                                               """|declare -r app_version="%s"
+                                                  |""".stripMargin format (version))
     IO.write(to, nextContents)
     to
   }
