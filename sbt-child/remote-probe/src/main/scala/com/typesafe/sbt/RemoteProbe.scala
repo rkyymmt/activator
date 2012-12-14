@@ -1,4 +1,4 @@
-package com.typesafe.sbt
+package com.typesafe.sbtchild
 
 import _root_.sbt._
 
@@ -8,15 +8,10 @@ import Defaults._
 import Scope.GlobalScope
 import com.typesafe.sbtchild._
 
-// this is a Plugin but currently we don't use it as one
-// (see SetupSbtChild below)
-object SbtChild extends Plugin {
-  override lazy val settings = Seq.empty
-
-  ///// Settings keys
-
-  object SbtChildKeys {
-
+object SetupSbtChild extends (State => State) {
+  // this is the entry point invoked by sbt
+  override def apply(s: State): State = {
+    s ++ Seq(listen)
   }
 
   private def getPort(): Int = {
@@ -94,11 +89,5 @@ object SbtChild extends Plugin {
     def log(level: Level.Value, message: => String): Unit = {
       add(protocol.LogMessage(level.id, message))
     }
-  }
-}
-
-object SetupSbtChild extends (State => State) {
-  override def apply(s: State): State = {
-    s ++ Seq(SbtChild.listen)
   }
 }

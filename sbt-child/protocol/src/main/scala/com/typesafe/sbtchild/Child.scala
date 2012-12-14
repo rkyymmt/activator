@@ -26,7 +26,7 @@ class SbtChildActor(workingDir: File) extends Actor {
     "-jar",
     "/opt/hp/bin/sbt-launch-0.12.0.jar",
     // command to add our special hook
-    "apply com.typesafe.sbt.SetupSbtChild",
+    "apply com.typesafe.sbtchild.SetupSbtChild",
     // enter the "get stuff from the socket" loop
     "listen"),
     workingDir)), "sbt-process")

@@ -41,13 +41,14 @@ object SbtChildBuild extends Build {
 
     lazy val remoteProbeSettings = Project.defaultSettings ++
         sharedSettings ++
-        Seq(sbtPlugin := true,
-            organization := "com.typesafe.sbt",
-            name := "sbt-child",
+        Seq(organization := "com.typesafe.sbtchild",
+            name := "sbt-child-remote-probe",
             version := "0.1.0-SNAPSHOT",
             libraryDependencies <++= sbtVersion {
 		(version) =>
-		    Seq("org.scala-sbt" % "io" % version % "provided",
+		    Seq("org.scala-sbt" % "main" % version % "provided",
+                        "org.scala-sbt" % "sbt" % version % "provided",
+                        "org.scala-sbt" % "io" % version % "provided",
 			"org.scala-sbt" % "logging" % version % "provided",
 			"org.scala-sbt" % "process" % version % "provided")
             })
