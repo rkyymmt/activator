@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Typesafe Snap</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Typesafe Snap - The Pathway to Modern, Scalable Apps">
+    <meta name="author" content="Typesafe.com">
+
+    <link href="/webjars/bootstrap/2.2.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 60px;
+        }
+        
+        #manageApp .controls {
+            padding-top: 10px;
+        }
+        
+        #manageApp .control-group {
+            margin-bottom: 0px;
+        }
+        
+        #manageApp .progress {
+            margin-bottom: 0px;
+        }
+
+        .navbar-search {
+            position: relative;
+        }
+
+        .navbar-search .search-query {
+            padding-left: 29px;
+        }
+
+        .navbar-search .icon-search {
+            position: absolute;
+            top: 7px;
+            left: 11px;
+        }​
+    </style>
+    
+    <link rel="shortcut icon" href="/images/favicon.png">
+    
+    <script type="text/javascript" src="/webjars/jquery/1.8.2/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/2.2.1/js/bootstrap.min.js"></script>
+    <script>
+        $(function() {
+            
+            $("#inputNewAppName").keyup(function(event) {
+                updateAppLocation()
+            })
+            
+            $("#inputExistingRecent").change(function(event) {
+                // todo
+                console.log($(this))
+                $("#inputExistingAppLocation").val($(this).select())
+            })
+
+            
+            $("#buttonBrowseAppLocation").click(function(event) {
+                // todo
+            })
+
+            $("#inputNewAppLocationFile").change(function(event) {
+                console.log(event.target.webkitdirectory)
+                console.log(event.target.directory)
+                console.log(event.target.mozdirectory)
+            })
+            
+            $("#buttonBrowseTemplate").click(function(event) {
+                
+            })
+            
+            $("#buttonBrowseExistingLocation").click(function(event) {
+                // todo
+            })
+            
+            $("#createAppForm").submit(function(event) {
+                event.preventDefault()
+                
+                if (updateCreateAppButton()) {
+                    
+                    $.ajax({
+                        url: "clone",
+                        type: "POST",
+                        dataType: "json",
+                        contentType: 'application/json',
+                        data: JSON.stringify({name: $("#inputNewAppName").val(), location: $("#inputNewAppLocation").val(), template: $("#inputNewAppTemplate").val()}),
+                        success:  function(data) {
+                            var newApp = $("<a>").attr("href", "#").text(data.name + " (" + data.location + ")")
+                            $("#projectList .divider").after($("<li>").append(newApp))
+                            
+                            selectApp(newApp)
+                            
+                            startApp(data.location)
+                        },
+                        error: function(data) {
+                            $("#buttonCreateApp").before($("<div>").addClass("alert alert-error").css("margin-right", "20px")
+                                    .append($("<button>").addClass("close").attr("data-dismiss", "alert").html("&times;"))
+                                    .append($("<strong>").text("Error!"))
+                                    .append(" " + data.responseText)
+                            )
+                        }
+                    })
+                }
+            })
+            
+            $(".modal-body .use-template").click(function(event) {
+                $("#inputNewAppTemplate").val($(this).data("template-id"))
+                $("#templateBrowser").modal("hide")
+            })
+            
+            $("#inputTemplateSearch").keyup(function(event) {
+                var searchText = $(this).val().toLowerCase()
+                $(".modal-body").children().each(function(index, item) {
+                    var description = $(item).children("span").text().toLowerCase()
+                    if (description.indexOf(searchText) == -1) {
+                        $(item).hide()
+                    } else {
+                        $(item).show()
+                    }
+                })
+            })
+            
+            $("#projectList a").click(function(event) {
+                selectApp($(this))
+            })
+            
+            $("#appLocation").click(function(event) {
+                event.preventDefault()
+
+                $.ajax({
+                    url: "open",
+                    type: "POST",
+                    dataType: "json",
+                    contentType: 'application/json',
+                    data: JSON.stringify({location: $("#appLocation").text()})
+                })
+            })
+
+            // buttonCreateApp update triggers
+            $("#inputNewAppName").keyup(function(event) {
+                updateCreateAppButton()
+            })
+            $("#inputNewAppName").bind('paste', function(event) {
+                updateCreateAppButton()
+            })
+            $("#inputNewAppLocation").keyup(function(event) {
+                updateCreateAppButton()
+            })
+            $("#inputNewAppLocation").bind('paste', function(event) {
+                updateCreateAppButton()
+            })
+            $("#inputNewAppTemplate").keyup(function(event) {
+                updateCreateAppButton()
+            })
+            $("#inputNewAppTemplate").bind('paste', function(event) {
+                updateCreateAppButton()
+            })
+
+            updateCreateAppButton()
+            updateAppLocation()
+        })
+        
+        // todo: inputNewAppLocation could be a giter8 url
+        
+        // todo: inputExistingAppLocation could be a git url
+        
+        function updateAppLocation() {
+            $("#inputNewAppLocation").val("/home/jamesw/Desktop/" + $("#inputNewAppName").val())
+        }
+        
+        function updateCreateAppButton() {
+            if ( ($("#inputNewAppName").val().length > 0) &&
+                 ($("#inputNewAppLocation").val().length > 0) &&
+                 ($("#inputNewAppTemplate").val().length > 0) ) {
+                $("#buttonCreateApp").removeClass("disabled")
+                return true;
+            }
+            else {
+                $("#buttonCreateApp").addClass("disabled")
+                return false;
+            }
+        }
+        
+        function selectApp(item) {
+            item.parent().siblings().removeClass("active")
+            item.parent().addClass("active")
+
+            if (item.text() == "New App") {
+                $("#createApp").show()
+                $("#manageApp").hide()
+            }
+            else {
+                var appPath = item.text().substring(item.text().lastIndexOf("(") + 1, item.text().length - 1)
+
+                $("#appLocation").text(appPath)
+
+                $("#createApp").hide()
+                $("#manageApp").show()
+            }
+        }
+        
+        function startApp(location) {
+            $.ajax({
+                url: "start",
+                type: "POST",
+                dataType: "json",
+                contentType: 'application/json',
+                data: JSON.stringify({location: $("#appLocation").text()}),
+                success:  function(data) {
+                    console.log("started app")
+                }
+            })
+        }
+    </script>
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner" style="text-align: center;">
+        <a class="brand pull-left" href="/" style="margin-left: 5px;">Ahh Snap!</a>
+        <a href="http://typesafe.com"><img src="/images/typesafe-logo.png" style="height: 30px; padding-top: 5px;"></a>
+        <button class="btn pull-right" style="margin-right: 10px;">Login</button>
+    </div>
+</div>
+
+<div class="well" style="float: left; max-width: 340px; padding: 8px 0; margin-left: 20px;">
+    <ul id="projectList" class="nav nav-list">
+        <li class="nav-header">Projects</li>
+        <li class="active"><a href="#">New App</a></li>
+        <li class="divider"></li>
+        <li><a href="#">foo (/home/jamesw/projects/foo)</a></li>
+        <li><a href="#">bar (/home/jamesw/projects/bar)</a></li>
+        <li><a href="#">play2torial (/home/jamesw/projects/play2torial)</a></li>
+        <li><a href="#">play2bars (/home/jamesw/projects/play2bars)</a></li>
+        <li><a href="#">asdf (/home/jamesw/Desktop/asdf)</a></li>
+        <li><a href="#">zxcv (/home/jamesw/Desktop/zxcv)</a></li>
+        <button class="btn btn-mini">Other...</button>
+    </ul>
+</div>
+
+<div style="margin-left: 360px; overflow: hidden;">
+
+    <div style="margin-top: 20px;">
+        <div id="createApp">
+            <form id="createAppForm" class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="inputNewAppName">Name</label>
+                    <div class="controls">
+                        <input class="span5" id="inputNewAppName" type="text">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputNewAppLocation">Location</label>
+                    <div class="controls">
+                        <div class="input-append">
+                            <input class="span5" id="inputNewAppLocation" type="text" value="/home/jamesw/Desktop">
+                            <input class="span5" id="inputNewAppLocationFile" type="file" mozdirectory="" webkitdirectory="" directory="" style="display: none;">
+                            <button id="buttonBrowseAppLocation" class="btn" type="button">Browse...</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputNewAppTemplate">Template</label>
+                    <div class="controls">
+                        <div class="input-append">
+                            <input class="span5" id="inputNewAppTemplate" type="text" data-provide="typeahead" data-source='["typesafe-stack-2.1", "play-2.1-java", "play-2.1-scala", "scala-2.10", "akka-2.1"]'>
+                            <button id="buttonBrowseTemplate" class="btn" type="button" href="#templateBrowser" role="button" data-toggle="modal">Browse...</button>
+                        </div>
+                    </div>
+                </div>
+                <button id="buttonCreateApp" type="submit" class="btn btn-primary btn-large disabled" style="margin-left: 180px;">Go!</button>
+            </form>
+        </div>
+        
+        <div id="manageApp" class="hide" style="margin-right: 20px;">
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label btn-group">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                            Source
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#editInWebBrowser">Edit in Web Browser</a></li>
+                            <li><a href="#editInEclipse">Edit in Eclipse</a></li>
+                            <li><a href="#editInIDEA">Edit in IntelliJ IDEA</a></li>
+                            <li><a href="#openInFileExplorer">Open in File Explorer</a></li>
+                        </ul>
+                    </label>
+                    <div class="controls">
+                        <span ><a id="appLocation" href="#"></a></span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label btn-group">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                            App Running
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#appLogs">Logs</a></li>
+                            <li><a href="#shutdownApp">Shutdown</a></li>
+                        </ul>
+                    </label>
+                    <div class="controls">
+                        <a href="http://localhost:9000">http://localhost:9000</a>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label btn-group">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                            Tests Running
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#testsLogs">Logs</a></li>
+                            <li><a href="#shutdownTests">Shutdown</a></li>
+                        </ul>
+                    </label>
+                    <div class="controls">
+                        <div class="progress">
+                            <div class="bar bar-success" style="width: 70%;"></div>
+                            <div class="bar bar-warning" style="width: 20%;"></div>
+                            <div class="bar bar-danger" style="width: 10%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label btn-group">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                            Modules
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#manageModules">Manage</a></li>
+                        </ul>
+                    </label>
+                    <div class="controls" style="padding-top: 5px;">
+                        <button class="btn">Open Typesafe Console</button>
+                        <button class="btn">Deploy to Heroku</button>
+                        <button class="btn">Setup CI on CloudBees</button>
+                    </div>
+                </div>
+                <div style="margin-left: 20px; margin-top: 20px;">
+                    <button class="btn btn-primary btn-large">View Docs</button>
+                    <button class="btn btn-primary btn-large">Export as Zip</button>
+                    <button class="btn btn-primary btn-large">REPL</button>
+                    <button class="btn btn-primary btn-large">View Dependencies</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<div id="templateBrowser" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3>Snap Templates</h3>
+    </div>
+    <div class="modal-body">
+        
+        <div class="well well-small">
+            <h3 style="margin-top: 0px;"><img src="/images/typesafe-logo-square.png" style="height: 50px"> Typesafe Stack 2.1</h3>
+            <span>The Typesafe Stack provides foundation for modern applications.  This template is a simple application using Play Framework 2.1, Akka 2.1, and Scala 2.10.</span>
+            <br/>
+            <button class="btn btn-primary use-template" data-template-id="typesafe-stack-2.1">Use Template</button>
+            <button class="btn btn-info">Read More</button>
+        </div>
+
+        <div class="well well-small">
+            <h3 style="margin-top: 0px;"><img src="/images/play.png" style="height: 50px"> Play 2.1 with Java</h3>
+            <span>Simple Play Framework 2.1 web application with Java controllers, Scala views, and EBean for relational database mapping.</span>
+            <br/>
+            <button class="btn btn-primary use-template" data-template-id="play-2.1-java">Use Template</button>
+            <button class="btn btn-info">Read More</button>
+        </div>
+
+        <div class="well well-small">
+            <h3 style="margin-top: 0px;"><img src="/images/akka.png" style="height: 50px"> Akka 2.1</h3>
+            <span>Simple Akka 2.1 Java and Scala examples.</span>
+            <br/>
+            <button class="btn btn-primary use-template" data-template-id="akka-2.1">Use Template</button>
+            <button class="btn btn-info">Read More</button>
+        </div>
+
+        <div class="well well-small">
+            <h3 style="margin-top: 0px;"><img src="/images/scala.png" style="height: 50px"> Scala 2.10 Tour</h3>
+            <span>A sample application with numerous Scala 2.10 examples.</span>
+            <br/>
+            <button class="btn btn-primary use-template" data-template-id="scala-2.10-tour">Use Template</button>
+            <button class="btn btn-info">Read More</button>
+        </div>
+
+        <div class="well well-small">
+            <h3 style="margin-top: 0px;"><img src="/images/scala.png" style="height: 50px"> Plain Scala App</h3>
+            <span>Start with this template to create a plain ole' Scala application.</span>
+            <br/>
+            <button class="btn btn-primary use-template" data-template-id="plain-scala">Use Template</button>
+            <button class="btn btn-info">Read More</button>
+        </div>
+
+        <div class="well well-small">
+            <h3 style="margin-top: 0px;"><img src="/images/play.png" style="height: 50px"> Play 2.1 Java Sample: Comet Clock</h3>
+            <span>The Play 2.1 Java Sample application that shows how to push data to the client using Comet.</span>
+            <br/>
+            <button class="btn btn-primary use-template" data-template-id="play-2.1-sample-comet-clock-java">Use Template</button>
+            <button class="btn btn-info">Read More</button>
+        </div>
+
+        <div class="well well-small">
+            <h3 style="margin-top: 0px;"><img src="/images/typesafe-logo-square.png" style="height: 50px"> Typesafe Stack Sample: Big Data with Cassandra</h3>
+            <span>This Typesafe Stack Sample uses Play Framework 2.1, Akka 2.1, and Scala 2.10 to implement a big data application on Cassandra.</span>
+            <br/>
+            <button class="btn btn-primary use-template" data-template-id="typesafe-stack-2.1-sample-big-data-cassandra">Use Template</button>
+            <button class="btn btn-info">Read More</button>
+        </div>
+        
+    </div>
+    <div class="modal-footer">
+        <form class="navbar-search" action="#">
+            <input id="inputTemplateSearch" type="text" class="search-query" placeholder="Search">
+            <i class="icon-search"></i>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
