@@ -24,7 +24,7 @@ object SbtChildBuild extends Build {
     )
 
     lazy val root =
-        Project("root", file("."), settings = rootSettings) aggregate(protocol, remoteProbe)
+        Project("root", file("."), settings = rootSettings) aggregate(protocol, remoteProbe, parent)
 
     lazy val rootSettings = Project.defaultSettings ++ unpublished
 
@@ -61,12 +61,19 @@ object SbtChildBuild extends Build {
         sharedSettings ++
         Seq(organization := "com.typesafe.sbtchild",
             name := "sbt-child-protocol",
+            version := "0.1.0-SNAPSHOT")
+
+    lazy val parent = Project(id = "sbt-child-parent",
+                              base = file("parent"),
+                              settings = parentSettings) dependsOn(protocol)
+
+    lazy val parentSettings = Project.defaultSettings ++
+        sharedSettings ++
+        Seq(organization := "com.typesafe.sbtchild",
+            name := "sbt-child-parent",
             version := "0.1.0-SNAPSHOT",
             libraryDependencies <++= sbtVersion {
 		(version) =>
-		    Seq("org.scala-sbt" % "io" % version,
-			"org.scala-sbt" % "logging" % version,
-			"org.scala-sbt" % "process" % version,
-                        "com.typesafe.akka" % "akka-actor" % "2.0.3")
+		    Seq("com.typesafe.akka" % "akka-actor" % "2.0.3")
             })
 }

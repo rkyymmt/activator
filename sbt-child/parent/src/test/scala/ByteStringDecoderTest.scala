@@ -11,6 +11,8 @@ class ByteStringDecoderTest {
 
   val utf8Bytes = {
     val in = getClass.getResourceAsStream("UTF-8-demo.txt")
+    if (in == null)
+      throw new Exception("Missing UTF-8 test file")
     val size = in.available()
     val array = new Array[Byte](size)
     if (in.read(array) != size)
