@@ -7,11 +7,11 @@ public class SnapProperties {
 
   private static Properties loadProperties() {
     Properties props = new Properties();
-    java.io.InputStream in = SnapProperties.class.getClassLoader().getResourceAsStream("snap.properties");
+    java.io.InputStream in = SnapProperties.class.getResourceAsStream("snap.properties");
     try {
       props.load(in);
-    } catch(java.io.IOException e) {}
-    finally { try { in.close(); } catch(java.io.IOException e) {}  }
+    } catch(java.io.IOException e) { throw new RuntimeException(e); }
+    finally { try { in.close(); } catch(java.io.IOException e) { throw new RuntimeException(e); }  }
     return props;
   }
 
