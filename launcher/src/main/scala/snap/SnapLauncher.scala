@@ -29,7 +29,7 @@ case class RebootToUI(configuration: AppConfiguration) extends xsbti.Reboot {
   val app = ApplicationID(
               groupID = configuration.provider.id.groupID,
               name = "snap-ui",
-              version = configuration.provider.id.version,
+              version = snap.properties.SnapProperties.APP_VERSION,
               mainClass = "snap.UIMain"
             )
 }
@@ -44,7 +44,7 @@ case class RebootToSbt(configuration: AppConfiguration) extends xsbti.Reboot {
   val app = ApplicationID(
               groupID = "org.scala-sbt",
               name = "sbt",
-              version = "0.12.1",
+              version = snap.properties.SnapProperties.SBT_VERSION,
               mainClass = "sbt.xMain",
               mainComponents = Array("xsbti", "extra")
             )

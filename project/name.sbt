@@ -1,0 +1,1 @@
+name := "snap-build"

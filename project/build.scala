@@ -9,15 +9,20 @@ import Packaging.localRepoArtifacts
 object TheSnapBuild extends Build {
 
   // ADD sbt launcher support here.
-  override def settings = super.settings ++ SbtSupport.buildSettings
+  override def settings = super.settings ++ SbtSupport.buildSettings ++ baseVersions
 
   val root = (
     Project("root", file("."))  // TODO - Oddities with clean..
-    aggregate(ui, launcher, dist)
+    aggregate(ui, launcher, dist, props)
+  )
+
+  lazy val props = (
+    SnapJavaProject("props")
+    settings(Properties.makePropertyClassSetting(SnapDependencies.sbtVersion):_*)
   )
 
   // Theser are the projects we want in the local SNAP repository
-  lazy val publishedProjects = Seq(ui, launcher)
+  lazy val publishedProjects = Seq(ui, launcher, props)
 
   lazy val ui = (
     SnapPlayProject("ui")
@@ -27,6 +32,7 @@ object TheSnapBuild extends Build {
       commonsIo,
       sbtLauncherInterface
     )
+    dependsOn(props)
   )
 
   // TODO - SBT plugin, or just SBT integration?
@@ -37,6 +43,7 @@ object TheSnapBuild extends Build {
     settings(
       Keys.scalaBinaryVersion <<= Keys.scalaVersion
     )
+    dependsOn(props)
   )
 
   lazy val dist = (
