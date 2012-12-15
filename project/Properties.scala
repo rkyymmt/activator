@@ -9,10 +9,6 @@ object Properties {
   def makePropertyClassSetting(sbtVersion: String): Seq[Setting[_]] = Seq(
     resourceGenerators in Compile <+= makePropertiesSource,
     makePropertiesSource <<= (version, resourceManaged in Compile, compile in Compile) map { (v, dir, analysis) =>
-      import java.util.{Date, TimeZone}
-	  val formatter = new java.text.SimpleDateFormat("yyyyMMdd'T'HHmmss")
-	  formatter setTimeZone TimeZone.getTimeZone("GMT")
-	  val timestamp = formatter.format(new Date)
       val parent= dir / "snap" / "properties"
       IO createDirectory parent
       val target = parent / "snap.properties"

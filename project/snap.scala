@@ -6,7 +6,10 @@ object SnapBuild {
 
   def baseVersions: Seq[Setting[_]] = Seq(
     version := {
-      val df = new java.text.SimpleDateFormat("yyyyMMddhhmmss")
+      // TODO - We don't want to have to run "reload" for new versions....
+      val df = new java.text.SimpleDateFormat("yyyyMMdd'T'HHmmss")
+      df setTimeZone java.util.TimeZone.getTimeZone("GMT")
+      // TODO - Add git sha perhaps, because that might help with staleness...
       "1.0-" + (df format (new java.util.Date))
     }
   )
