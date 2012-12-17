@@ -10,6 +10,9 @@ import javax.swing._
 class UIMain extends AppMain {
 
   def run(configuration: AppConfiguration) = {
+    // First set up the server port.
+    System.setProperty("http.port", serverPort.toString)
+
     // Start the Play app... (TODO - how do we know when we're done?)
     // TODO - Is this hack ok?
     withContextClassloader(play.core.server.NettyServer.main(configuration.arguments))
@@ -27,6 +30,9 @@ class UIMain extends AppMain {
     Exit(0)
   }
 
+  // TODO - make sure this is open!
+  lazy val serverPort: Int = 8888
+
   def waitForever(): Unit = {
     // TODO - figure out a better way to do this intead of parking a thread.
     this.synchronized(this.wait())
@@ -40,10 +46,10 @@ class UIMain extends AppMain {
       else None
 
     desktop match {
-      case Some(d) => d browse new java.net.URI("http://localhost:9000/")
+      case Some(d) => d browse new java.net.URI("http://localhost:%d/" format(serverPort))
       case _       => showError("""|Unable to open a web browser!
                                    |Please point your browser at:
-                                   | http://localhost:9000/""".stripMargin)
+                                   | http://localhost:%d/""".stripMargin format (serverPort))
     }
   }
 
