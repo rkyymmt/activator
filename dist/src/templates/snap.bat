@@ -49,6 +49,7 @@ if not defined JAVAINSTALLED (
   echo.
   echo Please go to http://www.java.com/getjava/ and download
   echo a valid Java Runtime and install before running snap.
+  if defined DOUBLECLICKED pause
   exit /B 1
 )
 
