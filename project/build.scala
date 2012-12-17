@@ -13,24 +13,54 @@ object TheSnapBuild extends Build {
 
   val root = (
     Project("root", file("."))  // TODO - Oddities with clean..
-    aggregate(ui, launcher, dist, props)
+    aggregate((publishedProjects.map(_.project) ++ Seq(dist.project)):_*)
+    settings(
+      // Stub out commands we run frequently but don't want them to really do anything.
+      Keys.publish := {},
+      Keys.publishLocal := {}
+    )
   )
 
+  // Theser are the projects we want in the local SNAP repository
+  lazy val publishedProjects = Seq(ui, launcher, props, sbtProtocol, sbtRemoteProbe, sbtDriver)
+
+  // basic project that gives us properties to use in other projects.  
   lazy val props = (
     SnapJavaProject("props")
     settings(Properties.makePropertyClassSetting(SnapDependencies.sbtVersion):_*)
   )
 
-  // Theser are the projects we want in the local SNAP repository
-  lazy val publishedProjects = Seq(ui, launcher, props)
+  // sbt-child process projects
+  lazy val sbtProtocol = (
+    SbtChildProject("protocol")
+    settings()
+  )
 
+  lazy val sbtRemoteProbe = (
+    SbtChildProject("remote-probe")
+    dependsOn(sbtProtocol)
+    dependsOnRemote(
+      sbtMain % "provided",
+      sbtTheSbt % "provided",
+      sbtIo % "provided",
+      sbtLogging % "provided",
+      sbtProcess % "provided"
+    )
+  )
+  
+  lazy val sbtDriver = (
+    SbtChildProject("parent") 
+    dependsOn(sbtProtocol)
+    dependsOnRemote(akkaActor)
+  )  
+  
   lazy val ui = (
     SnapPlayProject("ui")
     dependsOnRemote(
       webjarsPlay,
       webjarsBootstrap,
       commonsIo,
-      sbtLauncherInterface
+      sbtLauncherInterface % "provided"
     )
     dependsOn(props)
   )
