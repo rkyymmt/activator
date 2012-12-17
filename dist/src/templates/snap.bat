@@ -41,7 +41,7 @@ if "%_JAVACMD%"=="" (
 if "%_JAVACMD%"=="" set _JAVACMD=java
 
 rem Detect if this java is ok to use.
-for /F usebackq %%j in (`"%_JAVACMD%"`) do (if %%~j==Usage: (set JAVAINSTALLED=1))
+for /F %%j in ('%_JAVACMD%') do (if %%~j==Usage: (set JAVAINSTALLED=1))
 if not defined JAVAINSTALLED (
   echo.
   echo Java is not installed or can't be found at: 
@@ -66,7 +66,9 @@ if "%*"=="" (
   ) else set CMD=%*
 ) else set CMDS=%*
 
-set JAVA_FRIENDLY_SNAP_HOME=!SNAP_HOME:\=\\!
+rem We add a / in front, so we get file:///C: instead of file://C:
+rem Java considers the later a UNC path.
+set JAVA_FRIENDLY_SNAP_HOME=/!SNAP_HOME:\=\\!
 
 "%_JAVACMD%" %_JAVA_OPTS% %SNAP_OPTS% "-Dsnap.home=%JAVA_FRIENDLY_SNAP_HOME%" -jar "%SNAP_HOME%\%SNAP_LAUNCH_JAR%" %CMDS%
 if ERRORLEVEL 1 goto error
