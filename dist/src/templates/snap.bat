@@ -40,6 +40,19 @@ if "%_JAVACMD%"=="" (
 
 if "%_JAVACMD%"=="" set _JAVACMD=java
 
+rem Detect if this java is ok to use.
+for /F usebackq %%j in (`"%_JAVACMD%"`) do (if %%~j==Usage: (set JAVAINSTALLED=1))
+if not defined JAVAINSTALLED (
+  echo.
+  echo Java is not installed or can't be found at: 
+  echo %_JAVACMD%
+  echo.
+  echo Please go to http://www.java.com/getjava/ and download
+  echo a valid Java Runtime and install before running snap.
+  exit /B 1
+)
+
+
 rem We use the value of the JAVA_OPTS environment variable if defined, rather than the config.
 set _JAVA_OPTS=%JAVA_OPTS%
 if "%_JAVA_OPTS%"=="" set _JAVA_OPTS=%CFG_OPTS%
