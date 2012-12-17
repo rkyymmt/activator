@@ -48,21 +48,25 @@ class SbtChildActor(workingDir: File) extends Actor {
         preStartBuffer = preStartBuffer :+ message
       }
 
-    // message from server actor
-    case message: protocol.Message => message match {
+    // message from server actor other than a response
+    case event: protocol.Event => event match {
       case protocol.Started =>
         started = true
         preStartBuffer foreach { m => server ! m }
         preStartBuffer = Vector.empty
       case protocol.Stopped =>
-        // FIXME do what?
+        // FIXME do what? we sort of need to wait for both of
+        // our child actors to stop.
         System.err.println("ipc stopped")
+      case protocol.MysteryMessage(something) =>
+        // let it crash
+        throw new Exception("Received unexpected item on socket from sbt child: " + something)
     }
 
     // event from process actor
     case event: ProcessEvent => event match {
       case ProcessStopped(status) =>
-        // FIXME do something better
+        // FIXME do something better, wait for both child actors to stop, then close down?
         System.err.println("sbt stopped, status: " + status)
       case ProcessStdOut(bytes) => {
         outDecoder.feed(bytes)

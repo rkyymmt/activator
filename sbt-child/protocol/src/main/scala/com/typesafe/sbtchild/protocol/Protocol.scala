@@ -27,7 +27,7 @@ case object Started extends Event
 case object Stopped extends Event
 
 // should not happen, basically
-case class MysteryMessage(something: Any) extends Message
+case class MysteryMessage(something: Any) extends Event
 
 case class Envelope(override val serial: Long, override val replyTo: Long, override val content: Message) extends ipc.Envelope[Message]
 
