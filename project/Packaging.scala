@@ -112,9 +112,10 @@ object Packaging {
       try Some(ivy.install(mrid, name, localRepoName,
                 new InstallOptions()
                     .setTransitive(true)
-                    .setValidate(false)
+                    .setValidate(true)
                     .setOverwrite(true)
                     .setMatcherName(PatternMatcher.EXACT)
+                    .setArtifactFilter(FilterHelper.NO_FILTER)
                 ))
        catch {
          case e: Exception =>
@@ -190,7 +191,6 @@ object Packaging {
 
 [repositories]
   snap-local: file://${snap.local.repository-${snap.home-${user.home}/.snap}/repository}, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
-  local
   maven-central
   typesafe-releases: http://typesafe.artifactoryonline.com/typesafe/releases
   typesafe-ivy-releases: http://typesafe.artifactoryonline.com/typesafe/ivy-releases, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
