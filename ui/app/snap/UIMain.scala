@@ -18,8 +18,7 @@ class UIMain extends AppMain {
     withContextClassloader(play.core.server.NettyServer.main(configuration.arguments))
 
     // Delay opening the browser a short bit so play can start.
-    // TODO - is this worth it?
-    Thread sleep 500L
+    waitForServerStartup()
 
     // openBrowser
     openBrowser()
@@ -32,6 +31,33 @@ class UIMain extends AppMain {
 
   // TODO - make sure this is open!
   lazy val serverPort: Int = 8888
+
+  def waitForServerStartup(): Unit = {
+    import java.net._
+    def isAlive: Boolean = {
+      HttpURLConnection setFollowRedirects true
+      val url = new URL(f"http://localhost:${serverPort}%d/")
+      val request = url.openConnection()
+      request setDoOutput true
+      val http = request.asInstanceOf[HttpURLConnection]
+      http setRequestMethod "GET"
+      try {
+        http.connect()
+        val response = http.getResponseCode
+        response == HttpURLConnection.HTTP_OK
+      } finally http.disconnect()
+    }
+    // Keep sleeping until we see the server respond.
+    // Default to waiting 30 seconds.
+    def checkAlive(remaining: Int = 60): Unit =
+      if(!isAlive) remaining match {
+        case 0 => sys error "Web server never started!"
+        case _ =>
+          Thread sleep 500L
+          checkAlive(remaining - 1)
+      }
+    checkAlive()
+  }
 
   def waitForever(): Unit = {
     // TODO - figure out a better way to do this intead of parking a thread.
@@ -46,7 +72,7 @@ class UIMain extends AppMain {
       else None
 
     desktop match {
-      case Some(d) => d browse new java.net.URI("http://localhost:%d/" format(serverPort))
+      case Some(d) => d browse new java.net.URI(f"http://localhost:${serverPort}%d/")
       case _       => showError("""|Unable to open a web browser!
                                    |Please point your browser at:
                                    | http://localhost:%d/""".stripMargin format (serverPort))
