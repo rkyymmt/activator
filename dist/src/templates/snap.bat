@@ -41,7 +41,9 @@ if "%_JAVACMD%"=="" (
 if "%_JAVACMD%"=="" set _JAVACMD=java
 
 rem Detect if this java is ok to use.
-for /F %%j in ('%_JAVACMD%') do (if %%~j==Usage: (set JAVAINSTALLED=1))
+for /F %%j in ('"%_JAVACMD%" -version  2^>^&1') do (
+  if %%~j==Java set JAVAINSTALLED=1
+)
 if not defined JAVAINSTALLED (
   echo.
   echo Java is not installed or can't be found at: 
