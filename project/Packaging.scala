@@ -125,6 +125,8 @@ object Packaging {
     val jardir = tmp / "jar"
     IO.createDirectory(jardir)
     IO.unzip(launcher, jardir)
+    // TODO - manually delete sbt.boot.properties for james, since he's seeing wierd issues.
+    IO delete (jardir / "sbt" / "sbt.boot.properties")
 
     // Copy new files
     val copys =
