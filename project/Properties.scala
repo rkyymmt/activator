@@ -28,7 +28,7 @@ object Properties {
 
   def makeJavaPropertiesString(version: String, sbtVersion: String): String =
     """|app.version=%s
-       |sbt.version=$s
+       |sbt.version=%s
        |""".stripMargin format (version, sbtVersion)
   
   
