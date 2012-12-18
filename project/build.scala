@@ -21,6 +21,12 @@ object TheSnapBuild extends Build {
     settings(Properties.makePropertyClassSetting(SnapDependencies.sbtVersion):_*)
   )
 
+  lazy val cache = (
+    SnapProject("cache")
+    settings(Keys.scalaVersion := "2.10.0-RC1")
+    dependsOn(props)
+  )
+
   // Theser are the projects we want in the local SNAP repository
   lazy val publishedProjects = Seq(ui, launcher, props)
 
@@ -32,7 +38,7 @@ object TheSnapBuild extends Build {
       commonsIo,
       sbtLauncherInterface
     )
-    dependsOn(props)
+    dependsOn(props, cache)
   )
 
   // TODO - SBT plugin, or just SBT integration?
