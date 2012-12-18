@@ -74,7 +74,7 @@ object IO {
         walk(basedir)
       }
     }
-    files.toSeq
+    files.toVector
   }
 }
 
