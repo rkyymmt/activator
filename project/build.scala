@@ -19,7 +19,7 @@ object TheSnapBuild extends Build {
 
   val root = (
     Project("root", file("."))  // TODO - Oddities with clean..
-    aggregate(ui, launcher, dist, props)
+    aggregate(ui, launcher, dist, props, cache)
   )
 
   lazy val props = (
@@ -34,7 +34,7 @@ object TheSnapBuild extends Build {
   )
 
   // Theser are the projects we want in the local SNAP repository
-  lazy val publishedProjects = Seq(ui, launcher, props)
+  lazy val publishedProjects = Seq(ui, launcher, props, cache)
 
   lazy val ui = (
     SnapPlayProject("ui")
