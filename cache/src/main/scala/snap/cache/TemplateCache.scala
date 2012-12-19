@@ -44,6 +44,15 @@ class DemoTemplateCache() extends TemplateCache {
   // First we copy our templates from the snap.home (if we have them there).
   copyTemplatesIfNeeded()
 
+  import java.io.File
+  private def defaultTemplateFiles: Seq[(File, String)] = {
+    def fileFor(loc: String, name: String): Option[(File, String)] = Option(loc) map (new File(_)) filter (_.exists) map (_ -> name)
+    val batFile = fileFor(SnapProperties.SNAP_LAUNCHER_BAT, "snap.bat")
+    val jarFile = fileFor(SnapProperties.SNAP_LAUNCHER_JAR, s"snap-launcher-${SnapProperties.APP_VERSION}.jar")
+    val bashFile = fileFor(SnapProperties.SNAP_LAUNCHER_BASH, "snap")
+    Seq(batFile, jarFile, bashFile).flatten
+  }
+
   override val metadata: Set[TemplateMetadata] = 
     Set(
       // TODO - Put more hardcoded template metadata for the demo here!
@@ -68,7 +77,7 @@ class DemoTemplateCache() extends TemplateCache {
         relative <- IO.relativize(cacheDir, file)
         if !relative.isEmpty
       } yield file -> relative
-      Template(metadata, fileMappings) 
+      Template(metadata, fileMappings ++ defaultTemplateFiles) 
     }
 
   override def search(query: String): Iterable[TemplateMetadata] =
