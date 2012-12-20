@@ -11,6 +11,8 @@ object SnapDependencies {
   val webjarsBootstrap    = "org.webjars" % "bootstrap" % "2.2.1"
   val commonsIo           = "commons-io" % "commons-io" % "2.0.1"
 
+  val junitInterface       = "com.novocode" % "junit-interface" % "0.7"
+
 
   // Mini DSL
   // DSL for adding remote deps like local deps.
