@@ -82,11 +82,11 @@
                 if (updateCreateAppButton()) {
                     
                     $.ajax({
-                        url: "clone",
+                        url: "templates/clone",
                         type: "POST",
                         dataType: "json",
                         contentType: 'application/json',
-                        data: JSON.stringify({name: $("#inputNewAppName").val(), location: $("#inputNewAppLocation").val(), template: $("#inputNewAppTemplate").val()}),
+                        data: JSON.stringify({location: $("#inputNewAppLocation").val(), template: $("#inputNewAppTemplate").val()}),
                         success:  function(data) {
                             var newApp = $("<a>").attr("href", "#").text(data.name + " (" + data.location + ")")
                             $("#projectList .divider").after($("<li>").append(newApp))
