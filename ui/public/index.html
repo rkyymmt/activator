@@ -44,6 +44,7 @@
     
     <script type="text/javascript" src="/webjars/jquery/1.8.2/jquery.min.js"></script>
     <script type="text/javascript" src="/webjars/bootstrap/2.2.1/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/javascripts/templates.js"></script>
     <script>
         $(function() {
             
@@ -80,13 +81,9 @@
                 event.preventDefault()
                 
                 if (updateCreateAppButton()) {
-                    
-                    $.ajax({
-                        url: "templates/clone",
-                        type: "POST",
-                        dataType: "json",
-                        contentType: 'application/json',
-                        data: JSON.stringify({location: $("#inputNewAppLocation").val(), template: $("#inputNewAppTemplate").val()}),
+                    snap_templates.clone_template({
+                        location: $("#inputNewAppLocation").val(), 
+                        id: $("#inputNewAppTemplate").val(),
                         success:  function(data) {
                             var newApp = $("<a>").attr("href", "#").text(data.name + " (" + data.location + ")")
                             $("#projectList .divider").after($("<li>").append(newApp))
