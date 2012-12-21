@@ -19,6 +19,7 @@ object SnapBuild {
       organization := "com.typesafe.snap",
       version <<= version in ThisBuild,
       crossPaths := false,
+      resolvers += "typesafe-mvn-releases" at "http://repo.typesafe.com/typesafe/releases/",
       resolvers += Resolver.url("typesafe-ivy-releases", new URL("http://repo.typesafe.com/typesafe/releases/"))(Resolver.ivyStylePatterns),
       scalacOptions := Seq("-unchecked", "-deprecation"),
       javacOptions in Compile := Seq("-target", "1.6", "-source", "1.6"),
