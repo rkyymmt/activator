@@ -9,7 +9,13 @@ import Packaging.localRepoArtifacts
 object TheSnapBuild extends Build {
 
   // ADD sbt launcher support here.
-  override def settings = super.settings ++ SbtSupport.buildSettings ++ baseVersions
+  override def settings = super.settings ++ SbtSupport.buildSettings ++ baseVersions ++ Seq(
+    // This is a hack, so the play application will have the right view of the template directory.
+    Keys.baseDirectory <<= Keys.baseDirectory apply { bd =>
+      sys.props("snap.home") = bd.getAbsoluteFile.getAbsolutePath
+      bd
+    }
+  )
 
   val root = (
     Project("root", file("."))  // TODO - Oddities with clean..
@@ -22,12 +28,18 @@ object TheSnapBuild extends Build {
   )
 
   // Theser are the projects we want in the local SNAP repository
-  lazy val publishedProjects = Seq(ui, launcher, props, sbtProtocol, sbtRemoteProbe, sbtDriver)
+  lazy val publishedProjects = Seq(ui, launcher, props, cache, sbtProtocol, sbtRemoteProbe, sbtDriver)
 
   // basic project that gives us properties to use in other projects.  
   lazy val props = (
     SnapJavaProject("props")
     settings(Properties.makePropertyClassSetting(SnapDependencies.sbtVersion):_*)
+  )
+
+  lazy val cache = (
+    SnapProject("cache")
+    settings(Keys.scalaVersion := "2.10.0-RC1")
+    dependsOn(props)
   )
 
   // sbt-child process projects
@@ -62,7 +74,7 @@ object TheSnapBuild extends Build {
       commonsIo,
       sbtLauncherInterface % "provided"
     )
-    dependsOn(props)
+    dependsOn(props, cache)
   )
 
   // TODO - SBT plugin, or just SBT integration?
