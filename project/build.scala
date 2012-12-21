@@ -95,7 +95,17 @@ object TheSnapBuild extends Build {
             CrossVersion(sbv,sv)(id)
         }
       }).join,
-      localRepoArtifacts += "org.scala-sbt" % "sbt" % "0.12.1",
+      localRepoArtifacts ++= 
+        Seq("org.scala-sbt" % "sbt" % "0.12.1",
+            // For some reason, these are not resolving transitively correctly! 
+            "org.scala-lang" % "scala-compiler" % "2.9.2",
+            "org.scala-lang" % "scala-compiler" % "2.10.0-RC1",
+            "net.java.dev.jna" % "jna" % "3.2.3",
+            "commons-codec" % "commons-codec" % "1.3",
+            "org.apache.httpcomponents" % "httpclient" % "4.0.1",
+            "com.google.guava" % "guava" % "11.0.2",
+            "xml-apis" % "xml-apis" % "1.0.b2"
+        ),
       localRepoArtifacts ++= {
         val sbt = "0.12"
         val scala = "2.9.2"
