@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 // You are supposed to send this thing requests from protocol.Request,
 // to get back protocol.Reply
-class SbtChildActor(workingDir: File) extends Actor {
+class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) extends Actor {
 
   private val serverSocket = ipc.openServerSocket()
   private val port = serverSocket.getLocalPort()
@@ -19,16 +19,8 @@ class SbtChildActor(workingDir: File) extends Actor {
   private var preStartBuffer = Vector.empty[MakeServerRequest]
 
   // FIXME don't hardcode my homedir (we want the launcher to be part of snap)
-  private val process = context.actorOf(Props(new ProcessActor(Seq("java",
-    "-Dsnap.sbt-child-port=" + port,
-    "-Dsbt.boot.directory=/home/hp/.sbt/boot",
-    "-Xss1024K", "-Xmx1024M", "-XX:PermSize=512M", "-XX:+CMSClassUnloadingEnabled",
-    "-jar",
-    "/opt/hp/bin/sbt-launch-0.12.0.jar",
-    // command to add our special hook
-    "apply com.typesafe.sbtchild.SetupSbtChild",
-    // enter the "get stuff from the socket" loop
-    "listen"),
+  private val process = context.actorOf(Props(new ProcessActor(
+    sbtChildMaker.arguments(port),
     workingDir)), "sbt-process")
 
   private val server = context.actorOf(Props(new ServerActor(serverSocket)), "sbt-server")
@@ -92,7 +84,7 @@ class SbtChildActor(workingDir: File) extends Actor {
 }
 
 object SbtChild {
-  def apply(system: ActorSystem, workingDir: File): ActorRef = system.actorOf(Props(new SbtChildActor(workingDir)),
+  def apply(system: ActorSystem, workingDir: File, sbtChildMaker: SbtChildProcessMaker = HavocsSbtChildProcessmaker): ActorRef = system.actorOf(Props(new SbtChildActor(workingDir, sbtChildMaker)),
     "sbt-child-" + SbtChild.nextSerial.getAndIncrement())
 
   private val nextSerial = new AtomicInteger(1)

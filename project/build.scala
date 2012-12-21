@@ -62,8 +62,10 @@ object TheSnapBuild extends Build {
   
   lazy val sbtDriver = (
     SbtChildProject("parent") 
-    dependsOn(sbtProtocol)
-    dependsOnRemote(akkaActor)
+    dependsOn(sbtProtocol, 
+              props)
+    dependsOnRemote(akkaActor, 
+                    sbtLauncherInterface)
   )  
   
   lazy val ui = (
