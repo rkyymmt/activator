@@ -13,7 +13,7 @@ object Main extends App {
   val system = ActorSystem("ManualTest")
 
   try {
-    val child = SbtChild(system, new File(args(0)))
+    val child = SbtChild(system, new File(args(0)), HavocsSbtChildProcessmaker)
     try {
 
       implicit val timeout = Timeout(60 seconds)

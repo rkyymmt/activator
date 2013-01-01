@@ -18,10 +18,10 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
   private var started = false
   private var preStartBuffer = Vector.empty[MakeServerRequest]
 
-  // FIXME don't hardcode my homedir (we want the launcher to be part of snap)
-  private val process = context.actorOf(Props(new ProcessActor(
-    sbtChildMaker.arguments(port),
-    workingDir)), "sbt-process")
+  // TODO the "textMode=true" here shouldn't be needed but scala 2.9.2 seems to not
+  // realize that it has a default value? maybe some local quirk on my system?
+  private val process = context.actorOf(Props(new ProcessActor(sbtChildMaker.arguments(port),
+    workingDir, textMode = true)), "sbt-process")
 
   private val server = context.actorOf(Props(new ServerActor(serverSocket)), "sbt-server")
 
@@ -84,7 +84,7 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
 }
 
 object SbtChild {
-  def apply(system: ActorSystem, workingDir: File, sbtChildMaker: SbtChildProcessMaker = HavocsSbtChildProcessmaker): ActorRef = system.actorOf(Props(new SbtChildActor(workingDir, sbtChildMaker)),
+  def apply(system: ActorSystem, workingDir: File, sbtChildMaker: SbtChildProcessMaker): ActorRef = system.actorOf(Props(new SbtChildActor(workingDir, sbtChildMaker)),
     "sbt-child-" + SbtChild.nextSerial.getAndIncrement())
 
   private val nextSerial = new AtomicInteger(1)
