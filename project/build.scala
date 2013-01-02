@@ -31,6 +31,7 @@ object TheSnapBuild extends Build {
     SnapProject("cache")
     settings(Keys.scalaVersion := "2.10.0-RC1")
     dependsOn(props)
+    dependsOnRemote(junitInterface % "test")
   )
 
   // Theser are the projects we want in the local SNAP repository

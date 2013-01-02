@@ -5,9 +5,12 @@
 # Home page
 #GET     /                           controllers.Application.index
 
-POST    /clone                      controllers.Application.cloneTemplate
 POST    /open                       controllers.Application.openLocation
 POST    /start                      controllers.Application.startApp
+
+# Templates
+GET    /templates/list              controllers.Templates.list
+POST    /templates/clone            controllers.Templates.cloneTemplate
 
 GET     /webjars/*file              controllers.WebJarAssets.at(file)
 
