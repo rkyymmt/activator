@@ -10,7 +10,7 @@ class SnapLauncher extends AppMain {
     try configuration.arguments match {
       case Array("ui")         => RebootToUI(configuration)
       case Array("shell")      => RebootToSbt(configuration, useArguments=false)
-      case _ if isLocalProject => RebootToSbt(configuration)
+      case _ if isLocalProject => RebootToSbt(configuration, useArguments=true)
       case _                   => displayHelp(configuration)
     } catch {
       case e: Exception        => generateErrorReport(e)
