@@ -19,6 +19,11 @@ object Packaging {
   val scriptTemplateOutputDirectory = SettingKey[File]("script-template-output-directory")
   val makeBashScript = TaskKey[File]("make-bash-script")
   val makeBatScript = TaskKey[File]("make-bat-script")
+
+
+  val localTemplateSourceDirectory = SettingKey[File]("local-template-source-directory")
+  val localTemplateCache = SettingKey[File]("local-template-cache")
+  val localTemplateCacheCreated = TaskKey[File]("local-template-cache-created")
   
   val localRepoProjectsPublished = TaskKey[Unit]("local-repo-projects-published", "Ensures local projects are published before generating the local repo.")
   val localRepoArtifacts = SettingKey[Seq[ModuleID]]("local-repository-artifacts", "Artifacts included in the local repository.")
@@ -54,6 +59,11 @@ object Packaging {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
       } yield file -> ("repository/" + path)
     },
+    mappings in Universal <++= localTemplateCacheCreated map { repo =>
+      for {
+        (file, path) <- (repo.*** --- repo) x relativeTo(repo)
+      } yield file -> ("templates/" + path)
+    },
     rpmRelease := "1",
     rpmVendor := "typesafe",
     rpmUrl := Some("http://github.com/scala/scala-dist"),
@@ -73,7 +83,7 @@ object Packaging {
       createLocalRepository(m, i, s.log)
       r
     },
-    
+
     scriptTemplateDirectory <<= (sourceDirectory) apply (_ / "templates"),
     scriptTemplateOutputDirectory <<= (target in Compile) apply (_ / "templates"),
     makeBashScript <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
@@ -87,8 +97,20 @@ object Packaging {
       val script = to / "snap.bat"
       copyBatTemplate(template, script, v)
       script
-    }
+    },
+
+    localTemplateSourceDirectory <<= (baseDirectory in ThisBuild) apply (_ / "templates"),
+    localTemplateCache <<= target(_ / "template-cache"),
+    localTemplateCacheCreated <<= (localTemplateSourceDirectory, localTemplateCache) map makeTemplateCache
   )
+
+  def makeTemplateCache(sourceDir: File, targetDir: File): File = {
+    IO createDirectory targetDir
+    // TODO - we should be loading in the templates in this source and generating an index using the cache project's index generation main.
+    // Or some such production-y thing.  For now, just copy some sh***
+    IO.copyDirectory(sourceDir, targetDir)
+    targetDir
+  }
 
 
   def createLocalRepository(
