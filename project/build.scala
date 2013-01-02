@@ -89,6 +89,12 @@ object TheSnapBuild extends Build {
     )
     dependsOn(props)
   )
+  
+  lazy val int = (
+      SnapProject("integration-tests")
+      settings(integration.settings:_*)
+      dependsOnRemote(sbtLauncherInterface)
+  )
 
   lazy val dist = (
     SnapProject("dist")

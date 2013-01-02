@@ -35,7 +35,21 @@ object Packaging {
   val stage = TaskKey[Unit]("stage")
   val dist = TaskKey[File]("dist")
   
-  def settings: Seq[Setting[_]] = packagerSettings ++ Seq(
+  // Shared settings to make a local repository.
+  def makeLocalRepoSettings: Seq[Setting[_]] = Seq(
+    localRepo <<= target(_ / "local-repository"),
+    localRepoArtifacts := Seq.empty,
+    resolvers <+= localRepo apply { f => Resolver.file(localRepoName, f)(Resolver.ivyStylePatterns) },
+    // This hack removes the project resolver so we don't resolve stub artifacts.
+    fullResolvers <<= (externalResolvers, sbtResolver) map (_ :+ _),
+    localRepoProjectsPublished <<= (TheSnapBuild.publishedProjects map (publishLocal in _)).dependOn,
+    localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
+      createLocalRepository(m, i, s.log)
+      r
+    }
+  )
+  
+  def settings: Seq[Setting[_]] = packagerSettings ++ makeLocalRepoSettings ++ Seq(
     name <<= version apply ("snap-" + _),
     wixConfig := <wix/>,
     maintainer := "Josh Suereth <joshua.suereth@typesafe.com>",
@@ -73,17 +87,6 @@ object Packaging {
     repackagedLaunchMappings := Seq.empty,
     repackagedLaunchMappings <+= (target, scalaVersion, version) map makeLauncherProps,
 
-    localRepo <<= target(_ / "local-repository"),
-    localRepoArtifacts := Seq.empty,
-    resolvers <+= localRepo apply { f => Resolver.file(localRepoName, f)(Resolver.ivyStylePatterns) },
-    // This hack removes the project resolver so we don't resolve stub artifacts.
-    fullResolvers <<= (externalResolvers, sbtResolver) map (_ :+ _),
-    localRepoProjectsPublished <<= (TheSnapBuild.publishedProjects map (publishLocal in _)).dependOn,
-    localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
-      createLocalRepository(m, i, s.log)
-      r
-    },
-
     scriptTemplateDirectory <<= (sourceDirectory) apply (_ / "templates"),
     scriptTemplateOutputDirectory <<= (target in Compile) apply (_ / "templates"),
     makeBashScript <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
@@ -116,39 +119,8 @@ object Packaging {
   def createLocalRepository(
       modules: Seq[ModuleID], 
       ivy: IvySbt, 
-      log: Logger): Unit = ivy.withIvy(log) { ivy =>
-
-    import org.apache.ivy.core.module.id.ModuleRevisionId
-    import org.apache.ivy.core.report.ResolveReport
-    import org.apache.ivy.core.install.InstallOptions
-    import org.apache.ivy.plugins.matcher.PatternMatcher
-    import org.apache.ivy.util.filter.FilterHelper
-
-
-    // This helper method installs a particular module and transitive dependencies.
-    def installModule(module: ModuleID): Option[ResolveReport] = {
-      // TODO - Use SBT's default ModuleID -> ModuleRevisionId
-      val mrid = IvySbtCheater toID module
-      val name = ivy.getResolveEngine.getSettings.getResolverName(mrid)
-      log.debug("Module: " + mrid + " should use resolver: " + name)
-      try Some(ivy.install(mrid, name, localRepoName,
-                new InstallOptions()
-                    .setTransitive(true)
-                    .setValidate(true)
-                    .setOverwrite(true)
-                    .setMatcherName(PatternMatcher.EXACT)
-                    .setArtifactFilter(FilterHelper.NO_FILTER)
-                ))
-       catch {
-         case e: Exception =>
-           log.debug("Failed to resolve module: " + module)
-           log.trace(e)
-           None
-       }
-    }
-    // Grab all Artifacts
-    modules foreach installModule     
-  }
+      log: Logger): Unit = 
+        IvyHelper.createLocalRepository(modules, localRepoName, ivy, log)
 
 
   // TODO - Use SBT caching API for this.
