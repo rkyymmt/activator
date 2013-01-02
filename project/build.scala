@@ -94,6 +94,7 @@ object TheSnapBuild extends Build {
       SnapProject("integration-tests")
       settings(integration.settings:_*)
       dependsOnRemote(sbtLauncherInterface)
+      dependsOn(sbtDriver)
   )
 
   lazy val dist = (

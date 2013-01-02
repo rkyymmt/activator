@@ -43,7 +43,7 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
   private object probeApp extends ApplicationID {
     // TODO - Pull these constants from some build-generated properties or something.
     def groupID = "com.typesafe.snap" 
-    def name = "sbt-child-probe"
+    def name = "sbt-child-remote-probe"
     def version = configuration.provider.id.version  // Cheaty way to get version
     def mainClass = "com.typesafe.sbtchild.SetupSbtChild" // TODO - What main class?
     def mainComponents = Array[String]("")  // TODO - is this correct.
@@ -54,7 +54,7 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
   // This will resolve the probe artifact using our launcher and then
   // give us the classpath
   private lazy val probeClassPath: Seq[File] =
-    launcher.app(probeApp, probeApp.version).mainClasspath
+    launcher.app(probeApp, configuration.provider.scalaProvider.version).mainClasspath
     
   // TODO - Find the launcher.
   
