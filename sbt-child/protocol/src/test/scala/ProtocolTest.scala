@@ -76,13 +76,13 @@ class ProtocolTest {
       { (client) =>
         protocol.Envelope(client.receive()) match {
           case protocol.Envelope(serial, replyTo, protocol.NameRequest) =>
-            client.replySerialized(serial, protocol.NameResponse("foobar", List(protocol.LogMessage(1, "a message"))))
+            client.replyJson(serial, protocol.NameResponse("foobar", List(protocol.LogMessage(1, "a message"))))
           case protocol.Envelope(serial, replyTo, other) =>
-            client.replySerialized(serial, protocol.ErrorResponse("did not understand request: " + other, Nil))
+            client.replyJson(serial, protocol.ErrorResponse("did not understand request: " + other, Nil))
         }
       },
       { (server) =>
-        server.sendSerialized(protocol.NameRequest)
+        server.sendJson(protocol.NameRequest)
         val name = protocol.Envelope(server.receive()) match {
           case protocol.Envelope(serial, replyTo, r: protocol.NameResponse) => r.name
           case protocol.Envelope(serial, replyTo, r) =>

@@ -40,7 +40,7 @@ class ServerActor(serverSocket: ServerSocket) extends Actor {
         serverOption = Some(server)
       case MakeServerRequest(replyTo, r) =>
         val server = serverOption.getOrElse(throw new Exception("Made request before server accept"))
-        val requestSerial = server.sendSerialized(r)
+        val requestSerial = server.sendJson(r)
         pendingReplies += (requestSerial -> replyTo)
     }
 
