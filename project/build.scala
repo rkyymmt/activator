@@ -28,7 +28,7 @@ object TheSnapBuild extends Build {
   )
 
   // Theser are the projects we want in the local SNAP repository
-  lazy val publishedProjects = Seq(ui, launcher, props, cache, sbtProtocol, sbtRemoteProbe, sbtDriver)
+  lazy val publishedProjects = Seq(ui, launcher, props, cache, sbtRemoteProbe, sbtDriver)
 
   // basic project that gives us properties to use in other projects.  
   lazy val props = (
@@ -42,15 +42,17 @@ object TheSnapBuild extends Build {
     dependsOn(props)
   )
 
-  // sbt-child process projects
-  lazy val sbtProtocol = (
-    SbtChildProject("protocol")
-    settings()
-  )
+  // add sources from the given dir
+  def dependsOnSource(dir: String): Seq[Setting[_]] = {
+    import Keys._
+    Seq(unmanagedSourceDirectories in Compile <<= (unmanagedSourceDirectories in Compile, baseDirectory) { (srcDirs, base) => (base / dir / "src/main/scala") +: srcDirs },
+        unmanagedSourceDirectories in Test <<= (unmanagedSourceDirectories in Test, baseDirectory) { (srcDirs, base) => (base / dir / "src/test/scala") +: srcDirs })
+  }
 
+  // sbt-child process projects
   lazy val sbtRemoteProbe = (
     SbtChildProject("remote-probe")
-    dependsOn(sbtProtocol)
+    settings(dependsOnSource("../protocol"): _*)
     dependsOnRemote(
       sbtMain % "provided",
       sbtTheSbt % "provided",
@@ -61,9 +63,10 @@ object TheSnapBuild extends Build {
   )
   
   lazy val sbtDriver = (
-    SbtChildProject("parent") 
-    dependsOn(sbtProtocol, 
-              props)
+    SbtChildProject("parent")
+    settings(Keys.scalaVersion := "2.10.0")
+    settings(dependsOnSource("../protocol"): _*)
+    dependsOn(props)
     dependsOnRemote(akkaActor, 
                     sbtLauncherInterface)
   )  
