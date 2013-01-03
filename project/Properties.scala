@@ -29,7 +29,15 @@ object Properties {
   def makeJavaPropertiesString(version: String, sbtVersion: String): String =
     """|app.version=%s
        |sbt.version=%s
-       |""".stripMargin format (version, sbtVersion)
+       |sbt.scala.version=%s
+       |""".stripMargin format (version, sbtVersion, sbtScalaVersion(sbtVersion))
   
+  
+  def sbtScalaVersion(sbtVersion: String): String =
+    (sbtVersion split "[\\.\\-]" take 3) match {
+      case Array("0", "12", _) => "2.9.2"
+      case Array("0", "13", _) => "2.10.0"
+      case _                   => "2.9.1"
+    }
   
 }

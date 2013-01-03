@@ -50,6 +50,10 @@ public class SnapProperties {
     return props.getProperty("sbt.version");
   }
 
+  public static String SBT_SCALA_VERSION() {
+    return props.getProperty("sbt.scala.version");
+  }
+
   public static String SNAP_HOME() {
     return getProperty("snap.home");
   }
