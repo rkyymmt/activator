@@ -3,7 +3,7 @@ import PlayProject._
 import Keys._
 
 object SnapDependencies {
-  val sbtVersion = "0.12.1"
+  val sbtVersion = "0.12.2-RC1"
 
   val sbtLauncherInterface = "org.scala-sbt" % "launcher-interface" % sbtVersion
   val sbtMain              = "org.scala-sbt" % "main" % sbtVersion

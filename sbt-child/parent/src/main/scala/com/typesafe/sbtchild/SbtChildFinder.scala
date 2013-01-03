@@ -82,10 +82,14 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
       "apply com.typesafe.sbtchild.SetupSbtChild -cp " + probeClasspathString,
       "listen")
     
-    Seq("java") ++ 
+    val result = Seq("java") ++ 
     defaultJvmArgs ++ 
     sbtProps ++
     jar ++
     sbtcommands
+
+    System.err.println("Running sbt-child with arguments =\n\t" + result.mkString("\n\t"))
+
+    result
   }
 }

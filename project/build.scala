@@ -19,7 +19,7 @@ object TheSnapBuild extends Build {
 
   val root = (
     Project("root", file("."))  // TODO - Oddities with clean..
-    aggregate((publishedProjects.map(_.project) ++ Seq(dist.project)):_*)
+    aggregate((publishedProjects.map(_.project) ++ Seq(dist.project, it.project)):_*)
     settings(
       // Stub out commands we run frequently but don't want them to really do anything.
       Keys.publish := {},
@@ -91,11 +91,15 @@ object TheSnapBuild extends Build {
     dependsOn(props)
   )
   
-  lazy val int = (
+  lazy val it = (
       SnapProject("integration-tests")
       settings(integration.settings:_*)
       dependsOnRemote(sbtLauncherInterface)
-      dependsOn(sbtDriver)
+      dependsOn(sbtDriver, props)
+      settings(
+        // Note: we remve project resolver for IT stuff (lame, I know), so we require publishLocal from our dependencies to update...
+        Keys.update <<= (Keys.update.task, (Keys.publishLocal in sbtDriver).task) apply ((a, b) => b flatMapR (_ => a))
+      )
   )
 
   lazy val dist = (

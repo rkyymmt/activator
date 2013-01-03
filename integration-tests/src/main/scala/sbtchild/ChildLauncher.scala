@@ -29,8 +29,17 @@ class CanLaunchThroughSbtLauncher extends xsbti.AppMain {
   def test(conf: xsbti.AppConfiguration): xsbti.Exit =  {
     val system = ActorSystem("ManualTest")
     try {
+      // TODO - Create project here, rather than rely on it created by test harness....
       val dir = new File("dummy")
       dir.mkdirs()
+      val project = new File(dir, "project")
+      project.mkdirs()
+      val props = new File(project, "build.properties")
+      val tmp = {
+        val writer = new java.io.FileWriter(props)
+        try writer.write("sbt.version="+snap.properties.SnapProperties.SBT_VERSION)
+        finally writer.close()
+      }
       val child = SbtChild(system, dir, new SbtChildLauncher(conf))
       try {
         implicit val timeout = Timeout(60 seconds)
