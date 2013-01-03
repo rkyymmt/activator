@@ -7,12 +7,8 @@ import java.io.DataOutputStream
 import java.io.BufferedOutputStream
 import java.io.IOException
 import java.nio.charset.Charset
-import java.io.ByteArrayOutputStream
-import java.io.ObjectOutputStream
-import java.io.ByteArrayInputStream
-import java.io.ObjectInputStream
 import java.io.InputStream
-import java.io.ObjectStreamClass
+import scala.util.parsing.json._
 
 trait Envelope[T] {
   def serial: Long
@@ -24,38 +20,24 @@ case class WireEnvelope(length: Int, override val serial: Long, override val rep
   def asString: String = {
     new String(content, utf8)
   }
+}
 
-  /**
-   * @author Guy Oliver
-   * This is a hackaround for https://github.com/harrah/xsbt/issues/136 insanity,
-   * copied from scala actors remoting code
-   */
-  private class CustomObjectInputStream(in: InputStream, cl: ClassLoader)
-    extends ObjectInputStream(in) {
-    override def resolveClass(cd: ObjectStreamClass): Class[_] =
-      try {
-        cl.loadClass(cd.getName())
-      } catch {
-        case cnf: ClassNotFoundException =>
-          super.resolveClass(cd)
-      }
-    override def resolveProxyClass(interfaces: Array[String]): Class[_] =
-      try {
-        val ifaces = interfaces map { iface => cl.loadClass(iface) }
-        java.lang.reflect.Proxy.getProxyClass(cl, ifaces: _*)
-      } catch {
-        case e: ClassNotFoundException =>
-          super.resolveProxyClass(interfaces)
-      }
-  }
+trait JsonWriter[-T] {
+  def toJson(t: T): JSONType
+}
 
-  def asDeserialized: AnyRef = {
-    val inStream = new ByteArrayInputStream(content)
-    val inObjectStream = new CustomObjectInputStream(inStream, this.getClass.getClassLoader())
-    val o = inObjectStream.readObject()
-    inObjectStream.close()
-    o
+object JsonWriter {
+  def toJsonArray[T: JsonWriter](ts: Seq[T]): JSONArray = {
+    JSONArray(ts map { t => implicitly[JsonWriter[T]].toJson(t) } toList)
   }
+}
+
+trait JsonReader[+T] {
+  def fromJson(s: JSONType): T
+}
+
+trait JsonRepresentation[T] extends JsonWriter[T] with JsonReader[T] {
+
 }
 
 // This is intended to support reading from one thread
@@ -131,20 +113,12 @@ abstract class Peer(protected val socket: Socket) {
     reply(replyTo, message.getBytes(utf8))
   }
 
-  private def toBytes(o: AnyRef): Array[Byte] = {
-    val byteStream = new ByteArrayOutputStream()
-    val objectStream = new ObjectOutputStream(byteStream)
-    objectStream.writeObject(o)
-    objectStream.close()
-    byteStream.toByteArray()
+  def sendJson[T: JsonWriter](message: T): Long = {
+    sendString(implicitly[JsonWriter[T]].toJson(message).toString)
   }
 
-  def sendSerialized(message: AnyRef): Long = {
-    send(toBytes(message))
-  }
-
-  def replySerialized(replyTo: Long, message: AnyRef): Long = {
-    reply(replyTo, toBytes(message))
+  def replyJson[T: JsonWriter](replyTo: Long, message: T): Long = {
+    replyString(replyTo, implicitly[JsonWriter[T]].toJson(message).toString)
   }
 
   def close(): Unit = {
