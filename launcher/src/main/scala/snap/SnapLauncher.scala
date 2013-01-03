@@ -50,7 +50,7 @@ class SnapLauncher extends AppMain {
 case class RebootToUI(configuration: AppConfiguration) extends xsbti.Reboot {
   val arguments = Array.empty[String]
   val baseDirectory = configuration.baseDirectory
-  val scalaVersion = "2.10.0-RC1"
+  val scalaVersion = SnapProperties.APP_SCALA_VERSION
   val app = ApplicationID(
               groupID = configuration.provider.id.groupID,
               name = "snap-ui",

@@ -25,7 +25,7 @@ object SnapBuild {
       javacOptions in Compile := Seq("-target", "1.6", "-source", "1.6"),
       javacOptions in (Compile, doc) := Seq("-source", "1.6"),
       libraryDependencies += SnapDependencies.junitInterface % "test",
-      scalaVersion := "2.10.0-RC1",
+      scalaVersion := SnapDependencies.scalaVersion,
       scalaBinaryVersion := "2.10"
     )
 

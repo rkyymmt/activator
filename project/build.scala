@@ -33,7 +33,7 @@ object TheSnapBuild extends Build {
   // basic project that gives us properties to use in other projects.  
   lazy val props = (
     SnapJavaProject("props")
-    settings(Properties.makePropertyClassSetting(SnapDependencies.sbtVersion):_*)
+    settings(Properties.makePropertyClassSetting(SnapDependencies.sbtVersion,SnapDependencies.scalaVersion):_*)
   )
 
   lazy val cache = (

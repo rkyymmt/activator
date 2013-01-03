@@ -46,6 +46,11 @@ public class SnapProperties {
     return APP_VERSION();
   }
 
+  public static String APP_SCALA_VERSION() {
+    // TODO - Encode ABI version in SNAP metadata...
+    return props.getProperty("app.scala.version");
+  }
+  
   public static String SBT_VERSION() {
     return props.getProperty("sbt.version");
   }
