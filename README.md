@@ -16,6 +16,33 @@ or just
 
     sbt "snap-ui/run"
 
+
+## Testing
+
+There are two types of tests:  Unit tests and integration tests.
+
+### Unit Tests
+
+To run unit tests, simply:
+
+    sbt> test
+
+To run the tests of a particular project, simply:
+
+    sbt> <project>/test
+
+To run a specific test, simply:
+
+    sbt> test-only TestName
+
+## Integration Tests
+
+To run all the integration tests, simply:
+
+    sbt> integration-tests
+
+
+
 ## Staging a distribution
 
     sbt> snap-dist/stage

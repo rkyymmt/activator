@@ -79,7 +79,7 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
     // TODO - Is the cross-platform friendly?
     val probeClasspathString = probeClassPath map (_.getAbsolutePath) mkString File.pathSeparator
     val sbtcommands = Seq(
-      "apply com.typesafe.sbtchild.SetupSbtChild -cp " + probeClasspathString,
+      "apply -cp " + probeClasspathString + " com.typesafe.sbtchild.SetupSbtChild",
       "listen")
     
     val result = Seq("java") ++ 

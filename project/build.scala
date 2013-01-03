@@ -38,7 +38,6 @@ object TheSnapBuild extends Build {
 
   lazy val cache = (
     SnapProject("cache")
-    settings(Keys.scalaVersion := "2.10.0-RC1")
     dependsOn(props)
     dependsOnRemote(junitInterface % "test")
   )
@@ -54,6 +53,7 @@ object TheSnapBuild extends Build {
   lazy val sbtRemoteProbe = (
     SbtChildProject("remote-probe")
     settings(dependsOnSource("../protocol"): _*)
+    settings(Keys.scalaVersion := "2.9.2", Keys.scalaBinaryVersion <<= Keys.scalaVersion)
     dependsOnRemote(
       sbtMain % "provided",
       sbtTheSbt % "provided",
@@ -65,8 +65,7 @@ object TheSnapBuild extends Build {
   
   lazy val sbtDriver = (
     SbtChildProject("parent")
-    settings(Keys.scalaVersion := "2.10.0",
-             Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
+    settings(Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
     settings(dependsOnSource("../protocol"): _*)
     dependsOn(props)
     dependsOnRemote(akkaActor, 
@@ -89,9 +88,6 @@ object TheSnapBuild extends Build {
   lazy val launcher = (
     SnapProject("launcher")
     dependsOnRemote(sbtLauncherInterface)
-    settings(
-      Keys.scalaBinaryVersion <<= Keys.scalaVersion
-    )
     dependsOn(props)
   )
   
@@ -126,7 +122,7 @@ object TheSnapBuild extends Build {
         }
       }).join,
       localRepoArtifacts ++= 
-        Seq("org.scala-sbt" % "sbt" % "0.12.1",
+        Seq("org.scala-sbt" % "sbt" % SnapDependencies.sbtVersion,
             // For some reason, these are not resolving transitively correctly! 
             "org.scala-lang" % "scala-compiler" % "2.9.2",
             "org.scala-lang" % "scala-compiler" % "2.10.0-RC1",

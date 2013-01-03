@@ -5,7 +5,8 @@ import java.io.File
 import akka.actor._
 import akka.pattern._
 import akka.dispatch._
-import akka.util.duration._
+import concurrent.duration._
+import concurrent.Await
 import akka.util.Timeout
 
 class CanLaunchThroughSbtLauncher extends snap.tests.IntegrationTest {

@@ -12,7 +12,7 @@ object SnapDependencies {
   val sbtLogging           = "org.scala-sbt" % "logging" % sbtVersion
   val sbtProcess           = "org.scala-sbt" % "process" % sbtVersion
   
-  val akkaActor            = "com.typesafe.akka" % "akka-actor" % "2.0.3"
+  val akkaActor            = "com.typesafe.akka" % "akka-actor_2.10" % "2.1.0"
   
   val webjarsPlay          = "org.webjars" % "webjars-play" % "2.0"
   val webjarsBootstrap     = "org.webjars" % "bootstrap" % "2.2.1"
