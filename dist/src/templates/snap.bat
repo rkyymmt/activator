@@ -72,7 +72,7 @@ rem We add a / in front, so we get file:///C: instead of file://C:
 rem Java considers the later a UNC path.
 set JAVA_FRIENDLY_SNAP_HOME=/!SNAP_HOME:\=\\!
 
-"%_JAVACMD%" %_JAVA_OPTS% %SNAP_OPTS% "-Dsnap.home=%JAVA_FRIENDLY_SNAP_HOME%" -jar "%SNAP_HOME%\%SNAP_LAUNCH_JAR%" %CMDS%
+"%_JAVACMD%" %_JAVA_OPTS% -XX:PermSize=64M -XX:MaxPermSize=256M %SNAP_OPTS% "-Dsnap.home=%JAVA_FRIENDLY_SNAP_HOME%" -jar "%SNAP_HOME%\%SNAP_LAUNCH_JAR%" %CMDS%
 if ERRORLEVEL 1 goto error
 goto end
 
