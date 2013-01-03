@@ -46,8 +46,17 @@ public class SnapProperties {
     return APP_VERSION();
   }
 
+  public static String APP_SCALA_VERSION() {
+    // TODO - Encode ABI version in SNAP metadata...
+    return props.getProperty("app.scala.version");
+  }
+  
   public static String SBT_VERSION() {
     return props.getProperty("sbt.version");
+  }
+
+  public static String SBT_SCALA_VERSION() {
+    return props.getProperty("sbt.scala.version");
   }
 
   public static String SNAP_HOME() {
@@ -74,7 +83,8 @@ public class SnapProperties {
     String value = SNAP_HOME();
     String version = APP_VERSION();
     if(value != null && version != null) {
-      value = value + "/snap-launcher-"+version+".jar";
+      // TODO - synch this with build in some better fashion!
+      value = value + "/snap-launch-"+version+".jar";
     }
     return value;
   }

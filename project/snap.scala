@@ -24,7 +24,9 @@ object SnapBuild {
       scalacOptions := Seq("-unchecked", "-deprecation"),
       javacOptions in Compile := Seq("-target", "1.6", "-source", "1.6"),
       javacOptions in (Compile, doc) := Seq("-source", "1.6"),
-      libraryDependencies += SnapDependencies.junitInterface % "test"
+      libraryDependencies += SnapDependencies.junitInterface % "test",
+      scalaVersion := SnapDependencies.scalaVersion,
+      scalaBinaryVersion := "2.10"
     )
 
 
@@ -42,7 +44,6 @@ object SnapBuild {
   def SnapPlayProject(name: String): Project = (
     play.Project("snap-" + name, path = file(name)) 
     settings(snapDefaults:_*)
-    settings(scalaBinaryVersion := "2.10")
   )
 
   def SnapJavaProject(name: String): Project = (

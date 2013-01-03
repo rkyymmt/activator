@@ -43,7 +43,7 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
   private object probeApp extends ApplicationID {
     // TODO - Pull these constants from some build-generated properties or something.
     def groupID = "com.typesafe.snap" 
-    def name = "sbt-child-probe"
+    def name = "sbt-child-remote-probe"
     def version = configuration.provider.id.version  // Cheaty way to get version
     def mainClass = "com.typesafe.sbtchild.SetupSbtChild" // TODO - What main class?
     def mainComponents = Array[String]("")  // TODO - is this correct.
@@ -54,7 +54,7 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
   // This will resolve the probe artifact using our launcher and then
   // give us the classpath
   private lazy val probeClassPath: Seq[File] =
-    launcher.app(probeApp, probeApp.version).mainClasspath
+    launcher.app(probeApp, SnapProperties.SBT_SCALA_VERSION).mainClasspath
     
   // TODO - Find the launcher.
   
@@ -72,20 +72,27 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
       "-XX:+CMSClassUnloadingEnabled")
     // TODO - handle spaces in strings and such...
     val sbtProps = Seq(
+      "-Dsnap.home="+SnapProperties.SNAP_HOME,
       "-Dsbt.boot.directory="+sys.props("sbt.boot.directory"),
+      // TODO - Don't allow user-global plugins?
+      //"-Dsbt.global.base=/tmp/.sbtboot",
       portArg)
     val jar = Seq("-jar", SnapProperties.SNAP_LAUNCHER_JAR)
     
     // TODO - Is the cross-platform friendly?
-    val probeClasspathString = probeClassPath map (_.getAbsolutePath) mkString File.pathSeparator
+    val probeClasspathString = (probeClassPath map (_.getAbsolutePath)).distinct mkString File.pathSeparator
     val sbtcommands = Seq(
-      "apply com.typesafe.sbtchild.SetupSbtChild -cp " + probeClasspathString,
+      "apply -cp " + probeClasspathString + " com.typesafe.sbtchild.SetupSbtChild",
       "listen")
     
-    Seq("java") ++ 
+    val result = Seq("java") ++ 
     defaultJvmArgs ++ 
     sbtProps ++
     jar ++
     sbtcommands
+
+    System.err.println("Running sbt-child with arguments =\n\t" + result.mkString("\n\t"))
+
+    result
   }
 }

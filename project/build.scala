@@ -19,7 +19,7 @@ object TheSnapBuild extends Build {
 
   val root = (
     Project("root", file("."))  // TODO - Oddities with clean..
-    aggregate((publishedProjects.map(_.project) ++ Seq(dist.project)):_*)
+    aggregate((publishedProjects.map(_.project) ++ Seq(dist.project, it.project)):_*)
     settings(
       // Stub out commands we run frequently but don't want them to really do anything.
       Keys.publish := {},
@@ -33,13 +33,13 @@ object TheSnapBuild extends Build {
   // basic project that gives us properties to use in other projects.  
   lazy val props = (
     SnapJavaProject("props")
-    settings(Properties.makePropertyClassSetting(SnapDependencies.sbtVersion):_*)
+    settings(Properties.makePropertyClassSetting(SnapDependencies.sbtVersion,SnapDependencies.scalaVersion):_*)
   )
 
   lazy val cache = (
     SnapProject("cache")
-    settings(Keys.scalaVersion := "2.10.0-RC1")
     dependsOn(props)
+    dependsOnRemote(junitInterface % "test")
   )
 
   // add sources from the given dir
@@ -53,6 +53,7 @@ object TheSnapBuild extends Build {
   lazy val sbtRemoteProbe = (
     SbtChildProject("remote-probe")
     settings(dependsOnSource("../protocol"): _*)
+    settings(Keys.scalaVersion := "2.9.2", Keys.scalaBinaryVersion <<= Keys.scalaVersion)
     dependsOnRemote(
       sbtMain % "provided",
       sbtTheSbt % "provided",
@@ -64,8 +65,7 @@ object TheSnapBuild extends Build {
   
   lazy val sbtDriver = (
     SbtChildProject("parent")
-    settings(Keys.scalaVersion := "2.10.0",
-             Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
+    settings(Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
     settings(dependsOnSource("../protocol"): _*)
     dependsOn(props)
     dependsOnRemote(akkaActor, 
@@ -88,10 +88,18 @@ object TheSnapBuild extends Build {
   lazy val launcher = (
     SnapProject("launcher")
     dependsOnRemote(sbtLauncherInterface)
-    settings(
-      Keys.scalaBinaryVersion <<= Keys.scalaVersion
-    )
     dependsOn(props)
+  )
+  
+  lazy val it = (
+      SnapProject("integration-tests")
+      settings(integration.settings:_*)
+      dependsOnRemote(sbtLauncherInterface)
+      dependsOn(sbtDriver, props)
+      settings(
+        // Note: we remve project resolver for IT stuff (lame, I know), so we require publishLocal from our dependencies to update...
+        Keys.update <<= (Keys.update.task, (Keys.publishLocal in sbtDriver).task) apply ((a, b) => b flatMapR (_ => a))
+      )
   )
 
   lazy val dist = (
@@ -114,7 +122,7 @@ object TheSnapBuild extends Build {
         }
       }).join,
       localRepoArtifacts ++= 
-        Seq("org.scala-sbt" % "sbt" % "0.12.1",
+        Seq("org.scala-sbt" % "sbt" % SnapDependencies.sbtVersion,
             // For some reason, these are not resolving transitively correctly! 
             "org.scala-lang" % "scala-compiler" % "2.9.2",
             "org.scala-lang" % "scala-compiler" % "2.10.0-RC1",
