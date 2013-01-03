@@ -21,9 +21,9 @@ object integration {
   val snapHome = TaskKey[File]("integration-snap-home", "Creates the snap-home for use in integration tests.")
   
   def settings: Seq[Setting[_]] = makeLocalRepoSettings ++ Seq(
-    localRepoArtifacts <<= localRepoArtifacts in TheSnapBuild.dist,
+    localRepoArtifacts := Seq.empty,
     // Make sure we publish this project.
-    localRepoProjectsPublished <<= (publishLocal, localRepoProjectsPublished) map ((_, v) => v),
+    localRepoProjectsPublished <<= publishLocal,
     mains <<= compile in Compile map { a =>
       val defs = a.apis.internal.values.flatMap(_.api.definitions)
       val results = Discovery(Set("xsbti.Main"), Set())(defs.toSeq)
@@ -43,7 +43,6 @@ object integration {
        IO createDirectory home
        val homeFiles = for {
          (file, name) <- m
-         if !(name startsWith "repository")
        } yield file -> (home / name)
        IO.copy(homeFiles)
        home
@@ -102,7 +101,8 @@ case class IntegrationContext(launchJar: File,
        |  components: xsbti
        |
        |[repositories]
-       |  snap-local: file://%s, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
+       |  snap-local: file://${snap.local.repository-${snap.home-${user.home}/.snap}/repository}, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
+       |  snap-it-local: file://%s, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
        |
        |[boot]
        |  directory: ${sbt.boot.directory}
