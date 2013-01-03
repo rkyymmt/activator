@@ -74,7 +74,8 @@ public class SnapProperties {
     String value = SNAP_HOME();
     String version = APP_VERSION();
     if(value != null && version != null) {
-      value = value + "/snap-launcher-"+version+".jar";
+      // TODO - synch this with build in some better fashion!
+      value = value + "/snap-launch-"+version+".jar";
     }
     return value;
   }
