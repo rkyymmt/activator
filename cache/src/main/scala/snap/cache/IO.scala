@@ -76,5 +76,81 @@ object IO {
     }
     files.toVector
   }
+    
+  /** Creates a temporary directory and provides its location to the given function.  The directory
+   *is deleted after the function returns.*/
+  def withTemporaryDirectory[T](action: File => T): T = {
+    val dir = createTemporaryDirectory
+    try { action(dir) }
+    finally { delete(dir) }
+  }
+  /** The producer of randomness for unique name generation.*/
+  private lazy val random = new java.util.Random
+  lazy val temporaryDirectory = new File(System.getProperty("java.io.tmpdir"))
+	
+  /** Creates a directory in the default temporary directory with a name generated from a random integer. */
+  def createTemporaryDirectory: File = createUniqueDirectory(temporaryDirectory)
+
+  /** Creates a directory in `baseDirectory` with a name generated from a random integer */
+  def createUniqueDirectory(baseDirectory: File): File = {
+		def create(tries: Int): File =
+		{
+			if(tries > 3)
+				sys.error("Could not create temporary directory.")
+			else
+			{
+				val randomName = "sbt_" + java.lang.Integer.toHexString(random.nextInt)
+				val f = new File(baseDirectory, randomName)
+
+				try { createDirectory(f); f }
+				catch { case e: Exception => create(tries + 1) }
+			}
+		}
+		create(0)
+	}
+  
+  /** Deletes each file or directory (recursively) in `files`.*/
+	def delete(files: Iterable[File]): Unit = files.foreach(delete)
+
+	/** Deletes each file or directory in `files` recursively.  Any empty parent directories are deleted, recursively.*/
+	def deleteFilesEmptyDirs(files: Iterable[File]): Unit =
+	{
+		def isEmptyDirectory(dir: File) = dir.isDirectory && listFiles(dir).isEmpty
+		def parents(fs: Set[File]) = fs.map(_.getParentFile)
+		def deleteEmpty(dirs: Set[File])
+		{
+			val empty = dirs filter isEmptyDirectory
+			if(empty.nonEmpty)  // looks funny, but this is true if at least one of `dirs` is an empty directory
+			{
+				empty foreach { _.delete() }
+				deleteEmpty(parents(empty))
+			}
+		}
+
+		delete(files)
+		deleteEmpty(parents(files.toSet))
+	}
+
+  /** Deletes `file`, recursively if it is a directory. */
+  def delete(file: File): Unit = {
+    val deleted = file.delete()
+    if(!deleted && file.isDirectory) {
+      delete(listFiles(file))
+      file.delete
+    }
+  }
+
+  /** Returns the children of directory `dir` that match `filter` in a non-null array.*/
+  def listFiles(filter: java.io.FileFilter)(dir: File): Array[File] = wrapNull(dir.listFiles(filter))
+
+  /** Returns the children of directory `dir` that match `filter` in a non-null array.*/
+  def listFiles(dir: File, filter: java.io.FileFilter): Array[File] = wrapNull(dir.listFiles(filter))
+
+  /** Returns the children of directory `dir` in a non-null array.*/
+  def listFiles(dir: File): Array[File] = wrapNull(dir.listFiles())
+
+  def wrapNull(a: Array[File]) =
+    if(a == null) new Array[File](0)
+    else          a
 }
 

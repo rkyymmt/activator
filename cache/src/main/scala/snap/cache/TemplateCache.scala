@@ -73,8 +73,8 @@ class DemoTemplateCache() extends TemplateCache {
       // TODO - Find all files associated with a template...
       val templateDir = new java.io.File(cacheDir, id)
       val fileMappings = for {
-        file <- IO allfiles cacheDir
-        relative <- IO.relativize(cacheDir, file)
+        file <- IO allfiles templateDir
+        relative <- IO.relativize(templateDir, file)
         if !relative.isEmpty
       } yield file -> relative
       Template(metadata, fileMappings ++ defaultTemplateFiles) 

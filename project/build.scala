@@ -40,6 +40,7 @@ object TheSnapBuild extends Build {
     SnapProject("cache")
     settings(Keys.scalaVersion := "2.10.0-RC1")
     dependsOn(props)
+    dependsOnRemote(junitInterface % "test")
   )
 
   // sbt-child process projects
