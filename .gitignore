@@ -18,3 +18,7 @@ workspace/
 repository/
 target/
 logs/
+.settings
+.classpath
+.project
+.cache
