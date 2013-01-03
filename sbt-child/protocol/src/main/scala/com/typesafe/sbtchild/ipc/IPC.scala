@@ -62,6 +62,10 @@ case class WireEnvelope(length: Int, override val serial: Long, override val rep
 // while writing from another, but not two threads both
 // reading or both writing concurrently
 abstract class Peer(protected val socket: Socket) {
+  require(!socket.isClosed())
+  require(socket.getInputStream() ne null)
+  require(socket.getOutputStream() ne null)
+
   private val in = new DataInputStream(new BufferedInputStream(socket.getInputStream()))
   private val out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()))
 
@@ -88,6 +92,8 @@ abstract class Peer(protected val socket: Socket) {
   def isClosed = socket.isClosed()
 
   def send(message: WireEnvelope): Unit = {
+    if (isClosed)
+      throw new IOException("socket is closed")
     out.writeInt(message.length)
     out.writeLong(message.serial)
     out.writeLong(message.replyTo)
@@ -107,6 +113,8 @@ abstract class Peer(protected val socket: Socket) {
   }
 
   def receive(): WireEnvelope = {
+    if (isClosed)
+      throw new IOException("socket is closed")
     val length = in.readInt()
     val serial = in.readLong()
     val replyTo = in.readLong()
