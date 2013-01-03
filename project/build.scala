@@ -64,7 +64,8 @@ object TheSnapBuild extends Build {
   
   lazy val sbtDriver = (
     SbtChildProject("parent")
-    settings(Keys.scalaVersion := "2.10.0")
+    settings(Keys.scalaVersion := "2.10.0",
+             Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
     settings(dependsOnSource("../protocol"): _*)
     dependsOn(props)
     dependsOnRemote(akkaActor, 
