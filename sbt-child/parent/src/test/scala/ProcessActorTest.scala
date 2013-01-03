@@ -8,7 +8,8 @@ import java.io.File
 import akka.actor._
 import akka.dispatch._
 import akka.util._
-import akka.util.duration._
+import scala.concurrent._
+import scala.concurrent.duration._
 
 class TestRecorder(endPredicate: Any => Boolean, resultPromise: Promise[Seq[Any]]) extends Actor {
   var record: Vector[Any] = Vector.empty
@@ -27,7 +28,7 @@ class ProcessActorTest {
   private def recordProcess(systemName: String, argv: Seq[String], cwd: File): Seq[Any] = {
     val system = ActorSystem(systemName)
     val process = ProcessActor(system, "testProcess", argv, cwd)
-    val resultPromise = Promise[Seq[Any]]()(system.dispatcher)
+    val resultPromise = Promise[Seq[Any]]()
     val recorder = system.actorOf(Props(new TestRecorder({
       case stopped: ProcessStopped => true
       case _ => false
@@ -35,7 +36,7 @@ class ProcessActorTest {
     process ! SubscribeProcess(recorder)
     process ! StartProcess
 
-    val result = Await.result(resultPromise, 3 seconds)
+    val result = Await.result(resultPromise.future, 3 seconds)
 
     system.shutdown()
 

@@ -3,7 +3,8 @@ import java.io.File
 import akka.actor._
 import akka.pattern._
 import akka.dispatch._
-import akka.util.duration._
+import scala.concurrent._
+import scala.concurrent.duration._
 import akka.util.Timeout
 
 object Main extends App {

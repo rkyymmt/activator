@@ -107,7 +107,7 @@ object Message {
               NameRequest
             case "NameResponse" =>
               NameResponse(obj("name").asInstanceOf[String], parseLogList(obj, "logs"))
-            case "CompileRequest" =>
+            case "CompileRequest$" =>
               CompileRequest
             case "CompileResponse" =>
               CompileResponse(parseLogList(obj, "logs"))
