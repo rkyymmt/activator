@@ -48,7 +48,7 @@ class DemoTemplateCache() extends TemplateCache {
   private def defaultTemplateFiles: Seq[(File, String)] = {
     def fileFor(loc: String, name: String): Option[(File, String)] = Option(loc) map (new File(_)) filter (_.exists) map (_ -> name)
     val batFile = fileFor(SnapProperties.SNAP_LAUNCHER_BAT, "snap.bat")
-    val jarFile = fileFor(SnapProperties.SNAP_LAUNCHER_JAR, s"snap-launcher-${SnapProperties.APP_VERSION}.jar")
+    val jarFile = fileFor(SnapProperties.SNAP_LAUNCHER_JAR, s"snap-launch-${SnapProperties.APP_VERSION}.jar")
     val bashFile = fileFor(SnapProperties.SNAP_LAUNCHER_BASH, "snap")
     Seq(batFile, jarFile, bashFile).flatten
   }
