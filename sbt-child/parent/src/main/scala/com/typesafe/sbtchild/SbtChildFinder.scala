@@ -74,13 +74,15 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
     val sbtProps = Seq(
       "-Dsnap.home="+SnapProperties.SNAP_HOME,
       "-Dsbt.boot.directory="+sys.props("sbt.boot.directory"),
+      // TODO - Don't allow user-global plugins?
+      //"-Dsbt.global.base=/tmp/.sbtboot",
       portArg)
     val jar = Seq("-jar", SnapProperties.SNAP_LAUNCHER_JAR)
     
     // TODO - Is the cross-platform friendly?
     val probeClasspathString = (probeClassPath map (_.getAbsolutePath)).distinct mkString File.pathSeparator
     val sbtcommands = Seq(
-      "apply -cp :" + probeClasspathString + " com.typesafe.sbtchild.SetupSbtChild",
+      "apply -cp " + probeClasspathString + " com.typesafe.sbtchild.SetupSbtChild",
       "listen")
     
     val result = Seq("java") ++ 
