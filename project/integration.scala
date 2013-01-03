@@ -20,7 +20,7 @@ object integration {
 
   val snapHome = TaskKey[File]("integration-snap-home", "Creates the snap-home for use in integration tests.")
   
-  def settings: Seq[Setting[_]] = makeLocalRepoSettings ++ Seq(
+  def settings: Seq[Setting[_]] = makeLocalRepoSettings("install-to-it-repository") ++ Seq(
     localRepoArtifacts := Seq.empty,
     // Make sure we publish this project.
     localRepoProjectsPublished <<= publishLocal,

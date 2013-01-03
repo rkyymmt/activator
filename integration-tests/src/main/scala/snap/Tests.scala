@@ -1,5 +1,7 @@
 package snap
 
+import snap.properties.SnapProperties
+
 // Helper methods for running tests.
 object tests {
   
@@ -43,6 +45,18 @@ object tests {
           t.printStackTrace()
           Failure
       }
+    
+    /** Return a process builder that will run SNAP in a directory with the given args. */
+    final def run_snap(args: Seq[String], cwd: java.io.File): sys.process.ProcessBuilder = {
+      // TODO - pass on all props...
+      val fullArgs = Seq(
+          "java", 
+          "-Dsbt.boot.directory=" + sys.props("sbt.boot.directory"), 
+          "-Dsnap.home=" +sys.props("snap.home"),
+          "-jar", 
+          SnapProperties.SNAP_LAUNCHER_JAR) ++ args
+      sys.process.Process(args, cwd)
+    }
   }
 }
 

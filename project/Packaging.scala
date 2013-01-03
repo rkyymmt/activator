@@ -36,20 +36,18 @@ object Packaging {
   val dist = TaskKey[File]("dist")
   
   // Shared settings to make a local repository.
-  def makeLocalRepoSettings: Seq[Setting[_]] = Seq(
+  def makeLocalRepoSettings(lrepoName: String): Seq[Setting[_]] = Seq(
     localRepo <<= target(_ / "local-repository"),
     localRepoArtifacts := Seq.empty,
-    resolvers <+= localRepo apply { f => Resolver.file(localRepoName, f)(Resolver.ivyStylePatterns) },
-    // This hack removes the project resolver so we don't resolve stub artifacts.
-    fullResolvers <<= (externalResolvers, sbtResolver) map (_ :+ _),
+    resolvers in TheSnapBuild.dontusemeresolvers <+= localRepo apply { f => Resolver.file(lrepoName, f)(Resolver.ivyStylePatterns) },
     localRepoProjectsPublished <<= (TheSnapBuild.publishedProjects map (publishLocal in _)).dependOn,
-    localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
-      createLocalRepository(m, i, s.log)
+    localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt in TheSnapBuild.dontusemeresolvers, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
+      IvyHelper.createLocalRepository(m, lrepoName, i, s.log)
       r
     }
   )
   
-  def settings: Seq[Setting[_]] = packagerSettings ++ makeLocalRepoSettings ++ Seq(
+  def settings: Seq[Setting[_]] = packagerSettings ++ makeLocalRepoSettings(localRepoName) ++ Seq(
     name <<= version apply ("snap-" + _),
     wixConfig := <wix/>,
     maintainer := "Josh Suereth <joshua.suereth@typesafe.com>",
@@ -114,13 +112,6 @@ object Packaging {
     IO.copyDirectory(sourceDir, targetDir)
     targetDir
   }
-
-
-  def createLocalRepository(
-      modules: Seq[ModuleID], 
-      ivy: IvySbt, 
-      log: Logger): Unit = 
-        IvyHelper.createLocalRepository(modules, localRepoName, ivy, log)
 
 
   // TODO - Use SBT caching API for this.
