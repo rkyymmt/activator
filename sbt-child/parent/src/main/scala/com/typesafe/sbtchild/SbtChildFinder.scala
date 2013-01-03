@@ -54,7 +54,7 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
   // This will resolve the probe artifact using our launcher and then
   // give us the classpath
   private lazy val probeClassPath: Seq[File] =
-    launcher.app(probeApp, configuration.provider.scalaProvider.version).mainClasspath
+    launcher.app(probeApp, SnapProperties.SBT_SCALA_VERSION).mainClasspath
     
   // TODO - Find the launcher.
   
@@ -72,14 +72,15 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
       "-XX:+CMSClassUnloadingEnabled")
     // TODO - handle spaces in strings and such...
     val sbtProps = Seq(
+      "-Dsnap.home="+SnapProperties.SNAP_HOME,
       "-Dsbt.boot.directory="+sys.props("sbt.boot.directory"),
       portArg)
     val jar = Seq("-jar", SnapProperties.SNAP_LAUNCHER_JAR)
     
     // TODO - Is the cross-platform friendly?
-    val probeClasspathString = probeClassPath map (_.getAbsolutePath) mkString File.pathSeparator
+    val probeClasspathString = (probeClassPath map (_.getAbsolutePath)).distinct mkString File.pathSeparator
     val sbtcommands = Seq(
-      "apply -cp " + probeClasspathString + " com.typesafe.sbtchild.SetupSbtChild",
+      "apply -cp :" + probeClasspathString + " com.typesafe.sbtchild.SetupSbtChild",
       "listen")
     
     val result = Seq("java") ++ 
