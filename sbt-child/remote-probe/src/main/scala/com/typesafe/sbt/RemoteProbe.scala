@@ -34,17 +34,17 @@ object SetupSbtChild extends (State => State) {
       case protocol.Envelope(serial, replyTo, protocol.NameRequest) =>
         val result = extracted.get(name)
         System.err.println("Logs are: " + logger.get)
-        client.replySerialized(serial, protocol.NameResponse(result, logger.get))
+        client.replyJson(serial, protocol.NameResponse(result, logger.get))
         origState
       case protocol.Envelope(serial, replyTo, protocol.CompileRequest) =>
         try {
           val (s, result) = extracted.runTask(compile in Compile, origState)
           System.err.println("Logs are: " + logger.get)
-          client.replySerialized(serial, protocol.CompileResponse(logger.get))
+          client.replyJson(serial, protocol.CompileResponse(logger.get))
           s
         } catch {
           case e: Exception =>
-            client.replySerialized(serial, protocol.ErrorResponse(e.getMessage, logger.get))
+            client.replyJson(serial, protocol.ErrorResponse(e.getMessage, logger.get))
             origState
         }
       case _ =>
