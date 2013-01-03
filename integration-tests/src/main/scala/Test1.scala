@@ -1,10 +1,6 @@
-class Foo extends xsbti.AppMain {
-
-  def run(configuration: xsbti.AppConfiguration) = {
-   System.err.println("TEST ERROR OUTPUT")
-   Exit(0)
-  }
-  
-
-  case class Exit(code: Int) extends xsbti.Exit
+// This test just makes sure our integration test framework itself works.
+// If this fails, the build is all hosed in some fashion.
+class DoesItWork extends snap.tests.IntegrationTest {
+  // We don't do anything here.
+  println("Integration tests work!")
 }
