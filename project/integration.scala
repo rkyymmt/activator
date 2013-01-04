@@ -10,7 +10,7 @@ import Packaging.{
   localTemplateCacheCreated
 }
 import xsbt.api.Discovery
-  import com.typesafe.packager.PackagerPlugin.Universal
+import com.typesafe.sbt.SbtNativePackager.Universal
 
 object integration {
   
