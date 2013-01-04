@@ -16,6 +16,9 @@ GET     /api/app/plugins            controllers.api.App.getPlugins(location)
 GET     /api/app/open               controllers.api.App.openLocation(location)
 GET     /api/app/start              controllers.api.App.startApp(location)
 
+# Local system operations
+GET     /api/local/env                  controllers.api.Local.getEnv
+
 GET     /webjars/*file              controllers.WebJarAssets.at(file)
 
 # Map static resources from the /public folder to the /assets URL path

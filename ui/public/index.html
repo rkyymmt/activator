@@ -21,12 +21,35 @@
 <body>
 
 <div id="launchScreen" class="hide container">
-    <form class="form-signin" action="/app" method="get">
-        <h2 class="form-signin-heading">Build a New App</h2>
-        <input type="text" class="input-block-level" placeholder="Name">
-        <input type="hidden" name="location" value="/foo/bar">
-        <button class="btn btn-large btn-primary" type="submit">Create</button>
+    <form id="createAppForm" class="create-form form-horizontal" action="/api/templates/clone" method="post">
+        <h2 class="create-form-heading">Build a New App</h2>
+        <div class="control-group">
+            <label class="control-label" for="inputNewAppName">Name</label>
+            <div class="controls">
+                <input class="span5" id="inputNewAppName" type="text" value="My First Amazing App">
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="inputNewAppLocation">Location</label>
+            <div class="controls">
+                <div class="input-append">
+                    <input id="inputNewAppLocation" class="span5" type="text">
+                    <button id="buttonBrowseAppLocation" class="btn" type="button">Browse...</button>
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="selectNewAppTemplate">Blueprint</label>
+            <div class="controls">
+                <div class="input-append">
+                    <select id="selectNewAppTemplate" class="span5"></select>
+                    <button id="buttonBrowseTemplate" class="btn" type="button" href="#templateBrowser" role="button" data-toggle="modal">Browse...</button>
+                </div>
+            </div>
+        </div>
+        <button id="buttonCreateApp" type="submit" class="btn btn-primary btn-large">Create!</button>
     </form>
+    <!-- todo: also need open other & open recent -->
 </div>
 
 <div id="appScreen" class="hide">
