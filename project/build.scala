@@ -103,7 +103,7 @@ object TheSnapBuild extends Build {
       SnapProject("integration-tests")
       settings(integration.settings:_*)
       dependsOnRemote(sbtLauncherInterface)
-      dependsOn(sbtDriver, props)
+      dependsOn(sbtDriver, props, cache)
       /*settings(
         // Note: we remve project resolver for IT stuff (lame, I know), so we require publishLocal from our dependencies to update...
         Keys.update <<= (Keys.update.task, (Keys.publishLocal in sbtDriver).task) apply ((a, b) => b flatMapR (_ => a))

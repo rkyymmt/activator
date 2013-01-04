@@ -8,21 +8,14 @@ import akka.dispatch._
 import concurrent.duration._
 import concurrent.Await
 import akka.util.Timeout
+import snap.tests._
 
-class CanLaunchThroughSbtLauncher extends snap.tests.IntegrationTest {
+class CanLaunchThroughSbtLauncher extends IntegrationTest {
   val system = ActorSystem("ManualTest")
   try {
     // TODO - Create project here, rather than rely on it created by test harness....
     val dir = new File("dummy")
-    dir.mkdirs()
-    val project = new File(dir, "project")
-    project.mkdirs()
-    val props = new File(project, "build.properties")
-    val tmp = {
-      val writer = new java.io.FileWriter(props)
-      try writer.write("sbt.version="+snap.properties.SnapProperties.SBT_VERSION)
-      finally writer.close()
-    }
+    makeDummySbtProject(dir)
     val child = SbtChild(system, dir, new SbtChildLauncher(configuration))
     try {
       implicit val timeout = Timeout(60 seconds)
