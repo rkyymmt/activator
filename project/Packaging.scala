@@ -9,8 +9,8 @@ package sbt {
 }
 
 object Packaging {
-  import com.typesafe.packager.Keys._
-  import com.typesafe.packager.PackagerPlugin._
+  import com.typesafe.sbt.packager.Keys._
+  import com.typesafe.sbt.SbtNativePackager._
 
   val repackagedLaunchJar = TaskKey[File]("repackaged-launch-jar", "The SNAP launch jar.")
   val repackagedLaunchMappings = TaskKey[Seq[(File, String)]]("repackaged-launch-mappings", "New files for sbt-launch-jar")
@@ -36,20 +36,20 @@ object Packaging {
   val dist = TaskKey[File]("dist")
   
   // Shared settings to make a local repository.
-  def makeLocalRepoSettings: Seq[Setting[_]] = Seq(
+  def makeLocalRepoSettings(lrepoName: String): Seq[Setting[_]] = Seq(
     localRepo <<= target(_ / "local-repository"),
     localRepoArtifacts := Seq.empty,
-    resolvers <+= localRepo apply { f => Resolver.file(localRepoName, f)(Resolver.ivyStylePatterns) },
-    // This hack removes the project resolver so we don't resolve stub artifacts.
-    fullResolvers <<= (externalResolvers, sbtResolver) map (_ :+ _),
+    resolvers in TheSnapBuild.dontusemeresolvers <+= localRepo apply { f => Resolver.file(lrepoName, f)(Resolver.ivyStylePatterns) },
     localRepoProjectsPublished <<= (TheSnapBuild.publishedProjects map (publishLocal in _)).dependOn,
-    localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
-      createLocalRepository(m, i, s.log)
+    localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt in TheSnapBuild.dontusemeresolvers, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
+      // TODO - Hook to detect if we need to recreate the repository....
+      // That way we don't have to clean all the time.
+      IvyHelper.createLocalRepository(m, lrepoName, i, s.log)
       r
     }
   )
   
-  def settings: Seq[Setting[_]] = packagerSettings ++ makeLocalRepoSettings ++ Seq(
+  def settings: Seq[Setting[_]] = packagerSettings ++ makeLocalRepoSettings(localRepoName) ++ Seq(
     name <<= version apply ("snap-" + _),
     wixConfig := <wix/>,
     maintainer := "Josh Suereth <joshua.suereth@typesafe.com>",
@@ -116,13 +116,6 @@ object Packaging {
   }
 
 
-  def createLocalRepository(
-      modules: Seq[ModuleID], 
-      ivy: IvySbt, 
-      log: Logger): Unit = 
-        IvyHelper.createLocalRepository(modules, localRepoName, ivy, log)
-
-
   // TODO - Use SBT caching API for this.
   def repackageJar(target: File, launcher: File, replacements: Seq[(File, String)] = Seq.empty): File = IO.withTemporaryDirectory { tmp =>
     val jardir = tmp / "jar"
@@ -155,6 +148,7 @@ object Packaging {
                                                """|declare -r app_version="%s"
                                                   |""".stripMargin format (version))
     IO.write(to, nextContents)
+    to setExecutable true
     to
   }
   def copyBatTemplate(from: File, to: File, version: String): File = {
@@ -162,6 +156,7 @@ object Packaging {
     val nextContents = fileContents.replaceAll("""\$\{\{template_declares\}\}""",
                                                "set SNAP_VERSION=%s" format (version))
     IO.write(to, nextContents)
+    to setExecutable true
     to
   }
 

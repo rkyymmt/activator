@@ -91,15 +91,23 @@ object TheSnapBuild extends Build {
     dependsOn(props)
   )
   
+  // A hack project just for convenient IvySBT when resolving artifacts into new local repositories.
+  lazy val dontusemeresolvers = (
+    SnapProject("dontuseme")
+    settings(
+      // This hack removes the project resolver so we don't resolve stub artifacts.
+      Keys.fullResolvers <<= (Keys.externalResolvers, Keys.sbtResolver) map (_ :+ _)
+    )
+  )
   lazy val it = (
       SnapProject("integration-tests")
       settings(integration.settings:_*)
       dependsOnRemote(sbtLauncherInterface)
-      dependsOn(sbtDriver, props)
-      settings(
+      dependsOn(sbtDriver, props, cache)
+      /*settings(
         // Note: we remve project resolver for IT stuff (lame, I know), so we require publishLocal from our dependencies to update...
         Keys.update <<= (Keys.update.task, (Keys.publishLocal in sbtDriver).task) apply ((a, b) => b flatMapR (_ => a))
-      )
+      )*/
   )
 
   lazy val dist = (
