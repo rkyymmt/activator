@@ -9,8 +9,8 @@ package sbt {
 }
 
 object Packaging {
-  import com.typesafe.packager.Keys._
-  import com.typesafe.packager.PackagerPlugin._
+  import com.typesafe.sbt.packager.Keys._
+  import com.typesafe.sbt.SbtNativePackager._
 
   val repackagedLaunchJar = TaskKey[File]("repackaged-launch-jar", "The SNAP launch jar.")
   val repackagedLaunchMappings = TaskKey[Seq[(File, String)]]("repackaged-launch-mappings", "New files for sbt-launch-jar")
@@ -42,6 +42,8 @@ object Packaging {
     resolvers in TheSnapBuild.dontusemeresolvers <+= localRepo apply { f => Resolver.file(lrepoName, f)(Resolver.ivyStylePatterns) },
     localRepoProjectsPublished <<= (TheSnapBuild.publishedProjects map (publishLocal in _)).dependOn,
     localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt in TheSnapBuild.dontusemeresolvers, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
+      // TODO - Hook to detect if we need to recreate the repository....
+      // That way we don't have to clean all the time.
       IvyHelper.createLocalRepository(m, lrepoName, i, s.log)
       r
     }
@@ -146,6 +148,7 @@ object Packaging {
                                                """|declare -r app_version="%s"
                                                   |""".stripMargin format (version))
     IO.write(to, nextContents)
+    to setExecutable true
     to
   }
   def copyBatTemplate(from: File, to: File, version: String): File = {
@@ -153,6 +156,7 @@ object Packaging {
     val nextContents = fileContents.replaceAll("""\$\{\{template_declares\}\}""",
                                                "set SNAP_VERSION=%s" format (version))
     IO.write(to, nextContents)
+    to setExecutable true
     to
   }
 
