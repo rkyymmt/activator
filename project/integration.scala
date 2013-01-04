@@ -17,10 +17,10 @@ object integration {
   val mains = TaskKey[Seq[String]]("integration-test-mains", "Discovered integration test main classes")
   val itContext = TaskKey[IntegrationContext]("integration-test-context")
   val tests = TaskKey[Unit]("integration-tests", "Runs all integration tests")
-
+  val singleTest = InputKey[Unit]("integration-test-only", "Runs integration tests that match the given glob")
   val snapHome = TaskKey[File]("integration-snap-home", "Creates the snap-home for use in integration tests.")
   
-  def settings: Seq[Setting[_]] = makeLocalRepoSettings ++ Seq(
+  def settings: Seq[Setting[_]] = makeLocalRepoSettings("install-to-it-repository") ++ Seq(
     localRepoArtifacts := Seq.empty,
     // Make sure we publish this project.
     localRepoProjectsPublished <<= publishLocal,
@@ -28,7 +28,7 @@ object integration {
       val defs = a.apis.internal.values.flatMap(_.api.definitions)
       val results = Discovery(Set("xsbti.Main"), Set())(defs.toSeq)
       results collect { 
-        case (df, di) if !di.isModule => df.name
+        case (df, di) if !di.isModule && !df.modifiers.isAbstract => df.name
       }
     },
     itContext <<= (sbtLaunchJar, localRepoCreated, streams, version, target, scalaVersion, snapHome) map IntegrationContext.apply,
@@ -46,6 +46,12 @@ object integration {
        } yield file -> (home / name)
        IO.copy(homeFiles)
        home
+    },
+    singleTest <<= inputTask { argTask =>
+      (argTask, itContext, mains) map { (args, ctx, mains) =>
+        val glob = args mkString " "
+        mains filter (_ contains glob) foreach ctx.runTest
+      }
     }
   )
 }
