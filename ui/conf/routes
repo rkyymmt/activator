@@ -1,19 +1,24 @@
-# Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
-#GET     /                           controllers.Application.index
-
-POST    /open                       controllers.Application.openLocation
-POST    /start                      controllers.Application.startApp
+# TODO: Do we need the Builder ABI version in the URL?
 
 # Templates
-GET    /templates/list              controllers.Templates.list
-POST    /templates/clone            controllers.Templates.cloneTemplate
+GET     /api/templates/list         controllers.api.Templates.list
+POST    /api/templates/clone        controllers.api.Templates.cloneTemplate
+
+# Operations on an app
+# TODO: Should these take the app location as a request parameter?
+GET     /api/app/details            controllers.api.App.getDetails(location)
+GET     /api/app/plugins            controllers.api.App.getPlugins(location)
+
+# TODO: GET? POST? PUT?
+GET     /api/app/open               controllers.api.App.openLocation(location)
+GET     /api/app/start              controllers.api.App.startApp(location)
 
 GET     /webjars/*file              controllers.WebJarAssets.at(file)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /                           controllers.Assets.at(path="/public", file="index.html")
-GET     /*file                      controllers.Assets.at(path="/public", file)
+GET     /app                        controllers.Assets.at(path="/public", file="index.html")
+GET     /public/*file               controllers.Assets.at(path="/public", file)

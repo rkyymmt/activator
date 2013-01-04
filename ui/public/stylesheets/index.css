@@ -1,0 +1,68 @@
+body {
+    background-color: #f5f5f5;
+}
+
+.form-signin {
+    max-width: 300px;
+    padding: 19px 29px 29px;
+    margin: 0 auto 20px;
+    background-color: #fff;
+    border: 1px solid #e5e5e5;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    -moz-box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+
+.form-signin .form-signin-heading,
+.form-signin .checkbox {
+    margin-bottom: 10px;
+}
+
+.form-signin input[type="text"],
+.form-signin input[type="password"] {
+    font-size: 16px;
+    height: auto;
+    margin-bottom: 15px;
+    padding: 7px 9px;
+}
+
+#pluginList {
+    position: fixed;
+    top: 40px;
+    bottom: 0px;
+    left: 0px;
+    width: 300px;
+    background-color: #dddddd;
+    color: #666666;
+}
+
+.plugin-summary {
+    height: 90px;
+    padding-left: 5px;
+    border-style: solid;
+    border-color: #666666;
+    border-bottom-width: 2px;
+    border-top-width: 0px;
+    border-left-width: 0px;
+    border-right-width: 0px;
+}
+
+.plugin-summary h1 {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding-top: 5px;
+}
+
+.plugin-summary.active {
+    background-color: #f5f5f5;
+}
+
+#pluginDetail {
+    position: absolute;
+    top: 40px;
+    left: 300px;
+    right: 0px;
+}
