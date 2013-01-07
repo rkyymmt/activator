@@ -15,24 +15,22 @@ import akka.pattern.ask
 
 /** This controller handles piping events out to folks. */
 object Events extends Controller {
-  
-  private val eventSourceHeader = ResponseHeader(OK, Map(
-          CONTENT_LENGTH -> "-1",
-          CONTENT_TYPE -> "text/event-stream"
-      )) 
   // Enumerator that starts a new actor listening to the event stream per-event-stream request.
   // What's annoying here is we have to *manually* create a context that is closed over by three closures
   // and used rather than just extend a class.
   private val events: Enumerator[String] = EventStreamEnumerator()
   
   // TODO - We should probably take a SSEvent() class here, so we can support all the spec, including ids and retry and such.
-  private val toEventSource = Enumeratee.map[String](msg => s"data: ${msg}\n\n\n")
+  private val toEventSource = Enumeratee.map[String] { msg =>
+    // We can't allow end lines in the messages, so we split on them, and then feed data.
+    // TODO - Better end-line splitting.
+    msg.split("[\\r]?[\\n]").mkString("data: ", "\ndata: ", "\n\n\n")
+  }
+
+
   // Action that returns a new event source stream.    
   def eventSource = Action {
-    SimpleResult(
-      header = eventSourceHeader,
-      events &> toEventSource
-    )
+    Ok.stream(events &> toEventSource).withHeaders(CONTENT_TYPE -> "text/event-stream")
   }
   
   def test = Action {
