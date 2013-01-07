@@ -15,7 +15,7 @@ object TheSnapBuild extends Build {
       sys.props("snap.home") = bd.getAbsoluteFile.getAbsolutePath
       bd
     }
-  )
+  ) ++ play.Project.intellijCommandSettings(play.Project.SCALA) // workaround for #24
 
   val root = (
     Project("root", file("."))  // TODO - Oddities with clean..
@@ -104,10 +104,12 @@ object TheSnapBuild extends Build {
       settings(integration.settings:_*)
       dependsOnRemote(sbtLauncherInterface)
       dependsOn(sbtDriver, props, cache)
-      /*settings(
+      settings(
         // Note: we remve project resolver for IT stuff (lame, I know), so we require publishLocal from our dependencies to update...
-        Keys.update <<= (Keys.update.task, (Keys.publishLocal in sbtDriver).task) apply ((a, b) => b flatMapR (_ => a))
-      )*/
+        // Keys.update <<= (Keys.update.task, (Keys.publishLocal in sbtDriver).task) apply ((a, b) => b flatMapR (_ => a)),
+        
+        org.sbtidea.SbtIdeaPlugin.ideaIgnoreModule := true
+      )
   )
 
   lazy val dist = (
