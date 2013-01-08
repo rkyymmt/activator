@@ -1,3 +1,63 @@
+// TODO - how do we expose stuff and all that?  Probably use require.js in the future.
+ 
+ 
+function getURLParameter(name) {
+  return decodeURIComponent((RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,""])[1])
+}
+ 
+function PluginModel(config) {
+  this.id = ko.observable(config.id);
+  this.name = ko.observable(config.name);
+  this.load = function() {
+    // TODO - Figure out how to load a plugin *and* point it at this object, so we can set its functions
+    // as observables and render from them....
+    return this;
+  }
+}
+ 
+function ApplicationModel() {
+
+  this.location = ko.observable(getURLParameter(name));  
+  this.name = ko.observable();
+  this.plugins = ko.observableArray([]);
+  this.history = ko.observableArray([]);
+  
+  // Load initial state
+  $.ajax({
+     url: '/api/app/details',
+     type: 'GET',
+     dataType: 'json',
+     data: { location: this.location() }, 
+     context: this,
+     success: function(data) {
+       // TODO - Find a way to be lazy about this perhaps.....
+       this.name(data.name);
+       // TODO - Plugins as a model...
+       this.plugins($.map(data.plugins, function(item) { return new PluginModel(item); }));
+     }
+  });
+  
+  // Load history
+  $.ajax({
+     url: '/api/app/history',
+     type: 'GET',
+     dataType: 'json',
+     context: this,
+     success: function(data) {
+       // TODO - Wrap these in observable objects?
+       this.history(data);
+     }
+  });
+};
+ 
+
+snap = new ApplicationModel();
+
+// Apply bindings after we've loaded.
+$(function() { ko.applyBindings(snap) });
+  
+
+/*
 $(function() {
     
     if (getURLParameter("location")) {
@@ -120,4 +180,4 @@ function updateCreateAppButton() {
         $("#buttonCreateApp").addClass("disabled")
         return false;
     }
-}
+}*/

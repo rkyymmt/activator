@@ -8,55 +8,54 @@ import java.io.File
 
 object App extends Controller {
 
-  def getDetails(location: String) = Action { request =>
-
-    Ok(
-      JsObject(
-        Seq(
-          "name" -> JsString("My First Amazing App")
-        )
-      )
-    )
+  def getHistory = Action { request =>
+    Ok(JsArray(Seq(
+      JsObject(Seq("name" -> JsString("Bar"))),
+      JsObject(Seq("name" -> JsString("Snaptastic"))),
+      JsObject(Seq("name" -> JsString("Another App")))
+    )))
   }
   
-  def getPlugins(location: String) = Action { request =>
-
-    Ok(
-      JsArray(
+  def getDetails(location: String) = Action { request =>
+    val plugins = JsArray(
         Seq(
           JsObject(
             Seq(
               "id" -> JsString("code"),
-              "name" -> JsString("Code"),
-              "position" -> JsNumber(0)
+              "name" -> JsString("Code")
             )
           ),
           JsObject(
             Seq(
               "id" -> JsString("run"),
-              "name" -> JsString("Run"),
-              "position" -> JsNumber(1)
+              "name" -> JsString("Run")
             )
           ),
           JsObject(
             Seq(
               "id" -> JsString("test"),
-              "name" -> JsString("Test"),
-              "position" -> JsNumber(2)
+              "name" -> JsString("Test")
             )
           ),
           JsObject(
             Seq(
               "id" -> JsString("console"),
-              "name" -> JsString("Console"),
-              "position" -> JsNumber(3)
+              "name" -> JsString("Console")
             )
           )
         )
       )
+    
+    Ok(
+      JsObject(
+        Seq(
+          "name" -> JsString("My First Amazing App"),
+          "plugins" -> plugins
+        )
+      )
     )
   }
-
+  
   def openLocation(location: String) = Action { request =>
     if ((new File(location)).exists()) {
 

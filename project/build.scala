@@ -77,6 +77,7 @@ object TheSnapBuild extends Build {
     dependsOnRemote(
       webjarsPlay,
       webjarsBootstrap,
+      webjarsKnockout,
       commonsIo,
       sbtLauncherInterface % "provided"
     )

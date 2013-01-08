@@ -14,6 +14,8 @@
     <script type="text/javascript" src="/public/javascripts/polyfill-eventsource.js"></script>    
     <script type="text/javascript" src="/webjars/jquery/1.8.2/jquery.min.js"></script>
     <script type="text/javascript" src="/webjars/bootstrap/2.2.1/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/webjars/knockout/2.2.0/knockout-2.2.0.debug.js"></script>
+    <script type="text/javascript" src="/public/javascripts/sammy.js"></script>
     <script type="text/javascript" src="/public/javascripts/events.js"></script>
     <script type="text/javascript" src="/public/javascripts/blueprints.js"></script>
     <script type="text/javascript" src="/public/javascripts/plugins.js"></script>
@@ -53,7 +55,7 @@
     <!-- todo: also need open other & open recent -->
 </div>
 
-<div id="appScreen" class="hide">
+<div id="appScreen">
 <div class="navbar navbar-fixed-top">
     <div class="navbar-inner">
         <ul class="nav">
@@ -67,16 +69,14 @@
                     <li><a href="#">Open Other...</a></li>
                     <li class="dropdown-submenu">
                         <a href="#">Open Recent</a>
-                        <ul class="dropdown-menu">
-                            <li><a href="#">Bar</a></li>
-                            <li><a href="#">Snaptastic</a></li>
-                            <li><a href="#">Another App</a></li>
+                        <ul class="dropdown-menu" data-bind="foreach: history">
+                            <li><a href="#" data-bind="text: name"></a></li>
                         </ul>
                     </li>
                 </ul>
             </li>
             <li class="active">
-                <a id="appName" href="#"></a>
+                <a href="#" data-bind="text: name"></a>
             </li>
         </ul>
         <ul class="nav pull-right">
@@ -93,8 +93,11 @@
         </ul>
     </div>
 </div>
-<div id="pluginList">
-            
+<div id="pluginList" data-bind="foreach: plugins">
+  <div class="plugin-summary" data-bind="id: id">
+    <h1><a href="#" data-bind="text: name"></a></h1>
+    <!-- TODO - Render the plugin summary here -->
+  </div>
 </div>
 <div id="pluginDetail">
             
