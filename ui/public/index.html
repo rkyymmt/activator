@@ -96,13 +96,15 @@
   <div class="plugin-summary" data-bind="id: id">
     <h1><a href="#" data-bind="text: name, click: $parent.setCurrentPlugin"></a></h1>
     <!-- TODO - Render the plugin summary here -->
-    <span data-bind="text: summary"></span>
+    <span data-bind="template: { name: function() { return summaryView(); } }"></span>
   </div>
 </div>
 <div id="pluginDetail" data-bind="with: currentPlugin">
-  <span data-bind="text: details"></span>
+  <div data-bind="template: { name: function() { return detailView(); } }"></div>
 </div>
 </div>
+
+<script id='default-plugin-template' type='text/html'>Loading...</script>
 
 </body>
 </html>

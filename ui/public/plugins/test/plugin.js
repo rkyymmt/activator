@@ -1,6 +1,13 @@
 snap.registerPlugin({
   id: 'test',
-  // TODO - SummaryView should be a model....
-  summary: 'Test Stuff!',
-  details: 'Test Details' 
+  detailView: 'test-detail-view',
+  summaryView: 'test-summary-view',
+  model: function() {},
+  templates: [{
+    id: 'test-detail-view',
+    content: '<span>TESTING, TESTING, 1, 2, TESTING</span>'
+  },{
+   id: 'test-summary-view',
+   content: 'i think it might pass this time'
+  }]
 });

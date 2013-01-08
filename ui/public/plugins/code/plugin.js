@@ -1,6 +1,17 @@
 snap.registerPlugin({
   id: 'code',
-  // TODO - SummaryView should be a model....
-  summary: 'Code Stuff!',
-  details: 'Code Details' 
+  detailView: 'code-detail-view',
+  summaryView: 'code-summary-view',
+  model: function() {
+    this.details = ko.observable("Our Code details");
+  },
+  templates: [{
+    id: 'code-detail-view',
+    content: '<span data-bind="text: model().details"></span>'
+  },{
+    id: 'code-summary-view',
+    content: '<strong>Look at that dang code!</strong>'
+  }]
 });
+
+

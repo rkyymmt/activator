@@ -1,6 +1,13 @@
 snap.registerPlugin({
   id: 'console',
-  // TODO - SummaryView should be a model....
-  summary: 'Console Stuff!',
-  details: 'Console Details' 
+  detailView: 'console-detail-view',
+  summaryView: 'console-summary-view',
+  model: function() {},
+  templates: [{
+    id: 'console-detail-view',
+    content: 'This is gonna be amazing, I can tell....'
+  },{
+   id: 'console-summary-view',
+   content: "I think it's running smooooooooth...."
+  }]
 });

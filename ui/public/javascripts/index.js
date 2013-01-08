@@ -4,17 +4,53 @@
 function getURLParameter(name) {
   return decodeURIComponent((RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,""])[1])
 }
+// TODO - namespace on SNAP
+// Or put into a library somewhere....
+function loadTemplate(template, next) {
+  // TODO - Synch these somehow?
+  if($('#'+template.id).length == 0) {
+    var s = document.createElement("script");
+    s.id = template.id; 
+    s.type = "text/html";
+    if(template.content) {
+      s.text = template.content;
+    } else if(template.url) {
+      s.url = template.url;
+    }
+    $("body").append(s);
+  }
+  next();
+}
+// Todo hide in a namespace somewhere....
+function loadTemplates(templates, continuation) {
+  var idx = templates.length-1;
+  
+  var next = function(next) {
+    if(idx >= 0) {
+      var template = templates[idx];
+      idx--;
+      loadTemplate(template, function() { next(next) });
+    } else {
+      if(continuation) continuation();
+    }
+  };
+  // Tail recursion and CPS, yippie.
+  next(next);
+}
+
  
 function PluginModel(config) {
   this.id = ko.observable(config.id);
   this.name = ko.observable(config.name);
-  this.summary = ko.observable();
-  this.details = ko.observable();
+  this.model = ko.observable();
+  this.summaryView = ko.observable('default-plugin-template');
+  this.detailView = ko.observable('default-plugin-template');
   this.load = function() {
     // TODO - Figure out how to load a plugin *and* point it at this object, so we can set its functions
     // as observables and render from them....
-    $.getScript("/api/plugin/" + this.id() + "/plugin.js")
-    return this;
+    $.getScript("/api/plugin/" + this.id() + "/plugin.js").fail(function(jqxhr, settings, exception) { 
+      alert('Failed to load plugin: ' + config.id + '\n Exception: ' + exception);
+    });
   }
 }
  
@@ -46,8 +82,12 @@ function ApplicationModel() {
     $.each(this.plugins(), function(idx, plugin) {
       // TODO - Copy all properties?
       if(plugin.id() == config.id) {
-        plugin.summary(config.summary);
-        plugin.details(config.details);
+        plugin.model(new config.model());
+        // Ensure odd ordering issues are correct here.
+        loadTemplates(config.templates, function() {
+          plugin.detailView(config.detailView);
+          plugin.summaryView(config.summaryView);
+        });
       }
     });
   };
