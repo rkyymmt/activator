@@ -1,17 +1,6 @@
-registerPlugin("test", {
-    pluginAdded: function() {
-
-    },
-
-    appOpened: function() {
-        // todo: start the tests
-    },
-
-    summaryView: function(jQueryNodeToRenderIn) {
-        jQueryNodeToRenderIn.append($("<span>").text("Test Chart and Red, Yellow, Green Light"))
-    },
-
-    detailView: function(jQueryNodeToRenderIn) {
-        jQueryNodeToRenderIn.append($("<span>").text("I'm the detail view for the Test Plugin"))
-    }
-})
+snap.registerPlugin({
+  id: 'test',
+  // TODO - SummaryView should be a model....
+  summary: 'Test Stuff!',
+  details: 'Test Details' 
+});

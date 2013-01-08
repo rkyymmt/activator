@@ -19,6 +19,10 @@ GET     /api/app/start              controllers.api.App.startApp(location)
 # Local system operations
 GET     /api/local/env                  controllers.api.Local.getEnv
 
+
+# Plugin API
+GET    /api/plugin/*file            controllers.Assets.at(path="/public/plugins", file)
+
 GET     /webjars/*file              controllers.WebJarAssets.at(file)
 
 # Events API

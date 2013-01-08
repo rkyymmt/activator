@@ -18,7 +18,6 @@
     <script type="text/javascript" src="/public/javascripts/sammy.js"></script>
     <script type="text/javascript" src="/public/javascripts/events.js"></script>
     <script type="text/javascript" src="/public/javascripts/blueprints.js"></script>
-    <script type="text/javascript" src="/public/javascripts/plugins.js"></script>
     <script type="text/javascript" src="/public/javascripts/index.js"></script>
 </head>
 <body>
@@ -95,12 +94,13 @@
 </div>
 <div id="pluginList" data-bind="foreach: plugins">
   <div class="plugin-summary" data-bind="id: id">
-    <h1><a href="#" data-bind="text: name"></a></h1>
+    <h1><a href="#" data-bind="text: name, click: $parent.setCurrentPlugin"></a></h1>
     <!-- TODO - Render the plugin summary here -->
+    <span data-bind="text: summary"></span>
   </div>
 </div>
-<div id="pluginDetail">
-            
+<div id="pluginDetail" data-bind="with: currentPlugin">
+  <span data-bind="text: details"></span>
 </div>
 </div>
 
