@@ -65,15 +65,15 @@ function PluginModel(config) {
  
 function ApplicationModel() {
   var self = this;
-  this.location = ko.observable(getURLParameter(name));  
-  this.name = ko.observable();
-  this.plugins = ko.observableArray([]);
+  self.location = ko.observable(getURLParameter(name));  
+  self.name = ko.observable();
+  self.plugins = ko.observableArray([]);
   // TODO - create a new model for history...
-  this.history = ko.observableArray([]);
+  self.history = ko.observableArray([]);
   
   // Current plugin support.
-  this.currentPluginId = ko.observable();
-  this.currentPlugin = ko.computed(function(){
+  self.currentPluginId = ko.observable();
+  self.currentPlugin = ko.computed(function(){
     var id = this.currentPluginId();
     var plugins = this.plugins();
     for(var i=0; i < plugins.length; ++i) {
@@ -83,13 +83,13 @@ function ApplicationModel() {
     }
     return null;
   }.bind(this));
-  this.setCurrentPlugin = function(plugin) {
+  self.setCurrentPlugin = function(plugin) {
     // Controllers should only modify the location hash to move the app through the routes...
     location.hash = plugin.id();
   }.bind(this);
   
   // Can we assume this never runs without having plugins loaded?
-  this.registerPlugin = function(config) {
+  self.registerPlugin = function(config) {
     $.each(this.plugins(), function(idx, plugin) {
       // TODO - Copy all properties?
       if(plugin.id() == config.id) {
@@ -103,15 +103,14 @@ function ApplicationModel() {
      url: '/api/app/details',
      type: 'GET',
      dataType: 'json',
-     data: { location: this.location() }, 
-     context: this,
+     data: { location: self.location() }, 
      success: function(data) {
        // TODO - Find a way to be lazy about this perhaps.....
-       this.name(data.name);
+       self.name(data.name);
        // Create Plugin Models and load plugins after we're sure they're
        // specified correctly.
-       this.plugins($.map(data.plugins, function(item) { return new PluginModel(item); }));
-       $.each(this.plugins(), function(i,p) { p.load(); });
+       self.plugins($.map(data.plugins, function(item) { return new PluginModel(item); }));
+       $.each(self.plugins(), function(i,p) { p.load(); });
      }
   });
   
@@ -120,16 +119,18 @@ function ApplicationModel() {
      url: '/api/app/history',
      type: 'GET',
      dataType: 'json',
-     context: this,
      success: function(data) {
        // TODO - Wrap these in observable objects?
-       this.history(data);
+       self.history(data);
      }
   });
 
-  this.routes = $.sammy(function() {
-    this.get('#:plugin', function() {
-      self.currentPluginId(this.params.plugin); 
+  self.subpath = ko.observable();
+
+  self.routes = $.sammy(function() {
+    this.get(/#([^\/]+)\/?(.*)/, function() {
+      self.currentPluginId(this.params.splat[0]); 
+      self.subpath(this.params.splat[1]);
     });
     this.get('', function() { self.currentPluginId(''); });
   });

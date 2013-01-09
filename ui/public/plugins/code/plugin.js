@@ -9,6 +9,20 @@ var FileModel = function(config) {
   self.contents = ko.observable();
   self.children = ko.observableArray(config.children || []);
   self.loaded = ko.observable(false);
+  
+  self.expanded = ko.observable(false);
+  self.expandedText = ko.computed(function() {
+    if(self.expanded()) {
+      return "[-]";
+    }
+    return "[+]";
+  });
+  self.shownChildren = ko.computed(function() {
+    if(self.expanded()) {
+      return self.children();
+     }
+     return [];
+  });
 }
 // Because of recursive nature, we have to add this here.
 FileModel.prototype.load = function() {
@@ -27,7 +41,20 @@ FileModel.prototype.load = function() {
         self.loaded(false);
       }
     });
-}
+};
+
+FileModel.prototype.expand = function() {
+  var self = this;
+  self.expanded(!self.expanded());
+  if(!self.loaded()) { self.load(); }
+};
+
+FileModel.prototype.show = function() {
+  var self = this;
+  // TODO - update location hash....
+  location.hash = 'code/'+ this.location
+};
+
 
 snap.registerPlugin({
   id: 'code',
@@ -42,18 +69,24 @@ snap.registerPlugin({
     }));
     // Load our values...
     this.projectDir().load();
+    this.currentLocation = ko.computed(function() {
+      return snap.subpath();
+    });
   },
   templates: [{
     id: 'code-detail-view',
-    content: '<div class="file-tree" data-bind="template: { name: '+"'"+'file-tree-view'+"'"+', data: model().projectDir() }"></div>'
+    content: '<div class="file-tree" data-bind="template: { name: '+"'"+'file-tree-view'+"'"+', data: model().projectDir() }"></div><div class="file-contents">Would be showing: <span data-bind="text: model().currentLocation()"></span></div>'
   },{
     id: 'code-summary-view',
     content: '<strong>Look at that dang code!</strong>'
   },{
     id: 'file-tree-view',
-    content:'<span data-bind="text: name, click: load"></span>'+
+    content:'<span data-bind="click: expand, text: expandedText, if: isDirectory"></span>' +
+            '  <span data-bind="text: name"></span>'+
+            '  <a data-bind="click: show">(Show)</a>' +
                '<div data-bind="if: isDirectory">' +
-                 '<ul data-bind="foreach: children()">'+
+                 
+                 '<ul data-bind="foreach: shownChildren()">'+
                     // TODO - Recursive template here.
                     '<li><span data-bind="template: { name: '+"'"+'file-tree-view'+"'"+'}"></span></li>'+
                  '</ul>' +
