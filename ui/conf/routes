@@ -18,6 +18,7 @@ GET     /api/app/start              controllers.api.App.startApp(location)
 
 # Local system operations
 GET     /api/local/env                  controllers.api.Local.getEnv
+GET     /api/local/browse               controllers.api.Local.browse(location)
 
 
 # Plugin API

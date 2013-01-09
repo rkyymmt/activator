@@ -1,5 +1,4 @@
 // TODO - how do we expose stuff and all that?  Probably use require.js in the future.
-
  
 function getURLParameter(name) {
   return decodeURIComponent((RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,""])[1])
@@ -15,7 +14,8 @@ function loadTemplate(template, next) {
     if(template.content) {
       s.text = template.content;
     } else if(template.url) {
-      s.url = template.url;
+      // TODO - load the dang thing up and write it directly...
+      s.src = template.url;
     }
     $("body").append(s);
   }
@@ -36,6 +36,15 @@ function loadTemplates(templates, continuation) {
   };
   // Tail recursion and CPS, yippie.
   next(next);
+}
+// Initializes a plugin from registered config...
+function initPlugin(plugin, config) {
+  plugin.model(new config.model());
+  // Ensure odd ordering issues are correct here.
+  loadTemplates(config.templates, function() {
+    plugin.detailView(config.detailView);
+    plugin.summaryView(config.summaryView);
+  });
 }
 
  
@@ -84,12 +93,7 @@ function ApplicationModel() {
     $.each(this.plugins(), function(idx, plugin) {
       // TODO - Copy all properties?
       if(plugin.id() == config.id) {
-        plugin.model(new config.model());
-        // Ensure odd ordering issues are correct here.
-        loadTemplates(config.templates, function() {
-          plugin.detailView(config.detailView);
-          plugin.summaryView(config.summaryView);
-        });
+        initPlugin(plugin, config);
       }
     });
   };
@@ -131,7 +135,7 @@ function ApplicationModel() {
   });
   $(function() { self.routes.run(); });
 };
- 
+
 
 snap = new ApplicationModel();
 
