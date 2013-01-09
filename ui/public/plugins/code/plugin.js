@@ -60,6 +60,7 @@ snap.registerPlugin({
   id: 'code',
   detailView: 'code-detail-view',
   summaryView: 'code-summary-view',
+  css: [{ url: '/api/plugin/code/code.css' }],
   model: function() {
     this.details = ko.observable("Our Code details");
     this.projectDir = ko.observable(new FileModel({
@@ -75,7 +76,8 @@ snap.registerPlugin({
   },
   templates: [{
     id: 'code-detail-view',
-    content: '<div class="file-tree" data-bind="template: { name: '+"'"+'file-tree-view'+"'"+', data: model().projectDir() }"></div><div class="file-contents">Would be showing: <span data-bind="text: model().currentLocation()"></span></div>'
+    content: '<div class="file-tree" data-bind="template: { name: '+"'"+'file-tree-view'+"'"+', data: model().projectDir() }"></div>'+
+             '<div class="file-contents"><p>Would be showing:</p><span data-bind="text: model().currentLocation()"></span></div>'
   },{
     id: 'code-summary-view',
     content: '<strong>Look at that dang code!</strong>'

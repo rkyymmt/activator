@@ -40,6 +40,12 @@ function loadTemplates(templates, continuation) {
 // Initializes a plugin from registered config...
 function initPlugin(plugin, config) {
   plugin.model(new config.model());
+  $.each(config.css || [], function(idx, item) {
+     if(item.url) {
+       $('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', item.url) );
+     }
+  });
+
   // Ensure odd ordering issues are correct here.
   loadTemplates(config.templates, function() {
     plugin.detailView(config.detailView);
