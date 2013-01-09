@@ -55,6 +55,7 @@ function PluginModel(config) {
 }
  
 function ApplicationModel() {
+  var self = this;
   this.location = ko.observable(getURLParameter(name));  
   this.name = ko.observable();
   this.plugins = ko.observableArray([]);
@@ -74,7 +75,8 @@ function ApplicationModel() {
     return null;
   }.bind(this));
   this.setCurrentPlugin = function(plugin) {
-    this.currentPluginId(plugin.id());
+    // Controllers should only modify the location hash to move the app through the routes...
+    location.hash = plugin.id();
   }.bind(this);
   
   // Can we assume this never runs without having plugins loaded?
@@ -120,6 +122,14 @@ function ApplicationModel() {
        this.history(data);
      }
   });
+
+  this.routes = $.sammy(function() {
+    this.get('#:plugin', function() {
+      self.currentPluginId(this.params.plugin); 
+    });
+    this.get('', function() { self.currentPluginId(''); });
+  });
+  $(function() { self.routes.run(); });
 };
  
 
