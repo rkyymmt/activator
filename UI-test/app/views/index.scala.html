@@ -1,0 +1,425 @@
+@()
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>RainDrop</title>
+		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+		<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+	</head>
+	<body class="left-open right-open noAnim">
+		<nav>
+			<div id="switch">
+				<span class="label">Sample App</span>
+				<div>
+					<ul>
+						<li>
+							<a class="current" href="#">Sample app</a>
+							<span class="counter">4</span>
+						</li>
+						<li>
+							<a class="current" href="#">Awesome app</a>
+							<span class="counter">5</span>
+						</li>
+					</ul>
+				</div>
+			</div>
+			<ul class="rockets">
+				<li class="general">
+					<a data-icon="&#128711;" href="#dashboard">Dashboard</a>
+					<a data-icon="&#128230;" href="#projects">Projects</a>
+					<a data-icon="&#128640;" href="#extensions">Extensions</a>
+				</li>
+				<li class="app">
+					<a data-icon="&#9654;" href="#monitor">Play monitor</a>
+					<a data-icon="&#59156;" href="#code">Code</a>
+					<a data-icon="&#9928;" href="#heroku">Heroku</a>
+					<a data-icon="&#127810;" href="#mongo">Mongo DB</a>
+				</li>
+				<li class="network">
+					<a data-icon="&#59194;" href="#activity">Activity</a>
+					<a data-icon="&#59168;" href="#discussions">Discussions</a>
+					<a data-icon="&#59185;" href="#documents">Documents</a>
+					<a data-icon="&#10003;" href="#tickets">Tickets</a>
+					<a data-icon="&#128101;" href="#people">People</a>
+				</li>
+			</ul>
+		</nav>
+		<header>
+			<nav id="breadcrumb"></nav>
+			<a href="http://www.typesafe.com">Typesafe</a>
+			<dl id="user">
+				<dt>
+					<img src="/assets/images/avatar.png" />
+					<a href="#user">User Name</a>
+					<small>Position</small>
+				</dt>
+				<dd>
+					<a href="#userPreferences">Preferences</a>
+					<a href="#userAccount">Account</a>
+					<a href="#userLogout">Logout</a>
+				</dd>
+			</dl>
+		</header>
+		<aside>
+		</aside>
+		<div id="wrapper"></div>
+
+@tpl("todo_tpl"){
+<article>
+
+	<header>
+		<h1>Todo</h1>
+		<nav>
+			<a href="#">Help</a>
+		</nav>
+	</header>
+
+	<footer>
+		<p></p>
+	</footer>
+
+	<section class="wrapper">
+	</section>
+
+</article>
+}
+
+@tpl("dashboard_tpl"){
+<article class="dashboard" data-width="0">
+
+	<section class="column">
+
+		<div class="widget">
+			<div class="stats" style="height:120px; background: #4b575e url(/assets/images/stats.png) center center no-repeat;background-size:contain;">
+			</div>
+			<div class="commands">
+				<a class="port" href="http://localhost:9000" target="_blank">
+					port <strong>9000</strong>
+				</a>
+				<button class="stop">Stop</button>
+			</div>
+			<ul class="list">
+				<li data-icon="&#9991;">
+					<h2><a href="#monitor/logs">Logs</a></h2>
+					<span class="error-counter">12</span>
+				</li>
+				<li data-icon="&#128255;">
+					<h2><a href="#monitor/tests">Tests</a></h2>
+					<span class="error-counter">2</span>
+				</li>
+				<li data-icon="&#128318;">
+					<h2><a href="#monitor/application">Application monitor</a></h2>
+				</li>
+				<li data-icon="&#128202;">
+					<h2><a href="#monitor/system">System monitor</a></h2>
+				</li>
+				<li data-icon="&#59272;">
+					<h2><a href="#monitor/rest-console">Rest &amp; Json console</a></h2>
+				</li>
+			</ul>
+		</div>
+
+		<div class="widget">
+			<h2>Widget</h2>
+		</div>
+
+	</section>
+
+	<section class="column">
+
+		<div class="widget">
+			<h2>Widget</h2>
+		</div>
+
+	</section>
+
+	<section class="column">
+
+		<div class="widget">
+			<h2>Widget</h2>
+		</div>
+
+	</section>
+
+	<section class="column">
+
+		<div class="widget">
+			<h2>Widget</h2>
+		</div>
+
+	</section>
+
+</article>
+}
+
+@tpl("play_monitor_tpl"){
+<article class="list">
+
+	<header>
+		<h1>Play monitor</h1>
+		<nav>
+		</nav>
+	</header>
+
+	<footer>
+		<dl>
+			<dt>by date</dt>
+		</dl>
+	</footer>
+
+	<section class="wrapper">
+		<div class="stats" style="height:120px; background: #4b575e url(/assets/images/stats.png) center center no-repeat;background-size:contain;">
+		</div>
+		<div class="commands">
+			<a class="port" href="http://localhost:9000" target="_blank">
+				port <strong>9000</strong>
+			</a>
+			<button class="stop">Stop</button>
+		</div>
+		<ul class="list">
+			<li data-icon="&#9991;">
+				<h2><a href="#monitor/logs">Logs</a></h2>
+				<span class="error-counter">12</span>
+			</li>
+			<li data-icon="&#128255;">
+				<h2><a href="#monitor/tests">Tests</a></h2>
+				<span class="error-counter">2</span>
+			</li>
+			<li data-icon="&#128318;">
+				<h2><a href="#monitor/application">Application monitor</a></h2>
+			</li>
+			<li data-icon="&#128202;">
+				<h2><a href="#monitor/system">System monitor</a></h2>
+			</li>
+			<li data-icon="&#59272;">
+				<h2><a href="#monitor/rest-console">Rest &amp; Json console</a></h2>
+			</li>
+		</ul>
+		<h2>Runtime</h2>
+	</section>
+
+</article>
+}
+
+@tpl("play_logs_tpl"){
+<article class="list" data-width="-1">
+
+	<header>
+		<h1>Logs &amp; errors</h1>
+		<nav>
+		</nav>
+	</header>
+
+	<footer>
+		<dl>
+			<dt>by date</dt>
+		</dl>
+	</footer>
+
+	<section class="wrapper">
+		<dl>
+		</dl>
+	</section>
+
+</article>
+}
+
+@tpl("play_app_monitor_tpl"){
+<article class="list">
+
+	<header>
+		<h1>Application monitor</h1>
+		<nav>
+		</nav>
+	</header>
+
+	<footer>
+		<dl>
+			<dt>by date</dt>
+		</dl>
+	</footer>
+
+	<section class="wrapper">
+		<dl>
+		</dl>
+	</section>
+
+</article>
+}
+
+@tpl("play_tests_tpl"){
+<article class="list">
+
+	<header>
+		<h1>Tests</h1>
+		<nav>
+		</nav>
+	</header>
+
+	<footer>
+		<dl>
+			<dt>by date</dt>
+		</dl>
+	</footer>
+
+	<section class="wrapper">
+		<dl>
+		</dl>
+	</section>
+
+</article>
+}
+
+@tpl("play_sys_monitor_tpl"){
+<article class="list">
+
+	<header>
+		<h1>System monitor</h1>
+		<nav>
+		</nav>
+	</header>
+
+	<footer>
+		<dl>
+			<dt>by date</dt>
+		</dl>
+	</footer>
+
+	<section class="wrapper">
+		<dl>
+		</dl>
+	</section>
+
+</article>
+}
+
+@tpl("play_rest_console_tpl"){
+<article class="list">
+
+	<header>
+		<h1>Rest &amp; Json console</h1>
+		<nav>
+		</nav>
+	</header>
+
+	<footer>
+		<dl>
+			<dt>by date</dt>
+		</dl>
+	</footer>
+
+	<section class="wrapper">
+		<dl>
+		</dl>
+	</section>
+
+</article>
+}
+
+
+@tpl("projects_tpl"){
+<article class="list active">
+
+	<header>
+		<h1>Projects</h1>
+	</header>
+
+	<footer>
+		<p></p>
+		<dl>
+			<dt>by date</dt>
+		</dl>
+	</footer>
+
+	<section class="wrapper">
+		<dl>
+		<% _.each( _.groupBy(data, function(p){ console.log("Template projects_tpl",p); return p.date }) , function(p,g){ %>
+			<dt><%= g %></dt>
+			<% _.each(p, function(i){ %>
+			<dd data-icon="&#128230;" class="<%= inUrl('#projects/'+ i.id) ? 'active' : '' %>">
+				<h2><a href="#projects/<%= i.id %>"><%= i.name %></a></h2>
+				<p class="event"><a href="#users/<%= i.updated.user %>">@@<%= i.updated.user %></a> uploaded <a href="#">guidelines.pdf</a> 12 minutes ago.</p>
+			</dd>
+			<% }); %>
+		<% }); %>
+		</dl>
+	</section>
+
+</article>
+}
+
+@tpl("project_tpl"){
+<article class="list">
+	<% console.log("Template project_tpl",data) %>
+	<header>
+		<h1><%= data.name %></h1>
+	</header>
+
+	<footer>
+		<p></p>
+	</footer>
+
+	<section class="wrapper">
+		<ul>
+			<li>
+				<h2><a href="#projects/<%= data.id %>/tasks">Tasks</a></h2>
+				<p class="event">Manage tasks, milestones &amp; bugs in one place</p>
+			</li>
+		</ul>
+	</section>
+
+</article>
+}
+
+@tpl("tasks_tpl"){
+<article class="list">
+
+	<header>
+		<h1>Tasks</h1>
+		<nav>
+			<a href="#">New task</a>
+			<a href="#">Search</a>
+			<a href="#">Help</a>
+		</nav>
+	</header>
+
+	<footer>
+		<p><%= data.length %></p>
+		<dl>
+			<dt>by date</dt>
+		</dl>
+	</footer>
+
+	<section class="wrapper">
+		<dl>
+
+		</dl>
+	</section>
+
+</article>
+}
+
+
+
+		@Mustache.script
+		@script("javascripts/jquery-1.7.1.min.js")
+		@script("javascripts/underscore.min.js")
+		@script("javascripts/play-mustache.js")
+
+		@script("javascripts/procrastination.js")
+		@script("javascripts/utils.js")
+		@script("javascripts/grid.js")
+		@script("javascripts/module.js")
+
+		@script("javascripts/apps/dashboard.js")
+		@script("javascripts/apps/play.js")
+		@script("javascripts/apps/project.js")
+		@script("javascripts/apps/tasks.js")
+
+		@script("javascripts/header.js")
+		@script("javascripts/navigation.js")
+		@script("javascripts/router.js")
+		@script("javascripts/main.js")
+
+	</body>
+</html>
