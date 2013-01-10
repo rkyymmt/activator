@@ -1,4 +1,4 @@
-<span data-bind="click: expand, text: expandedText, if: isDirectory"></span><span data-bind="text: name"></span><a data-bind="click: show">(Show)</a>
+<span data-bind="click: expand, text: expandedText, if: isDirectory"></span><span data-bind="text: name"></span><a data-bind="click: show, if: !isDirectory">(Show)</a>
 <div data-bind="if: isDirectory">
   <ul data-bind="foreach: shownChildren()">
     <li><span data-bind="template: { name: 'file-tree-view'}"></span></li>

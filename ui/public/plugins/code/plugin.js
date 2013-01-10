@@ -5,11 +5,10 @@ var FileModel = function(config) {
   self.name = config.name;
   self.location = config.location;
   self.isDirectory = config.isDirectory;
+  self.mimeType = config.mimeType;
   // Ajaxed stuff
-  self.contents = ko.observable();
   self.children = ko.observableArray(config.children || []);
   self.loaded = ko.observable(false);
-  
   self.expanded = ko.observable(false);
   self.expandedText = ko.computed(function() {
     if(self.expanded()) {
@@ -33,12 +32,12 @@ FileModel.prototype.load = function() {
       dataType: 'json',
       data: { location: self.location },
       success: function(data) {
-        if(data.contents) { self.contents(data.contents); }
         if(data.children) {
            var files = $.map(data.children, function(item) { return new FileModel(item); });
            self.children(files);
         }
-        self.loaded(false);
+        // TODO - Maybe we should always refresh to denote file deletions/additions.....
+        self.loaded(true);
       }
     });
 };
@@ -62,6 +61,7 @@ snap.registerPlugin({
   summaryView: 'code-summary-view',
   css: [{ url: '/api/plugin/code/code.css' }],
   model: function() {
+    var self = this;
     this.details = ko.observable("Our Code details");
     this.projectDir = ko.observable(new FileModel({
       name: snap.name(),
@@ -73,18 +73,19 @@ snap.registerPlugin({
     this.currentLocation = ko.computed(function() {
       return snap.subpath();
     });
+    self.currentLocationContents = ko.computed(function() {
+      return "/api/local/show?location="+self.currentLocation();
+    });
   },
   templates: [{
     id: 'code-detail-view',
-    content: '<div class="file-tree" data-bind="template: { name: '+"'"+'file-tree-view'+"'"+', data: model().projectDir() }"></div>'+
-             '<div class="file-contents"><p>Would be showing:</p><span data-bind="text: model().currentLocation()"></span></div>'
+    url: '/api/plugin/code/details.html'
   },{
     id: 'code-summary-view',
-    content: '<strong>Look at that dang code!</strong>'
+    url: '/api/plugin/code/summary.html'
   },{
     id: 'file-tree-view',
     url: '/api/plugin/code/file-tree-view.html'
-    //url: '/api/plugin/code/file-tree-view.html'
   }]
 });
 
