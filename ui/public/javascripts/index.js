@@ -3,23 +3,34 @@
 function getURLParameter(name) {
   return decodeURIComponent((RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,""])[1])
 }
+
+function addTemplate(template) {
+  var s = document.createElement("script");
+  s.id = template.id; 
+  s.type = "text/html";
+  s.text = template.content;
+  $("body").append(s);
+}
+
 // TODO - namespace on SNAP
 // Or put into a library somewhere....
 function loadTemplate(template, next) {
+  var doNext = true;
   // TODO - Synch these somehow?
   if($('#'+template.id).length == 0) {
-    var s = document.createElement("script");
-    s.id = template.id; 
-    s.type = "text/html";
-    if(template.content) {
-      s.text = template.content;
-    } else if(template.url) {
-      // TODO - load the dang thing up and write it directly...
-      s.src = template.url;
+    if(template.url) {
+      doNext = false;
+      var tpl = template;
+      $.get(tpl.url, function(data) {
+        tpl.content = data;
+        addTemplate(tpl);
+        next();
+      });
+    } else {
+      addTemplate(template);
     }
-    $("body").append(s);
   }
-  next();
+  if(doNext) { next(); }
 }
 // Todo hide in a namespace somewhere....
 function loadTemplates(templates, continuation) {

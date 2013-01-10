@@ -83,16 +83,7 @@ snap.registerPlugin({
     content: '<strong>Look at that dang code!</strong>'
   },{
     id: 'file-tree-view',
-    content:'<span data-bind="click: expand, text: expandedText, if: isDirectory"></span>' +
-            '  <span data-bind="text: name"></span>'+
-            '  <a data-bind="click: show">(Show)</a>' +
-               '<div data-bind="if: isDirectory">' +
-                 
-                 '<ul data-bind="foreach: shownChildren()">'+
-                    // TODO - Recursive template here.
-                    '<li><span data-bind="template: { name: '+"'"+'file-tree-view'+"'"+'}"></span></li>'+
-                 '</ul>' +
-               '</div>' 
+    url: '/api/plugin/code/file-tree-view.html'
     //url: '/api/plugin/code/file-tree-view.html'
   }]
 });
