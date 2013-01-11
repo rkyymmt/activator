@@ -21,7 +21,7 @@ class CanLaunchThroughSbtLauncher extends IntegrationTest {
       implicit val timeout = Timeout(60 seconds)
       val name = Await.result(child ? protocol.NameRequest, 60 seconds) match {
         case protocol.NameResponse(n, logs) => {
-          System.err.println("logs=" + logs)
+          System.err.println("name logs=" + logs)
           n
         }
         case protocol.ErrorResponse(error, logs) =>
@@ -30,14 +30,22 @@ class CanLaunchThroughSbtLauncher extends IntegrationTest {
       println("Project is: " + name)
       val compiled = Await.result(child ? protocol.CompileRequest, 60 seconds) match {
         case protocol.CompileResponse(logs) => {
-          System.err.println("logs=" + logs)
+          System.err.println("compile logs=" + logs)
           true
-      }
-      case protocol.ErrorResponse(error, logs) =>
-        System.err.println("Failed to compile: " + error)
-        false
+        }
+        case protocol.ErrorResponse(error, logs) =>
+          throw new Exception("Failed to compile: " + error)
       }
       println("compiled=" + compiled)
+      val run = Await.result(child ? protocol.RunRequest, 60 seconds) match {
+        case protocol.RunResponse(logs) => {
+          System.err.println("run logs=" + logs)
+          true
+        }
+        case protocol.ErrorResponse(error, logs) =>
+          throw new Exception("Failed to run: " + error)
+      }
+      println("run=" + run)
      } finally {
       system.stop(child)
     }

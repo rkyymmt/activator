@@ -22,17 +22,23 @@ package object tests {
     val code = 1
   }
   
+  def createFile(name: java.io.File, content: String): Unit = {
+      val writer = new java.io.FileWriter(name)
+      try writer.write(content)
+      finally writer.close()
+  }
+
   /** Creates a dummy project we can run SNAP against. */
   def makeDummySbtProject(dir: java.io.File): java.io.File = {
     snap.cache.IO.createDirectory(dir)
     val project = new java.io.File(dir, "project")
     snap.cache.IO.createDirectory(project)
     val props = new java.io.File(project, "build.properties")
-    val tmp = {
-      val writer = new java.io.FileWriter(props)
-      try writer.write("sbt.version="+snap.properties.SnapProperties.SBT_VERSION)
-      finally writer.close()
-    }
+    createFile(props, "sbt.version="+snap.properties.SnapProperties.SBT_VERSION)
+    val scalaSource = new java.io.File(dir, "src/main/scala")
+    snap.cache.IO.createDirectory(scalaSource)
+    val main = new java.io.File(scalaSource, "hello.scala")
+    createFile(main, "object Main extends App { println(\"Hello World\") }\n")
     dir
   }
   
