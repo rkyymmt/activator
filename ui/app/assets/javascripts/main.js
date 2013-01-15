@@ -27,7 +27,6 @@ require([
 	// Vendors
 	'vendors/text',
 	'vendors/css.min',
-	'vendors/dust-core-0.6.0.min',
 	'vendors/domReady',
 	'vendors/jquery.min',
 	'vendors/knockout-2.2.0',
