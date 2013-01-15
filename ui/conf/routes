@@ -23,7 +23,7 @@ GET     /api/local/show               controllers.api.Local.show(location)
 
 
 # Plugin API
-GET    /api/plugin/*file            controllers.Assets.at(path="/public/plugins", file)
+GET    /api/plugin/*file            controllers.Assets.at(path="/public/joshplugins", file)
 
 GET     /webjars/*file              controllers.WebJarAssets.at(file)
 
@@ -33,6 +33,6 @@ GET     /api/event/test                 controllers.api.Events.test
 GET     /api/event/kill                 controllers.api.Events.kill
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /                           controllers.Assets.at(path="/public", file="index.html")
+GET     /                           controllers.Assets.at(path="/public", file="index-new.html")
 GET     /app                        controllers.Assets.at(path="/public", file="index.html")
 GET     /public/*file               controllers.Assets.at(path="/public", file)

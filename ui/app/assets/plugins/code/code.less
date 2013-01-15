@@ -1,0 +1,28 @@
+.code {
+	.file:before {
+		content: "\E731";
+	}
+	.folder:before {
+		content: "\1F4C1";
+	}
+	.hidden:before {
+		opacity: .5;
+	}
+}
+
+div.file-tree {
+  float: left;
+  border: 1px solid black;
+  margin: 1em;
+  width: 300px;
+  height: 800px;
+  overflow: scroll;
+}
+
+div.file-contents {
+  font-size: 30px;  
+  padding: 1em;
+}
+.file-contents span {
+  font-weight: bold;
+}
