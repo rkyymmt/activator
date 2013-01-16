@@ -1,4 +1,6 @@
-@()
+@(model: controllers.ApplicationModel)
+
+
 <!DOCTYPE html>
 <html>
 	<head>
@@ -6,10 +8,8 @@
 		<title>Typesafe Builder</title>
 		<script type="text/javascript">
 		window.preloadedPlugins = [
-			//'plugins/todo/plugin',
-			'plugins/code/code',
-			'plugins/demo/demo'
-		]
+		    @model.plugins.mkString("'", "','","'")
+		];
 		</script>
 		<script data-main="/public/javascripts/main.js" type="text/javascript" src="/public/javascripts/vendors/require.min.js"></script>
 		<link rel="stylesheet" media="screen" href="/public/stylesheets/main.css">

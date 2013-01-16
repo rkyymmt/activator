@@ -32,9 +32,9 @@ GET     /api/event/stream           controllers.api.Events.eventSource
 GET     /api/event/test             controllers.api.Events.test
 GET     /api/event/kill             controllers.api.Events.kill
 
+GET     /                            controllers.Application.index
+GET     /home                        controllers.Application.forceHome
+GET     /app                         controllers.Application.app
+
 # Map static resources from the /public folder to the /assets URL path
-GET     /                           controllers.Snap.home()
-GET     /:id                        controllers.Snap.app(id: String)
-#GET     /                           controllers.Assets.at(path="/public", file="index-new.html")
-#GET     /app                        controllers.Assets.at(path="/public", file="index.html")
 GET     /public/*file               controllers.Assets.at(path="/public", file)
