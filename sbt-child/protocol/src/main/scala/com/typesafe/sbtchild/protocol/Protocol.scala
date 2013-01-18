@@ -52,6 +52,9 @@ case class NameResponse(name: String, logs: List[LogEntry]) extends Response
 case object CompileRequest extends Request
 case class CompileResponse(logs: List[LogEntry]) extends Response
 
+case object RunRequest extends Request
+case class RunResponse(logs: List[LogEntry]) extends Response
+
 // can be the response to anything
 case class ErrorResponse(error: String, logs: List[LogEntry]) extends Response
 
@@ -73,16 +76,20 @@ object Message {
       import scala.util.parsing.json._
       val base = Map("type" -> m.getClass.getSimpleName)
       val obj: Map[String, Any] = m match {
-        case CompileRequest | NameRequest | Started | Stopped =>
+        case CompileRequest | NameRequest | RunRequest | Started | Stopped =>
           base
         case NameResponse(name, logs) =>
           base ++ Map("name" -> name, "logs" -> ipc.JsonWriter.toJsonArray(logs))
         case CompileResponse(logs) =>
           base ++ Map("logs" -> ipc.JsonWriter.toJsonArray(logs))
+        case RunResponse(logs) =>
+          base ++ Map("logs" -> ipc.JsonWriter.toJsonArray(logs))
         case ErrorResponse(error, logs) =>
           base ++ Map("error" -> error, "logs" -> ipc.JsonWriter.toJsonArray(logs))
         case MysteryMessage(something) =>
           base ++ Map("something" -> something.toString)
+        case whatever =>
+          throw new Exception("Need to implement JSON serialization of: " + whatever)
       }
       JSONObject(obj)
     }
@@ -111,6 +118,10 @@ object Message {
               CompileRequest
             case "CompileResponse" =>
               CompileResponse(parseLogList(obj, "logs"))
+            case "RunRequest$" =>
+              RunRequest
+            case "RunResponse" =>
+              RunResponse(parseLogList(obj, "logs"))
             case "ErrorResponse" =>
               ErrorResponse(obj("error").asInstanceOf[String], parseLogList(obj, "logs"))
             case "Started" =>

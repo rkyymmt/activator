@@ -1,12 +1,14 @@
 package com.typesafe.sbtchild
 
 import _root_.sbt._
-
 import Project.Initialize
 import Keys._
 import Defaults._
 import Scope.GlobalScope
 import com.typesafe.sbtchild._
+import sbt.Aggregation.KeyValue
+import sbt.complete.DefaultParsers
+import sbt.Load.BuildStructure
 
 object SetupSbtChild extends (State => State) {
   // this is the entry point invoked by sbt
@@ -26,6 +28,19 @@ object SetupSbtChild extends (State => State) {
 
   val ListenCommandName = "listen"
 
+  private def runInputTask[T](key: ScopedKey[T], extracted: Extracted, state: State): State = {
+    implicit val display = Project.showContextKey(state)
+    val it = extracted.get(SettingKey(key.key) in key.scope)
+    val keyValues = KeyValue(key, it) :: Nil
+    val parser = Aggregation.evaluatingParser(state, extracted.structure, show = false)(keyValues)
+    DefaultParsers.parse("", parser) match {
+      case Left(message) =>
+        throw new Exception("Failed to run task: " + display(key) + ": " + message)
+      case Right(f) =>
+        f()
+    }
+  }
+
   private def handleRequest(req: protocol.Envelope, origState: State, logger: CaptureLogger): State = {
     val ref = Project.extract(origState).currentRef
     val extracted = Extracted(Project.structure(origState), Project.session(origState), ref)(Project.showFullKey)
@@ -41,6 +56,17 @@ object SetupSbtChild extends (State => State) {
           val (s, result) = extracted.runTask(compile in Compile, origState)
           System.err.println("Logs are: " + logger.get)
           client.replyJson(serial, protocol.CompileResponse(logger.get))
+          s
+        } catch {
+          case e: Exception =>
+            client.replyJson(serial, protocol.ErrorResponse(e.getMessage, logger.get))
+            origState
+        }
+      case protocol.Envelope(serial, replyTo, protocol.RunRequest) =>
+        try {
+          val s = runInputTask(run in Compile, extracted, origState)
+          System.err.println("Logs are: " + logger.get)
+          client.replyJson(serial, protocol.RunResponse(logger.get))
           s
         } catch {
           case e: Exception =>
