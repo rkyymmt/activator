@@ -84,8 +84,9 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
 }
 
 object SbtChild {
-  def apply(system: ActorSystem, workingDir: File, sbtChildMaker: SbtChildProcessMaker): ActorRef = system.actorOf(Props(new SbtChildActor(workingDir, sbtChildMaker)),
-    "sbt-child-" + SbtChild.nextSerial.getAndIncrement())
+  def apply(factory: ActorRefFactory, workingDir: File, sbtChildMaker: SbtChildProcessMaker): ActorRef =
+    factory.actorOf(Props(new SbtChildActor(workingDir, sbtChildMaker)),
+      "sbt-child-" + SbtChild.nextSerial.getAndIncrement())
 
   private val nextSerial = new AtomicInteger(1)
 }
