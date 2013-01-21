@@ -1,6 +1,7 @@
 define(['css!plugins/code/code','text!plugins/code/browse2.html'], function(css, template){
 
-	var ko = req('vendors/knockout-2.2.0');
+	var ko = req('vendors/knockout-2.2.0'),
+		key = req('vendors/keymage.min');
 
 	var Browser = Class({
 		title: ko.observable("Browse code"),
@@ -12,6 +13,44 @@ define(['css!plugins/code/code','text!plugins/code/browse2.html'], function(css,
 			var view = $(template);
 			this.update(parameters);
 			ko.applyBindings(this, view[0]);
+
+			// TODO : Refine key api
+			key(parameters.url.replace("/","."), 'up', function(e){
+				var target = $("dd.active, li.active", view)
+					.prev()
+					.getOrElse("dd:last, li:last", view)
+					.addClass("active")
+
+				target
+					.siblings()
+					.removeClass("active");
+
+				// To autoscroll to link
+				target.find("a")[0].focus();
+			}, {preventDefault: true});
+			key(parameters.url.replace("/","."), 'down', function(e){
+				var target = $("dd.active, li.active", view)
+					.next()
+					.getOrElse("dd:first, li:first", view)
+					.addClass("active")
+
+				target
+					.siblings()
+					.removeClass("active");
+
+				// To autoscroll to link
+				target.find("a")[0].focus();
+			}, {preventDefault: true});
+			key(parameters.url.replace("/","."), 'left', function(e){
+				var target = $("nav a", view).eq(-2)
+						.getOrElse("nav a:first-child", view)
+					window.location.hash = target.attr("href")
+			});
+			key(parameters.url.replace("/","."), 'right', function(e){
+				var target = $("dd.active, li.active", view)
+					.trigger("click");
+			});
+
 			return view;
 		},
 		update: function(parameters){

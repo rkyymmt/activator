@@ -1,6 +1,5 @@
 // The grid handles the views, and pannels (Templating & Positioning)
-//define(["core/header"], function(Header){
-define(function(Header){
+define(["core/header"], function(Header){
 
 var elements = {}, // jQuery objects cached
 
@@ -27,22 +26,6 @@ var elements = {}, // jQuery objects cached
 
 		// PLACEHOLDER
 		$(window)
-			.on("keyup", function(e){
-				var a;
-				switch(e.keyCode){
-					case 37: // left
-						var a = $("#wrapper > article.active").removeClass("active").prev("article");
-						if (a.length) a.addClass("active").find("a")[0].focus();
-						else $("#wrapper > nav").addClass("active");
-						break;
-					case 39: // right
-						window.location.href = $(".active .active h2 a")[0].href;
-						var a = $("#wrapper > article.active").removeClass("active").next("article");
-						if (a.length) a.addClass("active").find("a")[0].focus();
-						else $("#wrapper > article").first().addClass("active");
-						break;
-				}
-			})
 			.on("resize", resize)
 			.trigger("resize");
 	}
@@ -69,7 +52,7 @@ return {
 		!modules.length || modules[modules.length-1].view.nextAll().remove();
 		align();
 		n(modules);
-	})
+	}).map( Header.update )
 }
 
 });

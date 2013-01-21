@@ -21,6 +21,7 @@ define(["core/header"], function(Header){
 					});
 				}
 			});
+			return modules;
 		}
 	}
 

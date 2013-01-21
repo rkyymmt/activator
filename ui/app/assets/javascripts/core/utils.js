@@ -1,3 +1,7 @@
+$.fn.getOrElse = function(selector, ctx){
+	return this.length ? $(this) : $(selector, ctx)
+}
+
 function inUrl(path, url){
 	url = url || window.location.hash;
 	url = url.search("#") < 0 ? url.substr(1) : url;
