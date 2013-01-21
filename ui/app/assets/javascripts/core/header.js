@@ -1,17 +1,27 @@
-var Header = {
-	init: function(){
-		this.el = $("body > header nav")
-	},
+define(["core/header"], function(Header){
 
-	update: Action(function(modules, n){
-		Header.el.empty()
-		$.each(modules, function(ø,i){
-			$("<a/>")
-				.html(i.data && i.data.name ? i.data.name : i.plugin.name)
-				.attr("href", "#"+i.url)
-				.appendTo(Header.el)
-		})
-		n(modules)
-	})
-}
+	var ko = req('vendors/knockout-2.2.0');
 
+	var Header = function(){
+		this.breadcrumb = ko.observableArray([]);
+	}
+	var h = new Header();
+	ko.applyBindings(h, $("#breadcrumb")[0]);
+
+	return {
+		update: function(modules){
+			var self = h;
+			var root = "#";
+			self.breadcrumb.removeAll();
+			modules.map(function(m){
+				if (m){
+					self.breadcrumb.push({
+						'title': m.module.title,
+						'url': '#'+m.url
+					});
+				}
+			});
+		}
+	}
+
+})

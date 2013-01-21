@@ -8,6 +8,27 @@
 	.hidden:before {
 		opacity: .5;
 	}
+	nav {
+		position: absolute;
+		top: 60px;
+		left: 0;
+		right: 0;
+		z-index: 9;
+		background: #384046;
+		height: 40px;
+		line-height: 40px;
+		padding: 0 20px;
+		a {
+			display: inline-block;
+			color: rgba(255,255,255,.5);
+			&:last-child span {
+				color: #fff;
+			}
+		}
+	}
+	ul {
+		margin-top: 40px;
+	}
 }
 
 div.file-tree {
@@ -26,3 +47,4 @@ div.file-contents {
 .file-contents span {
   font-weight: bold;
 }
+

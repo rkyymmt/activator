@@ -1,6 +1,7 @@
 define(['css!./code','text!./browse.html'], function(css, template){
 
 	var ko = req('vendors/knockout-2.2.0')
+		//,utils = req('core/utils')
 
 	// Fetch
 	function fetch(url){
@@ -19,11 +20,11 @@ define(['css!./code','text!./browse.html'], function(css, template){
 		if(!self.tree.length) self.load(url, self.tree)
 	}
 	Browser.prototype = {
-		load: function(url, parent){
+		load: function(url, p){
 			fetch(url)
 				.done(function(datas){
 					for (var i in datas.children){
-						parent.push( datas.children[i] )
+						p.push( datas.children[i] )
 					}
 				})
 				.fail(function(){
@@ -32,22 +33,27 @@ define(['css!./code','text!./browse.html'], function(css, template){
 		},
 		open: function(e){
 			var target = e.location.replace("/Users/iamwarry/Work/Typesafe/Builder/snap/", "")
-			window.location.hash = "code/browse/" + target
+			window.location.hash = "code/" + target
 			return false;
 		}
 	}
 
 	// Render
-	function render(parameters){
-		var url = "."+parameters.url.replace("code/browse", ""),
-			view = $(template).attr("YOOOO", url)
+	function render(parameters, snap){
+		var url = "."+parameters.args.path.replace("code", ""),
+			view = $(template)
 		ko.applyBindings(new Browser(url), view[0])
 		return view
 	}
 
 	return {
-		name: "Browse",
-		id: "demo",
+		name: "Browse code",
+		id: "browse",
+		routes: {
+			'code':			[ "code/browse" , {
+				':id':	[ "code/browse" , {':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse"]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]
+			}]
+		},
 		render: render
 	}
 })

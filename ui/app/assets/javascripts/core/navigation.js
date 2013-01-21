@@ -1,6 +1,6 @@
-var Navigation = {
-	init: function(){
+define(function(css, template){
 
+	function init(){
 		// TOOGLE NAV PAN ----------
 		// Add effects on mouseover to toggle the pan
 		$("body > nav")
@@ -26,7 +26,19 @@ var Navigation = {
 			$("body").toggleClass("right-open").trigger("resize")
 		})
 		// -------------------------
-
 	}
-}
 
+/*
+		// KEYBOARD NAVIGATION
+		$("#wrapper").on("click", "article.list li, article.list dd", function(e){
+			var el = $(this).closest("li, dd")
+			window.location = el.find("a").attr("href")
+			el.addClass("active").siblings().removeClass("active")
+		})
+*/
+
+	return {
+		init: init
+	}
+
+})

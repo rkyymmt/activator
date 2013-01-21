@@ -5,7 +5,7 @@ var Raindrop = (function(){
 		// Decomposed url in an array
 		breadcrumb = [],
 
-		routes = {
+0C0C0C0C0D0D0D		ROUTESu = {
 			'monitor':				[ "todo/todo" , {
 				'logs':				[ "todo/todo" ],
 				'tests':			[ "todo/todo" ],
@@ -49,11 +49,13 @@ var Raindrop = (function(){
 				// Module is a tuple
 				_module = routes[url] || routes[':id'] // TODO: w/ Regex
 			if( _module && loaded[i] && loaded[i].url == url ){
-					modules[i] = loaded[i]
+				modules[i] = loaded[i]
+					console.log("!!", url, _module[1], bc.length, modules, loaded, modules.concat(loaded.slice(modules.length)))
 				if(_module[1] && bc.length){
 					modules = match( bc, _module[1], modules )
 				} else {
 					// Add extra loaded modules
+					console.log("!!", modules, loaded, modules.concat(loaded.slice(modules.length)))
 					modules = modules.concat(loaded.slice(modules.length))
 				}
 			} else if ( _module ){
@@ -104,6 +106,8 @@ var Raindrop = (function(){
 
 // MagicTrick()
 $(function(){
+
+	console.log(req('core/navigation'))
 
 	Grid.init()
 	Header.init()
