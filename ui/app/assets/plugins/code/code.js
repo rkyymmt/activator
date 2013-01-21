@@ -1,13 +1,14 @@
-define(['css!./code','text!./home.html'], function(css, template){
+define(function(){
 
 	return {
 		name: "Code",
-		id: "code",
+		icon: "",
+		url: "#code",
 		routes: {
 			'code':			[ "code/browse" , {
 				':id':	[ "code/browse" , {':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse"]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]
 			}]
 		}
-	}
-})
+	};
 
+});

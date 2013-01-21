@@ -1,60 +1,97 @@
-define(['css!./code','text!./browse.html'], function(css, template){
+define(['css!./code.css','text!./browse.html'], function(css, template){
 
-	var ko = req('vendors/knockout-2.2.0')
-		//,utils = req('core/utils')
+	var ko = req('vendors/knockout-2.2.0'),
+		key = req('vendors/keymage.min');
 
-	// Fetch
+	var Browser = Class({
+		title: ko.observable("Browse code"),
+		tree: ko.observableArray([]),
+		init: function(parameters){
+		},
+		render: function(parameters){
+			var view = $(template);
+			this.view = view[0];
+
+			var url = "./" + parameters.args.path.replace(/^code\/?/,"")
+			this.load(url);
+			this.title("Browse: "+url)
+
+			this.view.id = parameters.args.path.replace("/", "");
+			ko.applyBindings(this, this.view);
+
+			// TODO : Refine key api
+			key(parameters.url.replace("/","."), 'up', function(e){
+				var target = $("dd.active, li.active", view)
+					.prev()
+					.getOrElse("dd:last, li:last", view)
+					.addClass("active")
+
+				target
+					.siblings()
+					.removeClass("active");
+
+				// To autoscroll to link
+				target.find("a")[0].focus();
+			}, {preventDefault: true});
+			key(parameters.url.replace("/","."), 'down', function(e){
+				var target = $("dd.active, li.active", view)
+					.next()
+					.getOrElse("dd:first, li:first", view)
+					.addClass("active")
+
+				target
+					.siblings()
+					.removeClass("active");
+
+				// To autoscroll to link
+				target.find("a")[0].focus();
+			}, {preventDefault: true});
+			key(parameters.url.replace("/","."), 'left', function(e){
+				var target = $("nav a", view).eq(-2)
+						.getOrElse("nav a:first-child", view)
+					window.location.hash = target.attr("href")
+			});
+			key(parameters.url.replace("/","."), 'right', function(e){
+				var target = $("dd.active, li.active", view)
+					.trigger("click");
+			});
+
+			return view;
+		},
+		update: function(parameters){
+			console.log(parameters)
+		},
+		load: function(url){
+			var self = this;
+			fetch(url)
+				.done(function(datas){
+					self.tree.removeAll();
+					for (var i in datas.children){
+						self.tree.push( datas.children[i] );
+					}
+				})
+				.fail(function(){
+					console.error("Render failed");
+				});
+		},
+		open: function(e){
+			var target = e.location.replace("/Users/iamwarry/Work/Typesafe/Builder/snap/", "")
+			window.location.hash = "code/" + target;
+			return false;
+		}
+	});
+
+	// Fetch utility
 	function fetch(url){
 		return $.ajax({
 			url: '/api/local/browse',
 			type: 'GET',
 			dataType: 'json',
 			data: { location: url }
-		})
+		});
 	}
 
-	var Browser = function(url){
-		var self = this
-		self.title = "Browse: "+url
-		self.tree = ko.observableArray([])
-		if(!self.tree.length) self.load(url, self.tree)
-	}
-	Browser.prototype = {
-		load: function(url, p){
-			fetch(url)
-				.done(function(datas){
-					for (var i in datas.children){
-						p.push( datas.children[i] )
-					}
-				})
-				.fail(function(){
-					console.error("Render failed")
-				})
-		},
-		open: function(e){
-			var target = e.location.replace("/Users/iamwarry/Work/Typesafe/Builder/snap/", "")
-			window.location.hash = "code/" + target
-			return false;
-		}
-	}
+	return Browser;
 
-	// Render
-	function render(parameters, snap){
-		var url = "."+parameters.args.path.replace("code", ""),
-			view = $(template)
-		ko.applyBindings(new Browser(url), view[0])
-		return view
-	}
-
-	return {
-		name: "Browse code",
-		id: "browse",
-		routes: {
-			'code':			[ "code/browse" , {
-				':id':	[ "code/browse" , {':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse"]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]
-			}]
-		},
-		render: render
-	}
 })
 

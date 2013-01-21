@@ -1,6 +1,10 @@
 // The grid handles the views, and pannels (Templating & Positioning)
 define(["core/header"], function(Header){
 
+var ko = req('vendors/knockout-2.2.0'),
+	key = req('vendors/keymage.min');
+
+
 var elements = {}, // jQuery objects cached
 
 	align = function(){

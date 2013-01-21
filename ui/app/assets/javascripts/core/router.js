@@ -49,7 +49,7 @@ var loaded = [],
 				modules = match( bc, _module[1], modules )
 			} else {
 				// Add extra loaded modules
-				modules = modules.concat(loaded.slice(modules.length))
+				// modules = modules.concat(loaded.slice(modules.length))
 			}
 		} else if ( _module ){
 			modules[i] = {
