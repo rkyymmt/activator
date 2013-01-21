@@ -9,7 +9,7 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 		init: function(parameters){
 		},
 		render: function(parameters){
-			var view = $(template);
+			var view = $(template + " ");
 			this.view = view[0];
 
 			var url = "./" + parameters.args.path.replace(/^code\/?/,"")
