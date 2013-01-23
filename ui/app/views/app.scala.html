@@ -1,3 +1,4 @@
+@()
 <!DOCTYPE html>
 <html>
 	<head>
@@ -42,8 +43,10 @@
 			</ul>
 		</nav>
 		<header>
-			<nav id="breadcrumb" data-bind="foreach: breadcrumb">
-				<a href="#d" data-bind="text: title, attr: { href: url }"></a>
+			<nav id="breadcrumb">
+				<div data-bind="foreach: breadcrumb">
+					<a href="#d" data-bind="text: title, attr: { href: url }"></a>
+				</div>
 			</nav>
 			<a href="http://www.typesafe.com">Typesafe</a>
 			<dl id="user">
