@@ -23,4 +23,39 @@ class ConfigTest {
     val c = RootConfig.user
     assertTrue("project 'foo' now in user config", c.projects.exists(_.location.getPath == "foo"))
   }
+
+  def removeProjectName(): Unit = {
+    val rewritten = RootConfig.rewriteUser { old =>
+      val withNoName = old.projects
+        .find(_.location.getPath == "foo")
+        .getOrElse(ProjectConfig(new File("foo")))
+        .copy(cachedName = None)
+
+      val projectList = withNoName +: old.projects.filter(_.location.getPath != "foo")
+      old.copy(projects = projectList)
+    }
+    Await.ready(rewritten, 5 seconds)
+    val c = RootConfig.user
+    assertTrue("project 'foo' now in user config with no name",
+      c.projects.exists({ p => p.location.getPath == "foo" && p.cachedName.isEmpty }))
+  }
+
+  @Test
+  def testAddingProjectName(): Unit = {
+    removeProjectName()
+
+    val rewritten = RootConfig.rewriteUser { old =>
+      val withName = old.projects
+        .find(_.location.getPath == "foo")
+        .getOrElse(ProjectConfig(new File("foo")))
+        .copy(cachedName = Some("Hello World"))
+
+      val projectList = withName +: old.projects.filter(_.location.getPath != "foo")
+      old.copy(projects = projectList)
+    }
+    Await.ready(rewritten, 5 seconds)
+    val c = RootConfig.user
+    assertTrue("project 'foo' now in user config with a name",
+      c.projects.exists({ p => p.location.getPath == "foo" && p.cachedName == Some("Hello World") }))
+  }
 }
