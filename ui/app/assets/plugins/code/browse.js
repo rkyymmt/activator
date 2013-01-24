@@ -5,10 +5,15 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 
 	var Browser = Class({
 		init: function(parameters){
-		  this.title = ko.observable("Browse code");
+			var tmpUrl = parameters.args.path.replace(/^code\/?/,"");
+			this.url = serverAppModel.location + tmpUrl;
+		  this.title = ko.observable("Browse: ./" + tmpUrl);
 			this.tree = ko.observableArray([]);
       // TODO - initialize from breadcrumbs?
+			// TODO - Pull url minus the code bit...
+			this.load();
 		},
+		view: registerTemplate('code-browser-view', template),
 		render: function(parameters){
 			var view = $(template + " ");
 			this.view = view[0];
@@ -62,14 +67,11 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 		update: function(parameters){
 			console.log(parameters)
 		},
-		load: function(url){
+		load: function(){
 			var self = this;
-			fetch(url)
+			fetch(self.url)
 				.done(function(datas){
-					self.tree.removeAll();
-					for (var i in datas.children){
-						self.tree.push( datas.children[i] );
-					}
+					self.tree(datas.children);
 				})
 				.fail(function(){
 					console.error("Render failed");

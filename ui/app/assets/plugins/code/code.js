@@ -6,7 +6,13 @@ define(["./browse"], function(Browser){
 		icon: "",
 		url: "#code",
 		routes: {
-			'code':			[ Browser, ":rest"]
+			'code': function(bcs) {
+				return $.map(bcs, function(crumb) {
+					return {
+						widget: Browser
+					};
+				});
+			}
 		}
 	};
 

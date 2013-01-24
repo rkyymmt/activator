@@ -61,6 +61,8 @@
 				</dd>
 			</dl>
 		</header>
-		<div id="wrapper"></div>
+		<div id="wrapper" data-bind="foreach: router.breadcrumbs()">
+			<article data-bind="class: module.classes, template: { name: module.view, data: module }">
+    </div>
   </body>
 </html>

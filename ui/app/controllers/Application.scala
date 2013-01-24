@@ -27,8 +27,7 @@ object Application extends Controller {
   // TODO - actually load from file or something which plugins we use.
   def getApplicationModel(projectDir: File) =
     ApplicationModel(projectDir.getAbsolutePath,
-        Seq("plugins/demo/demo",
-            "plugins/code/code"))
+        Seq("plugins/code/code"))
   
   
   // TODO - Better detection, in library most likely.
