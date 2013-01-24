@@ -1,7 +1,7 @@
 // The grid handles the views, and pannels (Templating & Positioning)
-define(["plugins/tutorial/tutorial"], function(Tutorial){
+define(function(){
 
-var ko = req('vendors/knockout-2.2.0'),
+var ko = req('vendors/knockout-2.2.1.debug'),
 	key = req('vendors/keymage.min');
 
 

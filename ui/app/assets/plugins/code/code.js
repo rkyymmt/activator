@@ -1,7 +1,7 @@
 define(["./browse"], function(Browser){
 
 	return {
-    id: 'code',
+	    id: 'code',
 		name: "Code",
 		icon: "",
 		url: "#code",

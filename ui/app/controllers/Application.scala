@@ -30,7 +30,7 @@ object Application extends Controller {
   // TODO - actually load from file or something which plugins we use.
   def getApplicationModel(projectDir: File) =
     ApplicationModel(projectDir.getAbsolutePath,
-        Seq("plugins/code/code"))  
+        Seq("plugins/code/code", "plugins/play/play"))  
   
   // TODO - Better detection, in library most likely.
   val cwd = (new java.io.File(".").getAbsoluteFile.getParentFile)

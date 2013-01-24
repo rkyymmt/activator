@@ -27,9 +27,9 @@ require([
 	'vendors/text',
 	'vendors/css.min',
 	'vendors/jquery-2.0.0b1',
-	'vendors/knockout-2.2.0',
 	'vendors/chain',
-	'vendors/keymage.min'
+	'vendors/keymage.min',
+	'vendors/knockout-2.2.1.debug'
 ],function(){
 	require([
 		// Core

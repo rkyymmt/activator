@@ -1,6 +1,6 @@
 define(['css!./code.css','text!./browse.html'], function(css, template){
 
-	var ko = req('vendors/knockout-2.2.0'),
+	var ko = req('vendors/knockout-2.2.1.debug'),
 		key = req('vendors/keymage.min');
 
 	var FileModel = Class({
@@ -36,6 +36,8 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 		classes: 'list code browse',
 		view: registerTemplate('code-browser-view', template),
 		render: function(parameters){
+			console.log('params', parameters);
+
 			var view = $(template + " ");
 			this.view = view[0];
 
