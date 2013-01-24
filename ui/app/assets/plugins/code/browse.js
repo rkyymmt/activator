@@ -4,9 +4,10 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 		key = req('vendors/keymage.min');
 
 	var Browser = Class({
-		title: ko.observable("Browse code"),
-		tree: ko.observableArray([]),
 		init: function(parameters){
+		  this.title = ko.observable("Browse code");
+			this.tree = ko.observableArray([]);
+      // TODO - initialize from breadcrumbs?
 		},
 		render: function(parameters){
 			var view = $(template + " ");
@@ -75,7 +76,7 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 				});
 		},
 		open: function(e){
-			var target = e.location.replace("/Users/iamwarry/Work/Typesafe/Builder/snap/", "")
+			var target = e.location.replace(window.appLocation, "")
 			window.location.hash = "code/" + target;
 			return false;
 		}

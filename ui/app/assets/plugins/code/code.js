@@ -1,13 +1,12 @@
-define(function(){
+define(["./browse"], function(Browser){
 
 	return {
+    id: 'code',
 		name: "Code",
 		icon: "",
 		url: "#code",
 		routes: {
-			'code':			[ "code/browse" , {
-				':id':	[ "code/browse" , {':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse",{':id':["code/browse"]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]
-			}]
+			'code':			[ Browser, ":rest"]
 		}
 	};
 

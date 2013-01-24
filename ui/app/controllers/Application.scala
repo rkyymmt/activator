@@ -5,7 +5,10 @@ import java.io.File
 
 case class ApplicationModel(
     location: String,
-    plugins: Seq[String])
+    plugins: Seq[String]) {
+  
+  def jsLocation = location.replaceAll("'", "\\'")
+}
 
 // Here is where we detect if we're running at a given project...
 object Application extends Controller {
@@ -24,7 +27,8 @@ object Application extends Controller {
   // TODO - actually load from file or something which plugins we use.
   def getApplicationModel(projectDir: File) =
     ApplicationModel(projectDir.getAbsolutePath,
-        Seq("plugins/demo/demo"))
+        Seq("plugins/demo/demo",
+            "plugins/code/code"))
   
   
   // TODO - Better detection, in library most likely.

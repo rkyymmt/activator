@@ -6,7 +6,7 @@ define(["core/header"], function(Header){
 		this.breadcrumb = ko.observableArray([]);
 	}
 	var h = new Header();
-	ko.applyBindings(h, $("#breadcrumb")[0]);
+	//ko.applyBindings(h, $("#breadcrumb")[0]);
 
 	return {
 		update: function(modules){
