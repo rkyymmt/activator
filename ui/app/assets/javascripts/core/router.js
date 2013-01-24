@@ -85,6 +85,11 @@ define(function(){
 	// args:  routes - The current router configuration
 	//        bc     - The bread crumbs to route
   var doRoute = function(router, bc) {
+			// If the router *is* a function, just use that to construct BC configs,
+			// Otherwise, assume we need to construct some routing function.
+			if(typeof(router) == 'function') {
+				return router(bc);
+			}
 		  var rest = bc.slice(1);
 			var url = bc[0];
       var result = [{ widget: router[0] }];
