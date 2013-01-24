@@ -1,5 +1,10 @@
 package snap
 
+// for Play's JsValue.as[] implicits
+import language.higherKinds
+// for the "5 seconds" duration syntax
+import language.postfixOps
+
 import play.api.libs.json._
 import snap.cache.IO
 import scala.concurrent._
@@ -8,14 +13,26 @@ import java.io._
 import snap.properties.SnapProperties
 import scala.concurrent.duration._
 
-case class ProjectConfig(location: File)
+case class ProjectConfig(location: File, cachedName: Option[String] = None) {
+  private[snap] def toJson: JsObject = {
+    val locationField = "location" -> JsString(location.getPath)
+    val nameFieldOption = cachedName.map({ name => "name" -> JsString(name) })
+    JsObject(Seq(locationField) ++ nameFieldOption.toSeq)
+  }
+}
+
+object ProjectConfig {
+  private[snap] def apply(json: JsObject): ProjectConfig = {
+    val location = (json \ "location").as[String]
+    val nameOption = (json \ "name").asOpt[String]
+    ProjectConfig(new File(location), nameOption)
+  }
+}
 
 case class RootConfig(projects: Seq[ProjectConfig]) {
   private[snap] def toJson: JsObject = {
-    JsObject(Seq("projects" ->
-      JsArray(projects map { project =>
-        JsObject(Seq("location" -> JsString(project.location.getPath)))
-      })))
+    JsObject(Seq(
+      "projects" -> JsArray(projects.map(_.toJson))))
   }
 }
 
@@ -23,7 +40,10 @@ object RootConfig {
   private[snap] def apply(json: JsObject): RootConfig = {
     val projects = json \ ("projects") match {
       case JsArray(list) =>
-        list.map(v => (v \ "location").as[String]).map(loc => ProjectConfig(new File(loc)))
+        list.map({
+          case o: JsObject => ProjectConfig(o)
+          case whatever => throw new Exception("invalid JSON for project: " + whatever)
+        })
       case whatever =>
         Nil
     }
