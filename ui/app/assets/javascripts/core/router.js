@@ -12,7 +12,10 @@ define(function(){
 	//      'foo':					[ WidgetClass , {
 	//          'bar':				[ WidgetClass , ":rest" ],
 	//          ':id':				[ WidgetClass ]
-	//      }]
+	//      }],
+  //      'baz':          function(urlFragments) {
+  //                          return makeBreadCrumbFragments(urlFragments);
+  //                      }
 	//  }
 	// Note
 	// :rest will redirect all /foo/bar/.* urls.
@@ -140,6 +143,36 @@ define(function(){
 
   var parsedBreadcrumbs = ko.observableArray();
 
+  // Find the common prefix *length* for two arrays, using the given equals comparator.
+  function commonPrefixIdx(one, two, comparator) {
+    for(var idx=0; idx < one.length && idx < two.length; idx++) {
+      if(!comparator(one[idx], two[idx])) {
+        return idx;
+      }
+    }
+    return (one.length > two.length) ? two.length : one.length;
+  }
+  // merges the new breadcrumbs with the existing breadcrumbs, preserving the models already there if possible.
+  // Note:  This will instantiate the widgets of new breadcrumbs.
+  function mergeBreadCrumbs(newCrumbs) {
+    var existing = parsedBreadcrumbs();
+    var sameIdx = commonPrefixIdx(existing, newCrumbs, function(lhs, rhs) { return lhs.url == rhs.url; });
+    // Remove stale crumbs
+    var removeCount = existing.length - sameIdx;
+    for(var i = 0; i < removeCount; i++) {
+      parsedBreadcrumbs.pop();
+    }
+    // Grab the uninitialized crumbs and initialize them.
+    // Also add them to the chain of stuff
+    var uninitailizedCrumbs = newCrumbs.slice(sameIdx);
+    $.each(uninitailizedCrumbs, function(idx, bc) {
+			var widget = bc.widget;
+      // Wait to instantiate widgets until we have to...
+			bc.module = new widget(bc);
+      parsedBreadcrumbs.push(bc);
+		});
+  }
+
 	var parse = function(url) {
 		// If no arguments, take the hash
 		url = url || window.location.hash;
@@ -147,12 +180,8 @@ define(function(){
 		breadcrumb = url ? /^#?\/?(.+)\/?$/.exec(url)[1].split("/") : [];
 		// Check if modules are loaded, or retrieve module object
 		loaded = match(breadcrumb.slice(0), routes, []);
-    // Now instantiate all widgets?
-    $.each(loaded, function(idx, bc) {
-			var widget = bc.widget;
-			bc.module = new widget(bc);
-		});
-		parsedBreadcrumbs(loaded);
+    // Merge breadcrumbs with those already there.
+    mergeBreadCrumbs(loaded);
 	};
 	return {
     init: function() {
