@@ -1,5 +1,10 @@
 package snap
 
+// for Play's JsValue.as[] implicits
+import language.higherKinds
+// for the "5 seconds" duration syntax
+import language.postfixOps
+
 import play.api.libs.json._
 import snap.cache.IO
 import scala.concurrent._
