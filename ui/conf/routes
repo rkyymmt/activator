@@ -17,9 +17,9 @@ GET     /api/app/open               controllers.api.App.openLocation(location)
 GET     /api/app/start              controllers.api.App.startApp(location)
 
 # Local system operations
-GET     /api/local/env                  controllers.api.Local.getEnv
-GET     /api/local/browse               controllers.api.Local.browse(location)
-GET     /api/local/show               controllers.api.Local.show(location)
+GET     /api/local/env              controllers.api.Local.getEnv
+GET     /api/local/browse           controllers.api.Local.browse(location)
+GET     /api/local/show             controllers.api.Local.show(location)
 
 
 # Plugin API
@@ -28,14 +28,16 @@ GET    /api/plugin/*file            controllers.Assets.at(path="/public/joshplug
 GET     /webjars/*file              controllers.WebJarAssets.at(file)
 
 # Events API
-GET     /api/event/stream               controllers.api.Events.eventSource
-GET     /api/event/test                 controllers.api.Events.test
-GET     /api/event/kill                 controllers.api.Events.kill
+GET     /api/event/stream           controllers.api.Events.eventSource
+GET     /api/event/test             controllers.api.Events.test
+GET     /api/event/kill             controllers.api.Events.kill
+
+GET     /                            controllers.Application.index
+GET     /home                        controllers.Application.forceHome
+GET     /app                         controllers.Application.app
 
 GET     /                            controllers.Application.index
 GET     /app                         controllers.Application.app
 
 # Map static resources from the /public folder to the /assets URL path
-#GET     /                           controllers.Assets.at(path="/public", file="index-new.html")
-#GET     /app                        controllers.Assets.at(path="/public", file="index.html")
 GET     /public/*file               controllers.Assets.at(path="/public", file)

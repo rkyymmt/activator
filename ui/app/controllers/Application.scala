@@ -14,7 +14,11 @@ case class ApplicationModel(
 object Application extends Controller {
   def index = Action {
     if(isOnProject(cwd)) Redirect(routes.Application.app)
-    else Ok("TODO - Please create a project. (" + cwd + ")")  // TODO - view to create template
+    else Ok(views.html.home())
+  }
+
+  def forceHome = Action { request =>
+    Ok(views.html.home())
   }
 
   def app = Action { request =>
@@ -23,12 +27,10 @@ object Application extends Controller {
     else Redirect(routes.Application.index)
   }
   
-  
   // TODO - actually load from file or something which plugins we use.
   def getApplicationModel(projectDir: File) =
     ApplicationModel(projectDir.getAbsolutePath,
-        Seq("plugins/code/code"))
-  
+        Seq("plugins/code/code"))  
   
   // TODO - Better detection, in library most likely.
   val cwd = (new java.io.File(".").getAbsoluteFile.getParentFile)

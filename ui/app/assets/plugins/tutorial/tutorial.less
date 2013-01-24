@@ -1,0 +1,91 @@
+aside.tutorial {
+	background: #384046;
+	nav {
+		height: 50px;
+		.previous, .next {
+			color: #fff;
+			display: block;
+			width: 50px;
+			height: 50px;
+			line-height: 50px;
+			text-align: center;
+			&:hover {
+				background: rgba(0,0,0,.5);
+				background: #53cdec;
+			}
+			&[disabled] {
+				background: none;
+				color: rgba(255,255,255,.3);
+			}
+		}
+		.previous {
+			float: left;
+			border-right: 1px solid rgba(255,255,255,.1);
+		}
+		.next {
+			float: right;
+			border-left: 1px solid rgba(255,255,255,.1);
+		}
+		dl {
+			display: block;
+			height: 50px;
+			dt {
+				line-height: 50px;
+				background: rgba(0,0,0,.2);
+				color: #fff;
+				span {
+					float: left;
+					display: inline-block;
+					min-width: 20px;
+					height: 20px;
+					margin: 15px 10px;
+					line-height: 20px;
+					vertical-align: middle;
+					color: rgba(255,255,255,.5);
+					border: 1px solid rgba(255,255,255,.3);
+					text-align: center;	
+					border-radius: 2px;
+				}
+			}
+		}
+	}
+	a.button {
+		display: block;
+		margin: 30px auto;
+		padding: 5px 10px;
+		width: 120px;
+		background: #e25758;
+		color: #fff;
+		text-align: center;
+		font-size: 20px;
+		font-weight: bold;
+		border-radius: 3px;
+	}
+	article {
+		padding: 10px;
+		background: none;
+		color: #D3D9DF;
+		color: rgba(255,255,255,.6);
+		h1 {
+			color: #fff;
+			height: 40px;
+			line-height: 40px;
+			padding: 0;
+			margin: 0;
+		}
+		ul, ol {
+			margin: 10px 0;
+			padding-left: 40px;
+			li {
+				margin: 5px 0;
+			}
+		}
+		ul li {
+			list-style-type: square;
+		}
+		ol li {
+			list-style-type: decimal;
+		}
+
+	}
+}

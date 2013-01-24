@@ -16,7 +16,7 @@
 		<link rel="stylesheet" media="screen" href="/public/stylesheets/main.css">
 		<link rel="shortcut icon" type="image/png" href="/public/images/favicon.png">
 	</head>
-	<body class="noAnim left-open">
+	<body class="noAnim left-open right-open">
 		<nav>
 			<div id="switch">
 				<span class="label" data-bind="text: snap.appName"></span>
@@ -44,8 +44,10 @@
 			</ul>
 		</nav>
 		<header>
-			<nav id="breadcrumb" data-bind="foreach: router.breadcrumbs()">
+			<nav id="breadcrumb">
+        <div data-bind="foreach: router.breadcrumbs()">
 				<a href="#d" data-bind="text: module.title, attr: { href: '#' + url }"></a>
+        </div>
 			</nav>
 			<a href="http://www.typesafe.com">Typesafe</a>
 			<dl id="user">
@@ -61,6 +63,7 @@
 				</dd>
 			</dl>
 		</header>
+		<aside></aside>
 		<div id="wrapper" data-bind="foreach: router.breadcrumbs()">
 			<article data-bind="css: module.classes, template: { name: module.view, data: module }">
     </div>
