@@ -29,6 +29,7 @@ define(function(){
 	//      path: '',              // The full url path to this breadcrumb.
 	//   },
 	//   index: 2                  // The index relative to other breadcrumbs
+  //   url: 'foo/bar'            // The *full* url to current breadcrumb.
 	// }
   //
   // this.title =  A widget class must support a title property (either a function that returns one, or a direct attribute).
@@ -59,7 +60,7 @@ define(function(){
 	//       modules - The 'resolved' breadcrumb configuration.
 	function addBc(config, bc, modules) {
 		config.args = makeArgs(bc, modules);
-		config.url = config.args.url;
+		config.url = (config.args.before ? config.args.before + "/" : "") + config.args.url;
 		config.index = modules.length;
 		modules[modules.length] = config;
 	}
