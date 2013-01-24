@@ -1,5 +1,5 @@
 // The grid handles the views, and pannels (Templating & Positioning)
-define(["core/header"], function(Header){
+define(function(){
 
 var ko = req('vendors/knockout-2.2.0'),
 	key = req('vendors/keymage.min');
@@ -56,7 +56,7 @@ return {
 		!modules.length || modules[modules.length-1].view.nextAll().remove();
 		align();
 		n(modules);
-	}).map( Header.update )
+	})
 }
 
 });

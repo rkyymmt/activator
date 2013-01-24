@@ -1,10 +1,9 @@
 // Sort of MVC (Module, Grid, Router)
 define([
   'core/plugin',
-	'core/module',
 	'core/grid',
 	'core/router'
-	],function(plugins, Module, Grid, router){
+	],function(plugins, Grid, router){
 
 	var ko = req('vendors/knockout-2.2.0'),
 		key = req('vendors/keymage.min');
