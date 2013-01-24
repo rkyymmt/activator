@@ -3,16 +3,37 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 	var ko = req('vendors/knockout-2.2.0'),
 		key = req('vendors/keymage.min');
 
+	var FileModel = Class({
+		init: function(config) {
+			this.name = config.name;
+			this.location = config.location;
+			this.isDirectory = config.isDirectory;
+			this.mimeType = config.mimeType;
+			var path = ['code'];
+      var relative = config.location.replace(serverAppModel.location, "");
+      if(relative[0] == '/') { relative = relative.slice(1); }
+      this.url = 'code/' + relative;
+		},
+		select: function() {
+			if(this.isDirectory) {
+				window.location.hash = this.url;
+			} else {
+				// TODO - Show file.
+			}
+		}
+  });
+
 	var Browser = Class({
 		init: function(parameters){
 			var tmpUrl = parameters.args.path.replace(/^code\/?/,"");
-			this.url = serverAppModel.location + tmpUrl;
+			this.url = serverAppModel.location + '/' + tmpUrl;
 		  this.title = ko.observable("Browse: ./" + tmpUrl);
 			this.tree = ko.observableArray([]);
       // TODO - initialize from breadcrumbs?
 			// TODO - Pull url minus the code bit...
 			this.load();
 		},
+		classes: 'list code browse',
 		view: registerTemplate('code-browser-view', template),
 		render: function(parameters){
 			var view = $(template + " ");
@@ -71,7 +92,7 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 			var self = this;
 			fetch(self.url)
 				.done(function(datas){
-					self.tree(datas.children);
+					self.tree($.map(datas.children, function(config) { return new FileModel(config); }));
 				})
 				.fail(function(){
 					console.error("Render failed");
