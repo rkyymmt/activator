@@ -33,7 +33,6 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 			// TODO - Pull url minus the code bit...
 			this.load();
 		},
-		classes: 'list code browse',
 		view: registerTemplate('code-browser-view', template),
 		render: function(parameters){
 			console.log('params', parameters);

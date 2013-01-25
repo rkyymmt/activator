@@ -45,9 +45,9 @@
 		</nav>
 		<header>
 			<nav id="breadcrumb">
-        <div data-bind="foreach: router.breadcrumbs()">
-				<a href="#d" data-bind="text: module.title, attr: { href: '#' + url }"></a>
-        </div>
+		        <div data-bind="foreach: router.breadcrumbs()">
+					<a href="#d" data-bind="text: module.title, attr: { href: '#' + url }"></a>
+        		</div>
 			</nav>
 			<a href="http://www.typesafe.com">Typesafe</a>
 			<dl id="user">
@@ -64,8 +64,6 @@
 			</dl>
 		</header>
 		<aside></aside>
-		<div id="wrapper" data-bind="foreach: router.breadcrumbs()">
-			<article data-bind="css: module.classes, template: { name: module.view, data: module }">
-    </div>
+		<div id="wrapper" data-bind="foreach: router.breadcrumbs()"><div data-bind="template: { name: module.view, data: module }"></div></div>
   </body>
 </html>

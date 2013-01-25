@@ -11,15 +11,19 @@
 
 #wrapper {
 	white-space: nowrap;
+	> div {
+		display: inline;
+		vertical-align: top;
+	}
 }
 
 article {
 	position: relative;
 	vertical-align: top;
-	white-space: normal;
 	height: 100%;
 	display: inline-block;
-	box-shadow: 1px 0 1px rgba(0,0,0,.1);
+	white-space: normal;
+	border-right: 1px solid rgba(0,0,0,.1);
 	-webkit-transform: translate3d(0, 0, 0);
 	-moz-transform: translate3d(0, 0, 0);
 	transform: translate3d(0, 0, 0);
@@ -35,14 +39,14 @@ article.fadein {
 }
 
 body[data-width="1"] {
-	#wrapper > article {
+	#wrapper > div > * {
 		width: 100%;
 		&[data-span]  { width: 100%; }
 	}
 }
 
 body[data-width="2"] {
-	#wrapper > article {
+	#wrapper > div > * {
 		width: 50%;
 		&[data-width="-1"],
 		&[data-width="2"],
@@ -53,7 +57,7 @@ body[data-width="2"] {
 }
 
 body[data-width="3"] {
-	#wrapper > article {
+	#wrapper > div > * {
 		width: 33.33%;
 		&[data-width="-1"],
 		&[data-width="2"] { width: 66.55%; }
@@ -64,7 +68,7 @@ body[data-width="3"] {
 }
 
 body[data-width="4"] {
-	#wrapper > article {
+	#wrapper > div > * {
 		width: 25%;
 		&[data-width="2"] { width: 50%; }
 		&[data-width="-1"],
@@ -75,7 +79,7 @@ body[data-width="4"] {
 }
 
 body[data-width="5"] {
-	#wrapper > article {
+	#wrapper > div > * {
 		width: 20%;
 		&[data-width="2"] { width: 40%; }
 		&[data-width="3"] { width: 60%; }
@@ -85,7 +89,7 @@ body[data-width="5"] {
 }
 
 body[data-width="0"] {
-	#wrapper > article {
+	#wrapper > div > * {
 		width: 300px;
 		&[data-width="2"] { width: 600px; }
 		&[data-width="3"] { width: 900px; }
