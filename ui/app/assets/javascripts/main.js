@@ -34,6 +34,8 @@ require([
 	require([
 		// Core
 		'core/utils',
-		'core/snap'
-	])
+    'core/templates'
+        ], function() {
+                require(['core/snap'])
+  })
 })

@@ -1,7 +1,8 @@
 define(['css!./code.css','text!./browse.html'], function(css, template){
 
 	var ko = req('vendors/knockout-2.2.1.debug'),
-		key = req('vendors/keymage.min');
+                key = req('vendors/keymage.min'),
+    templates = req('core/templates');
 
 	var FileModel = Class({
 		init: function(config) {
