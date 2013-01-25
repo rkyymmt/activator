@@ -87,6 +87,9 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 
 			return view;
 		},
+    onRender: function(domElements) {
+                        console.log(domElements)
+    },
 		update: function(parameters){
 			console.log(parameters)
 		},
