@@ -1,3 +1,12 @@
+function registerTemplate(id, text) {
+		var s = document.createElement("script");
+		s.id = id;
+		s.type = "text/html";
+		s.text = text;
+		$("body").append(s);
+	return id;
+}
+
 $.fn.getOrElse = function(selector, ctx){
 	return this.length ? $(this) : $(selector, ctx)
 }

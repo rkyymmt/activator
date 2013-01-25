@@ -36,5 +36,8 @@ GET     /                            controllers.Application.index
 GET     /home                        controllers.Application.forceHome
 GET     /app                         controllers.Application.app
 
+GET     /                            controllers.Application.index
+GET     /app                         controllers.Application.app
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /public/*file               controllers.Assets.at(path="/public", file)

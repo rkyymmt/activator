@@ -5,13 +5,14 @@ import java.io.File
 
 case class ApplicationModel(
     location: String,
-    plugins: Seq[String])
+    plugins: Seq[String]) {
+  
+  def jsLocation = location.replaceAll("'", "\\'")
+}
 
 // Here is where we detect if we're running at a given project...
 object Application extends Controller {
-
-
-  def index = Action { request =>
+  def index = Action {
     if(isOnProject(cwd)) Redirect(routes.Application.app)
     else Ok(views.html.home())
   }
@@ -22,7 +23,6 @@ object Application extends Controller {
 
   def app = Action { request =>
     val location = request.getQueryString("location") map (new File(_)) getOrElse cwd
-    //Ok(views.html.app())
     if(isOnProject(location)) Ok(views.html.application(getApplicationModel(location)))
     else Redirect(routes.Application.index)
   }
@@ -30,8 +30,7 @@ object Application extends Controller {
   // TODO - actually load from file or something which plugins we use.
   def getApplicationModel(projectDir: File) =
     ApplicationModel(projectDir.getAbsolutePath,
-        Seq("plugins/code/code", "plugins/demo/demo"))
-  
+        Seq("plugins/code/code", "plugins/play/play"))  
   
   // TODO - Better detection, in library most likely.
   val cwd = (new java.io.File(".").getAbsoluteFile.getParentFile)

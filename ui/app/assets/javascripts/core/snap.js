@@ -1,11 +1,11 @@
 // Sort of MVC (Module, Grid, Router)
 define([
-	'core/module',
+  'core/plugin',
 	'core/grid',
 	'core/router'
-	],function(Module, Grid, Router){
+	],function(plugins, Grid, router){
 
-	var ko = req('vendors/knockout-2.2.0'),
+	var ko = req('vendors/knockout-2.2.1.debug'),
 		key = req('vendors/keymage.min');
 
 // Model for the whole app view
@@ -14,11 +14,20 @@ define([
 			appName: "Sample App",
 			pageTitle: ko.observable()
 		},
-		plugins: Router.plugins
+		plugins: plugins,
+    router: router
 	};
-	ko.applyBindings(model, $("body > nav")[0]);
+	// TODO - initialize plugins...
+	window.model = model;
+	// Initialize the router now that everything is ready.
+	$.each(plugins.list, function(idx, plugin) {
+	router.registerRoutes(plugin.routes);
+	});
+	router.init();
+	ko.applyBindings(model, window.body);
 
 // All the magic here.
+/*
 Do
 	.then( Router.parse, Module.load, Grid.render )
 	.map( function(m){
@@ -28,7 +37,7 @@ Do
 	} )
 	.when(function(n) {
 		$(window).on('hashchange', n).trigger('hashchange')
-	});
+	});*/
 
 // End of define()
 });
