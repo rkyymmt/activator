@@ -43,6 +43,7 @@ define([], function() {
   ko.setTemplateEngine(createStringTemplateEngine(new ko.nativeTemplateEngine(), templates));
 
   return {
-    registerTemplate: registerTemplate
+    registerTemplate: registerTemplate,
+    templates: templates
   };
 });

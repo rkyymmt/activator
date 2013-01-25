@@ -1,8 +1,7 @@
 define(['css!./code.css','text!./browse.html'], function(css, template){
 
 	var ko = req('vendors/knockout-2.2.1.debug'),
-                key = req('vendors/keymage.min'),
-    templates = req('core/templates');
+                key = req('vendors/keymage.min');
 
 	var FileModel = Class({
 		init: function(config) {
@@ -24,7 +23,9 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 		}
   });
 
-	var Browser = Class({
+        var Browser = Widget({
+    id: 'code-browser-view',
+    template: template,
 		init: function(parameters){
 			var tmpUrl = parameters.args.path.replace(/^code\/?/,"");
 			this.url = serverAppModel.location + '/' + tmpUrl;
@@ -34,7 +35,6 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 			// TODO - Pull url minus the code bit...
 			this.load();
 		},
-		view: registerTemplate('code-browser-view', template),
 		render: function(parameters){
 			console.log('params', parameters);
 
