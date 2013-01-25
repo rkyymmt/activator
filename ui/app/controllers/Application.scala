@@ -1,38 +1,38 @@
 package controllers
 
 import play.api.mvc.{Action, Controller}
-import play.api.Play
-
-import scala.sys.process.Process
-
 import java.io.File
-import org.apache.commons.io.FileUtils
 
+case class ApplicationModel(
+    location: String,
+    plugins: Seq[String]) {
+  
+  def jsLocation = location.replaceAll("'", "\\'")
+}
+
+// Here is where we detect if we're running at a given project...
 object Application extends Controller {
-  
-  def openLocation = Action(parse.json) { request =>
-
-    val location = (request.body \ "location").as[String]
-    
-    val command = System.getProperty("os.name") match {
-      case "Linux" => "/usr/bin/xdg-open file://" + location
-    }
-    
-    Runtime.getRuntime.exec(command)
-
-    Ok(request.body)
-  }
-  
-  def startApp = Action(parse.json) { request =>
-
-    val location = new File((request.body \ "location").as[String])
-
-    //val app = PlayProject
-    
-    Process(Seq(Play.current.path.getParentFile + "/snap", "~run"), location).run()
-
-    Ok(request.body)
-    
+  def index = Action {
+    if(isOnProject(cwd)) Redirect(routes.Application.app)
+    else Ok(views.html.home())
   }
 
+  def forceHome = Action { request =>
+    Ok(views.html.home())
+  }
+
+  def app = Action { request =>
+    val location = request.getQueryString("location") map (new File(_)) getOrElse cwd
+    if(isOnProject(location)) Ok(views.html.application(getApplicationModel(location)))
+    else Redirect(routes.Application.index)
+  }
+  
+  // TODO - actually load from file or something which plugins we use.
+  def getApplicationModel(projectDir: File) =
+    ApplicationModel(projectDir.getAbsolutePath,
+        Seq("plugins/code/code", "plugins/play/play"))  
+  
+  // TODO - Better detection, in library most likely.
+  val cwd = (new java.io.File(".").getAbsoluteFile.getParentFile)
+  def isOnProject(dir: File) = (new java.io.File(dir, "project/build.properties")).exists
 }

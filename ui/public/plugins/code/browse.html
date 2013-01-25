@@ -1,0 +1,10 @@
+	<header><h1 data-bind='text:title'>Browse</h1></header>
+	<footer><p></p></footer>
+	<section class="wrapper">
+		<p style="display:none" data-bind="visible: tree().length == 0">Empty folder</p>
+		<ul data-bind="foreach: tree()">
+			<li class="file" data-bind="css: {folder: isDirectory, file: !isDirectory, hidden: name[0] == '.'}">
+				<h2><a data-bind="text:name, click: select"></a></h2>
+			</li>
+		</ul>
+	</section>

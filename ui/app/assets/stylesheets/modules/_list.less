@@ -1,0 +1,96 @@
+article.list section li ,
+article.list section dd {
+	position: relative;
+	cursor: pointer;
+	padding: 10px;
+	border-top: 1px solid #eee;
+	&:last-child {
+		border-bottom: 1px solid #eee;
+	}
+	p a {
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+	&.active, &:hover {
+		background: #eee;
+		border-color: #ccc;
+		+ dd, + li {
+			border-top: 1px solid #ccc;
+		}
+	}
+	&:before {
+		content: attr(data-icon);
+		color: #e25758;
+		font: 40px icons;
+		float: left;
+		text-align: center;
+		display: block;
+		width: 30px;
+		height: 40px;
+		margin: -10px 10px 0 0;
+	}
+	.error-counter {
+		position: absolute;
+		top: 10px;
+		right: 10px;
+		background: #e25758;
+		color: #fff;
+		padding: 0 4px;
+		border-radius: 3px;
+	}
+}
+article.list.active section li ,
+article.list.active section dd {
+	position: relative;
+	&.active {
+		border-color: #e25758 - #222;
+		background: #e25758;
+		color: #fff;
+		.event a {
+			color: #e25758 - #444;
+		}
+		p {
+			color: #e25758 - #333;
+		}
+		+ dd{
+			border-top: 1px solid #e25758 - #222;
+		}
+		&:before {
+			color: #fff;
+		}
+	}
+}
+article.list section li h2 a ,
+article.list section dd h2 a {
+	color: inherit;
+	font-size: 1.1em;
+	font-weight: 700;
+	&:after {
+		content: " ";
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+	}
+}
+article.list section li p ,
+article.list section dd p {
+	color: #9aadc3;
+	font-size: .85em;
+}
+article.list section li.event a ,
+article.list section dd .event a {
+
+	color: #01b8e3;
+}
+article.list section dt {
+	padding: 0 10px;
+	line-height: 20px;
+	font-size: 11px;
+	text-transform: uppercase;
+	background: #384046;
+	color: #888;
+}
+
