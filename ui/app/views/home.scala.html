@@ -1,4 +1,4 @@
-@()
+@(model: HomeModel)
 <!DOCTYPE html>
 <html>
 	<head>
@@ -25,48 +25,20 @@
 				</fieldset>
 				<fieldset>
 					<label for="newappLocation">Location</label>
-					<input type="text" id="newappLocation" placeholder="/Users/ya/work/..." required>
+					<input type="text" id="newappLocation" placeholder="@model.userHome" required>
 				</fieldset>
 				<fieldset>
 					<label for="newappBlueprint">Blueprint</label>
 					<input type="text" id="newappLocation" placeholder="Choose a blueprint in the list below" disabled required>
 				</fieldset>
-				<ul>
+				<ul> 
+				@model.templates.map { template =>
 					<li>
 						<input type="radio" name="blueprint">
-						<h3>Play application (Java)</h3>
-						<p>lorem ipsum</p>
-					</li>
-					<li>
-						<input type="radio" name="blueprint">
-						<h3>Play application (Java)</h3>
-						<p>lorem ipsum</p>
-					</li>
-					<li>
-						<input type="radio" name="blueprint">
-						<h3>Play application (Java)</h3>
-						<p>lorem ipsum</p>
-					</li>
-					<li>
-						<input type="radio" name="blueprint">
-						<h3>Play application (Java)</h3>
-						<p>lorem ipsum</p>
-					</li>
-					<li>
-						<input type="radio" name="blueprint">
-						<h3>Play application (Java)</h3>
-						<p>lorem ipsum</p>
-					</li>
-					<li>
-						<input type="radio" name="blueprint">
-						<h3>Play application (Java)</h3>
-						<p>lorem ipsum</p>
-					</li>
-					<li>
-						<input type="radio" name="blueprint">
-						<h3>Play application (Java)</h3>
-						<p>lorem ipsum</p>
-					</li>
+						<h3>@template.name</h3>
+						<p>@template.description</p>
+					</li>	  
+				}
 				</ul>
 				<input type="submit" class="button" value="Create" id="newButton">
 			</form>
