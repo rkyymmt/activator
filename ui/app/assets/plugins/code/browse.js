@@ -12,14 +12,11 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 			var path = ['code'];
       var relative = config.location.replace(serverAppModel.location, "");
       if(relative[0] == '/') { relative = relative.slice(1); }
-      this.url = 'code/' + relative;
+      // TODO - Is it ok to drop browse history when viewing a file?
+      this.url = (this.isDirectory ? 'code/' : 'view/') + relative;
 		},
 		select: function() {
-			if(this.isDirectory) {
-				window.location.hash = this.url;
-			} else {
-				// TODO - Show file.
-			}
+		  window.location.hash = this.url;
 		}
   });
 
@@ -88,11 +85,8 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 			return view;
 		},
     onRender: function(domElements) {
-                        console.log(domElements)
+      console.log(domElements)
     },
-		update: function(parameters){
-			console.log(parameters)
-		},
 		load: function(){
 			var self = this;
 			fetch(self.url)
@@ -102,11 +96,6 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 				.fail(function(){
 					console.error("Render failed");
 				});
-		},
-		open: function(e){
-			var target = e.location.replace(window.appLocation, "")
-			window.location.hash = "code/" + target;
-			return false;
 		}
 	});
 

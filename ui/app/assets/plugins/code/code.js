@@ -1,4 +1,4 @@
-define(["./browse"], function(Browser){
+define(["./browse", "./view"], function(Browser, Viewer){
 
 	return {
 	    id: 'code',
@@ -12,7 +12,14 @@ define(["./browse"], function(Browser){
 						widget: Browser
 					};
 				});
-			}
+			},
+      'view': function(bcs) {
+        var file = bcs.slice(1).join('/')
+        return [{
+          widget: Viewer,
+          file: file
+        }];
+      }
 		}
 	};
 
