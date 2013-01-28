@@ -19,7 +19,12 @@ object Local extends Controller {
   }
   
   def getExtension(name: String): String =
-    name substring (name lastIndexOf '.') drop 1
+    (for {
+      n <- Option(name)
+      idx = n lastIndexOf '.'
+      if idx != -1 
+      sub = n substring idx 
+    } yield (sub drop 1)) getOrElse ""
 
   def getMimeType(name: String): String = getExtension(name) match {
     case "jpg"   => "image/jpeg"
