@@ -15,7 +15,8 @@ define([
 			pageTitle: ko.observable()
 		},
 		plugins: plugins,
-    router: router
+    router: router,
+    grid: Grid
 	};
 	// TODO - initialize plugins...
 	window.model = model;
