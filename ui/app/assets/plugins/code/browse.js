@@ -13,7 +13,7 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
       var relative = config.location.replace(serverAppModel.location, "");
       if(relative[0] == '/') { relative = relative.slice(1); }
       // TODO - Is it ok to drop browse history when viewing a file?
-      this.url = (this.isDirectory ? 'code/' : 'view/') + relative;
+      this.url = 'code/' + relative;
 		},
 		select: function() {
 		  window.location.hash = this.url;
@@ -23,14 +23,13 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
         var Browser = Widget({
     id: 'code-browser-view',
     template: template,
-		init: function(parameters){
-			var tmpUrl = parameters.args.path.replace(/^code\/?/,"");
-			this.url = serverAppModel.location + '/' + tmpUrl;
-		  this.title = ko.observable("Browse: ./" + tmpUrl);
-			this.tree = ko.observableArray([]);
-      // TODO - initialize from breadcrumbs?
-			// TODO - Pull url minus the code bit...
-			this.load();
+    dataIndex: 1,
+		init: function(parameters, datas){
+			this.url = parameters.fileLoc;
+      var children = datas.children || [];
+			this.tree = ko.observableArray($.map(children, function(config) {
+        return new FileModel(config);
+      }));
 		},
 		render: function(parameters){
 			console.log('params', parameters);
@@ -86,29 +85,8 @@ define(['css!./code.css','text!./browse.html'], function(css, template){
 		},
     onRender: function(domElements) {
       console.log(domElements)
-    },
-		load: function(){
-			var self = this;
-			fetch(self.url)
-				.done(function(datas){
-					self.tree($.map(datas.children, function(config) { return new FileModel(config); }));
-				})
-				.fail(function(){
-					console.error("Render failed");
-				});
-		}
+    }
 	});
-
-	// Fetch utility
-	function fetch(url){
-		return $.ajax({
-			url: '/api/local/browse',
-			type: 'GET',
-			dataType: 'json',
-			data: { location: url }
-		});
-	}
-
 	return Browser;
 
 })

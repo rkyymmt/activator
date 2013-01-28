@@ -56,7 +56,9 @@ object Local extends Controller {
   case class InterestingFile(file: File)
   implicit object IFileProtocol extends Format[InterestingFile] {
     def writes(o: InterestingFile): JsValue =
-      if(o.file.isDirectory) JsObject(List("children" -> Json.toJson(o.file.listFiles())))
+      if(o.file.isDirectory) JsObject(List(
+          "type" -> JsString("directory"),
+          "children" -> Json.toJson(o.file.listFiles())))
       else FileProtocol.writes(o.file)
     //We don't need reads, really
     def reads(json: JsValue): JsResult[InterestingFile] =

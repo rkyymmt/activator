@@ -1,4 +1,4 @@
-define(["./browse", "./view"], function(Browser, Viewer){
+define(["./view"], function(Viewer){
 
 	return {
 	    id: 'code',
@@ -7,19 +7,14 @@ define(["./browse", "./view"], function(Browser, Viewer){
 		url: "#code",
 		routes: {
 			'code': function(bcs) {
-				return $.map(bcs, function(crumb) {
+				return $.map(bcs, function(crumb, idx) {
+					var file = bcs.slice(1, 1+idx).join('/');    
 					return {
-						widget: Browser
+						widget: Viewer,
+						file: file
 					};
 				});
-			},
-      'view': function(bcs) {
-        var file = bcs.slice(1).join('/')
-        return [{
-          widget: Viewer,
-          file: file
-        }];
-      }
+			}
 		}
 	};
 

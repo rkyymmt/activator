@@ -1,8 +1,15 @@
-define(["text!./viewWrapper.html", "text!./viewDefault.html", "text!./viewImage.html", "text!./viewCode.html"], function(viewOuter, defaultTemplate, imageTemplate, codeTemplate){
+define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./codeView", "./browse"], function(viewOuter, defaultTemplate, ImageView, CodeView, DirView){
 
 	var ko = req('vendors/knockout-2.2.1.debug');
-  var templates = req('core/templates');
 
+	// Default view for when we don't know which other to use.
+	var DefaultView = Widget({
+		id: 'code-default-view',
+		template: defaultTemplate,
+		init: function(args) {
+			this.filename = args.file;
+		} 
+	});
 
 	// Fetch utility
 	function browse(location){
@@ -13,71 +20,44 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "text!./viewImage.
 			data: { location: location }
 		});
 	}
+	var FileBrowser = Widget({
+		id: 'file-browser-widget',
+		template: viewOuter,
+		init: function(args) {
+			var self = this;
+			// TODO - Detect bad url?
+			self.filename = args.file;
+			self.fileLoc = serverAppModel.location + (self.filename ? ('/' + self.filename) : '');
+			self.fileLoadUrl = '/api/local/show?location=' + self.fileLoc; // TODO - URL encoded
+			self.title = 'Browse: ./' + self.filename;
+			self.subView = ko.observable(new DefaultView(args));
+			// Loaded via ajax
+			self.filetype = ko.observable("unknown");
 
-	// Fetch utility
-	function showCode(location){
-		return $.ajax({
-			url: '/api/local/show',
-			type: 'GET',
-			dataType: 'text',
-			data: { location: location }
-		});
-	}
-
-  var FileViewer = Widget({
-    id: 'file-viewer-widget',
-    template: viewOuter,
-    defaultTemplate: templates.registerTemplate('view-default-template', imageTemplate),
-    imageTemplate: templates.registerTemplate('view-image-template', imageTemplate),
-    codeTemplate: templates.registerTemplate('view-code-template', codeTemplate),
-    init: function(args) {
-      var self = this;
-      // TODO - Detect bad url?
-      self.filename = args.file;
-      self.fileLoc = self.url = serverAppModel.location + '/' + self.filename;
-      self.title = 'View ./' + self.filename;
-      // Loaded via ajax
-      self.filetype = ko.observable("unknown");
-      self.contents = ko.observable('Loading...');
-      self.fileLoadUrl = '/api/local/show?location=' + self.fileLoc; // TODO - URL encoded
-      // Computed
-      self.text = ko.computed(function() {
-        var type = self.filetype();
-        if(type == "unknown") {
-          return "Loading ./" + self.filename;
-        }
-        return 'Would display: ' + type;
-      });
-      self.viewTemplateId = ko.computed(function() {
-        var type = self.filetype();
-        if(type == 'image') {
-          return self.imageTemplate;
-        }
-        if(type == 'code') {
-          return self.codeTemplate;
-        }
-        return self.defaultTemplate;
-      });
-      // Now load the widget data.
-      self.loadInfo();
-    },
-    loadInfo: function() {
-      var self = this;
-      browse(this.fileLoc).done(function(datas){
-			  self.filetype(datas.type);
-        // Check to see if we need to further load...
-        if(datas.type == 'code') {
-          self.loadContents();
-        }
-      });
-    },
-    loadContents: function() {
-      var self = this;
-      showCode(self.fileLoc).done(function(contents) {
-        self.contents(contents);
-      });
-    }
+			self.dataIndex = ko.computed(function() {
+				if(self.subView().dataIndex) {
+					return self.subView().dataIndex;
+				}
+				return -1;
+			});
+			// Now load the widget data.
+			self.load();
+		},
+		load: function() {
+			var self = this;
+			browse(self.fileLoc).done(function(datas){
+				self.filetype(datas.type);
+				// Check to see if we need to further load...
+				if(datas.type == 'code') {
+					self.subView(new CodeView(self));
+				} else if(datas.type == 'image') {
+					self.subView(new ImageView(self));
+				} else if(datas.type == 'directory') {
+					self.subView(new DirView(self, datas));
+				}
+			});
+		}
   });
 
-  return FileViewer;
+  return FileBrowser;
 });
