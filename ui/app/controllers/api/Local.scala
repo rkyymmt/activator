@@ -58,7 +58,8 @@ object Local extends Controller {
     def writes(o: InterestingFile): JsValue =
       if(o.file.isDirectory) JsObject(List(
           "type" -> JsString("directory"),
-          "children" -> Json.toJson(o.file.listFiles())))
+          // TODO - Gitignore/file filters here.
+          "children" -> Json.toJson(o.file.listFiles().filterNot(_.getName startsWith "."))))
       else FileProtocol.writes(o.file)
     //We don't need reads, really
     def reads(json: JsValue): JsResult[InterestingFile] =
