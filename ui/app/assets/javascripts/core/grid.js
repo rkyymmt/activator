@@ -73,7 +73,6 @@ define(function() {
 		beforeRemove: function(el, idx, module) {
 			var wasActive = $(el).hasClass("active")
 			// Note: WE HAVE TO REMOVE THE ELEMENT!
-			// First we check to see if we need a new
 			$(el).remove();
 			if(wasActive) {
 				$("#wrapper > div").last().addClass("active")

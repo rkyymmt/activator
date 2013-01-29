@@ -1,6 +1,6 @@
 package controllers.api
 
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{ Action, Controller }
 import play.api.libs.json._
 import play.api.Play
 import java.io.File
@@ -11,15 +11,18 @@ object Local extends Controller {
     val localEnvJson = Json.toJson(
       Map(
         "desktopDir" -> Json.toJson((new File(System.getProperty("user.home"), "Desktop")).getAbsolutePath),
-        "separator" -> Json.toJson(File.separator)
-      )
-    )
+        "separator" -> Json.toJson(File.separator)))
 
     Ok(localEnvJson)
   }
-  
+
   def getExtension(name: String): String =
-    name substring (name lastIndexOf '.') drop 1
+    (for {
+      n <- Option(name)
+      idx = n lastIndexOf '.'
+      if idx != -1
+      sub = n substring idx
+    } yield (sub drop 1)) getOrElse ""
 
   // TODO - Make this configurable!
   def getFileType(name: String): String = getExtension(name) match {
@@ -65,17 +68,16 @@ object Local extends Controller {
     def reads(json: JsValue): JsResult[InterestingFile] =
       JsError("Reading Files not supported!")
   }
-  
 
   def browse(location: String) = Action { request =>
     val loc = new java.io.File(location)
-    if(!loc.exists) NotAcceptable(s"${location} is not a file!")
+    if (!loc.exists) NotAcceptable(s"${location} is not a file!")
     else Ok(Json toJson InterestingFile(loc))
   }
 
   def show(location: String) = Action { request =>
     val loc = new java.io.File(location)
-    if(!loc.exists) NotAcceptable(s"${location} is not a file!")
+    if (!loc.exists) NotAcceptable(s"${location} is not a file!")
     else (Ok sendFile loc)
   }
 }

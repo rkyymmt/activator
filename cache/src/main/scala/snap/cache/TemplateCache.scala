@@ -1,21 +1,21 @@
 package snap.cache
 
-
 import snap.properties.SnapProperties
 
 // TODO - This may need more work.
 // TODO - We probably are on the limit of fields for a useful case-class....
 case class TemplateMetadata(id: String,
-                             name: String,
-                             version: String,
-                             description: String,
-                             tags: Seq[String]) {
+  name: String,
+  version: String,
+  description: String,
+  tags: Seq[String]) {
   // TODO - update equality/hashcode to be based on ID
 }
 case class Template(metadata: TemplateMetadata,
-                     files: Seq[(java.io.File, String)])   // TODO - What do we need for help?
+  files: Seq[(java.io.File, String)]) // TODO - What do we need for help?
 
-/** This interface represents the template cache within SNAP.  it's your mechanisms to find things and 
+/**
+ * This interface represents the template cache within SNAP.  it's your mechanisms to find things and
  *  create stuff.
  */
 trait TemplateCache {
@@ -32,14 +32,12 @@ object TemplateCache {
   def apply(): TemplateCache = new DemoTemplateCache()
 }
 
-
 // This class hacks everything together we need for the demo.
 class DemoTemplateCache() extends TemplateCache {
 
   private val cacheDir = (
-     Option(SnapProperties.SNAP_TEMPLATE_CACHE) map (new java.io.File(_)) getOrElse 
-     sys.error("Could not instatiate template cache!  Does this user have a home directory?")
-  )
+    Option(SnapProperties.SNAP_TEMPLATE_CACHE) map (new java.io.File(_)) getOrElse
+    sys.error("Could not instatiate template cache!  Does this user have a home directory?"))
 
   // First we copy our templates from the snap.home (if we have them there).
   copyTemplatesIfNeeded()
@@ -53,7 +51,7 @@ class DemoTemplateCache() extends TemplateCache {
     Seq(batFile, jarFile, bashFile).flatten
   }
 
-  override val metadata: Set[TemplateMetadata] = 
+  override val metadata: Set[TemplateMetadata] =
     Set(
       // TODO - Put more hardcoded template metadata for the demo here!
       TemplateMetadata(
@@ -63,9 +61,7 @@ class DemoTemplateCache() extends TemplateCache {
         description = """|Get started with a Java web application.  This Blueprint will walk you through 
                          |the basics of building a Java web application using the Typesafe technologies.  
                          |You will first learn the basics of the Play Framework.""".stripMargin,
-        tags = Seq("play", "java", "starter")
-      )
-    )
+        tags = Seq("play", "java", "starter")))
 
   private val index: Map[String, TemplateMetadata] = (metadata map (m => m.id -> m)).toMap
   override def template(id: String): Option[Template] =
@@ -77,25 +73,24 @@ class DemoTemplateCache() extends TemplateCache {
         relative <- IO.relativize(templateDir, file)
         if !relative.isEmpty
       } yield file -> relative
-      Template(metadata, fileMappings ++ defaultTemplateFiles) 
+      Template(metadata, fileMappings ++ defaultTemplateFiles)
     }
 
   override def search(query: String): Iterable[TemplateMetadata] =
-     for {
-       m <- metadata
-       // Hack so we can search this stuff.
-       searchstring = s"""${m.name} ${m.tags mkString " "} ${m.description} ${m.version}"""
-       // TODO - better search
-       if searchstring contains query
-     } yield m
-
+    for {
+      m <- metadata
+      // Hack so we can search this stuff.
+      searchstring = s"""${m.name} ${m.tags mkString " "} ${m.description} ${m.version}"""
+      // TODO - better search
+      if searchstring contains query
+    } yield m
 
   private def copyTemplatesIfNeeded() {
     // Ensure template cache exists.
     IO.createDirectory(cacheDir)
     // TODO - use SBT IO library when it's on scala 2.10
     import snap.properties.SnapProperties
-    for(templateRepo <- Option(SnapProperties.SNAP_TEMPLATE_LOCAL_REPO) map (new java.io.File(_)) filter (_.isDirectory)) {
+    for (templateRepo <- Option(SnapProperties.SNAP_TEMPLATE_LOCAL_REPO) map (new java.io.File(_)) filter (_.isDirectory)) {
       // Now loop over all the files in this repo and copy them into the local cache.
       for {
         file <- IO allfiles templateRepo
@@ -103,8 +98,8 @@ class DemoTemplateCache() extends TemplateCache {
         if !relative.isEmpty
         to = new java.io.File(cacheDir, relative)
         if !to.exists
-      } if(file.isDirectory) IO.createDirectory(to)
-        else                 IO.copyFile(file, to)
+      } if (file.isDirectory) IO.createDirectory(to)
+      else IO.copyFile(file, to)
     }
   }
 }
