@@ -21,9 +21,11 @@ define(function() {
 		},
 
 		init = function() {
-			elements.body = $("body")
-			elements.wrapper = $("#wrapper")
+			elements.body = $("body");
+			elements.wrapper = $("#wrapper");
+			elements.pans = $("#wrapper > div");
 
+			// KEYBORD NAVIGATION
 			function keyHandler(e) {
 				var current = $("#wrapper > .active"),
 					target;
@@ -47,6 +49,11 @@ define(function() {
 			key('right', keyHandler, {
 				preventDefault: true
 			});
+
+			// Need Bubbling here
+			elements.wrapper[0].addEventListener("click",function(e){
+				$(e.target).parents("div[data-scope]").addClass("active").siblings().removeClass("active");
+			},false);
 
 			// PLACEHOLDER
 			$(window).on("resize", resize).trigger("resize");
