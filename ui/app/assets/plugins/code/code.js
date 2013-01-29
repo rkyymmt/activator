@@ -1,7 +1,7 @@
 define(["./view"], function(Viewer){
 
 	return {
-	    id: 'code',
+		id: 'code',
 		name: "Code",
 		icon: "",
 		url: "#code",

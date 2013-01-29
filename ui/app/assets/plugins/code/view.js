@@ -1,4 +1,4 @@
-define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./codeView", "./browse"], function(viewOuter, defaultTemplate, ImageView, CodeView, DirView){
+define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./codeView", "./browse"], function(viewOuter, defaultTemplate, ImageView, CodeView, DirView) {
 
 	var ko = req('vendors/knockout-2.2.1.debug'),
 		key = req('vendors/keymage.min');
@@ -9,16 +9,20 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 		template: defaultTemplate,
 		init: function(args) {
 			this.filename = args.file;
-		} 
+		}
 	});
 
 	// Fetch utility
-	function browse(location){
+
+
+	function browse(location) {
 		return $.ajax({
 			url: '/api/local/browse',
 			type: 'GET',
 			dataType: 'json',
-			data: { location: location }
+			data: {
+				location: location
+			}
 		});
 	}
 	var FileBrowser = Widget({
@@ -38,7 +42,7 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 			// Loaded via ajax
 			self.filetype = ko.observable("unknown");
 
-			self.pageType = ko.computed(function (o) {
+			self.pageType = ko.computed(function(o) {
 				return self.filetype() == "directory" || self.filetype() == "unknown" ? "browser" : "viewer"
 			}, self);
 
@@ -50,41 +54,39 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 			self.load();
 		},
 		bindKeys: {
-			init: function(view, valueAccessor, allBindingsAccessor, viewModel, bindingContext){
+			init: function(view, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 				// TODO : Refine key api
 				var keyscope = bindingContext.$parent.args.path.replace(/\//g, ".");
 
 				function keyHandler(e) {
 					var target = $("dd.active, li.active", view)
 
-					if (e.keyIdentifier == "Up") {
-						target = target.prev()
-							.getOrElse("dd:last, li:last", view)
+					if(e.keyIdentifier == "Up") {
+						target = target.prev().getOrElse("dd:last, li:last", view)
 					} else {
-						target = target.next()
-							.getOrElse("dd:first, li:first", view)
-					} 
+						target = target.next().getOrElse("dd:first, li:first", view)
+					}
 
-					target
-						.addClass("active")
-						.siblings()
-						.removeClass("active");
+					target.addClass("active").siblings().removeClass("active");
 
 					// To autoscroll to link
-					if(target.length)
-						target.find("a").trigger("click")[0].focus();
+					if(target.length) target.find("a").trigger("click")[0].focus();
 				}
 
-				key(keyscope, 'up', keyHandler, { preventDefault: true });
-				key(keyscope, 'down', keyHandler, { preventDefault: true });
+				key(keyscope, 'up', keyHandler, {
+					preventDefault: true
+				});
+				key(keyscope, 'down', keyHandler, {
+					preventDefault: true
+				});
 			}
 		},
-		afterRender: function(a,b,c){
-			console.log('view render abc', a,b,c)
+		afterRender: function(a, b, c) {
+			console.log('view render abc', a, b, c)
 		},
 		load: function() {
 			var self = this;
-			browse(self.fileLoc).done(function(datas){
+			browse(self.fileLoc).done(function(datas) {
 				self.filetype(datas.type);
 				// Check to see if we need to further load...
 				if(datas.type == 'code') {
@@ -96,7 +98,7 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 				}
 			});
 		}
-  });
+	});
 
-  return FileBrowser;
+	return FileBrowser;
 });
