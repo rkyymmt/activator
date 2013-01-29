@@ -24,15 +24,22 @@ object Local extends Controller {
       sub = n substring idx
     } yield (sub drop 1)) getOrElse ""
 
-  def getMimeType(name: String): String = getExtension(name) match {
-    case "jpg" => "image/jpeg"
-    case "png" => "image/png"
-    case "gif" => "image/gif"
-    case "scala" => "text/plain"
-    case "js" => "text/javascript"
-    case "css" => "text/css"
-    case "less" => "text/less"
-    case _ => "application/octet-stream" // Assume binary ok?
+  // TODO - Make this configurable!
+  def getFileType(name: String): String = getExtension(name) match {
+    case "jpg" => "image"
+    case "png" => "image"
+    case "gif" => "image"
+    case "html" => "code"
+    case "java" => "code"
+    case "scala" => "code"
+    case "sbt" => "code"
+    case "js" => "code"
+    case "css" => "code"
+    case "less" => "code"
+    case "text" => "code"
+    case "md" => "code"
+    case "rst" => "code"
+    case _ => "binary" // Assume binary ok?
   }
 
   // Here's the JSON rendering of template metadata.
@@ -41,7 +48,7 @@ object Local extends Controller {
       JsObject(
         List("name" -> JsString(o.getName),
           "location" -> JsString(o.getCanonicalPath),
-          "isDirectory" -> JsBoolean(o.isDirectory)) ++ (if (o.isDirectory) Nil else List("mimeType" -> JsString(getMimeType(o.getName)))))
+          "isDirectory" -> JsBoolean(o.isDirectory)) ++ (if (o.isDirectory) Nil else List("type" -> JsString(getFileType(o.getName)))))
     //We don't need reads, really
     def reads(json: JsValue): JsResult[File] =
       JsError("Reading TemplateMetadata not supported!")
@@ -49,8 +56,11 @@ object Local extends Controller {
   case class InterestingFile(file: File)
   implicit object IFileProtocol extends Format[InterestingFile] {
     def writes(o: InterestingFile): JsValue =
-      if (o.file.isDirectory) JsObject(List("children" -> Json.toJson(o.file.listFiles())))
-      else JsObject(Nil)
+      if (o.file.isDirectory) JsObject(List(
+        "type" -> JsString("directory"),
+        // TODO - Gitignore/file filters here.
+        "children" -> Json.toJson(o.file.listFiles().filterNot(_.getName startsWith "."))))
+      else FileProtocol.writes(o.file)
     //We don't need reads, really
     def reads(json: JsValue): JsResult[InterestingFile] =
       JsError("Reading Files not supported!")
