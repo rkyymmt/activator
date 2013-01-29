@@ -24,7 +24,7 @@ GET     /api/event/kill             controllers.api.Events.kill
 # Base flow ->  Select Template -> Running Application.
 GET     /                            controllers.Application.index
 GET     /home                        controllers.Application.forceHome
-GET     /app                         controllers.Application.app
+GET     /app/*name                   controllers.Application.app(name)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /public/*file               controllers.Assets.at(path="/public", file)
