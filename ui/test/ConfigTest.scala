@@ -3,7 +3,7 @@ package test
 import org.junit.Assert._
 import org.junit._
 import snap.RootConfig
-import snap.ProjectConfig
+import snap.AppConfig
 import java.io.File
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -16,7 +16,7 @@ class ConfigTest {
       val projectList = if (old.projects.exists(_.location.getPath == "foo"))
         old.projects
       else
-        ProjectConfig(new File("foo")) +: old.projects
+        ProjectConfig(new File("foo"), "id") +: old.projects
       old.copy(projects = projectList)
     }
     Await.ready(rewritten, 5 seconds)
@@ -28,7 +28,7 @@ class ConfigTest {
     val rewritten = RootConfig.rewriteUser { old =>
       val withNoName = old.projects
         .find(_.location.getPath == "foo")
-        .getOrElse(ProjectConfig(new File("foo")))
+        .getOrElse(ProjectConfig(new File("foo"), "id"))
         .copy(cachedName = None)
 
       val projectList = withNoName +: old.projects.filter(_.location.getPath != "foo")
@@ -47,7 +47,7 @@ class ConfigTest {
     val rewritten = RootConfig.rewriteUser { old =>
       val withName = old.projects
         .find(_.location.getPath == "foo")
-        .getOrElse(ProjectConfig(new File("foo")))
+        .getOrElse(ProjectConfig(new File("foo"), "id"))
         .copy(cachedName = Some("Hello World"))
 
       val projectList = withName +: old.projects.filter(_.location.getPath != "foo")

@@ -9,7 +9,7 @@ POST    /api/templates/clone        controllers.api.Templates.cloneTemplate
 
 # Operations on an app
 # TODO: Should these take the app location as a request parameter?
-GET     /api/app/history            controllers.api.App.getHistory
+GET     /api/app/history            controllers.Application.getHistory
 
 # Local system operations
 GET     /api/local/env              controllers.api.Local.getEnv
@@ -24,7 +24,7 @@ GET     /api/event/kill             controllers.api.Events.kill
 # Base flow ->  Select Template -> Running Application.
 GET     /                            controllers.Application.index
 GET     /home                        controllers.Application.forceHome
-GET     /app                         controllers.Application.app
+GET     /app/*id                     controllers.Application.app(id)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /public/*file               controllers.Assets.at(path="/public", file)

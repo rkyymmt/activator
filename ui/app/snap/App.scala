@@ -4,7 +4,7 @@ import akka.actor._
 import com.typesafe.sbtchild.SbtChildProcessMaker
 import java.util.concurrent.atomic.AtomicInteger
 
-class App(val config: ProjectConfig, val system: ActorSystem, val sbtMaker: SbtChildProcessMaker) {
+class App(val config: AppConfig, val system: ActorSystem, val sbtMaker: SbtChildProcessMaker) {
   val actor = system.actorOf(Props(new AppActor(config.location, sbtMaker)), name = App.nextName)
 
   def close(): Unit = {
@@ -14,5 +14,5 @@ class App(val config: ProjectConfig, val system: ActorSystem, val sbtMaker: SbtC
 
 object App {
   private val nameSerial = new AtomicInteger(1)
-  private[snap] def nextName = "project-" + nameSerial.getAndIncrement
+  private[snap] def nextName = "app-" + nameSerial.getAndIncrement
 }
