@@ -28,6 +28,25 @@ var elements = {}, // jQuery objects cached
 		elements.body = $("body")
 		elements.wrapper = $("#wrapper")
 
+		function keyHandler(e) {
+			var current = $("#wrapper > .active"), target;
+
+			if (e.keyIdentifier == "Left") {
+				target = current.prev()
+			} else {
+				target = current.next()
+			} 
+
+			if (target.length){
+				current.removeClass("active")
+				target.addClass("active")[0].scrollIntoView();
+				key.setScope( target.attr("data-scope") );
+			}
+		}
+
+		key('left', keyHandler, { preventDefault: true });
+		key('right', keyHandler, { preventDefault: true });
+
 		// PLACEHOLDER
 		$(window)
 			.on("resize", resize)
@@ -42,9 +61,15 @@ return {
   // Because each is a breadcrumb, we can pull the index from that and add any flashy stuff we want.
   afterRender: function(elements, data) {
     var modules = $(elements).filter('div');
-    $.each(modules, function(idx, module) {
-      $(module).css("z-index", 100 -data.index);
+    modules.each(function(idx, module) {
+      $(module)
+      	.css("z-index", 100 - data.index)
+      	.attr("data-scope", data.url.replace(/\//g, ".") )
     });
+    if (!$("#wrapper > .active").length){
+    	$("#wrapper > div").last().addClass("active")
+    	key.setScope( data.args.path.replace(/\//g, ".") )
+    }
     align();
   },
   // This is called everytime an element is removed. Currently a no-op.

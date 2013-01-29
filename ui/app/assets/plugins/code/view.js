@@ -1,6 +1,7 @@
 define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./codeView", "./browse"], function(viewOuter, defaultTemplate, ImageView, CodeView, DirView){
 
-	var ko = req('vendors/knockout-2.2.1.debug');
+	var ko = req('vendors/knockout-2.2.1.debug'),
+		key = req('vendors/keymage.min');
 
 	// Default view for when we don't know which other to use.
 	var DefaultView = Widget({
@@ -26,22 +27,62 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 		init: function(args) {
 			var self = this;
 			// TODO - Detect bad url?
+			self.path = args.args.path;
+			self.next = args.args.url + "/" + args.args.next;
+			self.url = args.args.url;
 			self.filename = args.file;
 			self.fileLoc = serverAppModel.location + (self.filename ? ('/' + self.filename) : '');
 			self.fileLoadUrl = '/api/local/show?location=' + self.fileLoc; // TODO - URL encoded
-			self.title = 'Browse: ./' + self.filename;
+			self.title = args.args.url || 'Root /';
 			self.subView = ko.observable(new DefaultView(args));
 			// Loaded via ajax
 			self.filetype = ko.observable("unknown");
 
+			self.pageType = ko.computed(function (o) {
+				return self.filetype() == "directory" || self.filetype() == "unknown" ? "browser" : "viewer"
+			}, self);
+
 			self.dataIndex = ko.computed(function() {
-				if(self.subView().dataIndex) {
-					return self.subView().dataIndex;
-				}
-				return -1;
+				return self.filetype() == "directory" || self.filetype() == "unknown" ? "1" : "-1"
 			});
+
+			ko.bindingHandlers.bindKeys = this.bindKeys;
+
 			// Now load the widget data.
 			self.load();
+		},
+		bindKeys: {
+			init: function(view, valueAccessor, allBindingsAccessor, viewModel, bindingContext){
+				// TODO : Refine key api
+				var keyscope = bindingContext.$parent.args.path.replace(/\//g, ".");
+
+				function keyHandler(e) {
+					var target = $("dd.active, li.active", view)
+
+					if (e.keyIdentifier == "Up") {
+						target = target.prev()
+							.getOrElse("dd:last, li:last", view)
+					} else {
+						target = target.next()
+							.getOrElse("dd:first, li:first", view)
+					} 
+
+					target
+						.addClass("active")
+						.siblings()
+						.removeClass("active");
+
+					// To autoscroll to link
+					if(target.length)
+						target.find("a").trigger("click")[0].focus();
+				}
+
+				key(keyscope, 'up', keyHandler, { preventDefault: true });
+				key(keyscope, 'down', keyHandler, { preventDefault: true });
+			}
+		},
+		afterRender: function(a,b,c){
+			console.log('view render abc', a,b,c)
 		},
 		load: function() {
 			var self = this;

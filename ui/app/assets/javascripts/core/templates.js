@@ -23,7 +23,6 @@ define([], function() {
       this.templates._data[this.templateName][key] = value;
     },
     text: function(value) {
-      console.log("text", value, this.templateName)
       if (arguments.length === 0) {
         return this.templates[this.templateName];
       }

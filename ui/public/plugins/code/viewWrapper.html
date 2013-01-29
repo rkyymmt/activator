@@ -1,4 +1,4 @@
-<article class="list code browse" data-bind="attr: { 'data-width': dataIndex }">
+<article data-bind="css: 'code list ' + pageType(), attr: { 'data-width': dataIndex }, bindKeys: {}">
 	<header><h1 data-bind='text: title'>View</h1></header>
 	<footer><p></p></footer>
 	<section class="wrapper" data-bind="template: { name: subView().id, data: subView(), afterRender: subView().onRender }"></section>
