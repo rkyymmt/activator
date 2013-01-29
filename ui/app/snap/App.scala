@@ -14,5 +14,5 @@ class App(val config: ProjectConfig, val system: ActorSystem, val sbtMaker: SbtC
 
 object App {
   private val nameSerial = new AtomicInteger(1)
-  private[snap] def nextName = "project-" + nameSerial.getAndIncrement
+  private[snap] def nextName = "app-" + nameSerial.getAndIncrement
 }

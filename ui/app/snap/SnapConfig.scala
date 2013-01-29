@@ -13,19 +13,21 @@ import java.io._
 import snap.properties.SnapProperties
 import scala.concurrent.duration._
 
-case class ProjectConfig(location: File, cachedName: Option[String] = None) {
+case class ProjectConfig(location: File, id: String, cachedName: Option[String] = None) {
   def toJson: JsObject = {
     val locationField = "location" -> JsString(location.getPath)
+    val idField = "id" -> JsString(id)
     val nameFieldOption = cachedName.map({ name => "name" -> JsString(name) })
-    JsObject(Seq(locationField) ++ nameFieldOption.toSeq)
+    JsObject(Seq(idField, locationField) ++ nameFieldOption.toSeq)
   }
 }
 
 object ProjectConfig {
   def apply(json: JsObject): ProjectConfig = {
     val location = (json \ "location").as[String]
+    val id = (json \ "id").as[String]
     val nameOption = (json \ "name").asOpt[String]
-    ProjectConfig(new File(location), nameOption)
+    ProjectConfig(new File(location), id, nameOption)
   }
 }
 
