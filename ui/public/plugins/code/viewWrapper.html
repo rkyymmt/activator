@@ -1,0 +1,5 @@
+<article class="list code browse" data-bind="attr: { 'data-width': dataIndex }">
+	<header><h1 data-bind='text: title'>View</h1></header>
+	<footer><p></p></footer>
+	<section class="wrapper" data-bind="template: { name: subView().id, data: subView(), afterRender: subView().onRender }"></section>
+</article>

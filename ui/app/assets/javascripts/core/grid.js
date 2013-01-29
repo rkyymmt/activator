@@ -38,25 +38,27 @@ var elements = {}, // jQuery objects cached
 	$(init);
 
 return {
-	// Called when data is loaded.
-	// Does the rendering
-	render: Action(function(modules,n){
-		modules = modules.map(function(module){
-			var container = $("#wrapper > *").eq(module.index);
-			if ( container.data('url') ==  module.url) {
-				!module.module.update || module.module.update(module);
-			} else {
-				module.view = $(module.module.render(module))
-					.data('url', module.url) // really necessary?
-					.css("z-index", 100 - module.index );
-				container = !!container.length ? container.replaceWith(module.view) : module.view.addClass("fadein").appendTo("#wrapper");
-			}
-			return module;
-		});
-		!modules.length || modules[modules.length-1].view.nextAll().remove();
-		align();
-		n(modules);
-	})
+  // This is passed the elements added *for one of the modules on the screen* and the data *associated with that template*.
+  // Because each is a breadcrumb, we can pull the index from that and add any flashy stuff we want.
+  afterRender: function(elements, data) {
+    var modules = $(elements).filter('div');
+    $.each(modules, function(idx, module) {
+      $(module).css("z-index", 100 -data.index);
+    });
+    align();
+  },
+  // This is called everytime an element is removed. Currently a no-op.
+  beforeRemove: function(el, idx, module) {
+    // Note: WE HAVE TO REMOVE THE ELEMENT!
+    // TODO - Do we need to update anything?
+    $(el).remove();
+  },
+  // This is called after an element is added to the array.  We get the rendered template, and the breadcrumb/module data
+  // associated with the widget.
+  afterAdd: function(el, idx, module) {
+    $(el).css("z-index", 100 - idx);
+    align();
+  }
 }
 
 });
