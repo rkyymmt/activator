@@ -37,10 +37,17 @@ define(['css!./code.css', 'text!./browse.html'], function(css, template) {
 			}, this);
 		},
 		onRender: function(views) {
+			// TODO:  find a better way to retrieve the view
 			var ul = $(views[2])
 			if(!ul.find(".active").length) {
 				ul.find("li,dd").first().addClass("active")
 			}
+			// Click helper
+			// Need Bubbling here
+			ul[0].addEventListener("click",function(e){
+				$(e.target).closest("li,dd").addClass("active").siblings().removeClass("active");
+			},false);
+
 		}
 	});
 	return Browser;

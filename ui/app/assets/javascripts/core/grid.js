@@ -52,7 +52,7 @@ define(function() {
 
 			// Need Bubbling here
 			elements.wrapper[0].addEventListener("click",function(e){
-				$(e.target).parents("div[data-scope]").addClass("active").siblings().removeClass("active");
+				$(e.target).closest("div[data-scope]").addClass("active").siblings().removeClass("active");
 			},false);
 
 			// PLACEHOLDER
