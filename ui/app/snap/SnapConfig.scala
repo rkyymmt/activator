@@ -13,7 +13,7 @@ import java.io._
 import snap.properties.SnapProperties
 import scala.concurrent.duration._
 
-case class ProjectConfig(location: File, id: String, cachedName: Option[String] = None) {
+case class AppConfig(location: File, id: String, cachedName: Option[String] = None) {
   def toJson: JsObject = {
     val locationField = "location" -> JsString(location.getPath)
     val idField = "id" -> JsString(id)
@@ -22,34 +22,34 @@ case class ProjectConfig(location: File, id: String, cachedName: Option[String] 
   }
 }
 
-object ProjectConfig {
-  def apply(json: JsObject): ProjectConfig = {
+object AppConfig {
+  def apply(json: JsObject): AppConfig = {
     val location = (json \ "location").as[String]
     val id = (json \ "id").as[String]
     val nameOption = (json \ "name").asOpt[String]
-    ProjectConfig(new File(location), id, nameOption)
+    AppConfig(new File(location), id, nameOption)
   }
 }
 
-case class RootConfig(projects: Seq[ProjectConfig]) {
+case class RootConfig(applications: Seq[AppConfig]) {
   def toJson: JsObject = {
     JsObject(Seq(
-      "projects" -> JsArray(projects.map(_.toJson))))
+      "projects" -> JsArray(applications.map(_.toJson))))
   }
 }
 
 object RootConfig {
   def apply(json: JsObject): RootConfig = {
-    val projects = json \ ("projects") match {
+    val applications = json \ ("applications") match {
       case JsArray(list) =>
         list.map({
-          case o: JsObject => ProjectConfig(o)
+          case o: JsObject => AppConfig(o)
           case whatever => throw new Exception("invalid JSON for project: " + whatever)
         })
       case whatever =>
         Nil
     }
-    RootConfig(projects)
+    RootConfig(applications)
   }
 
   // volatile because we read it unsynchronized. we don't care

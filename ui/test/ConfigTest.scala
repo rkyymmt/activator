@@ -3,7 +3,7 @@ package test
 import org.junit.Assert._
 import org.junit._
 import snap.RootConfig
-import snap.ProjectConfig
+import snap.AppConfig
 import java.io.File
 import scala.concurrent._
 import scala.concurrent.duration._

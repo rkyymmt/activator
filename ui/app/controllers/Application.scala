@@ -6,7 +6,7 @@ import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import com.typesafe.sbtchild.SbtChildProcessMaker
 import play.api.libs.json.{ JsString, JsObject, JsArray, JsNumber }
-import snap.{ RootConfig, ProjectConfig }
+import snap.{ RootConfig, AppConfig }
 
 case class ApplicationModel(
   location: String,
@@ -20,7 +20,7 @@ object Application extends Controller {
 
   // this is supposed to be set by the main() launching the UI
   @volatile var sbtChildProcessMaker: SbtChildProcessMaker = _
-  // TODO - Initialize in dev mode since Prod mode will override in UIMain.
+  // TODO(jsuereth) - Initialize in dev mode since Prod mode will override in UIMain.
 
   def index = Action {
     Async {
