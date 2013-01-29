@@ -71,14 +71,20 @@ define(function() {
 		},
 		// This is called everytime an element is removed. Currently a no-op.
 		beforeRemove: function(el, idx, module) {
+			var wasActive = $(el).hasClass("active")
 			// Note: WE HAVE TO REMOVE THE ELEMENT!
-			// TODO - Do we need to update anything?
+			// First we check to see if we need a new
 			$(el).remove();
+			if(wasActive) {
+				$("#wrapper > div").last().addClass("active")
+				key.setScope(module.args.before.replace(/\//g, "."))
+			}
 		},
 		// This is called after an element is added to the array.  We get the rendered template, and the breadcrumb/module data
 		// associated with the widget.
 		afterAdd: function(el, idx, module) {
 			$(el).css("z-index", 100 - idx);
+			// TODO - Should we auto move key-scope + active?
 			align();
 		}
 	}
