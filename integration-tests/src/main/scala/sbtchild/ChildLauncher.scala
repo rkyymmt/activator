@@ -46,7 +46,7 @@ class CanLaunchThroughSbtLauncher extends IntegrationTest {
           throw new Exception("Failed to run: " + error)
       }
       println("run=" + run)
-     } finally {
+    } finally {
       system.stop(child)
     }
   } finally {
