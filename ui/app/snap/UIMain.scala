@@ -4,7 +4,7 @@ import xsbti.{AppMain, AppConfiguration}
 import java.awt._
 import java.awt.event._
 import javax.swing._
-
+import com.typesafe.sbtchild.SbtChildLauncher
 
 /** Expose for SBT launcher support. */
 class UIMain extends AppMain {
@@ -12,6 +12,9 @@ class UIMain extends AppMain {
   def run(configuration: AppConfiguration) = {
     // First set up the server port.
     System.setProperty("http.port", serverPort.toString)
+
+    // locate sbt details and store in a singleton
+    controllers.api.App.sbtChildProcessMaker = new SbtChildLauncher(configuration)
 
     // Start the Play app... (TODO - how do we know when we're done?)
     // TODO - Is this hack ok?

@@ -81,7 +81,7 @@ object TheSnapBuild extends Build {
       commonsIo,
       sbtLauncherInterface % "provided"
     )
-    dependsOn(props, cache)
+    dependsOn(props, cache, sbtDriver)
   )
 
   // TODO - SBT plugin, or just SBT integration?
