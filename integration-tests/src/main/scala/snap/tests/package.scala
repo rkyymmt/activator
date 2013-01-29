@@ -4,7 +4,7 @@ import snap.properties.SnapProperties
 
 // Helper methods for running tests.
 package object tests {
-  
+
   // This method has to be used around any code the makes use of Akka to ensure the classloader is right.
   def withContextClassloader[A](f: => A): A = {
     val current = Thread.currentThread
@@ -13,7 +13,7 @@ package object tests {
     try f
     finally current setContextClassLoader old
   }
-  
+
   // Success and failure conditions for tests.  
   case object Success extends xsbti.Exit {
     val code = 0
@@ -21,11 +21,11 @@ package object tests {
   case object Failure extends xsbti.Exit {
     val code = 1
   }
-  
+
   def createFile(name: java.io.File, content: String): Unit = {
-      val writer = new java.io.FileWriter(name)
-      try writer.write(content)
-      finally writer.close()
+    val writer = new java.io.FileWriter(name)
+    try writer.write(content)
+    finally writer.close()
   }
 
   /** Creates a dummy project we can run SNAP against. */
@@ -34,14 +34,14 @@ package object tests {
     val project = new java.io.File(dir, "project")
     snap.cache.IO.createDirectory(project)
     val props = new java.io.File(project, "build.properties")
-    createFile(props, "sbt.version="+snap.properties.SnapProperties.SBT_VERSION)
+    createFile(props, "sbt.version=" + snap.properties.SnapProperties.SBT_VERSION)
     val scalaSource = new java.io.File(dir, "src/main/scala")
     snap.cache.IO.createDirectory(scalaSource)
     val main = new java.io.File(scalaSource, "hello.scala")
     createFile(main, "object Main extends App { println(\"Hello World\") }\n")
     dir
   }
-  
+
   /** waits for a simple "GET" command */
   def waitForHttpServerStartup(uri: String): Boolean = {
     import java.net._
@@ -67,14 +67,13 @@ package object tests {
       remaining match {
         case 0 => isAlive
         case n =>
-          if(isAlive) true
+          if (isAlive) true
           else {
             Thread.sleep(1000L)
-            checkAlive(remaining -1) 
+            checkAlive(remaining - 1)
           }
       }
     checkAlive()
   }
 }
-
 

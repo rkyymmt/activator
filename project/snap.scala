@@ -1,6 +1,8 @@
 import sbt._
 import PlayProject._
 import Keys._
+import com.typesafe.sbt.SbtScalariform
+import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 
 object SnapBuild {
 
@@ -13,8 +15,15 @@ object SnapBuild {
       "1.0-" + (df format (new java.util.Date))
     }
   )
-  
+
+  def formatPrefs = {
+    import scalariform.formatter.preferences._
+    FormattingPreferences()
+      .setPreference(IndentSpaces, 2)
+  }
+
   def snapDefaults: Seq[Setting[_]] =
+    SbtScalariform.scalariformSettings ++
     Seq(
       organization := "com.typesafe.snap",
       version <<= version in ThisBuild,
@@ -29,7 +38,9 @@ object SnapBuild {
       javacOptions in (Compile, doc) := Seq("-source", "1.6"),
       libraryDependencies += SnapDependencies.junitInterface % "test",
       scalaVersion := SnapDependencies.scalaVersion,
-      scalaBinaryVersion := "2.10"
+      scalaBinaryVersion := "2.10",
+      ScalariformKeys.preferences in Compile := formatPrefs,
+      ScalariformKeys.preferences in Test    := formatPrefs
     )
 
 

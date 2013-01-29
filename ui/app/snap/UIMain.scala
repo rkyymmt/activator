@@ -1,6 +1,6 @@
 package snap
 
-import xsbti.{AppMain, AppConfiguration}
+import xsbti.{ AppMain, AppConfiguration }
 import java.awt._
 import java.awt.event._
 import javax.swing._
@@ -53,7 +53,7 @@ class UIMain extends AppMain {
     // Keep sleeping until we see the server respond.
     // Default to waiting 30 seconds.
     def checkAlive(remaining: Int = 60): Unit =
-      if(!isAlive) remaining match {
+      if (!isAlive) remaining match {
         case 0 => sys error "Web server never started!"
         case _ =>
           Thread sleep 500L
@@ -70,13 +70,13 @@ class UIMain extends AppMain {
   // TODO - detect port?
   def openBrowser() = {
     val desktop: Option[Desktop] =
-      if(Desktop.isDesktopSupported)
+      if (Desktop.isDesktopSupported)
         Some(Desktop.getDesktop) filter (_ isSupported Desktop.Action.BROWSE)
       else None
 
     desktop match {
       case Some(d) => d browse new java.net.URI(f"http://localhost:${serverPort}%d/")
-      case _       => showError("""|Unable to open a web browser!
+      case _ => showError("""|Unable to open a web browser!
                                    |Please point your browser at:
                                    | http://localhost:%d/""".stripMargin format (serverPort))
     }
@@ -93,18 +93,18 @@ class UIMain extends AppMain {
   // TODO - Is it ok to use swing?  We can detect that actually....
   def showError(errorMsg: String): Unit = {
     // create and configure a text area - fill it with exception text.
-                val textArea = new JTextArea
-                textArea setFont new Font("Sans-Serif", Font.PLAIN, 16)
-                textArea setEditable false
-                textArea setText errorMsg
+    val textArea = new JTextArea
+    textArea setFont new Font("Sans-Serif", Font.PLAIN, 16)
+    textArea setEditable false
+    textArea setText errorMsg
     textArea setLineWrap true
 
-                // stuff it in a scrollpane with a controlled size.
-                val scrollPane = new JScrollPane(textArea)
-                scrollPane setPreferredSize new Dimension(350, 150)
+    // stuff it in a scrollpane with a controlled size.
+    val scrollPane = new JScrollPane(textArea)
+    scrollPane setPreferredSize new Dimension(350, 150)
 
-                // pass the scrollpane to the joptionpane.
-                JOptionPane.showMessageDialog(null, scrollPane, "O SNAP!", JOptionPane.ERROR_MESSAGE)
+    // pass the scrollpane to the joptionpane.
+    JOptionPane.showMessageDialog(null, scrollPane, "O SNAP!", JOptionPane.ERROR_MESSAGE)
   }
   // Wrapper to return exit codes.
   case class Exit(val code: Int) extends xsbti.Exit
