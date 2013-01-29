@@ -9,6 +9,9 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 		template: defaultTemplate,
 		init: function(args) {
 			this.filename = args.file;
+		},
+		afterRender: function(a,b,c){
+			console.log('abc', a,b,c)
 		}
 	});
 
@@ -59,18 +62,21 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 				var keyscope = bindingContext.$parent.args.path.replace(/\//g, ".");
 
 				function keyHandler(e) {
-					var target = $("dd.active, li.active", view)
+					var target = $("dd.active, li.active", view);
 
 					if(e.keyIdentifier == "Up") {
-						target = target.prev().getOrElse("dd:last, li:last", view)
-					} else {
-						target = target.next().getOrElse("dd:first, li:first", view)
-					}
+						target = target.prev().getOrElse("dd:last, li:last", view);
+					} else if (e.keyIdentifier == "Down") {
+						target = target.next().getOrElse("dd:first, li:first", view);
+					} else if (!target.length) return false;
 
 					target.addClass("active").siblings().removeClass("active");
 
+					// Open link
+					var link = target.find("a");
+					window.location.hash = link.attr("href");
 					// To autoscroll to link
-					if(target.length) target.find("a").trigger("click")[0].focus();
+					link[0].focus();
 				}
 
 				key(keyscope, 'up', keyHandler, {
@@ -79,10 +85,17 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 				key(keyscope, 'down', keyHandler, {
 					preventDefault: true
 				});
+				key(keyscope, 'right', function(e){
+					keyHandler({keyIdentifier:"Right"});
+					// Call root bindings
+					key.bindings.right.handlers.forEach(function(f){
+						f(e);
+					});
+				},{
+					preventDefault: true
+				});
+
 			}
-		},
-		afterRender: function(a, b, c) {
-			console.log('view render abc', a, b, c)
 		},
 		load: function() {
 			var self = this;
