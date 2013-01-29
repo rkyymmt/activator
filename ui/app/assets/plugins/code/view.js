@@ -46,8 +46,6 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 				return self.filetype() == "directory" || self.filetype() == "unknown" ? "1" : "-1"
 			});
 
-			ko.bindingHandlers.bindKeys = this.bindKeys;
-
 			// Now load the widget data.
 			self.load();
 		},
