@@ -4,11 +4,10 @@ package snap
 object Akka {
   // TODO - use my thread context
   val system = withContextCl(akka.actor.ActorSystem())
-  
+
   val events = system.actorOf(akka.actor.Props[EventActor]())
-  
-  
-  private def withContextCl[A](f: =>A): A = {
+
+  private def withContextCl[A](f: => A): A = {
     val cl = Thread.currentThread.getContextClassLoader
     Thread.currentThread.setContextClassLoader(this.getClass.getClassLoader)
     try f
@@ -18,18 +17,18 @@ object Akka {
   }
 }
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{ Actor, ActorRef, Props }
 
 // TODO - Cleanup and thread stuff.
 class EventActor extends Actor {
-  import akka.actor.{OneForOneStrategy, SupervisorStrategy}
+  import akka.actor.{ OneForOneStrategy, SupervisorStrategy }
   import SupervisorStrategy.Stop
   import concurrent.duration.Duration.Zero
   // When one of our children has an error, we just stop the stream for now and assume the client will reconnect and
   // make a new listener.
   override val supervisorStrategy = OneForOneStrategy(0, Zero) {
-     case _ => Stop
-  } 
+    case _ => Stop
+  }
 
   def receive: Receive = {
     case "Kill Children" =>

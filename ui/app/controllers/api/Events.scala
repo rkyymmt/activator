@@ -1,13 +1,13 @@
 package controllers.api
 
-import play.api.mvc.{Action, Controller}
-import play.api.libs.json.{JsString, JsObject, JsArray, JsNumber}
+import play.api.mvc.{ Action, Controller }
+import play.api.libs.json.{ JsString, JsObject, JsArray, JsNumber }
 import play.api.Play
 import sys.process.Process
 import java.io.File
-import play.api.mvc.{ResponseHeader, SimpleResult}
+import play.api.mvc.{ ResponseHeader, SimpleResult }
 import play.api.libs.iteratee.{ Enumerator, Enumeratee }
-import akka.actor.{Actor,ActorRef, Props}
+import akka.actor.{ Actor, ActorRef, Props }
 import play.api.libs.iteratee.Concurrent
 import play.api.libs.iteratee.Concurrent.Channel
 import concurrent.Future
@@ -19,7 +19,7 @@ object Events extends Controller {
   // What's annoying here is we have to *manually* create a context that is closed over by three closures
   // and used rather than just extend a class.
   private val events: Enumerator[String] = EventStreamEnumerator()
-  
+
   // TODO - We should probably take a SSEvent() class here, so we can support all the spec, including ids and retry and such.
   private val toEventSource = Enumeratee.map[String] { msg =>
     // We can't allow end lines in the messages, so we split on them, and then feed data.
@@ -27,12 +27,11 @@ object Events extends Controller {
     msg.split("[\\r]?[\\n]").mkString("data: ", "\ndata: ", "\n\n\n")
   }
 
-
   // Action that returns a new event source stream.    
   def eventSource = Action {
     Ok.stream(events &> toEventSource).withHeaders(CONTENT_TYPE -> "text/event-stream")
   }
-  
+
   def test = Action {
     snap.Akka.events ! """{ "type": "test", "msg": "TEST EVENT" }"""
     Ok("OK")
@@ -42,7 +41,6 @@ object Events extends Controller {
     snap.Akka.events ! "Kill Children"
     Ok("OK")
   }
-
 
 }
 
@@ -61,11 +59,10 @@ object EventStreamEnumerator {
         println("Making downstream event handler!")
         implicit val t: akka.util.Timeout = akka.util.Timeout(concurrent.duration.FiniteDuration(10, "s"))
         context.actorListener = (snap.Akka.events ? Props(new EventStreamActor(channel))).mapTo[ActorRef]
-      }, 
-      onComplete = () => context.killListener(), 
+      },
+      onComplete = () => context.killListener(),
       onError = (msg, input) => context.killListener())
   }
-
 
   private class EventActorContext(var actorListener: Future[ActorRef]) {
     // Called when the client closes an event stream, so we can clean up.
@@ -83,7 +80,7 @@ object EventStreamEnumerator {
     }
     // Ensure we stop the channel, if we can.
     // TODO - Ignore failure?
-    override def postStop():Unit = channel.end()
+    override def postStop(): Unit = channel.end()
   }
 
 }

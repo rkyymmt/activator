@@ -78,6 +78,7 @@ object App extends Controller {
   // TODO this is just a stub. we need to figure out
   // how we actually compute and store the plugin list.
   // probably this should be merged with openApp above.
+  // NOTE - This event even used
   def getDetails(location: String) = Action { request =>
     val plugins = JsArray(
       Seq(
@@ -98,18 +99,13 @@ object App extends Controller {
             "id" -> JsString("console"),
             "name" -> JsString("Console")))))
 
-    val appJson = loadApp(location) map { app =>
-      app.config.toJson match {
-        case JsObject(list) =>
-          JsObject(list :+ ("plugins" -> plugins))
-        case whatever => throw new RuntimeException("unexpected app config json format")
-      }
-    }
-
-    Async(appJson.map(Ok(_)))
+    Ok(
+      JsObject(
+        Seq(
+          "name" -> JsString("My First Amazing App"),
+          "plugins" -> plugins)))
   }
 
-  // TODO this has nothing to do with the rest of the controller
   def openLocation(location: String) = Action { request =>
     if ((new File(location)).exists()) {
 

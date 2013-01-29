@@ -64,6 +64,6 @@
 			</dl>
 		</header>
 		<aside></aside>
-		<div id="wrapper" data-bind="foreach: router.breadcrumbs()"><div data-bind="template: { name: module.view, data: module }"></div></div>
+		<div id="wrapper" data-bind="foreach: { data: router.breadcrumbs(), afterRender: grid.afterRender,  afterAdd: grid.afterAdd, beforeRemove: grid.beforeRemove }"><div data-bind="template: { name: module.view, data: module, afterRender: module.onRender }"></div></div>
   </body>
 </html>

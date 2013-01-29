@@ -1,7 +1,7 @@
 package snap.cache
 
-
-/** this class contains all template cache actions for both the UI and the console-based
+/**
+ * this class contains all template cache actions for both the UI and the console-based
  * methods.  We put it here for easier testing (at least we hope we can get easier testing).
  */
 object Actions {
@@ -13,17 +13,17 @@ object Actions {
     if (!template.isDefined) sys.error(s"Template ${id} not found")
     // If location doesn't exist, let's create it.
     // TODO - Is this ok?  This may throw an exception...
-    if(!location.exists) IO createDirectory location
-    
+    if (!location.exists) IO createDirectory location
+
     //  Copy all files from the template dir.
     // TODO - Use SBT IO when it's available.
     for {
       t <- template
       (file, path) <- t.files
       to = new java.io.File(location, path)
-    } if(file.isDirectory) snap.cache.IO.createDirectory(to)
-      else snap.cache.IO.copyFile(file, to)
-      
+    } if (file.isDirectory) snap.cache.IO.createDirectory(to)
+    else snap.cache.IO.copyFile(file, to)
+
     // TODO - Capture errors and return a nicer message...
     ()
   }
