@@ -22,23 +22,8 @@ define([
 	window.model = model;
 	// Initialize the router now that everything is ready.
 	$.each(plugins.list, function(idx, plugin) {
-	router.registerRoutes(plugin.routes);
+		router.registerRoutes(plugin.routes);
 	});
 	router.init();
 	ko.applyBindings(model, window.body);
-
-// All the magic here.
-/*
-Do
-	.then( Router.parse, Module.load, Grid.render )
-	.map( function(m){
-		key.setScope(m[m.length-1].url.replace("/","."));
-		m[m.length-1].view.addClass("active")
-		return m;
-	} )
-	.when(function(n) {
-		$(window).on('hashchange', n).trigger('hashchange')
-	});*/
-
-// End of define()
 });
