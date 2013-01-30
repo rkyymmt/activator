@@ -52,16 +52,27 @@ object RootConfig {
     RootConfig(applications)
   }
 
+  private def loadUser = ConfigFile(new File(SnapProperties.SNAP_USER_HOME(), "config.json"))
+
   // volatile because we read it unsynchronized. we don't care
   // which one we get, just something sane.
-  @volatile private var userFuture =
-    ConfigFile(new File(SnapProperties.SNAP_USER_HOME(), "config.json"))
+  @volatile private var userFuture = loadUser
+
+  def forceReload(): Unit = {
+    userFuture = loadUser
+  }
 
   // get the current per-user configuration
-  def user: RootConfig = {
+  def user: RootConfig = try {
     // we use the evil Await because 99% of the time we expect
     // the Future to be completed already.
     Await.result(userFuture.map(_.config), 5 seconds)
+  } catch {
+    case e: Exception =>
+      // retry next time
+      forceReload()
+      // but go ahead and throw this time
+      throw e
   }
 
   // modify the per-user configuration
