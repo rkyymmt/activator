@@ -18,9 +18,10 @@ case class ApplicationModel(
 // Here is where we detect if we're running at a given project...
 object Application extends Controller {
 
-  // this is supposed to be set by the main() launching the UI
-  @volatile var sbtChildProcessMaker: SbtChildProcessMaker = _
-  // TODO(jsuereth) - Initialize in dev mode since Prod mode will override in UIMain.
+  // this is supposed to be set by the main() launching the UI.
+  // If not, we know we're running inside the build and we need
+  // to use the default "Debug" version.
+  @volatile var sbtChildProcessMaker: SbtChildProcessMaker = snap.DebugSbtChildProcessMaker
 
   def index = Action {
     Async {
@@ -48,7 +49,7 @@ object Application extends Controller {
 
   // list all apps in the config
   def getHistory = Action { request =>
-    Ok(JsArray(RootConfig.user.projects.map(_.toJson)))
+    Ok(JsArray(RootConfig.user.applications.map(_.toJson)))
   }
 
   // TODO - actually load from file or something which plugins we use.
@@ -70,7 +71,7 @@ object Application extends Controller {
     Future {
       // TODO ->
       Some(new snap.App(
-        snap.ProjectConfig(cwd, id, None),
+        snap.AppConfig(cwd, id, None),
         snap.Akka.system,
         null))
     }
