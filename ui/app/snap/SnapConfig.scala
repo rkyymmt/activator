@@ -34,7 +34,7 @@ object AppConfig {
 case class RootConfig(applications: Seq[AppConfig]) {
   def toJson: JsObject = {
     JsObject(Seq(
-      "projects" -> JsArray(applications.map(_.toJson))))
+      "applications" -> JsArray(applications.map(_.toJson))))
   }
 }
 
