@@ -19,7 +19,8 @@ case class ApplicationModel(
 
 case class HomeModel(
   userHome: String,
-  templates: Seq[TemplateMetadata])
+  templates: Seq[TemplateMetadata],
+  recentApps: Seq[AppConfig])
 
 // Here is where we detect if we're running at a given project...
 object Application extends Controller {
@@ -43,7 +44,8 @@ object Application extends Controller {
     // TODO - make sure template cache lives in one and only one place!
     Ok(views.html.home(HomeModel(
       userHome = SnapProperties.GLOBAL_USER_HOME,
-      templates = api.Templates.templateCache.metadata.toSeq)))
+      templates = api.Templates.templateCache.metadata.toSeq,
+      recentApps = RootConfig.user.applications)))
   }
 
   def app(id: String) = Action { request =>

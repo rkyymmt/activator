@@ -47,50 +47,12 @@
 		<section id="open">
 			<h2>Open existing app...</h2>
 			<ul>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/longerPath/sosolongpath/remainsOnRight/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
+				@model.recentApps.map { app =>
+					<li>
+						<h3><a href="#">@app.cachedName.getOrElse(app.id)</a></h3>
+						<p class="path"><span>@app.location</span></p>
+					</li>
+				}
 			</ul>
 		</section>
 	</body>
