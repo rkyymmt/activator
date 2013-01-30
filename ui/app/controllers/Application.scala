@@ -9,6 +9,8 @@ import play.api.libs.json.{ JsString, JsObject, JsArray, JsNumber }
 import snap.{ RootConfig, AppConfig }
 import snap.cache.TemplateMetadata
 import snap.properties.SnapProperties
+import scala.util.control.NonFatal
+import scala.util.Try
 
 case class ApplicationModel(
   location: String,
@@ -36,6 +38,10 @@ object Application extends Controller {
   // to use the default "Debug" version.
   @volatile var sbtChildProcessMaker: SbtChildProcessMaker = snap.DebugSbtChildProcessMaker
 
+  /**
+   * Our index page.  Either we load an app from the CWD, or we direct
+   * to the homepage to create a new app.
+   */
   def index = Action {
     Async {
       loadAppName(cwd) map {
@@ -48,31 +54,55 @@ object Application extends Controller {
 
   import play.api.data._
   import play.api.data.Forms._
+  /** The new application form on the home page. */
   val newAppForm = Form(
     mapping(
       "name" -> text,
       "location" -> text,
       "blueprint" -> text)(NewAppForm.apply)(NewAppForm.unapply))
 
+  /**
+   * Creates a new application and loads it, or redirects to
+   * the home page.
+   */
   def newApplication = Action { implicit request =>
-    // TODO - Don't lame this out so much.
-    val model = newAppForm.bindFromRequest.get
-
-    System.err.println("Testing new application! - model: " + model)
-    val id = "test";
-    Redirect(routes.Application.app(id))
+    Async {
+      // Attempt to create the new location and return a Try, so we have
+      // a chance of knowing what the error is.
+      val location: Future[File] =
+        Future {
+          val model = newAppForm.bindFromRequest.get
+          val location = new File(model.location)
+          // TODO - Store template cache somehwere better...
+          snap.cache.Actions.cloneTemplate(
+            api.Templates.templateCache,
+            model.blueprint,
+            location)
+          location
+        }
+      // Now look up the app name and register this location
+      // with recently loaded apps.
+      val id = location flatMap loadAppName
+      id map {
+        case Some(id) => Redirect(routes.Application.app(id))
+        case _ =>
+          // TODO - Fill the form with old values...
+          BadRequest(views.html.home(homeModel, newAppForm))
+      }
+    }
   }
+  /** Reloads the model for the home page. */
+  private def homeModel = HomeModel(
+    userHome = SnapProperties.GLOBAL_USER_HOME,
+    templates = api.Templates.templateCache.metadata.toSeq,
+    recentApps = RootConfig.user.applications)
 
+  /** Loads the homepage, with a blank new-app form. */
   def forceHome = Action { request =>
     // TODO - make sure template cache lives in one and only one place!
-    Ok(views.html.home(
-      HomeModel(
-        userHome = SnapProperties.GLOBAL_USER_HOME,
-        templates = api.Templates.templateCache.metadata.toSeq,
-        recentApps = RootConfig.user.applications),
-      newAppForm))
+    Ok(views.html.home(homeModel, newAppForm))
   }
-
+  /** Loads an application model and pushes to the view by id. */
   def app(id: String) = Action { request =>
     Async {
       // TODO - Different results of attempting to load the application....
@@ -83,17 +113,20 @@ object Application extends Controller {
     }
   }
 
-  // list all apps in the config
+  /** List all the applications in our history as JSON. */
   def getHistory = Action { request =>
     Ok(JsArray(RootConfig.user.applications.map(_.toJson)))
   }
 
-  // TODO - actually load from file or something which plugins we use.
+  /**
+   * Returns the application model (for rendering the page) based on
+   * the current snap App.
+   */
   def getApplicationModel(app: snap.App) =
     ApplicationModel(app.config.location.getAbsolutePath,
       Seq("plugins/code/code", "plugins/play/play"))
 
-  // TODO - Better detection, in library most likely.
+  /** The current working directory of the app. */
   val cwd = (new java.io.File(".").getAbsoluteFile.getParentFile)
 
   // Loads an application based on its id.
