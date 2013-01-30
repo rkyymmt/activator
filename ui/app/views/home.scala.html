@@ -1,4 +1,4 @@
-@(model: HomeModel)
+@(model: HomeModel, newApp: Form[NewAppForm])
 <!DOCTYPE html>
 <html>
 	<head>
@@ -18,18 +18,18 @@
 
 		<section id="new">
 			<h2>New application</h2>
-			<form>
+			@helper.form(action = routes.Application.newApplication, 'id -> "newApp") {
 				<fieldset>
 					<label for="newappName">Name</label>
-					<input type="text" id="newappName" required>
+					<input type="text" id="newappName" name="name" required>
 				</fieldset>
 				<fieldset>
 					<label for="newappLocation">Location</label>
-					<input type="text" id="newappLocation" placeholder="@model.userHome" required>
+					<input type="text" id="newappLocation" name="location" placeholder="@model.userHome" required>
 				</fieldset>
 				<fieldset>
 					<label for="newappBlueprint">Blueprint</label>
-					<input type="text" id="newappLocation" placeholder="Choose a blueprint in the list below" disabled required>
+					<input type="text" id="newAppBlueprintName" name="blueprint-name" placeholder="Choose a blueprint in the list below" disabled required>
 				</fieldset>
 				<ul> 
 				@model.templates.map { template =>
@@ -41,7 +41,7 @@
 				}
 				</ul>
 				<input type="submit" class="button" value="Create" id="newButton">
-			</form>
+			}
 		</section>
 
 		<section id="open">

@@ -22,6 +22,12 @@ case class HomeModel(
   templates: Seq[TemplateMetadata],
   recentApps: Seq[AppConfig])
 
+// Data we get from the new application form.
+case class NewAppForm(
+  name: String,
+  location: String,
+  blueprint: String)
+
 // Here is where we detect if we're running at a given project...
 object Application extends Controller {
 
@@ -40,12 +46,31 @@ object Application extends Controller {
     }
   }
 
+  import play.api.data._
+  import play.api.data.Forms._
+  val newAppForm = Form(
+    mapping(
+      "name" -> text,
+      "location" -> text,
+      "blueprint" -> text)(NewAppForm.apply)(NewAppForm.unapply))
+
+  def newApplication = Action { implicit request =>
+    // TODO - Don't lame this out so much.
+    val model = newAppForm.bindFromRequest.get
+
+    System.err.println("Testing new application! - model: " + model)
+    val id = "test";
+    Redirect(routes.Application.app(id))
+  }
+
   def forceHome = Action { request =>
     // TODO - make sure template cache lives in one and only one place!
-    Ok(views.html.home(HomeModel(
-      userHome = SnapProperties.GLOBAL_USER_HOME,
-      templates = api.Templates.templateCache.metadata.toSeq,
-      recentApps = RootConfig.user.applications)))
+    Ok(views.html.home(
+      HomeModel(
+        userHome = SnapProperties.GLOBAL_USER_HOME,
+        templates = api.Templates.templateCache.metadata.toSeq,
+        recentApps = RootConfig.user.applications),
+      newAppForm))
   }
 
   def app(id: String) = Action { request =>
