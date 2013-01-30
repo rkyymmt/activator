@@ -14,7 +14,7 @@ class UIMain extends AppMain {
     System.setProperty("http.port", serverPort.toString)
 
     // locate sbt details and store in a singleton
-    controllers.Application.sbtChildProcessMaker = new SbtChildLauncher(configuration)
+    snap.AppManager.sbtChildProcessMaker = new SbtChildLauncher(configuration)
 
     // Start the Play app... (TODO - how do we know when we're done?)
     // TODO - Is this hack ok?
