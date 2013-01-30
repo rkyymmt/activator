@@ -13,31 +13,31 @@ class ConfigTest {
   @Test
   def testUserConfig(): Unit = {
     val rewritten = RootConfig.rewriteUser { old =>
-      val projectList = if (old.projects.exists(_.location.getPath == "foo"))
-        old.projects
+      val appList = if (old.applications.exists(_.location.getPath == "foo"))
+        old.applications
       else
-        ProjectConfig(new File("foo"), "id") +: old.projects
-      old.copy(projects = projectList)
+        AppConfig(new File("foo"), "id") +: old.applications
+      old.copy(applications = appList)
     }
     Await.ready(rewritten, 5 seconds)
     val c = RootConfig.user
-    assertTrue("project 'foo' now in user config", c.projects.exists(_.location.getPath == "foo"))
+    assertTrue("app 'foo' now in user config", c.applications.exists(_.location.getPath == "foo"))
   }
 
   def removeProjectName(): Unit = {
     val rewritten = RootConfig.rewriteUser { old =>
-      val withNoName = old.projects
+      val withNoName = old.applications
         .find(_.location.getPath == "foo")
-        .getOrElse(ProjectConfig(new File("foo"), "id"))
+        .getOrElse(AppConfig(new File("foo"), "id"))
         .copy(cachedName = None)
 
-      val projectList = withNoName +: old.projects.filter(_.location.getPath != "foo")
-      old.copy(projects = projectList)
+      val appList = withNoName +: old.applications.filter(_.location.getPath != "foo")
+      old.copy(applications = appList)
     }
     Await.ready(rewritten, 5 seconds)
     val c = RootConfig.user
-    assertTrue("project 'foo' now in user config with no name",
-      c.projects.exists({ p => p.location.getPath == "foo" && p.cachedName.isEmpty }))
+    assertTrue("app 'foo' now in user config with no name",
+      c.applications.exists({ p => p.location.getPath == "foo" && p.cachedName.isEmpty }))
   }
 
   @Test
@@ -45,17 +45,17 @@ class ConfigTest {
     removeProjectName()
 
     val rewritten = RootConfig.rewriteUser { old =>
-      val withName = old.projects
+      val withName = old.applications
         .find(_.location.getPath == "foo")
-        .getOrElse(ProjectConfig(new File("foo"), "id"))
+        .getOrElse(AppConfig(new File("foo"), "id"))
         .copy(cachedName = Some("Hello World"))
 
-      val projectList = withName +: old.projects.filter(_.location.getPath != "foo")
-      old.copy(projects = projectList)
+      val appList = withName +: old.applications.filter(_.location.getPath != "foo")
+      old.copy(applications = appList)
     }
     Await.ready(rewritten, 5 seconds)
     val c = RootConfig.user
-    assertTrue("project 'foo' now in user config with a name",
-      c.projects.exists({ p => p.location.getPath == "foo" && p.cachedName == Some("Hello World") }))
+    assertTrue("app 'foo' now in user config with a name",
+      c.applications.exists({ p => p.location.getPath == "foo" && p.cachedName == Some("Hello World") }))
   }
 }
