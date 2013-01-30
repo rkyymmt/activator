@@ -63,6 +63,10 @@ public class SnapProperties {
     return getProperty("snap.home");
   }
 
+  public static String GLOBAL_USER_HOME() {
+    return getProperty("user.home");
+  }
+
   public static String SNAP_USER_HOME() {
     return lookupOr("snap.user.home", getProperty("user.home") + "/.snap/" + APP_ABI_VERSION());
   }
