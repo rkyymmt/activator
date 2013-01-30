@@ -34,7 +34,7 @@
 				<ul> 
 				@model.templates.map { template =>
 					<li>
-						<input type="radio" name="blueprint">
+						<input type="radio" name="blueprint" value="@template.id">
 						<h3>@template.name</h3>
 						<p>@template.description</p>
 					</li>	  
@@ -49,7 +49,7 @@
 			<ul>
 				@model.recentApps.map { app =>
 					<li>
-						<h3><a href="#">@app.cachedName.getOrElse(app.id)</a></h3>
+						<h3><a href="@routes.Application.app(app.id)">@app.cachedName.getOrElse(app.id)</a></h3>
 						<p class="path"><span>@app.location</span></p>
 					</li>
 				}
