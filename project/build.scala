@@ -79,6 +79,23 @@ object TheSnapBuild extends Build {
       sbtLauncherInterface % "provided"
     )
     dependsOn(props, cache, sbtDriver)
+    settings(
+      // Here we hack the update process that play-run calls to set up everything we need for embedded sbt.
+      // Yes, it's a hack.  BUT we *love* hacks right?
+      Keys.update <<= (
+          SbtSupport.sbtLaunchJar, 
+          Keys.update, 
+          Keys.classDirectory in Compile in sbtRemoteProbe, 
+          Keys.compile in Compile in sbtRemoteProbe) map { 
+        (launcher, update, probeCp, _) =>
+          // We register the location after it's resolved so we have it for running play...
+          sys.props("snap.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
+          sys.props("snap.remote.probe.classpath") = probeCp.getAbsoluteFile.getAbsolutePath
+          System.err.println("Updating sbt launch jar: " + sys.props("snap.sbt.launch.jar"))
+          System.err.println("Remote probe classpath = " + sys.props("snap.remote.probe.classpath"))
+          update
+      }
+    )
   )
 
   // TODO - SBT plugin, or just SBT integration?
@@ -103,9 +120,6 @@ object TheSnapBuild extends Build {
       dependsOnRemote(sbtLauncherInterface)
       dependsOn(sbtDriver, props, cache)
       settings(
-        // Note: we remve project resolver for IT stuff (lame, I know), so we require publishLocal from our dependencies to update...
-        // Keys.update <<= (Keys.update.task, (Keys.publishLocal in sbtDriver).task) apply ((a, b) => b flatMapR (_ => a)),
-        
         org.sbtidea.SbtIdeaPlugin.ideaIgnoreModule := true
       )
   )
