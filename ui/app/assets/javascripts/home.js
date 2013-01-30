@@ -46,6 +46,8 @@ require([
 			// Register fancy radio button controlls.
 			$('#new li').click(function(event) {
 				$('input:radio', this).prop('checked',true);
+				var name = $('h3', this).text();
+				$('#newAppBlueprintName').val(name);
 			});
 			// TODO - Register file selection widget...
 			// Register fancy click and open app buttons
