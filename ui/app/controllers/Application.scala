@@ -7,6 +7,8 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import com.typesafe.sbtchild.SbtChildProcessMaker
 import play.api.libs.json.{ JsString, JsObject, JsArray, JsNumber }
 import snap.{ RootConfig, AppConfig }
+import snap.cache.TemplateMetadata
+import snap.properties.SnapProperties
 
 case class ApplicationModel(
   location: String,
@@ -14,6 +16,11 @@ case class ApplicationModel(
 
   def jsLocation = location.replaceAll("'", "\\'")
 }
+
+case class HomeModel(
+  userHome: String,
+  templates: Seq[TemplateMetadata],
+  recentApps: Seq[AppConfig])
 
 // Here is where we detect if we're running at a given project...
 object Application extends Controller {
@@ -34,7 +41,11 @@ object Application extends Controller {
   }
 
   def forceHome = Action { request =>
-    Ok(views.html.home())
+    // TODO - make sure template cache lives in one and only one place!
+    Ok(views.html.home(HomeModel(
+      userHome = SnapProperties.GLOBAL_USER_HOME,
+      templates = api.Templates.templateCache.metadata.toSeq,
+      recentApps = RootConfig.user.applications)))
   }
 
   def app(id: String) = Action { request =>
