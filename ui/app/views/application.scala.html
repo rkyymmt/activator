@@ -8,6 +8,10 @@
 		<title>Typesafe Builder</title>
 		<script type="text/javascript">
 		window.serverAppModel = {
+      @for(name <- model.cachedName) {
+        name: '@name',
+      }
+      id: '@model.id',
       pluginIds:  [ @model.plugins.mkString("'", "','","'") ],
       location: '@model.jsLocation'
     };

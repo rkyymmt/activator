@@ -7,7 +7,8 @@ define(['core/plugin', 'core/grid', 'core/router'], function(plugins, Grid, rout
 	// Model for the whole app view
 	var model = {
 		snap: {
-			appName: "Sample App",
+			// TODO - This should be obversvable and we get notified of changes by sbt....
+			appName: window.serverAppModel.name ? window.serverAppModel.name : window.serverAppModel.id,
 			pageTitle: ko.observable()
 		},
 		plugins: plugins,
