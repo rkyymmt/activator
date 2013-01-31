@@ -78,7 +78,7 @@ object AppManager {
   // should always be called inside rewriteUser to avoid
   // a race creating the same ID
   private def newIdFromName(root: RootConfig, name: String, suffix: Int = 0): String = {
-    val candidate = name + (if (suffix > 0) suffix.toString else "")
+    val candidate = name + (if (suffix > 0) "-" + suffix.toString else "")
     root.applications.find(_.id == candidate) match {
       case Some(app) => newIdFromName(root, name, suffix + 1)
       case None => candidate
