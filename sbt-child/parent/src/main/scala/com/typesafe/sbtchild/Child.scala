@@ -19,6 +19,11 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
 
   private var serverStarted = false
   private var serverStartedAndStopped = false
+  // it appears that ActorRef.isTerminated is not guaranteed
+  // to be true when we get the Terminated event, which means
+  // we have to track these by hand.
+  private var serverTerminated = false
+  private var processTerminated = false
   private var preStartBuffer = Vector.empty[(protocol.Request, ActorRef)]
 
   override val supervisorStrategy = SupervisorStrategy.stoppingStrategy
@@ -39,8 +44,8 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
   process ! StartProcess
 
   private def considerSuicide(): Unit = {
-    if (process.isTerminated) {
-      if (server.isTerminated) {
+    if (processTerminated) {
+      if (serverTerminated) {
         log.debug("both server actor and process actor terminated, sending suicide pill")
         self ! PoisonPill
       } else if (serverStartedAndStopped) {
@@ -56,6 +61,7 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
   override def receive = {
     case Terminated(ref) =>
       if (ref == process) {
+        processTerminated = true
         // the socket will never connect, if it hasn't.
         // we don't want accept() to perma-block
         log.debug("closing server socket because process exited")
@@ -63,6 +69,7 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
           serverSocket.close()
         considerSuicide()
       } else if (ref == server) {
+        serverTerminated = true
         considerSuicide()
       } else {
         log.warning("Likely bug, got unknown death notification {}", ref)
@@ -74,7 +81,7 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
         // checking isTerminated here is a race, but when the race fails the sender
         // should still time out. We're just trying to short-circuit the timeout if
         // we know it will time out.
-        if (server.isTerminated || process.isTerminated || serverStartedAndStopped) {
+        if (serverTerminated || processTerminated || serverStartedAndStopped) {
           log.debug("Got request {} on already-shut-down server", req)
           sender ! protocol.ErrorResponse("ServerActor has already shut down", Nil)
         }
