@@ -8,6 +8,9 @@ import akka.util.ByteString
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.CountDownLatch
 import java.io.IOException
+import akka.event.Logging
+import java.io.InputStream
+import java.io.BufferedInputStream
 
 sealed trait ProcessRequest
 case class SubscribeProcess(ref: ActorRef) extends ProcessRequest
@@ -20,14 +23,14 @@ case class ProcessStdOut(bytes: ByteString) extends ProcessEvent
 case class ProcessStdErr(bytes: ByteString) extends ProcessEvent
 case class ProcessStopped(exitValue: Int) extends ProcessEvent
 
-class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) extends Actor {
+class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) extends Actor with ActorLogging {
   var subscribers: Set[ActorRef] = Set.empty
   var process: Option[Process] = None
   // flag handles the race where we get a destroy request
   // before the process starts
   var destroyRequested = false
 
-  val pool = Executors.newCachedThreadPool()
+  val pool = NamedThreadFactory.newPool("ProcessActor")
 
   val selfRef = context.self
 
@@ -69,6 +72,8 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
   }
 
   def start(): Unit = {
+    log.debug("Starting process with argv={}", argv)
+
     pool.execute(new Runnable() {
       override def run = {
         val pb = (new ProcessBuilder(argv.asJava)).directory(cwd)
@@ -76,50 +81,49 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
 
         selfRef ! process
 
-        val out = process.getInputStream()
-        val err = process.getErrorStream()
-
         val streamLatch = new CountDownLatch(2)
 
-        def startReader(wrap: ByteString => ProcessEvent): Unit = {
+        def startReader(label: String, rawStream: InputStream, wrap: ByteString => ProcessEvent): Unit = {
           pool.execute(new Runnable() {
             override def run = {
+              val stream = new BufferedInputStream(rawStream)
               try {
                 var eof = false
                 while (!eof) {
                   val bytes = new Array[Byte](256)
-                  val count = out.read(bytes)
+                  val count = stream.read(bytes)
                   if (count > 0) {
-                    //try {
-                    //  val s = new String(bytes, 0, count, "UTF-8")
-                    //  System.err.println("Read from child: " + s)
-                    //} catch {
-                    //  case e: Exception =>
-                    //}
                     selfRef ! wrap(ByteString.fromArray(bytes, 0, count))
+                    log.debug("    sent {} bytes from the child std{}", count, label)
                   } else if (count == -1) {
                     eof = true
                   }
                 }
               } catch {
                 case e: IOException =>
-                // an expected exception here is "stream closed"
-                // on stream close we end the thread.
+                  // an expected exception here is "stream closed"
+                  // on stream close we end the thread.
+                  log.debug("    stream std{} from process closed", label)
               } finally {
                 streamLatch.countDown()
+                log.debug("    ending std{} reader thread", label)
               }
             }
           })
         }
 
-        startReader(ProcessStdOut)
-        startReader(ProcessStdErr)
+        startReader("out", process.getInputStream(), ProcessStdOut)
+        startReader("err", process.getErrorStream(), ProcessStdErr)
 
+        log.debug("  waiting for process")
         val result = process.waitFor()
+        log.debug("  process waited for, waiting to gather any output")
         // try to finish reading out/in before we send ProcessStopped
         streamLatch.await(5000, TimeUnit.MILLISECONDS)
 
         selfRef ! ProcessStopped(result)
+
+        log.debug("  process thread ending")
       }
     })
   }
@@ -128,6 +132,8 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
     process.foreach({ p =>
 
       process = None
+
+      log.debug("  stopping process")
 
       p.destroy()
     })
@@ -139,6 +145,7 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
   }
 
   override def postStop() = {
+    log.debug("postStop")
     destroy()
   }
 }

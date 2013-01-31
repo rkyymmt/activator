@@ -6,11 +6,12 @@ import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import com.typesafe.sbtchild.SbtChildProcessMaker
 import play.api.libs.json.{ JsString, JsObject, JsArray, JsNumber }
-import snap.{ RootConfig, AppConfig }
+import snap.{ RootConfig, AppConfig, AppManager }
 import snap.cache.TemplateMetadata
 import snap.properties.SnapProperties
 import scala.util.control.NonFatal
 import scala.util.Try
+import play.Logger
 
 case class ApplicationModel(
   location: String,
@@ -33,20 +34,16 @@ case class NewAppForm(
 // Here is where we detect if we're running at a given project...
 object Application extends Controller {
 
-  // this is supposed to be set by the main() launching the UI.
-  // If not, we know we're running inside the build and we need
-  // to use the default "Debug" version.
-  @volatile var sbtChildProcessMaker: SbtChildProcessMaker = snap.DebugSbtChildProcessMaker
-
   /**
    * Our index page.  Either we load an app from the CWD, or we direct
    * to the homepage to create a new app.
    */
   def index = Action {
     Async {
-      loadAppName(cwd) map {
-        // TODO - Wait for cached name....
+      AppManager.loadAppIdFromLocation(cwd) map {
         case Some(name) => Redirect(routes.Application.app(name))
+        // TODO we need to have an error message and "flash" it then
+        // display it on home screen
         case _ => Redirect(routes.Application.forceHome)
       }
     }
@@ -82,7 +79,7 @@ object Application extends Controller {
         }
       // Now look up the app name and register this location
       // with recently loaded apps.
-      val id = location flatMap loadAppName
+      val id = location flatMap AppManager.loadAppIdFromLocation
       id map {
         case Some(id) => Redirect(routes.Application.app(id))
         case _ =>
@@ -106,9 +103,14 @@ object Application extends Controller {
   def app(id: String) = Action { request =>
     Async {
       // TODO - Different results of attempting to load the application....
-      loadApp(id) map {
-        case Some(app) => Ok(views.html.application(getApplicationModel(app)))
-        case _ => Redirect(routes.Application.forceHome)
+      AppManager.loadApp(id) map { theApp =>
+        Ok(views.html.application(getApplicationModel(theApp)))
+      } recover {
+        case e: Exception =>
+          // TODO we need to have an error message and "flash" it then
+          // display it on home screen
+          Logger.error("Failed to load app id " + id + ": " + e.getMessage(), e)
+          Redirect(routes.Application.forceHome)
       }
     }
   }
@@ -128,33 +130,4 @@ object Application extends Controller {
 
   /** The current working directory of the app. */
   val cwd = (new java.io.File(".").getAbsoluteFile.getParentFile)
-
-  // Loads an application based on its id.
-  // This needs to look in the RootConfig for the App/Location
-  // based on this ID.
-  // If the app id does not exist ->
-  //    Return error (None or useful error)
-  // If it exists
-  //    Return the app
-  private def loadApp(id: String): Future[Option[snap.App]] =
-    Future {
-      // TODO ->
-      Some(new snap.App(
-        snap.AppConfig(cwd, id, None),
-        snap.Akka.system,
-        null))
-    }
-  // Loads the name of an app based on the CWD.  
-  // If we don't have an ID in RootConfig for this location, then 
-  // - we should load the app and determine a good id
-  // - we should store the id/location in the RootConfig
-  // - We should return the new ID or None if this location is not an App.
-  private def loadAppName(location: File): Future[Option[String]] =
-    Future {
-      // TODO - Don't cheat here!
-      if (isOnProject(location)) Some("my-app")
-      else None
-    }
-
-  def isOnProject(dir: File) = (new java.io.File(dir, "project/build.properties")).exists
 }
