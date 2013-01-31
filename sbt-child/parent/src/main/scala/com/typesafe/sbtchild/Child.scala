@@ -17,8 +17,8 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
   private val outDecoder = new ByteStringDecoder
   private val errDecoder = new ByteStringDecoder
 
-  private var serverStarted = false
-  private var serverStartedAndStopped = false
+  private var protocolStarted = false
+  private var protocolStartedAndStopped = false
   // it appears that ActorRef.isTerminated is not guaranteed
   // to be true when we get the Terminated event, which means
   // we have to track these by hand.
@@ -48,11 +48,11 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
       if (serverTerminated) {
         log.debug("both server actor and process actor terminated, sending suicide pill")
         self ! PoisonPill
-      } else if (serverStartedAndStopped) {
+      } else if (protocolStartedAndStopped) {
         log.debug("stopped message received from socket to child and child process is dead, killing socket")
         server ! PoisonPill
       }
-    } else if (serverStartedAndStopped) {
+    } else if (protocolStartedAndStopped) {
       log.debug("stopped message received from socket but process still alive, killing process")
       process ! PoisonPill
     }
@@ -77,11 +77,11 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
 
     // request for the server actor
     case req: protocol.Request =>
-      if (serverStarted) {
+      if (protocolStarted) {
         // checking isTerminated here is a race, but when the race fails the sender
         // should still time out. We're just trying to short-circuit the timeout if
         // we know it will time out.
-        if (serverTerminated || processTerminated || serverStartedAndStopped) {
+        if (serverTerminated || processTerminated || protocolStartedAndStopped) {
           log.debug("Got request {} on already-shut-down server", req)
           sender ! protocol.ErrorResponse("ServerActor has already shut down", Nil)
         }
@@ -94,7 +94,7 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
     // message from server actor other than a response
     case event: protocol.Event => event match {
       case protocol.Started =>
-        serverStarted = true
+        protocolStarted = true
         preStartBuffer foreach { m =>
           log.debug("Sending queued request to new server {}", m._1)
           server.tell(m._1, m._2)
@@ -102,7 +102,7 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
         preStartBuffer = Vector.empty
       case protocol.Stopped =>
         log.debug("server actor says it's all done, killing it")
-        serverStartedAndStopped = true
+        protocolStartedAndStopped = true
         server ! PoisonPill
       case protocol.MysteryMessage(something) =>
         // let it crash
