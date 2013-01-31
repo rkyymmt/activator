@@ -39,7 +39,17 @@ object Local extends Controller {
     case "text" => "code"
     case "md" => "code"
     case "rst" => "code"
-    case _ => "binary" // Assume binary ok?
+    case "properties" => "code"
+    case "conf" => "code"
+    // TODO - New "tail" viewer for logs?
+    case "log" => "code"
+
+    // If we can't find any specific handler based on extension, certain files still need
+    // to be handled by name....
+    case _ => name match {
+      case "routes" => "code"
+      case _ => "binary" // Assume binary ok? 
+    }
   }
 
   // Here's the JSON rendering of template metadata.

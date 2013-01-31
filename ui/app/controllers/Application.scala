@@ -14,8 +14,10 @@ import scala.util.Try
 import play.Logger
 
 case class ApplicationModel(
+  id: String,
   location: String,
-  plugins: Seq[String]) {
+  plugins: Seq[String],
+  name: String) {
 
   def jsLocation = location.replaceAll("'", "\\'")
 }
@@ -125,8 +127,11 @@ object Application extends Controller {
    * the current snap App.
    */
   def getApplicationModel(app: snap.App) =
-    ApplicationModel(app.config.location.getAbsolutePath,
-      Seq("plugins/code/code", "plugins/play/play"))
+    ApplicationModel(
+      app.config.id,
+      app.config.location.getAbsolutePath,
+      Seq("plugins/code/code", "plugins/play/play"),
+      app.config.cachedName getOrElse app.config.id)
 
   /** The current working directory of the app. */
   val cwd = (new java.io.File(".").getAbsoluteFile.getParentFile)
