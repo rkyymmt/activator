@@ -1,6 +1,5 @@
-package snap
+package com.typesafe.sbtchild
 
-import com.typesafe.sbtchild.SbtChildProcessMaker
 import snap.properties.SnapProperties
 import java.io.File
 

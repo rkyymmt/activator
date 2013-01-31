@@ -15,20 +15,6 @@ trait SbtChildProcessMaker {
   def arguments(port: Int): Seq[String]
 }
 
-// The stubbed out child process maker for havoc's computer/testing.
-object HavocsSbtChildProcessmaker extends SbtChildProcessMaker {
-  def arguments(port: Int): Seq[String] = Seq("java",
-    "-Dsnap.sbt-child-port=" + port,
-    "-Dsbt.boot.directory=/home/hp/.sbt/boot",
-    "-Xss1024K", "-Xmx1024M", "-XX:PermSize=512M", "-XX:+CMSClassUnloadingEnabled",
-    "-jar",
-    "/opt/hp/bin/sbt-launch-0.12.0.jar",
-    // command to add our special hook
-    "apply com.typesafe.sbtchild.SetupSbtChild",
-    // enter the "get stuff from the socket" loop
-    "listen")
-}
-
 /**
  * This class is able to create the command line for SbtChildProbe processes
  * using the launcher to discover the child probe.

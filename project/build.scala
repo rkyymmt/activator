@@ -70,6 +70,20 @@ object TheSnapBuild extends Build {
     dependsOn(props)
     dependsOnRemote(akkaActor,
                     sbtLauncherInterface)
+    settings(
+      // set up embedded sbt for tests, we fork so we can set
+      // system properties.
+      Keys.fork in Keys.test := true,
+      Keys.javaOptions in Keys.test <<= (
+        SbtSupport.sbtLaunchJar,
+        Keys.javaOptions in Keys.test,
+        Keys.classDirectory in Compile in sbtRemoteProbe,
+        Keys.compile in Compile in sbtRemoteProbe) map {
+        (launcher, oldOptions, probeCp, _) =>
+          oldOptions ++ Seq("-Dsnap.sbt.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
+                            "-Dsnap.remote.probe.classpath=" + probeCp.getAbsoluteFile.getAbsolutePath)
+      }
+    )
   )
 
   lazy val ui = (

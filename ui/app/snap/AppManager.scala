@@ -16,7 +16,7 @@ object AppManager {
   // this is supposed to be set by the main() launching the UI.
   // If not, we know we're running inside the build and we need
   // to use the default "Debug" version.
-  @volatile var sbtChildProcessMaker: SbtChildProcessMaker = snap.DebugSbtChildProcessMaker
+  @volatile var sbtChildProcessMaker: SbtChildProcessMaker = DebugSbtChildProcessMaker
 
   // TODO as a first cut, just cache one app. As long as only one tab
   // is open this should be right, but of course it will be pure

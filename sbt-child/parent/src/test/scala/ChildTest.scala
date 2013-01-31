@@ -15,25 +15,53 @@ import akka.util.Timeout
 
 class ChildTest {
 
-  // TODO this needs to become an integration test so it can find the sbt executable
-  //@Test
+  def createFile(name: java.io.File, content: String): Unit = {
+    val writer = new java.io.FileWriter(name)
+    try writer.write(content)
+    finally writer.close()
+  }
+
+  /** Creates a dummy project we can run sbt against. */
+  def makeDummySbtProject(relativeDir: String): File = {
+    val dir = new File(new File("sbt-child/parent/target/scratch"), relativeDir)
+    if (!dir.isDirectory()) dir.mkdirs()
+
+    val project = new File(dir, "project")
+    if (!project.isDirectory()) project.mkdirs()
+
+    val props = new File(project, "build.properties")
+    createFile(props, "sbt.version=" + snap.properties.SnapProperties.SBT_VERSION)
+
+    val build = new File(dir, "build.sbt")
+    createFile(build, "name := \"" + relativeDir + "\"\n")
+
+    val scalaSource = new File(dir, "src/main/scala")
+    if (!scalaSource.isDirectory()) scalaSource.mkdirs()
+    val main = new File(scalaSource, "hello.scala")
+    createFile(main, "object Main extends App { println(\"Hello World\") }\n")
+    dir
+  }
+
+  @Test
   def testTalkToChild(): Unit = {
-    implicit val timeout = Timeout(10 seconds)
+    implicit val timeout = Timeout(60.seconds)
+
+    val dummy = makeDummySbtProject("talkToChild")
 
     val system = ActorSystem("test-talk-to-child")
     try {
-      val child = SbtChild(system, new File("."), HavocsSbtChildProcessmaker)
+      val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
 
       try {
-        val name = Await.result(child ? NameRequest, 10 seconds) match {
+        val name = Await.result(child ? NameRequest, timeout.duration) match {
           case NameResponse(n, logs) => n
         }
-        assertEquals("root", name)
+        assertEquals("talkToChild", name)
 
-        val name2 = Await.result(child ? NameRequest, 10 seconds) match {
+        val name2 = Await.result(child ? NameRequest, timeout.duration) match {
           case NameResponse(n, logs) => n
         }
-        assertEquals("root", name2)
+        assertEquals("talkToChild", name2)
 
       } finally {
         system.stop(child)
