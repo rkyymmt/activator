@@ -104,7 +104,7 @@ object AppManager {
         errorOrName match {
           case Right(name) => RootConfig.rewriteUser { root =>
             val config = AppConfig(id = newIdFromName(root, name), cachedName = Some(name), location = location)
-            val newApps = root.applications.filter(_.location == config.location) :+ config
+            val newApps = root.applications.filterNot(_.location == config.location) :+ config
             root.copy(applications = newApps)
           } map { Unit =>
             RootConfig.user.applications.find(_.location == location) match {
