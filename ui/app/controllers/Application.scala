@@ -1,17 +1,18 @@
 package controllers
 
-import play.api.mvc.{ Action, Controller }
+import play.api.mvc.{ Action, Controller, WebSocket }
 import java.io.File
 import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import com.typesafe.sbtchild.SbtChildProcessMaker
-import play.api.libs.json.{ JsString, JsObject, JsArray, JsNumber }
+import play.api.libs.json.{ JsString, JsObject, JsArray, JsNumber, JsValue }
 import snap.{ RootConfig, AppConfig, AppManager }
 import snap.cache.TemplateMetadata
 import snap.properties.SnapProperties
 import scala.util.control.NonFatal
 import scala.util.Try
 import play.Logger
+import play.api.libs.iteratee.{ Iteratee, Enumerator, Concurrent }
 
 case class ApplicationModel(
   id: String,
@@ -102,7 +103,7 @@ object Application extends Controller {
     Ok(views.html.home(homeModel, newAppForm))
   }
   /** Loads an application model and pushes to the view by id. */
-  def app(id: String) = Action { request =>
+  def app(id: String) = Action { implicit request =>
     Async {
       // TODO - Different results of attempting to load the application....
       AppManager.loadApp(id) map { theApp =>
@@ -114,6 +115,23 @@ object Application extends Controller {
           Logger.error("Failed to load app id " + id + ": " + e.getMessage(), e)
           Redirect(routes.Application.forceHome)
       }
+    }
+  }
+
+  /**
+   * Connects from an application page to the "stateful" actor/server we use
+   * per-application for information.
+   */
+  def connectApp(id: String) = WebSocket.async[JsValue] { request =>
+    // TODO - Real websocket-y things here.
+    scala.concurrent.Future[(Iteratee[JsValue, _], Enumerator[JsValue])] {
+      val reads = Iteratee.foreach[JsValue] { input => System.err.println("Received: " + input) }
+      //  A channel that does nothing FOREVER and does it well...
+      val writes = Concurrent.unicast[JsValue](
+        onStart = channel => (channel.push(JsString("HI"))),
+        onComplete = (),
+        onError = (msg, input) => ())
+      (reads, writes)
     }
   }
 
