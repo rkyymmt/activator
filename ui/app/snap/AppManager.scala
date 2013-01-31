@@ -62,13 +62,11 @@ object AppManager {
       case Some(app) => Promise.successful(Some(app.id)).future
       case None => {
         doInitialAppAnalysis(location) map {
-          _ match {
-            case Left(error) =>
-              Logger.error("Failed to load app at: " + location.getAbsolutePath())
-              None
-            case Right(appConfig) =>
-              Some(appConfig.id)
-          }
+          case Left(error) =>
+            Logger.error("Failed to load app at: " + location.getAbsolutePath())
+            None
+          case Right(appConfig) =>
+            Some(appConfig.id)
         }
       }
     }
@@ -90,31 +88,27 @@ object AppManager {
       val sbt = SbtChild(snap.Akka.system, location, sbtChildProcessMaker)
       // TODO we need to test what happens here if sbt fails to start up (i.e. bad build files)
       implicit val timeout = Timeout(60, TimeUnit.SECONDS)
-      val result: Future[Either[String, AppConfig]] = (sbt ? protocol.NameRequest) map { reply =>
-        reply match {
-          case protocol.NameResponse(name, logs) => {
-            Logger.info("sbt told us the name is: '" + name + "'")
-            Right(name)
-          }
-          case protocol.ErrorResponse(error, logs) =>
-            Logger.info("error getting name from sbt: " + error)
-            Left(error)
+      val result: Future[Either[String, AppConfig]] = (sbt ? protocol.NameRequest) map {
+        case protocol.NameResponse(name, logs) => {
+          Logger.info("sbt told us the name is: '" + name + "'")
+          Right(name)
         }
-      } flatMap { errorOrName =>
-        errorOrName match {
-          case Right(name) => RootConfig.rewriteUser { root =>
-            val config = AppConfig(id = newIdFromName(root, name), cachedName = Some(name), location = location)
-            val newApps = root.applications.filterNot(_.location == config.location) :+ config
-            root.copy(applications = newApps)
-          } map { Unit =>
-            RootConfig.user.applications.find(_.location == location) match {
-              case Some(config) => Right(config)
-              case None => Left("Somehow failed to save new app in config")
-            }
+        case protocol.ErrorResponse(error, logs) =>
+          Logger.info("error getting name from sbt: " + error)
+          Left(error)
+      } flatMap {
+        case Right(name) => RootConfig.rewriteUser { root =>
+          val config = AppConfig(id = newIdFromName(root, name), cachedName = Some(name), location = location)
+          val newApps = root.applications.filterNot(_.location == config.location) :+ config
+          root.copy(applications = newApps)
+        } map { Unit =>
+          RootConfig.user.applications.find(_.location == location) match {
+            case Some(config) => Right(config)
+            case None => Left("Somehow failed to save new app in config")
           }
-          case Left(error) =>
-            Promise.successful(Left(error)).future
         }
+        case Left(error) =>
+          Promise.successful(Left(error)).future
       }
 
       result onComplete { _ =>
