@@ -10,6 +10,7 @@ POST    /api/templates/clone        controllers.api.Templates.cloneTemplate
 # Operations on an app
 # TODO: Should these take the app location as a request parameter?
 GET     /api/app/history            controllers.Application.getHistory
+GET     /api/app/connect/*id        controllers.Application.connectApp(id)
 
 # Local system operations
 GET     /api/local/env              controllers.api.Local.getEnv
