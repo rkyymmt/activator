@@ -71,7 +71,8 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
     // TODO - handle spaces in strings and such...
     val sbtProps = Seq(
       "-Dsnap.home=" + SnapProperties.SNAP_HOME,
-      "-Dsbt.boot.directory=" + sys.props("sbt.boot.directory"),
+      // TODO - better handling of missing sbt.boot.directory property!
+      "-Dsbt.boot.directory=" + (sys.props get "sbt.boot.directory" getOrElse (sys.props("user.home") + "/.sbt")),
       // TODO - Don't allow user-global plugins?
       //"-Dsbt.global.base=/tmp/.sbtboot",
       portArg)
