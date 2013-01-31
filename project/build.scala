@@ -30,7 +30,7 @@ object TheSnapBuild extends Build {
   // Theser are the projects we want in the local SNAP repository
   lazy val publishedProjects = Seq(ui, launcher, props, cache, sbtRemoteProbe, sbtDriver)
 
-  // basic project that gives us properties to use in other projects.  
+  // basic project that gives us properties to use in other projects.
   lazy val props = (
     SnapJavaProject("props")
     settings(Properties.makePropertyClassSetting(SnapDependencies.sbtVersion,SnapDependencies.scalaVersion):_*)
@@ -62,16 +62,16 @@ object TheSnapBuild extends Build {
       sbtProcess % "provided"
     )
   )
-  
+
   lazy val sbtDriver = (
     SbtChildProject("parent")
     settings(Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
     settings(dependsOnSource("../protocol"): _*)
     dependsOn(props)
-    dependsOnRemote(akkaActor, 
+    dependsOnRemote(akkaActor,
                     sbtLauncherInterface)
-  )  
-  
+  )
+
   lazy val ui = (
     SnapPlayProject("ui")
     dependsOnRemote(
@@ -83,10 +83,10 @@ object TheSnapBuild extends Build {
       // Here we hack the update process that play-run calls to set up everything we need for embedded sbt.
       // Yes, it's a hack.  BUT we *love* hacks right?
       Keys.update <<= (
-          SbtSupport.sbtLaunchJar, 
-          Keys.update, 
-          Keys.classDirectory in Compile in sbtRemoteProbe, 
-          Keys.compile in Compile in sbtRemoteProbe) map { 
+          SbtSupport.sbtLaunchJar,
+          Keys.update,
+          Keys.classDirectory in Compile in sbtRemoteProbe,
+          Keys.compile in Compile in sbtRemoteProbe) map {
         (launcher, update, probeCp, _) =>
           // We register the location after it's resolved so we have it for running play...
           sys.props("snap.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
@@ -105,7 +105,7 @@ object TheSnapBuild extends Build {
     dependsOnRemote(sbtLauncherInterface)
     dependsOn(props)
   )
-  
+
   // A hack project just for convenient IvySBT when resolving artifacts into new local repositories.
   lazy val dontusemeresolvers = (
     SnapProject("dontuseme")
@@ -143,9 +143,9 @@ object TheSnapBuild extends Build {
             CrossVersion(sbv,sv)(id)
         }
       }).join,
-      localRepoArtifacts ++= 
+      localRepoArtifacts ++=
         Seq("org.scala-sbt" % "sbt" % SnapDependencies.sbtVersion,
-            // For some reason, these are not resolving transitively correctly! 
+            // For some reason, these are not resolving transitively correctly!
             "org.scala-lang" % "scala-compiler" % "2.9.2",
             "org.scala-lang" % "scala-compiler" % "2.10.0-RC1",
             "net.java.dev.jna" % "jna" % "3.2.3",
