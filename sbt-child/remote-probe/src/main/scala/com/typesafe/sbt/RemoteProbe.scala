@@ -84,9 +84,7 @@ object SetupSbtChild extends (State => State) {
   }
 
   val listen = Command.command(ListenCommandName, Help.more(ListenCommandName, "listens for remote commands")) { origState =>
-    val req = try {
-      protocol.Envelope(client.receive())
-    } catch {
+    val req = try protocol.Envelope(client.receive()) catch {
       case e: IOException =>
         System.err.println("Lost connection to parent process: " + e.getClass.getSimpleName() + ": " + e.getMessage())
         System.exit(0)
