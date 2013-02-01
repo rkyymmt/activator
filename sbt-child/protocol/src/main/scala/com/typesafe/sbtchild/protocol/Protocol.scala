@@ -155,12 +155,22 @@ case class Envelope(override val serial: Long, override val replyTo: Long, overr
 
 object Envelope {
   def apply(wire: ipc.WireEnvelope): Envelope = {
-    val json = JSON.parseFull(wire.asString) match {
-      case Some(obj: Map[_, _]) => JSONObject(obj.asInstanceOf[Map[String, _]])
-      case whatever =>
-        throw new Exception("JSON parse failure on: " + wire.asString + " parsed: " + whatever)
+    val message = try {
+      val json = JSON.parseFull(wire.asString) match {
+        case Some(obj: Map[_, _]) => JSONObject(obj.asInstanceOf[Map[String, _]])
+        case whatever =>
+          throw new Exception("JSON parse failure on: " + wire.asString + " parsed: " + whatever)
+      }
+      // this can throw malformed json errors
+      implicitly[JsonReader[Message]].fromJson(json)
+    } catch {
+      case e: Exception =>
+        // probably a JSON parse failure
+        if (wire.replyTo != 0L)
+          ErrorResponse(e.getClass.getSimpleName + ": " + e.getMessage, Nil)
+        else
+          MysteryMessage(try wire.asString catch { case e: Exception => wire })
     }
-    val message = implicitly[JsonReader[Message]].fromJson(json)
     Envelope(wire.serial, wire.replyTo, message)
   }
 }
