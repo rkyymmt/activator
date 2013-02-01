@@ -11,6 +11,7 @@ import java.io.IOException
 import akka.event.Logging
 import java.io.InputStream
 import java.io.BufferedInputStream
+import java.util.concurrent.RejectedExecutionException
 
 sealed trait ProcessRequest
 case class SubscribeProcess(ref: ActorRef) extends ProcessRequest
@@ -31,6 +32,9 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
   var destroyRequested = false
 
   val pool = NamedThreadFactory.newPool("ProcessActor")
+
+  // counts down when we've read stdout and stderr
+  val gotOutputLatch = new CountDownLatch(2)
 
   val selfRef = context.self
 
@@ -74,58 +78,70 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
   def start(): Unit = {
     log.debug("Starting process with argv={}", argv)
 
-    pool.execute(new Runnable() {
-      override def run = {
-        val pb = (new ProcessBuilder(argv.asJava)).directory(cwd)
-        val process = pb.start()
+    val pb = (new ProcessBuilder(argv.asJava)).directory(cwd)
+    val process = pb.start()
 
-        selfRef ! process
+    selfRef ! process
 
-        val streamLatch = new CountDownLatch(2)
-
-        def startReader(label: String, rawStream: InputStream, wrap: ByteString => ProcessEvent): Unit = {
-          pool.execute(new Runnable() {
-            override def run = {
-              val stream = new BufferedInputStream(rawStream)
-              try {
-                var eof = false
-                while (!eof) {
-                  val bytes = new Array[Byte](256)
-                  val count = stream.read(bytes)
-                  if (count > 0) {
-                    selfRef ! wrap(ByteString.fromArray(bytes, 0, count))
-                    log.debug("    sent {} bytes from the child std{}", count, label)
-                  } else if (count == -1) {
-                    eof = true
-                  }
-                }
-              } catch {
-                case e: IOException =>
-                  // an expected exception here is "stream closed"
-                  // on stream close we end the thread.
-                  log.debug("    stream std{} from process closed", label)
-              } finally {
-                streamLatch.countDown()
-                log.debug("    ending std{} reader thread", label)
+    def startReader(label: String, rawStream: InputStream, wrap: ByteString => ProcessEvent): Unit = try {
+      pool.execute(new Runnable() {
+        override def run = {
+          val stream = new BufferedInputStream(rawStream)
+          try {
+            var eof = false
+            while (!eof) {
+              val bytes = new Array[Byte](256)
+              val count = stream.read(bytes)
+              if (count > 0) {
+                selfRef ! wrap(ByteString.fromArray(bytes, 0, count))
+                log.debug("    sent {} bytes from the child std{}", count, label)
+              } else if (count == -1) {
+                eof = true
               }
             }
-          })
+          } catch {
+            case e: IOException =>
+              // an expected exception here is "stream closed"
+              // on stream close we end the thread.
+              log.debug("    stream std{} from process closed", label)
+          } finally {
+            gotOutputLatch.countDown()
+            log.debug("    ending std{} reader thread", label)
+          }
         }
+      })
+    } catch {
+      case e: RejectedExecutionException =>
+        log.warning("thread pool destroyed before we could read std" + label)
+    }
 
-        startReader("out", process.getInputStream(), ProcessStdOut)
-        startReader("err", process.getErrorStream(), ProcessStdErr)
+    startReader("out", process.getInputStream(), ProcessStdOut)
+    startReader("err", process.getErrorStream(), ProcessStdErr)
 
-        log.debug("  waiting for process")
-        val result = process.waitFor()
-        log.debug("  process waited for, waiting to gather any output")
-        // try to finish reading out/in before we send ProcessStopped
-        streamLatch.await(5000, TimeUnit.MILLISECONDS)
+    def collectProcess(): Unit = {
+      log.debug("  waiting for process")
+      val result = process.waitFor()
+      log.debug("  process waited for, waiting to gather any output")
+      // try to finish reading out/in before we send ProcessStopped
+      gotOutputLatch.await(5000, TimeUnit.MILLISECONDS)
 
-        selfRef ! ProcessStopped(result)
+      selfRef ! ProcessStopped(result)
+    }
 
-        log.debug("  process thread ending")
-      }
-    })
+    try {
+      pool.execute(new Runnable() {
+        override def run = {
+          log.debug("  process thread starting")
+          collectProcess()
+          log.debug("  process thread ending")
+        }
+      })
+    } catch {
+      case e: RejectedExecutionException =>
+        log.warning("thread pool destroyed before we could wait for process")
+        // at this point the process should be dead so this shouldn't block long
+        collectProcess()
+    }
   }
 
   def destroy() = {
@@ -136,8 +152,14 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
       log.debug("  stopping process")
 
       p.destroy()
+
+      // briefly pause if we haven't read the stdout/stderr yet,
+      // to just have a chance to get them
+      gotOutputLatch.await(2000, TimeUnit.MILLISECONDS)
     })
 
+    // if we haven't started up the stdout/err reader or waitFor threads
+    // yet, at this point they would get RejectedExecutionException
     if (!pool.isShutdown())
       pool.shutdown()
     if (!pool.isTerminated())
