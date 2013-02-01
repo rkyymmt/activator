@@ -63,6 +63,29 @@ object TheSnapBuild extends Build {
     )
   )
 
+  val verboseSbtTests = false
+
+  def configureSbtTest(testKey: Scoped) = Seq(
+    // set up embedded sbt for tests, we fork so we can set
+    // system properties.
+    Keys.fork in testKey := true,
+    Keys.javaOptions in testKey <<= (
+      SbtSupport.sbtLaunchJar,
+      Keys.javaOptions in testKey,
+      Keys.classDirectory in Compile in sbtRemoteProbe,
+      Keys.compile in Compile in sbtRemoteProbe) map {
+      (launcher, oldOptions, probeCp, _) =>
+        oldOptions ++ Seq("-Dsnap.sbt.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
+                          "-Dsnap.remote.probe.classpath=" + probeCp.getAbsoluteFile.getAbsolutePath) ++
+      (if (verboseSbtTests)
+        Seq("-Dakka.loglevel=DEBUG",
+            "-Dakka.actor.debug.autoreceive=on",
+            "-Dakka.actor.debug.receive=on",
+            "-Dakka.actor.debug.lifecycle=on")
+       else
+         Seq.empty)
+    })
+
   lazy val sbtDriver = (
     SbtChildProject("parent")
     settings(Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
@@ -70,20 +93,8 @@ object TheSnapBuild extends Build {
     dependsOn(props)
     dependsOnRemote(akkaActor,
                     sbtLauncherInterface)
-    settings(
-      // set up embedded sbt for tests, we fork so we can set
-      // system properties.
-      Keys.fork in Keys.test := true,
-      Keys.javaOptions in Keys.test <<= (
-        SbtSupport.sbtLaunchJar,
-        Keys.javaOptions in Keys.test,
-        Keys.classDirectory in Compile in sbtRemoteProbe,
-        Keys.compile in Compile in sbtRemoteProbe) map {
-        (launcher, oldOptions, probeCp, _) =>
-          oldOptions ++ Seq("-Dsnap.sbt.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
-                            "-Dsnap.remote.probe.classpath=" + probeCp.getAbsoluteFile.getAbsolutePath)
-      }
-    )
+    settings(configureSbtTest(Keys.test): _*)
+    settings(configureSbtTest(Keys.testOnly): _*)
   )
 
   lazy val ui = (
