@@ -32,7 +32,30 @@ require([
 	'vendors/chain',
 	'vendors/keymage.min'
 ],function(){
-	require(["pulgins/openApp/openApp", "pulgins/newApp/newApp"],function(openApp, newApp){
-
+	require([],function() {
+		// TODO - Removing debugging code...
+		window.blueprintFormValues = function() {
+			return {
+				name: $('#newappName').val(),
+				location: $('#newappLocation').val(),
+				blueprint: $('input:radio[name=blueprint]:checked').val()
+			};
+		};
+		// Register handlers on the UI.
+		$(function() {
+			// Register fancy radio button controlls.
+			$('#new li').click(function(event) {
+				$('input:radio', this).prop('checked',true);
+				var name = $('h3', this).text();
+				$('#newAppBlueprintName').val(name);
+			});
+			// TODO - Register file selection widget...
+			// Register fancy click and open app buttons
+			$('#open li').click(function(event) {
+				var url = $('a', this).attr('href');
+				// TODO - Better way to do this?
+				window.location.href = url;
+			})
+		});
 	})
 })

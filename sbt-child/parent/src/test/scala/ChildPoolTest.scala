@@ -16,32 +16,9 @@ import java.util.concurrent.TimeUnit
 
 class ChildPoolTest {
 
-  // mock up sbt child processes (to make things fast and
-  // because otherwise this would have to be an integration test)
-  class TestSbtChildFactory extends SbtChildFactory {
-    def creator = new Actor() {
-      override def receive = {
-        case req: protocol.Request => req match {
-          case protocol.NameRequest =>
-            sender ! protocol.NameResponse("foo", Nil)
-          case protocol.CompileRequest =>
-            sender ! protocol.CompileResponse(Nil)
-          case protocol.RunRequest =>
-            sender ! protocol.RunResponse(Nil)
-        }
-      }
-    }
-
-    val childNum = new AtomicInteger(1)
-
-    override def newChild(actorFactory: ActorRefFactory): ActorRef = {
-      actorFactory.actorOf(Props(creator = creator), "mock-sbt-child-" + childNum.getAndIncrement())
-    }
-  }
-
   class TestActor extends Actor {
 
-    val pool = context.actorOf(Props(new ChildPool(new TestSbtChildFactory)), "pool")
+    val pool = context.actorOf(Props(new ChildPool(new MockSbtChildFactory)), "pool")
 
     var replyTo: Option[ActorRef] = None
     var recording = Vector.empty[Any]
@@ -116,7 +93,7 @@ class ChildPoolTest {
 
   class TestSbtDeathActor extends Actor {
 
-    val pool = context.actorOf(Props(new ChildPool(new TestSbtChildFactory)), "pool")
+    val pool = context.actorOf(Props(new ChildPool(new MockSbtChildFactory)), "pool")
 
     var theSbt: Option[ActorRef] = None
     var replyTo: Option[ActorRef] = None

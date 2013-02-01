@@ -1,4 +1,4 @@
-@()
+@(model: HomeModel, newApp: Form[NewAppForm])
 <!DOCTYPE html>
 <html>
 	<head>
@@ -18,107 +18,41 @@
 
 		<section id="new">
 			<h2>New application</h2>
-			<form>
+			@helper.form(action = routes.Application.newApplication, 'id -> "newApp") {
 				<fieldset>
 					<label for="newappName">Name</label>
-					<input type="text" id="newappName" required>
+					<input type="text" id="newappName" name="name" required>
 				</fieldset>
 				<fieldset>
 					<label for="newappLocation">Location</label>
-					<input type="text" id="newappLocation" placeholder="/Users/ya/work/..." required>
+					<input type="text" id="newappLocation" name="location" placeholder="@model.userHome" required>
 				</fieldset>
 				<fieldset>
 					<label for="newappBlueprint">Blueprint</label>
-					<input type="text" id="newappLocation" placeholder="Choose a blueprint in the list below" disabled required>
+					<input type="text" id="newAppBlueprintName" name="blueprint-name" placeholder="Choose a blueprint in the list below" disabled required>
 				</fieldset>
-				<ul>
+				<ul> 
+				@model.templates.map { template =>
 					<li>
-						<input type="radio" name="blueprint">
-						<h3>Play application (Java)</h3>
-						<p>lorem ipsum</p>
-					</li>
-					<li>
-						<input type="radio" name="blueprint">
-						<h3>Play application (Java)</h3>
-						<p>lorem ipsum</p>
-					</li>
-					<li>
-						<input type="radio" name="blueprint">
-						<h3>Play application (Java)</h3>
-						<p>lorem ipsum</p>
-					</li>
-					<li>
-						<input type="radio" name="blueprint">
-						<h3>Play application (Java)</h3>
-						<p>lorem ipsum</p>
-					</li>
-					<li>
-						<input type="radio" name="blueprint">
-						<h3>Play application (Java)</h3>
-						<p>lorem ipsum</p>
-					</li>
-					<li>
-						<input type="radio" name="blueprint">
-						<h3>Play application (Java)</h3>
-						<p>lorem ipsum</p>
-					</li>
-					<li>
-						<input type="radio" name="blueprint">
-						<h3>Play application (Java)</h3>
-						<p>lorem ipsum</p>
-					</li>
+						<input type="radio" name="blueprint" value="@template.id">
+						<h3>@template.name</h3>
+						<p>@template.description</p>
+					</li>	  
+				}
 				</ul>
 				<input type="submit" class="button" value="Create" id="newButton">
-			</form>
+			}
 		</section>
 
 		<section id="open">
 			<h2>Open existing app...</h2>
 			<ul>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/longerPath/sosolongpath/remainsOnRight/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
-				<li>
-					<h3><a href="#">Sample app</a></h3>
-					<p class="path"><span>/Users/warry/dev/sampleapp/</span></p>
-				</li>
+				@model.recentApps.map { app =>
+					<li>
+						<h3><a href="@routes.Application.app(app.id)">@app.cachedName.getOrElse(app.id)</a></h3>
+						<p class="path"><span>@app.location</span></p>
+					</li>
+				}
 			</ul>
 		</section>
 	</body>

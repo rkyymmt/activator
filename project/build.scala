@@ -30,7 +30,7 @@ object TheSnapBuild extends Build {
   // Theser are the projects we want in the local SNAP repository
   lazy val publishedProjects = Seq(ui, launcher, props, cache, sbtRemoteProbe, sbtDriver)
 
-  // basic project that gives us properties to use in other projects.  
+  // basic project that gives us properties to use in other projects.
   lazy val props = (
     SnapJavaProject("props")
     settings(Properties.makePropertyClassSetting(SnapDependencies.sbtVersion,SnapDependencies.scalaVersion):_*)
@@ -62,26 +62,54 @@ object TheSnapBuild extends Build {
       sbtProcess % "provided"
     )
   )
-  
+
   lazy val sbtDriver = (
     SbtChildProject("parent")
     settings(Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
     settings(dependsOnSource("../protocol"): _*)
     dependsOn(props)
-    dependsOnRemote(akkaActor, 
+    dependsOnRemote(akkaActor,
                     sbtLauncherInterface)
-  )  
-  
+    settings(
+      // set up embedded sbt for tests, we fork so we can set
+      // system properties.
+      Keys.fork in Keys.test := true,
+      Keys.javaOptions in Keys.test <<= (
+        SbtSupport.sbtLaunchJar,
+        Keys.javaOptions in Keys.test,
+        Keys.classDirectory in Compile in sbtRemoteProbe,
+        Keys.compile in Compile in sbtRemoteProbe) map {
+        (launcher, oldOptions, probeCp, _) =>
+          oldOptions ++ Seq("-Dsnap.sbt.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
+                            "-Dsnap.remote.probe.classpath=" + probeCp.getAbsoluteFile.getAbsolutePath)
+      }
+    )
+  )
+
   lazy val ui = (
     SnapPlayProject("ui")
     dependsOnRemote(
-      webjarsPlay,
-      webjarsBootstrap,
-      webjarsKnockout,
       commonsIo,
       sbtLauncherInterface % "provided"
     )
-    dependsOn(props, cache)
+    dependsOn(props, cache, sbtDriver)
+    settings(
+      // Here we hack the update process that play-run calls to set up everything we need for embedded sbt.
+      // Yes, it's a hack.  BUT we *love* hacks right?
+      Keys.update <<= (
+          SbtSupport.sbtLaunchJar,
+          Keys.update,
+          Keys.classDirectory in Compile in sbtRemoteProbe,
+          Keys.compile in Compile in sbtRemoteProbe) map {
+        (launcher, update, probeCp, _) =>
+          // We register the location after it's resolved so we have it for running play...
+          sys.props("snap.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
+          sys.props("snap.remote.probe.classpath") = probeCp.getAbsoluteFile.getAbsolutePath
+          System.err.println("Updating sbt launch jar: " + sys.props("snap.sbt.launch.jar"))
+          System.err.println("Remote probe classpath = " + sys.props("snap.remote.probe.classpath"))
+          update
+      }
+    )
   )
 
   // TODO - SBT plugin, or just SBT integration?
@@ -91,7 +119,7 @@ object TheSnapBuild extends Build {
     dependsOnRemote(sbtLauncherInterface)
     dependsOn(props)
   )
-  
+
   // A hack project just for convenient IvySBT when resolving artifacts into new local repositories.
   lazy val dontusemeresolvers = (
     SnapProject("dontuseme")
@@ -106,9 +134,6 @@ object TheSnapBuild extends Build {
       dependsOnRemote(sbtLauncherInterface)
       dependsOn(sbtDriver, props, cache)
       settings(
-        // Note: we remve project resolver for IT stuff (lame, I know), so we require publishLocal from our dependencies to update...
-        // Keys.update <<= (Keys.update.task, (Keys.publishLocal in sbtDriver).task) apply ((a, b) => b flatMapR (_ => a)),
-        
         org.sbtidea.SbtIdeaPlugin.ideaIgnoreModule := true
       )
   )
@@ -132,9 +157,9 @@ object TheSnapBuild extends Build {
             CrossVersion(sbv,sv)(id)
         }
       }).join,
-      localRepoArtifacts ++= 
+      localRepoArtifacts ++=
         Seq("org.scala-sbt" % "sbt" % SnapDependencies.sbtVersion,
-            // For some reason, these are not resolving transitively correctly! 
+            // For some reason, these are not resolving transitively correctly!
             "org.scala-lang" % "scala-compiler" % "2.9.2",
             "org.scala-lang" % "scala-compiler" % "2.10.0-RC1",
             "net.java.dev.jna" % "jna" % "3.2.3",

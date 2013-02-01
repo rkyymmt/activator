@@ -1,5 +1,5 @@
 // Sort of MVC (Module, Grid, Router)
-define(['core/plugin', 'core/grid', 'core/router'], function(plugins, Grid, router) {
+define(['./plugin', './grid', './router', './streams'], function(plugins, Grid, router, Streams) {
 
 	var ko = req('vendors/knockout-2.2.1.debug'),
 		key = req('vendors/keymage.min');
@@ -7,19 +7,25 @@ define(['core/plugin', 'core/grid', 'core/router'], function(plugins, Grid, rout
 	// Model for the whole app view
 	var model = {
 		snap: {
-			appName: "Sample App",
+			// TODO - This should be obversvable and we get notified of changes by sbt....
+			appName: window.serverAppModel.name ? window.serverAppModel.name : window.serverAppModel.id,
 			pageTitle: ko.observable()
 		},
 		plugins: plugins,
 		router: router,
-		grid: Grid
+		grid: Grid,
+		streams: Streams,
+		// This is the initialization of the application...
+		init: function() {
+			var self = this;
+			// TODO - initialize plugins...
+			$.each(self.plugins.list, function(idx,plugin) {
+				self.router.registerRoutes(plugin.routes);
+			});
+			self.router.init();
+			ko.applyBindings(self, window.body);
+			return self;
+		}
 	};
-	// TODO - initialize plugins...
-	window.model = model;
-	// Initialize the router now that everything is ready.
-	$.each(plugins.list, function(idx, plugin) {
-		router.registerRoutes(plugin.routes);
-	});
-	router.init();
-	ko.applyBindings(model, window.body);
+	window.model = model.init();
 });

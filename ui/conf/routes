@@ -9,35 +9,24 @@ POST    /api/templates/clone        controllers.api.Templates.cloneTemplate
 
 # Operations on an app
 # TODO: Should these take the app location as a request parameter?
-GET     /api/app/details            controllers.api.App.getDetails(location)
-GET     /api/app/history            controllers.api.App.getHistory
-
-# TODO: GET? POST? PUT?
-GET     /api/app/open               controllers.api.App.openLocation(location)
-GET     /api/app/start              controllers.api.App.startApp(location)
+GET     /api/app/history            controllers.Application.getHistory
+GET     /api/app/connect/*id        controllers.Application.connectApp(id)
 
 # Local system operations
 GET     /api/local/env              controllers.api.Local.getEnv
 GET     /api/local/browse           controllers.api.Local.browse(location)
 GET     /api/local/show             controllers.api.Local.show(location)
 
-
-# Plugin API
-GET    /api/plugin/*file            controllers.Assets.at(path="/public/joshplugins", file)
-
-GET     /webjars/*file              controllers.WebJarAssets.at(file)
-
 # Events API
 GET     /api/event/stream           controllers.api.Events.eventSource
 GET     /api/event/test             controllers.api.Events.test
 GET     /api/event/kill             controllers.api.Events.kill
 
+# Base flow ->  Select Template -> Running Application.
 GET     /                            controllers.Application.index
 GET     /home                        controllers.Application.forceHome
-GET     /app                         controllers.Application.app
-
-GET     /                            controllers.Application.index
-GET     /app                         controllers.Application.app
+GET     /app/*id                     controllers.Application.app(id)
+POST    /newApplication              controllers.Application.newApplication
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /public/*file               controllers.Assets.at(path="/public", file)
