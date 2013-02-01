@@ -9,6 +9,9 @@ import com.typesafe.sbtchild._
 import sbt.Aggregation.KeyValue
 import sbt.complete.DefaultParsers
 import sbt.Load.BuildStructure
+import java.net.SocketException
+import java.io.EOFException
+import java.io.IOException
 
 object SetupSbtChild extends (State => State) {
   // this is the entry point invoked by sbt
@@ -73,13 +76,22 @@ object SetupSbtChild extends (State => State) {
             client.replyJson(serial, protocol.ErrorResponse(e.getMessage, logger.get))
             origState
         }
-      case _ =>
-        throw new Exception("Bad request: " + req)
+      case _ => {
+        client.replyJson(req.serial, protocol.ErrorResponse("Unknown request: " + req, logger.get))
+        origState
+      }
     }
   }
 
   val listen = Command.command(ListenCommandName, Help.more(ListenCommandName, "listens for remote commands")) { origState =>
-    val req = protocol.Envelope(client.receive())
+    val req = try {
+      protocol.Envelope(client.receive())
+    } catch {
+      case e: IOException =>
+        System.err.println("Lost connection to parent process: " + e.getClass.getSimpleName() + ": " + e.getMessage())
+        System.exit(0)
+        throw new RuntimeException("not reached") // compiler doesn't know that System.exit never returns
+    }
 
     val newLogger = new CaptureLogger(origState.globalLogging.full)
     val newLogging = origState.globalLogging.copy(full = newLogger)
