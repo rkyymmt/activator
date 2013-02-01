@@ -39,8 +39,10 @@ define(function() {
     // this.render ???  - The rendering of the widget....
     var routes = {};
     // TODO - Put this somewhere else or configure it?
-    var ErrorWidget = Class({
-        title: 'Not found!'
+    var ErrorWidget = Widget({
+    		id: 'Error widget',
+    		title: 'Not found!',
+    		template: 'Url not found!'
     });
 
     // Create the args setting for breadcrumbs.
