@@ -9,6 +9,10 @@ import java.io.File
  */
 object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
 
+  if ((sys.props("snap.remote.probe.classpath") eq null) ||
+    (sys.props("snap.sbt.launch.jar") eq null))
+    throw new RuntimeException("DebugSbtChildProcessMaker requires system props to be set")
+
   private lazy val probeClassPath: Seq[File] = Seq(new File(sys.props("snap.remote.probe.classpath")))
   private lazy val sbtLauncherJar: String = sys.props("snap.sbt.launch.jar")
 
