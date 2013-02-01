@@ -71,4 +71,44 @@ class ChildTest {
       system.shutdown()
     }
   }
+
+  object EchoHelloChildProcessMaker extends SbtChildProcessMaker {
+
+    def arguments(port: Int): Seq[String] = Seq("echo", "Hello World")
+  }
+
+  @Test
+  def testChildProcessNeverConnects(): Unit = {
+    val system = ActorSystem("test-child-never-connects")
+
+    val child = SbtChild(system, new File("."), EchoHelloChildProcessMaker)
+
+    // the test is that the child should die on its own so actor system shutdown should work
+
+    system.shutdown()
+  }
+
+  @Test
+  def testRunChild(): Unit = {
+    implicit val timeout = Timeout(60.seconds)
+
+    val dummy = makeDummySbtProject("runChild")
+
+    val system = ActorSystem("test-run-child")
+    try {
+      val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
+
+      try {
+        Await.result(child ? RunRequest, timeout.duration) match {
+          case RunResponse(logs) =>
+          case whatever => throw new AssertionError("did not get RunResponse")
+        }
+      } finally {
+        system.stop(child)
+      }
+
+    } finally {
+      system.shutdown()
+    }
+  }
 }
