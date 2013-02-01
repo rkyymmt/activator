@@ -100,7 +100,7 @@ class ChildPoolTest {
     var recording = Vector.empty[Any]
 
     def record(x: Any): Unit = {
-      println("recording: " + x)
+      //println("recording: " + x)
       recording :+= x
     }
 
