@@ -8,9 +8,18 @@ import java.io.File
  * inside the SBT UI so we can run sbt children.
  */
 object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
+  private val probeClassPathProp = "snap.remote.probe.classpath"
+  private val sbtLauncherJarProp = "snap.sbt.launch.jar"
+  private val allNeededProps = Seq(probeClassPathProp, sbtLauncherJarProp)
 
-  private lazy val probeClassPath: Seq[File] = Seq(new File(sys.props("snap.remote.probe.classpath")))
-  private lazy val sbtLauncherJar: String = sys.props("snap.sbt.launch.jar")
+  {
+    val missing = allNeededProps.filter(sys.props(_) eq null)
+    if (missing.nonEmpty)
+      throw new RuntimeException("DebugSbtChildProcessMaker requires system props: " + missing)
+  }
+
+  private lazy val probeClassPath: Seq[File] = Seq(new File(sys.props(probeClassPathProp)))
+  private lazy val sbtLauncherJar: String = sys.props(sbtLauncherJarProp)
 
   def arguments(port: Int): Seq[String] = {
     val portArg = "-Dsnap.sbt-child-port=" + port.toString

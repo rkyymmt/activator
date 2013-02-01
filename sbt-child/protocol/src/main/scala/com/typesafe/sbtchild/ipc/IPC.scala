@@ -9,6 +9,7 @@ import java.io.IOException
 import java.nio.charset.Charset
 import java.io.InputStream
 import scala.util.parsing.json._
+import java.net.SocketException
 
 trait Envelope[T] {
   def serial: Long
@@ -61,13 +62,13 @@ abstract class Peer(protected val socket: Socket) {
     val m = receive()
     if (m.serial != 1L) {
       close()
-      throw new IOException("Expected handshake serial 1")
+      throw new RuntimeException("Expected handshake serial 1")
     }
 
     val s = m.asString
     if (s != toExpect) {
       close()
-      throw new IOException("Expected greeting '" + toExpect + "' received '" + s + "'")
+      throw new RuntimeException("Expected greeting '" + toExpect + "' received '" + s + "'")
     }
   }
 
@@ -75,7 +76,7 @@ abstract class Peer(protected val socket: Socket) {
 
   def send(message: WireEnvelope): Unit = {
     if (isClosed)
-      throw new IOException("socket is closed")
+      throw new SocketException("socket is closed")
     out.writeInt(message.length)
     out.writeLong(message.serial)
     out.writeLong(message.replyTo)
@@ -96,7 +97,7 @@ abstract class Peer(protected val socket: Socket) {
 
   def receive(): WireEnvelope = {
     if (isClosed)
-      throw new IOException("socket is closed")
+      throw new SocketException("socket is closed")
     val length = in.readInt()
     val serial = in.readLong()
     val replyTo = in.readLong()

@@ -41,7 +41,27 @@ object LogEntry {
 }
 
 // These are wire messages on the socket
-sealed trait Message
+sealed trait Message {
+  // this makes it prettier when writing json by hand e.g. in JavaScript
+  private def removeDollar(s: String) = {
+    val i = s.lastIndexOf('$')
+    if (i >= 0)
+      s.substring(0, i)
+    else
+      s
+  }
+  // avoiding class.getSimpleName because apparently it's buggy with some
+  // Scala name manglings
+  private def lastChunk(s: String) = {
+    val i = s.lastIndexOf('.')
+    if (i >= 0)
+      s.substring(i + 1)
+    else
+      s
+  }
+  def jsonTypeString = removeDollar(lastChunk(getClass.getName))
+}
+
 sealed trait Request extends Message
 sealed trait Response extends Message
 sealed trait Event extends Message
@@ -74,7 +94,7 @@ object Message {
       // will get us going until we better understand
       // the non-bogus.
       import scala.util.parsing.json._
-      val base = Map("type" -> m.getClass.getSimpleName)
+      val base = Map("type" -> m.jsonTypeString)
       val obj: Map[String, Any] = m match {
         case CompileRequest | NameRequest | RunRequest | Started | Stopped =>
           base
@@ -110,15 +130,15 @@ object Message {
       json match {
         case JSONObject(obj) =>
           obj("type") match {
-            case "NameRequest$" =>
+            case "NameRequest" =>
               NameRequest
             case "NameResponse" =>
               NameResponse(obj("name").asInstanceOf[String], parseLogList(obj, "logs"))
-            case "CompileRequest$" =>
+            case "CompileRequest" =>
               CompileRequest
             case "CompileResponse" =>
               CompileResponse(parseLogList(obj, "logs"))
-            case "RunRequest$" =>
+            case "RunRequest" =>
               RunRequest
             case "RunResponse" =>
               RunResponse(parseLogList(obj, "logs"))
@@ -144,12 +164,22 @@ case class Envelope(override val serial: Long, override val replyTo: Long, overr
 
 object Envelope {
   def apply(wire: ipc.WireEnvelope): Envelope = {
-    val json = JSON.parseFull(wire.asString) match {
-      case Some(obj: Map[_, _]) => JSONObject(obj.asInstanceOf[Map[String, _]])
-      case whatever =>
-        throw new Exception("JSON parse failure on: " + wire.asString + " parsed: " + whatever)
+    val message = try {
+      val json = JSON.parseFull(wire.asString) match {
+        case Some(obj: Map[_, _]) => JSONObject(obj.asInstanceOf[Map[String, _]])
+        case whatever =>
+          throw new Exception("JSON parse failure on: " + wire.asString + " parsed: " + whatever)
+      }
+      // this can throw malformed json errors
+      implicitly[JsonReader[Message]].fromJson(json)
+    } catch {
+      case e: Exception =>
+        // probably a JSON parse failure
+        if (wire.replyTo != 0L)
+          ErrorResponse(e.getClass.getSimpleName + ": " + e.getMessage, Nil)
+        else
+          MysteryMessage(try wire.asString catch { case e: Exception => wire })
     }
-    val message = implicitly[JsonReader[Message]].fromJson(json)
     Envelope(wire.serial, wire.replyTo, message)
   }
 }

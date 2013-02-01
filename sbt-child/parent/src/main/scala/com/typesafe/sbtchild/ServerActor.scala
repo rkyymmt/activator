@@ -5,6 +5,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.net.ServerSocket
 import java.net.SocketException
+import java.io.EOFException
 
 // these are messages to/from the actor; we also just
 // forward the Envelope directly from the wire
@@ -98,7 +99,8 @@ class ServerActor(serverSocket: ServerSocket) extends Actor with ActorLogging {
             selfRef ! ServerAccepted(server)
             selfRef ! protocol.Envelope(0L, 0L, protocol.Started)
 
-            while (!server.isClosed) {
+            // loop is broken by EOFException or SocketException
+            while (true) {
               val wire = server.receive()
               log.debug("  server received from child: {}", wire)
               selfRef ! protocol.Envelope(wire)
@@ -111,6 +113,9 @@ class ServerActor(serverSocket: ServerSocket) extends Actor with ActorLogging {
           case e: SocketException =>
             // on socket close, this is expected; don't let it throw up to the default handler
             log.debug("  server socket appears to be closed, {}", e.getMessage())
+          case e: EOFException =>
+            // expected if the other side exits cleanly
+            log.debug("  server socket EOF, {}", e.getMessage)
         } finally {
           log.debug("  server actor thread ending")
           selfRef ! protocol.Envelope(0L, 0L, protocol.Stopped)
