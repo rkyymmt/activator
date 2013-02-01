@@ -43,14 +43,23 @@ object LogEntry {
 // These are wire messages on the socket
 sealed trait Message {
   // this makes it prettier when writing json by hand e.g. in JavaScript
-  private def remove$(s: String) = {
-    val i = s.lastIndexOf("$")
+  private def removeDollar(s: String) = {
+    val i = s.lastIndexOf('$')
     if (i >= 0)
       s.substring(0, i)
     else
       s
   }
-  def jsonTypeString = remove$(getClass.getSimpleName)
+  // avoiding class.getSimpleName because apparently it's buggy with some
+  // Scala name manglings
+  private def lastChunk(s: String) = {
+    val i = s.lastIndexOf('.')
+    if (i >= 0)
+      s.substring(i + 1)
+    else
+      s
+  }
+  def jsonTypeString = removeDollar(lastChunk(getClass.getName))
 }
 
 sealed trait Request extends Message
