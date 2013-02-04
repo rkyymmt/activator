@@ -37,6 +37,9 @@ public class SnapProperties {
     return value;
   }
 
+  public static String BLUEPRINT_UUID_PROPERTY_NAME = "blueprint.uuid";
+  public static String SNAP_ABI_VERSION_PROPERTY_NAME = "snap.abi.version";
+  
   public static String APP_VERSION() {
     return props.getProperty("app.version");
   }

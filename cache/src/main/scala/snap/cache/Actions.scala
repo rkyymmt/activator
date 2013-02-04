@@ -1,4 +1,8 @@
-package snap.cache
+package snap
+package cache
+
+import properties.SnapProperties
+import java.io.File
 
 /**
  * this class contains all template cache actions for both the UI and the console-based
@@ -24,7 +28,25 @@ object Actions {
     } if (file.isDirectory) snap.cache.IO.createDirectory(to)
     else snap.cache.IO.copyFile(file, to)
 
+    // Write necessary IDs to the properties file!
+    val propsFile = new File(location, "project/build.properties")
+    IO.createDirectory(propsFile.getParentFile)
+    // TODO - Force sbt version?
+    updateProperties(propsFile,
+      Map(
+        SnapProperties.BLUEPRINT_UUID_PROPERTY_NAME -> id,
+        SnapProperties.SNAP_ABI_VERSION_PROPERTY_NAME -> SnapProperties.APP_ABI_VERSION))
     // TODO - Capture errors and return a nicer message...
     ()
+  }
+
+  private def updateProperties(propsFile: File, newProps: Map[String, String]): Unit = {
+    val props = IO loadProperties propsFile
+    // Updated props
+    for {
+      (key, value) <- newProps
+    } props setProperty (key, value)
+    // Write props
+    IO storeProperties (propsFile, props)
   }
 }

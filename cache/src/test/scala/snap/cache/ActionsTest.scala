@@ -3,6 +3,7 @@ package snap.cache
 import java.io._
 import org.junit.Assert._
 import org.junit._
+import snap.properties.SnapProperties._
 
 class ActionsTest {
   @Test
@@ -15,8 +16,15 @@ class ActionsTest {
       val m = TemplateMetadata(id, "", "", "", Seq.empty)
       override val metadata = Seq(m)
       override def template(id: String) =
-        Some(Template(m, Seq(templateFile -> "installed-file")))
+        Some(Template(m, Seq(
+          templateFile -> "installed-file",
+          dir -> "project",
+          templateFile -> "project/build.properties")))
       override def tutorial(id: String) = None
+      Some(Template(m, Seq(
+        templateFile -> "installed-file",
+        dir -> "project",
+        templateFile -> "project/build.properties")))
       override def search(query: String): Iterable[TemplateMetadata] = metadata
     }
     val installLocation = new java.io.File(dir, "template-install")
@@ -30,5 +38,9 @@ class ActionsTest {
     val installedFile = new File(installLocation, "installed-file")
     assert(installedFile.exists)
     // TODO - Check contents of the file, after we make the file.
+
+    // Check that blueprint ID was successfully written out.
+    val props = IO loadProperties new File(installLocation, "project/build.properties")
+    assert(props.getProperty(BLUEPRINT_UUID_PROPERTY_NAME) == id)
   }
 }

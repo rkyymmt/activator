@@ -150,5 +150,23 @@ object IO {
   def wrapNull(a: Array[File]) =
     if (a == null) new Array[File](0)
     else a
+
+  /**
+   * Loads a properties file into a java.util.Properties.
+   * Note: May throw IOException.
+   */
+  def loadProperties(file: File): java.util.Properties = {
+    val tmp = new java.util.Properties
+    val input = new java.io.FileInputStream(file)
+    try tmp load input
+    finally input.close()
+    tmp
+  }
+
+  def storeProperties(file: File, props: java.util.Properties) = {
+    val output = new java.io.FileOutputStream(file)
+    try props.store(output, "")
+    finally output.close()
+  }
 }
 
