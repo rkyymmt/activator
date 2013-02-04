@@ -2,6 +2,8 @@ package snap.cache
 
 import snap.properties.SnapProperties
 
+// TODO - This whole thing should use an abstraction file files, like "Source" or some such.
+
 // TODO - This may need more work.
 // TODO - We probably are on the limit of fields for a useful case-class....
 case class TemplateMetadata(id: String,
@@ -11,6 +13,9 @@ case class TemplateMetadata(id: String,
   tags: Seq[String]) {
   // TODO - update equality/hashcode to be based on ID
 }
+
+/** A mapping of the files included in this tutorial. */
+case class Tutorial(id: String, files: Map[String, java.io.File])
 case class Template(metadata: TemplateMetadata,
   files: Seq[(java.io.File, String)]) // TODO - What do we need for help?
 
@@ -21,6 +26,9 @@ case class Template(metadata: TemplateMetadata,
 trait TemplateCache {
   /** Find a template within the cache. */
   def template(id: String): Option[Template]
+  /** Find the tutorial for a given template. */
+  // TODO - Different method, or against Template?
+  def tutorial(id: String): Option[Tutorial]
   /** Search for a template within the cache. */
   def search(query: String): Iterable[TemplateMetadata]
   /** Returns all metadata we have for templates. */
@@ -72,8 +80,22 @@ class DemoTemplateCache() extends TemplateCache {
         file <- IO allfiles templateDir
         relative <- IO.relativize(templateDir, file)
         if !relative.isEmpty
+        if !(relative startsWith "tutorial")
       } yield file -> relative
       Template(metadata, fileMappings ++ defaultTemplateFiles)
+    }
+
+  override def tutorial(id: String): Option[Tutorial] =
+    index get id map { metadata =>
+      // TODO - Find all files associated with a template...
+      val templateDir = new java.io.File(cacheDir, id + "/tutorial")
+      val fileMappings = for {
+        file <- IO allfiles templateDir
+        if !file.isDirectory
+        relative <- IO.relativize(templateDir, file)
+        if !relative.isEmpty
+      } yield relative -> file
+      Tutorial(id, fileMappings.toMap)
     }
 
   override def search(query: String): Iterable[TemplateMetadata] =

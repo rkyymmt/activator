@@ -29,6 +29,19 @@ object Templates extends Controller {
     Ok(Json toJson templateCache.metadata)
   }
 
+  def tutorial(id: String, location: String) = Action { request =>
+    // TODO - Use a freaking Validation  applicative functor so this isn't so ugly. 
+    val result =
+      for {
+        tutorial <- templateCache tutorial id
+        file <- tutorial.files get location
+      } yield file
+    result match {
+      case Some(file) => Ok sendFile file
+      case _ => NotFound
+    }
+  }
+
   def cloneTemplate = Action(parse.json) { request =>
 
     val location = new java.io.File((request.body \ "location").as[String])
