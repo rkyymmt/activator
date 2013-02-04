@@ -38,7 +38,7 @@ object Templates extends Controller {
       } yield file
     result match {
       case Some(file) => Ok sendFile file
-      case _ => NotAcceptable("Could not find blueprint with id: " + id)
+      case _ => NotFound
     }
   }
 
