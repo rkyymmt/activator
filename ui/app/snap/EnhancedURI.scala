@@ -63,11 +63,11 @@ class EnhancedURI(val uri: URI) {
   /** Replace (or add if not present) a set of query parameters */
   def replaceQueryParameters(params: Map[String, Seq[String]]): URI = {
     val existing = uri.getRawQuery()
-    copy(query = {
+    copy(query = encodeQuery {
       if (existing eq null)
-        encodeQuery(params)
+        params
       else
-        encodeQuery(parseQuery(existing) ++ params)
+        parseQuery(existing) ++ params
     })
   }
 
@@ -84,11 +84,11 @@ class EnhancedURI(val uri: URI) {
   /** Add a set of query parameters creating duplicates if already present */
   def addQueryParameters(params: Map[String, Seq[String]]): URI = {
     val existing = uri.getRawQuery()
-    copy(query = {
+    copy(query = encodeQuery {
       if (existing eq null)
-        encodeQuery(params)
+        params
       else
-        encodeQuery(mergeQuery(parseQuery(existing), params))
+        mergeQuery(parseQuery(existing), params)
     })
   }
 
