@@ -11,6 +11,10 @@ POST    /api/templates/clone        controllers.api.Templates.cloneTemplate
 # TODO: Should these take the app location as a request parameter?
 GET     /api/app/history            controllers.Application.getHistory
 GET     /api/app/connect/*id        controllers.Application.connectApp(id)
+POST    /api/app/fromLocation       controllers.Application.appFromLocation
+
+# sbt things
+POST    /api/sbt/task               controllers.api.Sbt.task
 
 # Local system operations
 GET     /api/local/env              controllers.api.Local.getEnv
