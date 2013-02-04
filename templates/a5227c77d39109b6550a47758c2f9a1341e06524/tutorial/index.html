@@ -1,0 +1,67 @@
+<html>
+<head>
+  <title>Hello Scala - Builder Blueprint</title>
+</head>
+<body>
+<div>
+You've just created a very simply Scala application!  Now lets explore the code, see it run, and makes some changes.
+
+Part 1) Explore the Code
+
+This very simple application contains just one source file.  To navigate to that file, select "Code" on the left, then select the "app" directory, and select the "Hello.scala" file.  &gt;Shortcut: Take me there&lt;
+
+Now you are seeing source of the "Hello" object.  You'll notice that this object extends the "App" trait which provides a simple way to create an executable application.  The body of the object simply prints "hello, world" to the console.
+</div>
+<div>
+Part 2) Run the App
+
+When you created this new application it was automatically run.  To see the output select "Run" on the left where you should see the "hello, world" message.  &gt;Shortcut: Take me there&lt;
+
+Every time the source code for the application changes, the application will be recompiled and rerun.  If the application has compile errors they will be displayed in the Run console.  You can disable auto-running of the application by unchecking the "auto-run" box.
+</div>
+<div>
+Part 3) Make Changes
+
+To make changes to the application go back to Code &gt;Shortcut: Take me there&lt; and then select the app's location to open your file explorer.  Now open the "Hello.scala" file in the text editor of your choice.  Change "hello, world" to "hello, Builder" and save the file.
+
+Navigate back to Run &gt;Shortcut: Take me there&lt; and you should now see "hello, Builder" displayed.
+
+You can also open this application in either Eclipse or IntelliJ IDEA.  In the Code Plugin, select either "Open in Eclipse" or "Open in IntelliJ" to generate the project files and then follow the instructions to open the project.
+</div>
+<div>
+Part 4) Test the App
+
+Like Run, this application is automatically tested when the source code changes.  Select Test to see the test results and test output.  &gt;Shortcut: Take me there&lt;
+
+The application has one test that is currently passing.  Navigate to the source code either by selecting "HelloTest" or by going to Code, navigating into the "test" directory, and selecting the "HelloTest.scala" file. &gt;Shortcut: Take me there&lt;
+Open the "HelloTest.scala" file in your text editor or IDE and change "hello" to "howdy".  Save the file and the Test console will re-run the tests, this time indicating that the test has failed.  Change the "hello" to "howdy" in the "Hello.scala" file to fix the application.
+</div>
+<div>
+Part 5) Add New Code
+
+Before writing new application code, create a new test which will fail at first.  In Code, select the "test" directory, select "New...", and enter "FooSpec.scala" as the file name.  Edit the new file and update it's contents to be:
+
+<pre><code>
+import collection.mutable.Stack
+import org.scalatest._
+
+class FooSpec extends FlatSpec with ShouldMatchers {
+  "A Foo" should "return a greeting" in {
+    val foo = new Foo
+    foo.howdy("Jim") should equal "howdy, Jim"
+  }
+}
+</code></pre>
+
+Save the "FooSpec.scala" file.  This will trigger a compile error because the "Foo" class does not get exist.  In Code, navigate to the "app" directory and create a new file named "Foo.scala" containing:
+
+<pre><code>
+class Foo {
+    def howdy(name: String) = "howdy, " + name
+}
+</code></pre>
+
+Save the "Foo.scala" file.  This will cause the application to be recompiled, re-run, and re-tested.  Now both tests should pass.
+</div>
+</body>
+</html>
