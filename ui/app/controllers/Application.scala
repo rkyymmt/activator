@@ -34,6 +34,8 @@ case class NewAppForm(
   location: String,
   blueprint: String)
 
+case class FromLocationForm(location: String)
+
 // Here is where we detect if we're running at a given project...
 object Application extends Controller {
 
@@ -116,6 +118,38 @@ object Application extends Controller {
           Redirect(routes.Application.forceHome)
       }
     }
+  }
+
+  val fromLocationForm = Form(
+    mapping(
+      "location" -> text)(FromLocationForm.apply)(FromLocationForm.unapply))
+
+  /**
+   * Registers a location as an application, returning JSON with the app ID.
+   * Basically this is "import existing directory"
+   */
+  def appFromLocation() = Action { implicit request =>
+    val form = fromLocationForm.bindFromRequest.get
+    val file = try {
+      val f = new File(form.location)
+      if (!f.exists)
+        throw new RuntimeException("does not exist: " + form.location)
+      Right(f)
+    } catch {
+      case e: Exception =>
+        Left(e)
+    }
+    file.fold({ e =>
+      BadRequest(e.getMessage())
+    }, { file =>
+      // TODO loadAppIdFromLocation should return an Either with an error string
+      val id = AppManager.loadAppIdFromLocation(file)
+      Async(id map {
+        case Some(id) => Ok(JsObject(Seq("id" -> JsString(id))))
+        case _ =>
+          BadRequest("failed to load app at " + file.getAbsolutePath)
+      })
+    })
   }
 
   /**
