@@ -18,7 +18,8 @@ case class ApplicationModel(
   id: String,
   location: String,
   plugins: Seq[String],
-  name: String) {
+  name: String,
+  blueprint: String) {
 
   def jsLocation = location.replaceAll("'", "\\'")
 }
@@ -149,7 +150,9 @@ object Application extends Controller {
       app.config.id,
       app.config.location.getAbsolutePath,
       Seq("plugins/code/code", "plugins/play/play"),
-      app.config.cachedName getOrElse app.config.id)
+      app.config.cachedName getOrElse app.config.id,
+      // TODO - something less lame than exception here...
+      app.blueprintUUID getOrElse sys.error("Could not find blueprint for " + app))
 
   /** The current working directory of the app. */
   val cwd = (new java.io.File(".").getAbsoluteFile.getParentFile)

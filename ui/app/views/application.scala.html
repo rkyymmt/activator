@@ -13,6 +13,9 @@
       pluginIds:  [ @model.plugins.mkString("'", "','","'") ],
       location: '@model.jsLocation',
       wsUrl: '@routes.Application.connectApp(model.id).webSocketURL()',
+      blueprint: {
+      	id: '@model.blueprint'
+      }
     };
 		</script>
 		<script data-main="/public/javascripts/main.js" type="text/javascript" src="/public/javascripts/vendors/require.min.js"></script>
