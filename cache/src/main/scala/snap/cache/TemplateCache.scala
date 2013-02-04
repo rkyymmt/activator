@@ -72,6 +72,7 @@ class DemoTemplateCache() extends TemplateCache {
         file <- IO allfiles templateDir
         relative <- IO.relativize(templateDir, file)
         if !relative.isEmpty
+        if !(relative startsWith "tutorial")
       } yield file -> relative
       Template(metadata, fileMappings ++ defaultTemplateFiles)
     }
