@@ -12,9 +12,11 @@
       id: '@model.id',
       pluginIds:  [ @model.plugins.mkString("'", "','","'") ],
       location: '@model.jsLocation',
-      wsUrl: '@routes.Application.connectApp(model.id).webSocketURL()',
-      blueprint: {
-      	id: '@model.blueprint'
+      wsUrl: '@routes.Application.connectApp(model.id).webSocketURL()'
+      @for(id <- model.blueprint) {
+        ,blueprint: {
+      	  id: '@model.blueprint'
+        }
       }
     };
 		</script>

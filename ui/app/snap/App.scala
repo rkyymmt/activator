@@ -9,15 +9,14 @@ import scala.util.control.NonFatal
 class App(val config: AppConfig, val system: ActorSystem, val sbtMaker: SbtChildProcessMaker) {
   val actor = system.actorOf(Props(new AppActor(config.location, sbtMaker)), name = App.nextName)
 
-  def blueprintUUID: Option[String] =
+  // TODO - this method is dangerous, as it hits the file system.
+  // Figure out when it should initialize/run.
+  val blueprintID: Option[String] =
     try {
-      val props = new java.util.Properties
-      val input = new java.io.FileInputStream(new java.io.File(config.location, "project/build.properties"))
-      try props load input
-      finally input.close()
-      Option(props.getProperty(SnapProperties.BLUEPRINT_UUID_PROPERTY_NAME))
+      val props = snap.cache.IO loadProperties (new java.io.File(config.location, "project/build.properties"))
+      Option(props.getProperty(SnapProperties.BLUEPRINT_UUID_PROPERTY_NAME, null))
     } catch {
-      case NonFatal(e) => None
+      case e: java.io.IOException => None // TODO - Log?
     }
 
   def close(): Unit = {
