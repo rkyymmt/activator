@@ -1,11 +1,13 @@
 /**
  *  Copyright (C) 2011-2013 Typesafe, Inc <http://typesafe.com>
  */
-package models
+package snap
 
 import java.net.URI
 import java.net.URLDecoder
 import java.net.URLEncoder
+import language.implicitConversions
+import java.net.URISyntaxException
 
 object EnhancedURI {
   implicit def uri2enhanced(uri: URI) = new EnhancedURI(uri)
@@ -28,10 +30,29 @@ object EnhancedURI {
  */
 class EnhancedURI(val uri: URI) {
   /** Copy a URI case-class-style, changing only some fields by keyword */
-  def copy(scheme: String = uri.getScheme(), userInfo: String = uri.getUserInfo(),
-           host: String = uri.getHost(), port: Int = uri.getPort(), path: String = uri.getPath(),
-           query: String = uri.getQuery(), fragment: String = uri.getFragment()): URI = {
-    new URI(scheme, userInfo, host, port, path, query, fragment);
+  def copy(scheme: String = uri.getScheme(), userInfo: String = uri.getRawUserInfo(),
+    host: String = uri.getHost(), port: Int = uri.getPort(), path: String = uri.getRawPath(),
+    query: String = uri.getRawQuery(), fragment: String = uri.getRawFragment()): URI = {
+    // We can't use the multi-parameter URI constructors because they are busted;
+    // the query string is expected to have nothing hex-escaped...
+    // but then you can't have & or = in the parameter values.
+    // (It's possible the path, etc. handling is similarly busted, not sure.)
+    // So we instead of have to re-implement URI.toString and then re-parse it,
+    // because that's the only way I know to get java.net.URI to load a correctly-escaped
+    // query string. Software... sigh.
+    def ipv6ify(h: String) = if (h.contains(':') && !h.startsWith("[")) "[" + h + "]" else h
+    def opt(s: String)(f: String => String): String = Option(s).map(f).getOrElse("")
+    val s = opt(scheme)(_ + ":") +
+      opt(host) { host =>
+        "//" +
+          opt(userInfo)(_ + "@") +
+          ipv6ify(host) +
+          (if (port != -1) ":" + port else "")
+      } +
+      opt(path)(identity) +
+      opt(query)("?" + _) +
+      opt(fragment)("#" + _)
+    new URI(s)
   }
 
   /** Replace (or add if not present) one query parameter */
@@ -41,7 +62,7 @@ class EnhancedURI(val uri: URI) {
 
   /** Replace (or add if not present) a set of query parameters */
   def replaceQueryParameters(params: Map[String, Seq[String]]): URI = {
-    val existing = uri.getQuery()
+    val existing = uri.getRawQuery()
     if (existing == null)
       copy(query = encodeQuery(params))
     else
@@ -60,7 +81,7 @@ class EnhancedURI(val uri: URI) {
 
   /** Add a set of query parameters creating duplicates if already present */
   def addQueryParameters(params: Map[String, Seq[String]]): URI = {
-    val existing = uri.getQuery()
+    val existing = uri.getRawQuery()
     if (existing == null)
       copy(query = encodeQuery(params))
     else
@@ -83,6 +104,14 @@ class EnhancedURI(val uri: URI) {
     }
   }
 
+  private def decodeValue(encoded: String) = {
+    URLDecoder.decode(encoded, "UTF-8")
+  }
+
+  private def encodeValue(decoded: String) = {
+    URLEncoder.encode(decoded, "UTF-8")
+  }
+
   private def parseOnePair(keyEqualsValue: String): Map[String, String] = {
     if (keyEqualsValue.length() == 0) {
       Map.empty
@@ -91,7 +120,7 @@ class EnhancedURI(val uri: URI) {
       if (e < 0) {
         Map(keyEqualsValue -> "")
       } else {
-        Map(keyEqualsValue.substring(0, e) -> URLDecoder.decode(keyEqualsValue.substring(e + 1), "UTF-8"))
+        Map(keyEqualsValue.substring(0, e) -> decodeValue(keyEqualsValue.substring(e + 1)))
       }
     }
   }
@@ -122,7 +151,7 @@ class EnhancedURI(val uri: URI) {
     // makes the test suite a lot easier
     query.toSeq.sortBy(_._1).foldLeft("")({ (sofar, kv) ⇒
       val pairs = for { v ← kv._2 }
-        yield kv._1 + "=" + URLEncoder.encode(v, "UTF-8")
+        yield kv._1 + "=" + encodeValue(v)
       val encoded = pairs.mkString("&")
       if (sofar.length() == 0)
         encoded
