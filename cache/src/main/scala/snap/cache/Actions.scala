@@ -41,21 +41,12 @@ object Actions {
   }
 
   private def updateProperties(propsFile: File, newProps: Map[String, String]): Unit = {
-    val props = {
-      val tmp = new java.util.Properties
-      val input = new java.io.FileInputStream(propsFile)
-      try tmp load input
-      finally input.close()
-      tmp
-    }
+    val props = IO loadProperties propsFile
     // Updated props
     for {
       (key, value) <- newProps
-    } props.setProperty(key, value)
+    } props setProperty (key, value)
     // Write props
-    val output = new java.io.FileOutputStream(propsFile)
-    try props.store(output, "")
-    finally output.close()
-    ()
+    IO storeProperties (propsFile, props)
   }
 }

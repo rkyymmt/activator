@@ -35,15 +35,7 @@ class ActionsTest {
     // TODO - Check contents of the file, after we make the file.
 
     // Check that blueprint ID was successfully written out.
-    val props = loadProperties(new File(installLocation, "project/build.properties"))
+    val props = IO loadProperties new File(installLocation, "project/build.properties")
     assert(props.getProperty(BLUEPRINT_UUID_PROPERTY_NAME) == id)
-  }
-
-  private def loadProperties(file: File) = {
-    val tmp = new java.util.Properties
-    val input = new java.io.FileInputStream(file)
-    try tmp load input
-    finally input.close()
-    tmp
   }
 }
