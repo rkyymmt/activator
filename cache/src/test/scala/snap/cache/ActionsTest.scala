@@ -16,6 +16,7 @@ class ActionsTest {
       override val metadata = Seq(m)
       override def template(id: String) =
         Some(Template(m, Seq(templateFile -> "installed-file")))
+      override def tutorial(id: String) = None
       override def search(query: String): Iterable[TemplateMetadata] = metadata
     }
     val installLocation = new java.io.File(dir, "template-install")

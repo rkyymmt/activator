@@ -4,8 +4,9 @@
 # TODO: Do we need the Builder ABI version in the URL?
 
 # Templates
-GET     /api/templates/list         controllers.api.Templates.list
-POST    /api/templates/clone        controllers.api.Templates.cloneTemplate
+GET     /api/templates/list                     controllers.api.Templates.list
+POST    /api/templates/clone                    controllers.api.Templates.cloneTemplate
+GET     /api/templates/:id/tutorial/*location	controllers.api.Templates.tutorial(id, location)
 
 # Operations on an app
 # TODO: Should these take the app location as a request parameter?
