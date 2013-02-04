@@ -63,10 +63,12 @@ class EnhancedURI(val uri: URI) {
   /** Replace (or add if not present) a set of query parameters */
   def replaceQueryParameters(params: Map[String, Seq[String]]): URI = {
     val existing = uri.getRawQuery()
-    if (existing == null)
-      copy(query = encodeQuery(params))
-    else
-      copy(query = encodeQuery(parseQuery(existing) ++ params))
+    copy(query = {
+      if (existing eq null)
+        encodeQuery(params)
+      else
+        encodeQuery(parseQuery(existing) ++ params)
+    })
   }
 
   /** Replace (or add if not present) the params in the encoded query string */
@@ -82,10 +84,12 @@ class EnhancedURI(val uri: URI) {
   /** Add a set of query parameters creating duplicates if already present */
   def addQueryParameters(params: Map[String, Seq[String]]): URI = {
     val existing = uri.getRawQuery()
-    if (existing == null)
-      copy(query = encodeQuery(params))
-    else
-      copy(query = encodeQuery(mergeQuery(parseQuery(existing), params)))
+    copy(query = {
+      if (existing eq null)
+        encodeQuery(params)
+      else
+        encodeQuery(mergeQuery(parseQuery(existing), params))
+    })
   }
 
   /** Append to the URI's path, avoiding duplicate "/" */
@@ -95,13 +99,14 @@ class EnhancedURI(val uri: URI) {
     else
       "/" + morePath
     val existing = uri.getPath()
-    if (existing == null) {
-      copy(path = startsWithSlash)
-    } else if (existing.endsWith("/")) {
-      copy(path = existing + startsWithSlash.substring(1))
-    } else {
-      copy(path = existing + startsWithSlash)
-    }
+    copy(path = {
+      if (existing eq null)
+        startsWithSlash
+      else if (existing.endsWith("/"))
+        existing + startsWithSlash.substring(1)
+      else
+        existing + startsWithSlash
+    })
   }
 
   private def decodeValue(encoded: String) = {
@@ -113,7 +118,7 @@ class EnhancedURI(val uri: URI) {
   }
 
   private def parseOnePair(keyEqualsValue: String): Map[String, String] = {
-    if (keyEqualsValue.length() == 0) {
+    if (keyEqualsValue.isEmpty() == 0) {
       Map.empty
     } else {
       val e = keyEqualsValue.indexOf('=')
@@ -149,21 +154,23 @@ class EnhancedURI(val uri: URI) {
   private def encodeQuery(query: Map[String, Seq[String]]): String = {
     // we sort the query string because deterministic order
     // makes the test suite a lot easier
-    query.toSeq.sortBy(_._1).foldLeft("")({ (sofar, kv) ⇒
-      val pairs = for { v ← kv._2 }
-        yield kv._1 + "=" + encodeValue(v)
-      val encoded = pairs.mkString("&")
-      if (sofar.length() == 0)
-        encoded
-      else
-        sofar + "&" + encoded
-    })
+    query.toSeq.sortBy(_._1).foldLeft("") {
+      case (sofar, (key, value)) ⇒
+        val pairs = for { v ← value }
+          yield key + "=" + encodeValue(v)
+        val encoded = pairs.mkString("&")
+        if (sofar.length() == 0)
+          encoded
+        else
+          sofar + "&" + encoded
+    }
   }
 
   private def mergeQuery(left: Map[String, Seq[String]], right: Map[String, Seq[String]]): Map[String, Seq[String]] = {
-    right.foldLeft(left)({ (sofar, kv) ⇒
-      val dup = sofar.get(kv._1)
-      sofar + (kv._1 -> dup.map(_ ++ kv._2).getOrElse(kv._2))
-    })
+    right.foldLeft(left) {
+      case (sofar, (key, value)) ⇒
+        val dup = sofar.get(key)
+        sofar + (key -> dup.map(_ ++ value).getOrElse(value))
+    }
   }
 }
