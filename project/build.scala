@@ -104,6 +104,10 @@ object TheSnapBuild extends Build {
       sbtLauncherInterface % "provided"
     )
     dependsOn(props, cache, sbtDriver)
+    // set up debug props for forked tests
+    settings(configureSbtTest(Keys.test): _*)
+    settings(configureSbtTest(Keys.testOnly): _*)
+    // set up debug props for "run"
     settings(
       // Here we hack the update process that play-run calls to set up everything we need for embedded sbt.
       // Yes, it's a hack.  BUT we *love* hacks right?
