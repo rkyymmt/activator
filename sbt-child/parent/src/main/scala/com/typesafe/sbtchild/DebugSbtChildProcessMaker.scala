@@ -12,7 +12,11 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
   private val sbtLauncherJarProp = "snap.sbt.launch.jar"
   private val allNeededProps = Seq(probeClassPathProp, sbtLauncherJarProp)
 
-  {
+  // NOTE -> THIS HAS TO BE LAZY
+  // These values are only available when we run a debug build locally.
+  // When trying to run the UI now, things explode because the script (appropriately)
+  // Does not specify these things.
+  private def assertPropsArentMissing(): Unit = {
     val missing = allNeededProps.filter(sys.props(_) eq null)
     if (missing.nonEmpty)
       throw new RuntimeException("DebugSbtChildProcessMaker requires system props: " + missing)
@@ -22,6 +26,7 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
   private lazy val sbtLauncherJar: String = sys.props(sbtLauncherJarProp)
 
   def arguments(port: Int): Seq[String] = {
+    assertPropsArentMissing()
     val portArg = "-Dsnap.sbt-child-port=" + port.toString
     // TODO - These need to be configurable *and* discoverable.
     // we have no idea if computers will be able to handle this amount of

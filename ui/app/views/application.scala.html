@@ -10,7 +10,7 @@
 		window.serverAppModel = {
       name: '@model.name',
       id: '@model.id',
-      pluginIds:  [ @model.plugins.mkString("'", "','","'") ],
+      pluginIds:  [ @Html(model.plugins.mkString("\'", "\','","\'")) ],
       location: '@model.jsLocation',
       wsUrl: '@routes.Application.connectApp(model.id).webSocketURL()'
       @for(id <- model.blueprint) {

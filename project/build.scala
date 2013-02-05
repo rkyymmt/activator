@@ -145,7 +145,7 @@ object TheSnapBuild extends Build {
       dependsOnRemote(sbtLauncherInterface)
       dependsOn(sbtDriver, props, cache)
       settings(
-        org.sbtidea.SbtIdeaPlugin.ideaIgnoreModule := true
+        com.typesafe.sbtidea.SbtIdeaPlugin.ideaIgnoreModule := true
       )
   )
 
@@ -172,7 +172,7 @@ object TheSnapBuild extends Build {
         Seq("org.scala-sbt" % "sbt" % SnapDependencies.sbtVersion,
             // For some reason, these are not resolving transitively correctly!
             "org.scala-lang" % "scala-compiler" % "2.9.2",
-            "org.scala-lang" % "scala-compiler" % "2.10.0-RC1",
+            "org.scala-lang" % "scala-compiler" % SnapDependencies.scalaVersion,
             "net.java.dev.jna" % "jna" % "3.2.3",
             "commons-codec" % "commons-codec" % "1.3",
             "org.apache.httpcomponents" % "httpclient" % "4.0.1",
