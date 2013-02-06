@@ -1,0 +1,15 @@
+<article class="list run">
+    <header><h1>Run</h1></header>
+    <footer><p></p></footer>
+    <section class="wrapper">
+        <div>
+           <button class="start" data-bind="click: runButtonClicked">Run It!</button>
+        </div>
+        <header><h1>Logs</h1></header>
+        <div>
+           <div data-bind="foreach: logs">
+                <div data-bind="text: $data"></div>
+           </div>
+        </div>
+    </section>
+</article>

@@ -183,7 +183,7 @@ object Application extends Controller {
     ApplicationModel(
       app.config.id,
       app.config.location.getAbsolutePath,
-      Seq("plugins/code/code", "plugins/play/play"),
+      Seq("plugins/code/code", "plugins/run/run"),
       app.config.cachedName getOrElse app.config.id,
       // TODO - something less lame than exception here...
       app.blueprintID)
