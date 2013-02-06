@@ -118,17 +118,17 @@ object AppManager {
   // - we should load the app and determine a good id
   // - we should store the id/location in the RootConfig
   // - We should return the new ID or None if this location is not an App.
-  def loadAppIdFromLocation(location: File): Future[Option[String]] = {
+  def loadAppIdFromLocation(location: File): Future[ProcessResult[String]] = {
     val absolute = location.getAbsoluteFile()
     RootConfig.user.applications.find(_.location == absolute) match {
-      case Some(app) => Promise.successful(Some(app.id)).future
+      case Some(app) => Promise.successful(ProcessSuccess(app.id)).future
       case None => {
         doInitialAppAnalysis(location) map {
           case Left(error) =>
             Logger.error("Failed to load app at: " + location.getAbsolutePath())
-            None
+            ProcessFailure("Failed to load app at: " + location.getAbsolutePath())
           case Right(appConfig) =>
-            Some(appConfig.id)
+            ProcessSuccess(appConfig.id)
         }
       }
     }
