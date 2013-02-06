@@ -2,6 +2,8 @@ import sbt._
 import SnapBuild._
 import SnapDependencies._
 import Packaging.localRepoArtifacts
+import com.typesafe.sbt.S3Plugin._
+import com.typesafe.sbt.SbtNativePackager.Universal
 // NOTE - This file is only used for SBT 0.12.x, in 0.13.x we'll use build.sbt and scala libraries.
 // As such try to avoid putting stuff in here so we can see how good build.sbt is without build.scala.
 
@@ -156,6 +158,7 @@ object TheSnapBuild extends Build {
   lazy val dist = (
     SnapProject("dist")
     settings(Packaging.settings:_*)
+    settings(s3Settings:_*)
     settings(
       Keys.scalaBinaryVersion <<= Keys.scalaVersion,
       Keys.resolvers ++= Seq(
@@ -193,7 +196,11 @@ object TheSnapBuild extends Build {
           Defaults.sbtPluginExtra("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.0", sbt, scala),
           Defaults.sbtPluginExtra("com.typesafe.sbt" % "sbt-pgp" % "0.7", sbt, scala)
         )
-      }
+      },
+      Keys.mappings in S3.upload <<= (Keys.packageBin in Universal, Keys.version) map { (zip, v) =>
+        Seq(zip -> ("typesafe-builder/%s/typesafe-builder-%s.zip" format (v, v)))
+      },
+      S3.host in S3.upload := "downloads.typesafe.com.s3.amazonaws.com"
     )
   )
 }
