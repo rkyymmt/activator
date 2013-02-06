@@ -38,9 +38,16 @@ object TheSnapBuild extends Build {
     settings(Properties.makePropertyClassSetting(SnapDependencies.sbtVersion,SnapDependencies.scalaVersion):_*)
   )
 
+
+  lazy val common = (
+    SnapProject("common")
+    dependsOnRemote(junitInterface % "test")
+  )
+
+
   lazy val cache = (
     SnapProject("cache")
-    dependsOn(props)
+    dependsOn(props, common)
     dependsOnRemote(junitInterface % "test")
   )
 
@@ -105,7 +112,7 @@ object TheSnapBuild extends Build {
       commonsIo,
       sbtLauncherInterface % "provided"
     )
-    dependsOn(props, cache, sbtDriver)
+    dependsOn(props, cache, sbtDriver, common)
     // set up debug props for forked tests
     settings(configureSbtTest(Keys.test): _*)
     settings(configureSbtTest(Keys.testOnly): _*)
