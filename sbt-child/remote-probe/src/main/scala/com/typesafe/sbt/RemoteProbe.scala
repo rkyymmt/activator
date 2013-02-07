@@ -49,35 +49,32 @@ object SetupSbtChild extends (State => State) {
     val extracted = Extracted(Project.structure(origState), Project.session(origState), ref)(Project.showFullKey)
 
     req match {
-      case protocol.Envelope(serial, replyTo, protocol.NameRequest) =>
+      case protocol.Envelope(serial, replyTo, protocol.NameRequest(_)) =>
         val result = extracted.get(name)
-        System.err.println("Logs are: " + logger.get)
-        client.replyJson(serial, protocol.NameResponse(result, logger.get))
+        client.replyJson(serial, protocol.NameResponse(result))
         origState
-      case protocol.Envelope(serial, replyTo, protocol.CompileRequest) =>
+      case protocol.Envelope(serial, replyTo, protocol.CompileRequest(_)) =>
         try {
           val (s, result) = extracted.runTask(compile in Compile, origState)
-          System.err.println("Logs are: " + logger.get)
-          client.replyJson(serial, protocol.CompileResponse(logger.get))
+          client.replyJson(serial, protocol.CompileResponse(success = true))
           s
         } catch {
           case e: Exception =>
-            client.replyJson(serial, protocol.ErrorResponse(e.getMessage, logger.get))
+            client.replyJson(serial, protocol.ErrorResponse("error in compile: " + e.getMessage))
             origState
         }
-      case protocol.Envelope(serial, replyTo, protocol.RunRequest) =>
+      case protocol.Envelope(serial, replyTo, protocol.RunRequest(_)) =>
         try {
           val s = runInputTask(run in Compile, extracted, origState)
-          System.err.println("Logs are: " + logger.get)
-          client.replyJson(serial, protocol.RunResponse(logger.get))
+          client.replyJson(serial, protocol.RunResponse(success = true))
           s
         } catch {
           case e: Exception =>
-            client.replyJson(serial, protocol.ErrorResponse(e.getMessage, logger.get))
+            client.replyJson(serial, protocol.ErrorResponse("error in run: " + e.getMessage))
             origState
         }
       case _ => {
-        client.replyJson(req.serial, protocol.ErrorResponse("Unknown request: " + req, logger.get))
+        client.replyJson(req.serial, protocol.ErrorResponse("Unknown request: " + req))
         origState
       }
     }
@@ -91,7 +88,7 @@ object SetupSbtChild extends (State => State) {
         throw new RuntimeException("not reached") // compiler doesn't know that System.exit never returns
     }
 
-    val newLogger = new CaptureLogger(origState.globalLogging.full)
+    val newLogger = new CaptureLogger(client, req.serial, origState.globalLogging.full)
     val newLogging = origState.globalLogging.copy(full = newLogger)
     val loggedState = origState.copy(globalLogging = newLogging)
 
@@ -103,17 +100,9 @@ object SetupSbtChild extends (State => State) {
     newState
   }
 
-  private class CaptureLogger(delegate: Logger) extends Logger {
-    var entries: List[protocol.LogEntry] = Nil
-
+  private class CaptureLogger(client: ipc.Client, requestSerial: Long, delegate: Logger) extends Logger {
     private def add(entry: protocol.LogEntry) = synchronized {
-      // prepend, so we have to reverse later
-      entries = entry :: entries
-    }
-
-    def get: List[protocol.LogEntry] = synchronized {
-      // logs were built via prepend
-      entries.reverse
+      client.replyJson(requestSerial, protocol.LogEvent(entry))
     }
 
     def trace(t: => Throwable): Unit = {

@@ -88,12 +88,12 @@ object AppManager {
       val sbt = SbtChild(snap.Akka.system, location, sbtChildProcessMaker)
       // TODO we need to test what happens here if sbt fails to start up (i.e. bad build files)
       implicit val timeout = Timeout(60, TimeUnit.SECONDS)
-      val result: Future[Either[String, AppConfig]] = (sbt ? protocol.NameRequest) map {
-        case protocol.NameResponse(name, logs) => {
+      val result: Future[Either[String, AppConfig]] = (sbt ? protocol.NameRequest(sendEvents = false)) map {
+        case protocol.NameResponse(name) => {
           Logger.info("sbt told us the name is: '" + name + "'")
           Right(name)
         }
-        case protocol.ErrorResponse(error, logs) =>
+        case protocol.ErrorResponse(error) =>
           Logger.info("error getting name from sbt: " + error)
           Left(error)
       } flatMap {

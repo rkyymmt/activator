@@ -83,7 +83,7 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
         // we know it will time out.
         if (serverTerminated || processTerminated || protocolStartedAndStopped) {
           log.debug("Got request {} on already-shut-down server", req)
-          sender ! protocol.ErrorResponse("ServerActor has already shut down", Nil)
+          sender ! protocol.ErrorResponse("ServerActor has already shut down")
         }
         server.forward(req)
       } else {
@@ -137,7 +137,7 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
 
     preStartBuffer foreach { m =>
       log.debug("On destroy, sending queued request that never made it to the socket {}", m._1)
-      m._2 ! protocol.ErrorResponse("sbt process never got in touch, so unable to handle request " + m._1, Nil)
+      m._2 ! protocol.ErrorResponse("sbt process never got in touch, so unable to handle request " + m._1)
     }
     preStartBuffer = Vector.empty
 

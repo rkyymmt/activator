@@ -19,30 +19,27 @@ class CanLaunchThroughSbtLauncher extends IntegrationTest {
     val child = SbtChild(system, dir, new SbtChildLauncher(configuration))
     try {
       implicit val timeout = Timeout(60 seconds)
-      val name = Await.result(child ? protocol.NameRequest, 60 seconds) match {
-        case protocol.NameResponse(n, logs) => {
-          System.err.println("name logs=" + logs)
+      val name = Await.result(child ? protocol.NameRequest(sendEvents = false), 60 seconds) match {
+        case protocol.NameResponse(n) => {
           n
         }
-        case protocol.ErrorResponse(error, logs) =>
+        case protocol.ErrorResponse(error) =>
           throw new Exception("Failed to get project name: " + error)
       }
       println("Project is: " + name)
-      val compiled = Await.result(child ? protocol.CompileRequest, 60 seconds) match {
-        case protocol.CompileResponse(logs) => {
-          System.err.println("compile logs=" + logs)
-          true
+      val compiled = Await.result(child ? protocol.CompileRequest(sendEvents = false), 60 seconds) match {
+        case protocol.CompileResponse(success) => {
+          success
         }
-        case protocol.ErrorResponse(error, logs) =>
+        case protocol.ErrorResponse(error) =>
           throw new Exception("Failed to compile: " + error)
       }
       println("compiled=" + compiled)
-      val run = Await.result(child ? protocol.RunRequest, 60 seconds) match {
-        case protocol.RunResponse(logs) => {
-          System.err.println("run logs=" + logs)
-          true
+      val run = Await.result(child ? protocol.RunRequest(sendEvents = false), 60 seconds) match {
+        case protocol.RunResponse(success) => {
+          success
         }
-        case protocol.ErrorResponse(error, logs) =>
+        case protocol.ErrorResponse(error) =>
           throw new Exception("Failed to run: " + error)
       }
       println("run=" + run)

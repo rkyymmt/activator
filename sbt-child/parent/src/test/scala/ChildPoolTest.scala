@@ -133,7 +133,7 @@ class ChildPoolTest {
         // ask sbt for something
         grant.reservation.sbt.foreach({ sbt =>
           theSbt = Some(sbt)
-          sbt ! protocol.NameRequest
+          sbt ! protocol.NameRequest(sendEvents = false)
         })
 
         context.become(waitingForSbtReply)

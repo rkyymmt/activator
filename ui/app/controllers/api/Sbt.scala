@@ -24,6 +24,36 @@ import snap.TaskActorReply
 object Sbt extends Controller {
   implicit val timeout = Timeout(300.seconds)
 
+  // The point of this actor is to separate the "event" replies
+  // from the "response" reply and only reply with the "response"
+  // while forwarding the events somewhere
+  private class RequestHandlerActor(taskActor: ActorRef, eventSink: ActorRef) extends Actor {
+    override def receive = awaitingRequest
+
+    def awaitingRequest: Receive = {
+      case req: protocol.Request =>
+        taskActor ! req
+        context.become(awaitingResponse(sender))
+    }
+
+    def awaitingResponse(requestor: ActorRef): Receive = {
+      case event: protocol.Event =>
+        Logger.debug("event-sinking: " + event)
+        eventSink.forward(event)
+      case response: protocol.Response =>
+        requestor ! response
+        self ! PoisonPill
+    }
+  }
+
+  def sendRequestGettingEvents(factory: ActorRefFactory, taskActor: ActorRef, eventSink: ActorRef, request: protocol.Request): Future[protocol.Response] = {
+    val actor = factory.actorOf(Props(new RequestHandlerActor(taskActor, eventSink)))
+    (actor ? request) map {
+      case response: protocol.Response => response
+      case whatever => throw new RuntimeException("unexpected response: " + whatever)
+    }
+  }
+
   // Incoming JSON should be:
   //  { "appId" : appid, "description" : human-readable,
   //    "task" : json-as-we-define-in-sbtchild.protocol }
@@ -33,14 +63,18 @@ object Sbt extends Controller {
     val taskDescription = (json \ "description").as[String]
     val taskJson = (json \ "task")
 
-    val taskMessage = protocol.Message.JsonRepresentationOfMessage.fromJson(playJsonToScalaJson(taskJson))
+    val taskMessage = protocol.Message.JsonRepresentationOfMessage.fromJson(playJsonToScalaJson(taskJson)) match {
+      case req: protocol.Request => req
+      case whatever => throw new RuntimeException("not a request: " + whatever)
+    }
 
     val resultFuture = AppManager.loadApp(appId) flatMap { app =>
       withTaskActor(taskDescription, app) { taskActor =>
-        val taskFuture = (taskActor ? taskMessage) map {
-          case message: protocol.Message =>
-            Ok(scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(message)))
-        }
+        val taskFuture = sendRequestGettingEvents(snap.Akka.system, taskActor,
+          snap.Akka.system.deadLetters /* TODO */ , taskMessage) map {
+            case message: protocol.Message =>
+              Ok(scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(message)))
+          }
         taskFuture.onComplete(_ => taskActor ! PoisonPill)
         taskFuture
       }

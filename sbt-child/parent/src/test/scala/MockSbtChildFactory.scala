@@ -9,14 +9,17 @@ import java.util.concurrent.atomic.AtomicInteger
 class MockSbtChildFactory extends SbtChildFactory {
   def creator = new Actor() {
     override def receive = {
-      case req: protocol.Request => req match {
-        case protocol.NameRequest =>
-          sender ! protocol.NameResponse("foo", Nil)
-        case protocol.CompileRequest =>
-          sender ! protocol.CompileResponse(Nil)
-        case protocol.RunRequest =>
-          sender ! protocol.RunResponse(Nil)
-      }
+      case req: protocol.Request =>
+        if (req.sendEvents)
+          sender ! protocol.LogEvent(protocol.LogMessage(level = 1, message = "Hello!"))
+        req match {
+          case protocol.NameRequest(_) =>
+            sender ! protocol.NameResponse("foo")
+          case protocol.CompileRequest(_) =>
+            sender ! protocol.CompileResponse(success = true)
+          case protocol.RunRequest(_) =>
+            sender ! protocol.RunResponse(success = true)
+        }
     }
   }
 

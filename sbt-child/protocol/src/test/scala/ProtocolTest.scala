@@ -75,14 +75,21 @@ class ProtocolTest {
     testClientServer(
       { (client) =>
         protocol.Envelope(client.receive()) match {
-          case protocol.Envelope(serial, replyTo, protocol.NameRequest) =>
-            client.replyJson(serial, protocol.NameResponse("foobar", List(protocol.LogMessage(1, "a message"))))
+          case protocol.Envelope(serial, replyTo, protocol.NameRequest(_)) =>
+            client.replyJson(serial, protocol.LogEvent(protocol.LogMessage(1, "a message")))
+            client.replyJson(serial, protocol.NameResponse("foobar"))
           case protocol.Envelope(serial, replyTo, other) =>
-            client.replyJson(serial, protocol.ErrorResponse("did not understand request: " + other, Nil))
+            client.replyJson(serial, protocol.ErrorResponse("did not understand request: " + other))
         }
       },
       { (server) =>
-        server.sendJson(protocol.NameRequest)
+        server.sendJson(protocol.NameRequest(sendEvents = true))
+        val logMessage = protocol.Envelope(server.receive()) match {
+          case protocol.Envelope(serial, replyTo, r: protocol.LogEvent) => r.entry.message
+          case protocol.Envelope(serial, replyTo, r) =>
+            throw new AssertionError("unexpected response: " + r)
+        }
+        assertEquals("a message", logMessage)
         val name = protocol.Envelope(server.receive()) match {
           case protocol.Envelope(serial, replyTo, r: protocol.NameResponse) => r.name
           case protocol.Envelope(serial, replyTo, r) =>
