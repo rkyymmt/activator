@@ -17,7 +17,7 @@ case object StartServer extends ServerActorRequest
 // sent by the server to itself when it accepts the connection
 case class ServerAccepted(server: ipc.Server) extends ServerActorRequest
 
-class ServerActor(serverSocket: ServerSocket) extends Actor with ActorLogging {
+class ServerActor(serverSocket: ServerSocket, childActor: ActorRef) extends Actor with ActorLogging {
   var subscribers: Set[ActorRef] = Set.empty
 
   var serverOption: Option[ipc.Server] = None
@@ -75,6 +75,7 @@ class ServerActor(serverSocket: ServerSocket) extends Actor with ActorLogging {
           case response: protocol.Response =>
             log.debug("  dispatching pending reply to {}", e.replyTo)
             pendingReplies = pendingReplies - e.replyTo
+            childActor ! UnsubscribeOutput(requestor.ref) // auto-unsub the requestor
             requestor.ref ! response
           case event: protocol.Event =>
             log.debug("  got event during request {}", e.replyTo)

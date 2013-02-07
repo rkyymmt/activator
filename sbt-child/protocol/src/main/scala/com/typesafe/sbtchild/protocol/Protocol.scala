@@ -7,6 +7,9 @@ import com.typesafe.sbtchild.ipc.JsonReader
 sealed trait LogEntry {
   def message: String
 }
+
+case class LogStdOut(message: String) extends LogEntry
+case class LogStdErr(message: String) extends LogEntry
 case class LogSuccess(message: String) extends LogEntry
 case class LogTrace(throwableClass: String, message: String) extends LogEntry
 case class LogMessage(level: Int, message: String) extends LogEntry
