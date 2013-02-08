@@ -56,10 +56,12 @@ object Sbt extends Controller {
 
   // Incoming JSON should be:
   //  { "appId" : appid, "description" : human-readable,
+  //    "taskId" : uuid,
   //    "task" : json-as-we-define-in-sbtchild.protocol }
   // And the reply will be a message as defined in sbtchild.protocol
   def task() = jsonAction { json =>
     val appId = (json \ "appId").as[String]
+    val taskId = (json \ "taskId").as[String]
     val taskDescription = (json \ "description").as[String]
     val taskJson = (json \ "task")
 
@@ -69,7 +71,7 @@ object Sbt extends Controller {
     }
 
     val resultFuture = AppManager.loadApp(appId) flatMap { app =>
-      withTaskActor(taskDescription, app) { taskActor =>
+      withTaskActor(taskId, taskDescription, app) { taskActor =>
         val taskFuture = sendRequestGettingEvents(snap.Akka.system, taskActor,
           snap.Akka.system.deadLetters /* TODO */ , taskMessage) map {
             case message: protocol.Message =>
@@ -87,14 +89,14 @@ object Sbt extends Controller {
       try f(json)
       catch {
         case e: Exception =>
-          Logger.info("json action failed", e)
+          Logger.info("json action failed: " + e.getMessage(), e)
           BadRequest(e.getClass.getName + ": " + e.getMessage)
       }
     }).getOrElse(BadRequest("expecting JSON body"))
   }
 
-  private def withTaskActor[T](taskDescription: String, app: snap.App)(body: ActorRef => Future[T]): Future[T] = {
-    (app.actor ? GetTaskActor(taskDescription)) flatMap {
+  private def withTaskActor[T](taskId: String, taskDescription: String, app: snap.App)(body: ActorRef => Future[T]): Future[T] = {
+    (app.actor ? GetTaskActor(taskId, taskDescription)) flatMap {
       case TaskActorReply(taskActor) => body(taskActor)
     }
   }

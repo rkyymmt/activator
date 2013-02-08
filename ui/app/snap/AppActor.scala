@@ -7,7 +7,7 @@ import java.util.UUID
 
 sealed trait AppRequest
 
-case class GetTaskActor(description: String) extends AppRequest
+case class GetTaskActor(id: String, description: String) extends AppRequest
 
 sealed trait AppReply
 
@@ -20,8 +20,7 @@ class AppActor(val location: File, val sbtMaker: SbtChildProcessMaker) extends A
 
   override def receive = {
     case req: AppRequest => req match {
-      case GetTaskActor(description) =>
-        val taskId = UUID.randomUUID().toString
+      case GetTaskActor(taskId, description) =>
         sender ! TaskActorReply(context.actorOf(Props(new ChildTaskActor(taskId, description, sbts)), name = taskId))
     }
   }
@@ -48,7 +47,7 @@ class AppActor(val location: File, val sbtMaker: SbtChildProcessMaker) extends A
   // It gets the pool from the app; reserves an sbt in the pool; and
   // forwards any messages you like to that pool.
   class ChildTaskActor(val taskId: String, val taskDescription: String, val pool: ActorRef) extends Actor {
-    val reservation = SbtReservation(id = UUID.randomUUID().toString(), taskName = taskDescription)
+    val reservation = SbtReservation(id = taskId, taskName = taskDescription)
 
     pool ! RequestAnSbt(reservation)
 

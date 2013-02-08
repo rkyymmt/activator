@@ -2,6 +2,14 @@ define(['text!./run.html'], function(template){
 
 	var ko = req('vendors/knockout-2.2.1.debug');
 
+	var randomShort = function() {
+		return Math.floor(Math.random() * 65536)
+	}
+
+	var genTaskId = function(prefix) {
+		return prefix + "-" + (new Date().getTime()) + "-" + randomShort() + "-" + randomShort() + "-" + randomShort()
+	}
+
 	var Run = Widget({
 		id: 'play-run-widget',
 		template: template,
@@ -15,7 +23,8 @@ define(['text!./run.html'], function(template){
 			console.log("Run was clicked");
 			var runRequest = {
 				appId: serverAppModel.id,
-				description: "Run",
+				taskId: genTaskId(),
+				description: "Run " + serverAppModel.name,
 				task: {
 					type: "RunRequest"
 				}
@@ -29,11 +38,15 @@ define(['text!./run.html'], function(template){
 				data: JSON.stringify(runRequest),
 				success: function(data) {
 					console.log("run result: ", data);
-					$.each(data.logs, function(i, value) {
-						var message = value.message;
-						var logType = value.type;
-						self.logs.push(logType + ": " + message);
-					})
+					// logs are never in the result anymore, we are going to move them to
+					// the event stream. This code is left here for future relocation.
+					if ('logs' in data) {
+						$.each(data.logs, function(i, value) {
+							var message = value.message;
+							var logType = value.type;
+							self.logs.push(logType + ": " + message);
+						})
+					}
 					if (data.type == 'ErrorResponse') {
 						self.logs.push(data.error);
 					} else if (data.type == 'RunResponse') {
