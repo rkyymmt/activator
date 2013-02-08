@@ -165,7 +165,11 @@ object Application extends Controller {
       if (app.actor.isTerminated) throw new RuntimeException("App is dead")
 
       import snap.WebSocketActor.timeout
-      (app.actor ? snap.CreateWebSocket).mapTo[(Iteratee[JsValue, _], Enumerator[JsValue])].map { streams =>
+      (app.actor ? snap.CreateWebSocket).map {
+        case snap.WebSocketAlreadyUsed =>
+          throw new RuntimeException("can only open apps in one tab at a time")
+        case whatever => whatever
+      }.mapTo[(Iteratee[JsValue, _], Enumerator[JsValue])].map { streams =>
         Logger.info("WebSocket streams created")
         streams
       }
@@ -173,7 +177,7 @@ object Application extends Controller {
 
     streamsFuture onFailure {
       case e: Throwable =>
-        Logger.warn("WebSocket failed to open: " + e.getMessage, e)
+        Logger.warn("WebSocket failed to open: " + e.getMessage)
     }
 
     streamsFuture

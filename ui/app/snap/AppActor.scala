@@ -18,6 +18,7 @@ case class NotifyWebSocket(json: JsValue) extends AppRequest
 sealed trait AppReply
 
 case class TaskActorReply(ref: ActorRef) extends AppReply
+case object WebSocketAlreadyUsed extends AppReply
 
 class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extends Actor with ActorLogging {
 
@@ -26,6 +27,8 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
   val childFactory = new DefaultSbtChildFactory(location, sbtMaker)
   val sbts = context.actorOf(Props(new ChildPool(childFactory)), name = "sbt-pool")
   val socket = context.actorOf(Props(new AppSocketActor()), name = "socket")
+
+  var webSocketCreated = false
 
   context.watch(sbts)
   context.watch(socket)
@@ -50,7 +53,13 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
           name = "task-" + URLEncoder.encode(taskId, "UTF-8")))
       case CreateWebSocket =>
         log.debug("got CreateWebSocket")
-        socket.tell(GetWebSocket, sender)
+        if (webSocketCreated) {
+          log.warning("Attempt to create websocket for app a second time {}", config.id)
+          sender ! WebSocketAlreadyUsed
+        } else {
+          webSocketCreated = true
+          socket.tell(GetWebSocket, sender)
+        }
       case notify: NotifyWebSocket =>
         socket.forward(notify)
     }
