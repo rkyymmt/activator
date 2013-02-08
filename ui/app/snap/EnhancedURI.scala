@@ -118,7 +118,7 @@ class EnhancedURI(val uri: URI) {
   }
 
   private def parseOnePair(keyEqualsValue: String): Map[String, String] = {
-    if (keyEqualsValue.isEmpty() == 0) {
+    if (keyEqualsValue.isEmpty()) {
       Map.empty
     } else {
       val e = keyEqualsValue.indexOf('=')
