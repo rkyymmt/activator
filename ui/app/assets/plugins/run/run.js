@@ -23,7 +23,7 @@ define(['text!./run.html'], function(template){
 			console.log("Run was clicked");
 			var runRequest = {
 				appId: serverAppModel.id,
-				taskId: genTaskId(),
+				taskId: genTaskId(serverAppModel.id),
 				description: "Run " + serverAppModel.name,
 				task: {
 					type: "RunRequest"

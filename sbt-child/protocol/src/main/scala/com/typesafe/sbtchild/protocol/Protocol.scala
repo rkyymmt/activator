@@ -24,6 +24,11 @@ object LogEntry {
           Map("type" -> "trace", "class" -> klass, "message" -> message)
         case LogMessage(level, message) =>
           Map("type" -> "message", "level" -> level, "message" -> message)
+        case LogStdOut(message) =>
+          Map("type" -> "stdout", "message" -> message)
+        case LogStdErr(message) =>
+          Map("type" -> "stderr", "message" -> message)
+
       }
       JSONObject(obj)
     }
@@ -35,6 +40,8 @@ object LogEntry {
             case "success" => LogSuccess(obj("message").asInstanceOf[String])
             case "trace" => LogTrace(obj("class").asInstanceOf[String], obj("message").asInstanceOf[String])
             case "message" => LogMessage(obj("level").asInstanceOf[Number].intValue, obj("message").asInstanceOf[String])
+            case "stdout" => LogStdOut(obj("message").asInstanceOf[String])
+            case "stderr" => LogStdErr(obj("message").asInstanceOf[String])
             case whatever =>
               throw new Exception("unexpected LogEntry type: " + whatever)
           }

@@ -20,14 +20,16 @@ import play.Logger
 import scala.concurrent.Future
 import snap.GetTaskActor
 import snap.TaskActorReply
+import snap.NotifyWebSocket
+import java.net.URLEncoder
 
 object Sbt extends Controller {
   implicit val timeout = Timeout(300.seconds)
 
   // The point of this actor is to separate the "event" replies
   // from the "response" reply and only reply with the "response"
-  // while forwarding the events somewhere
-  private class RequestHandlerActor(taskActor: ActorRef, eventSink: ActorRef) extends Actor {
+  // while forwarding the events to our socket
+  private class EventsForRequestActor(app: snap.App, taskId: String, taskActor: ActorRef) extends Actor with ActorLogging {
     override def receive = awaitingRequest
 
     def awaitingRequest: Receive = {
@@ -38,16 +40,18 @@ object Sbt extends Controller {
 
     def awaitingResponse(requestor: ActorRef): Receive = {
       case event: protocol.Event =>
-        Logger.debug("event-sinking: " + event)
-        eventSink.forward(event)
+        log.debug("event: {}", event)
+        val json = scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(event))
+        app.actor ! NotifyWebSocket(JsObject(Seq("taskId" -> JsString(taskId), "event" -> json)))
       case response: protocol.Response =>
         requestor ! response
         self ! PoisonPill
     }
   }
 
-  def sendRequestGettingEvents(factory: ActorRefFactory, taskActor: ActorRef, eventSink: ActorRef, request: protocol.Request): Future[protocol.Response] = {
-    val actor = factory.actorOf(Props(new RequestHandlerActor(taskActor, eventSink)))
+  def sendRequestGettingEvents(factory: ActorRefFactory, app: snap.App, taskId: String, taskActor: ActorRef, request: protocol.Request): Future[protocol.Response] = {
+    val actor = factory.actorOf(Props(new EventsForRequestActor(app, taskId, taskActor)),
+      name = "event-tee-" + URLEncoder.encode(taskId, "UTF-8"))
     (actor ? request) map {
       case response: protocol.Response => response
       case whatever => throw new RuntimeException("unexpected response: " + whatever)
@@ -72,12 +76,14 @@ object Sbt extends Controller {
 
     val resultFuture = AppManager.loadApp(appId) flatMap { app =>
       withTaskActor(taskId, taskDescription, app) { taskActor =>
-        val taskFuture = sendRequestGettingEvents(snap.Akka.system, taskActor,
-          snap.Akka.system.deadLetters /* TODO */ , taskMessage) map {
-            case message: protocol.Message =>
-              Ok(scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(message)))
-          }
-        taskFuture.onComplete(_ => taskActor ! PoisonPill)
+        val taskFuture = sendRequestGettingEvents(snap.Akka.system, app, taskId, taskActor, taskMessage) map {
+          case message: protocol.Message =>
+            Ok(scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(message)))
+        }
+        taskFuture.onComplete { _ =>
+          Logger.debug("Killing task actor")
+          taskActor ! PoisonPill
+        }
         taskFuture
       }
     }
@@ -150,5 +156,4 @@ object Sbt extends Controller {
         throw new RuntimeException("only JSON 'containers' allowed here, not " + other.getClass)
     }
   }
-
 }
