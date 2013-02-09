@@ -6,13 +6,44 @@ define(function() {
 
     console.log("WS opening: " + window.serverAppModel.wsUrl);
     var socket = new WS(window.serverAppModel.wsUrl);
-    
+
+    var taskSubscribers = []
+
     function sendMessage(msg) {
       socket.send(JSON.stringify(msg));
     }
-    
+
+    // this is probably sort of a hacky API but it will get us going.
+    // May want to refactor to a more generic event bus thingy.
+    function subscribeTask(taskId, handler) {
+    	var subscriber = { taskId: taskId, handler: handler }
+    	taskSubscribers.push(subscriber)
+    }
+
     function receiveEvent(event) {
     	console.log("WS Event: ", event.data, event);
+    	var obj = JSON.parse(event.data);
+    	if ('taskId' in obj) {
+    		if (obj.event.type == "TaskComplete") {
+    			console.log("task " + obj.taskId + " complete, removing its subscribers");
+    			// $.grep callback takes value,index while $.each takes index,value
+    			// awesome?
+    			taskSubscribers = $.grep(taskSubscribers, function(subscriber, index) {
+    				// keep only tasks that are not complete
+    				return subscriber.taskId != obj.taskId;
+    			});
+    		} else {
+	    		$.each(taskSubscribers, function(index, subscriber) {
+	    			if (subscriber.taskId == obj.taskId) {
+	    				try {
+	    					subscriber.handler(obj.event);
+	    				} catch(e) {
+	    					console.log("handler for " + subscriber.taskId + " failed", e);
+	    				}
+	    			}
+	    		});
+    		}
+    	}
     }
 
     function onOpen(event) {
@@ -40,6 +71,7 @@ define(function() {
 
     return {
     	// TODO - we need more public API then just "send message".
-    	send: sendMessage
+    	send: sendMessage,
+    	subscribeTask: subscribeTask
     };
 });

@@ -44,6 +44,8 @@ object Sbt extends Controller {
         val json = scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(event))
         app.actor ! NotifyWebSocket(JsObject(Seq("taskId" -> JsString(taskId), "event" -> json)))
       case response: protocol.Response =>
+        app.actor ! NotifyWebSocket(JsObject(Seq("taskId" -> JsString(taskId),
+          "event" -> JsObject(Seq("type" -> JsString("TaskComplete"))))))
         requestor ! response
         self ! PoisonPill
     }

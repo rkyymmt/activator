@@ -1,4 +1,4 @@
-define(['text!./run.html'], function(template){
+define(['text!./run.html', 'core/streams'], function(template, Streams){
 
 	var ko = req('vendors/knockout-2.2.1.debug');
 
@@ -21,6 +21,7 @@ define(['text!./run.html'], function(template){
 		},
 		runButtonClicked: function(self) {
 			console.log("Run was clicked");
+			// TODO factor all this out into some kind of SBT API
 			var runRequest = {
 				appId: serverAppModel.id,
 				taskId: genTaskId(serverAppModel.id),
@@ -29,6 +30,15 @@ define(['text!./run.html'], function(template){
 					type: "RunRequest"
 				}
 			};
+			Streams.subscribeTask(runRequest.taskId, function(event) {
+				if ('type' in event && event.type == 'LogEvent') {
+					var message = event.entry.message;
+					var logType = event.entry.type;
+					self.logs.push(logType + ": " + message);
+				} else {
+					self.logs.push("unknown event: " + JSON.stringify(event))
+				}
+			})
 			self.logs.push("Running...\n");
 			$.ajax({
 				url: '/api/sbt/task',
@@ -38,15 +48,6 @@ define(['text!./run.html'], function(template){
 				data: JSON.stringify(runRequest),
 				success: function(data) {
 					console.log("run result: ", data);
-					// logs are never in the result anymore, we are going to move them to
-					// the event stream. This code is left here for future relocation.
-					if ('logs' in data) {
-						$.each(data.logs, function(i, value) {
-							var message = value.message;
-							var logType = value.type;
-							self.logs.push(logType + ": " + message);
-						})
-					}
 					if (data.type == 'ErrorResponse') {
 						self.logs.push(data.error);
 					} else if (data.type == 'RunResponse') {
