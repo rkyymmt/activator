@@ -147,7 +147,7 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
         decoder.feed(bytes)
         val s = decoder.read.mkString
         if (s.length > 0) {
-          s.trim().split("\n") foreach { line =>
+          s.split("\n") foreach { line =>
             log.debug("sbt {}: {}", label, line)
             emitEvent(protocol.LogEvent(entryMaker(line)))
           }
