@@ -8,12 +8,14 @@ import play.api.libs.json.JsValue
 import java.net.URLEncoder
 import akka.pattern._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import scala.concurrent.duration._
 
 sealed trait AppRequest
 
 case class GetTaskActor(id: String, description: String) extends AppRequest
 case object CreateWebSocket extends AppRequest
 case class NotifyWebSocket(json: JsValue) extends AppRequest
+case object InitialTimeoutExpired extends AppRequest
 
 sealed trait AppReply
 
@@ -32,6 +34,10 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
 
   context.watch(sbts)
   context.watch(socket)
+
+  // we can stay alive due to socket connection (and then die with the socket)
+  // or else we just die after being around a short time
+  context.system.scheduler.scheduleOnce(2.minutes, self, InitialTimeoutExpired)
 
   override val supervisorStrategy = SupervisorStrategy.stoppingStrategy
 
@@ -62,6 +68,11 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
         }
       case notify: NotifyWebSocket =>
         socket.forward(notify)
+      case InitialTimeoutExpired =>
+        if (!webSocketCreated) {
+          log.warning("Nobody every connected to {}, killing it", config.id)
+          self ! PoisonPill
+        }
     }
   }
 

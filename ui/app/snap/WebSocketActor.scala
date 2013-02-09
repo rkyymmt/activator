@@ -16,6 +16,8 @@ private case object Ack
 
 private case object GetWebSocket
 
+private case object CloseWebSocket
+
 // This is a bunch of glue to convert Iteratee/Enumerator into an actor.
 // There's probably a better approach, oh well.
 abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatter[MessageType], mf: Manifest[MessageType]) extends Actor with ActorLogging {
@@ -115,6 +117,8 @@ abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatt
         log.debug("In websocket actor, got IncomingComplete signaling consumer actor is done")
         incomingCompleted = true
         checkFullyCompleted()
+        log.debug("poisoning producer to close our side of the socket")
+        producer ! PoisonPill
       case InitialReadyTimeout ⇒
         if (!ready) {
           log.warning("websocket actor not ready within its timeout, poisoning")
@@ -157,6 +161,9 @@ abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatt
 
         futureStreams pipeTo sender
       }
+    case CloseWebSocket =>
+      log.debug("got CloseWebSocket poisoning the producer")
+      producer ! PoisonPill
   }
 
   final override def receive = internalReceive orElse subReceive

@@ -19,8 +19,4 @@ class App(val config: AppConfig, val system: ActorSystem, val sbtMaker: SbtChild
     } catch {
       case e: java.io.IOException => None // TODO - Log?
     }
-
-  def close(): Unit = {
-    system.stop(actor)
-  }
 }
