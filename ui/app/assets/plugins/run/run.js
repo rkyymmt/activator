@@ -10,6 +10,12 @@ define(['text!./run.html', 'core/streams'], function(template, Streams){
 		return prefix + "-" + (new Date().getTime()) + "-" + randomShort() + "-" + randomShort() + "-" + randomShort()
 	}
 
+	// if we wanted to be cute we'd convert these to HTML tags perhaps
+	var ansiCodeRegex = new RegExp("\\033\\[[0-9;]+m", "g");
+	var stripAnsiCodes = function(s) {
+		return s.replace(ansiCodeRegex, "");
+	}
+
 	var Run = Widget({
 		id: 'play-run-widget',
 		template: template,
@@ -34,7 +40,7 @@ define(['text!./run.html', 'core/streams'], function(template, Streams){
 				if ('type' in event && event.type == 'LogEvent') {
 					var message = event.entry.message;
 					var logType = event.entry.type;
-					self.logs.push(logType + ": " + message);
+					self.logs.push(logType + ": " + stripAnsiCodes(message));
 				} else {
 					self.logs.push("unknown event: " + JSON.stringify(event))
 				}
