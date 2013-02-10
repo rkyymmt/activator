@@ -3,6 +3,12 @@ define(function() {
 
     // Decomposed url in an array
     var breadcrumb = [];
+    
+    var HomeWidget = Widget({
+  		id: 'home-widget',
+  		title: '/',
+  		template: '<h1>Welcome!</h1>'    	
+    });
 
     // Routes are nested:
     // " /projects/:id/code/ " would call each related route
@@ -37,7 +43,9 @@ define(function() {
     //
     // this.title =  A widget class must support a title property (either a function that returns one, or a direct attribute).
     // this.render ???  - The rendering of the widget....
-    var routes = {};
+    var routes = {
+    		'home': [HomeWidget]
+    };
     // TODO - Put this somewhere else or configure it?
     var ErrorWidget = Widget({
     		id: 'Error widget',
@@ -135,7 +143,9 @@ define(function() {
 
     // From the breadcrumb, checks route syntax and get module (breadcrumb configuration arrays).
     var match = function(bc, routes, modules) {
-            var url = bc[0];
+    			  var fixed_bc = bc[0] ? bc : [ 'home' ] ;
+            var url = bc[0] ? bc[0] : 'home';
+            
             var routesKey = lookUpNextRouter(routes, url);
 
             if(routes[routesKey] && (typeof(routes[routesKey]) != 'function')) {
@@ -144,8 +154,8 @@ define(function() {
             }
             if(routes[routesKey]) {
                 // Add arguments to the route?
-                $.each(routes[routesKey](bc), function(idx, config) {
-                    addBc(config, bc.slice(idx), modules);
+                $.each(routes[routesKey](fixed_bc), function(idx, config) {
+                    addBc(config, fixed_bc.slice(idx), modules);
                 });
             } else {
                 addBc({
