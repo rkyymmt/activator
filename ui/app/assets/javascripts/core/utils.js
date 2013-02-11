@@ -1,3 +1,5 @@
+define([], function() {
+
 $.fn.getOrElse = function(selector, ctx) {
 	return this.length ? $(this) : $(selector, ctx)
 }
@@ -95,3 +97,12 @@ var Class = function(o) {
 	M.extend(o);
 	return M
 }
+
+
+  return {
+  	Class: Class,
+  	Settings: Settings,
+  	Event: Event,
+  	inUrl: inUrl
+  }
+});

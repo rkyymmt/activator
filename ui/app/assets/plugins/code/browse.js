@@ -1,8 +1,9 @@
 define(['css!./code.css', 'text!./browse.html', 'core/pluginapi'], function(css, template, api) {
 
 	var ko = api.ko,
-		key = api.key
-		Widget = api.Widget;
+		key = api.key,
+		Widget = api.Widget,
+		Class = api.Class;
 
 	var FileModel = Class({
 		init: function(config) {

@@ -1,4 +1,4 @@
-define(['vendors/knockout-2.2.1.debug', './sbt', './templates', 'vendors/keymage.min', './utils'], function(ko, sbt, templates, key) {
+define(['vendors/knockout-2.2.1.debug', './sbt', './templates', 'vendors/keymage.min', './utils'], function(ko, sbt, templates, key, utils) {
 	
 	
 //base class for widgets, with convenience.
@@ -22,7 +22,7 @@ var Widget = function(o) {
 		// Now call user's init method.
 		if(oldinit) { oldinit.call(this, args); }
 		}*/
-	var WidgetClass = Class(o)
+	var WidgetClass = utils.Class(o)
 	WidgetClass.extend({
 		// Default onRender that does nothing.
 		onRender: function(elements) {}
@@ -34,6 +34,7 @@ var Widget = function(o) {
 		ko: ko,
 		sbt: sbt,
 		key: key,
+		Class: utils.Class,
 		Widget: Widget
 	};
 });
