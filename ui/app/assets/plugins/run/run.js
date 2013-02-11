@@ -55,13 +55,7 @@ define(['text!./run.html', 'core/sbt'], function(template, sbt){
 		icon: "▶",
 		url: "#run",
 		routes: {
-			'run': function(bcs) {
-				return $.map(bcs, function(crumb) {
-					return {
-						widget: Run
-					};
-				});
-			}
+			'run': [Run]
 		}
 	};
 });
