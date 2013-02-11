@@ -1,6 +1,7 @@
-define(['text!./run.html', 'core/sbt'], function(template, sbt){
+define(['text!./run.html', 'core/pluginapi'], function(template, api){
 
-	var ko = req('vendors/knockout-2.2.1.debug');
+	var ko = api.ko;
+	var sbt = api.sbt;
 
 	// if we wanted to be cute we'd convert these to HTML tags perhaps
 	var ansiCodeRegex = new RegExp("\\033\\[[0-9;]+m", "g");
@@ -8,7 +9,7 @@ define(['text!./run.html', 'core/sbt'], function(template, sbt){
 		return s.replace(ansiCodeRegex, "");
 	}
 
-	var Run = Widget({
+	var Run = api.Widget({
 		id: 'play-run-widget',
 		template: template,
 		init: function(parameters){

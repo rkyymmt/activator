@@ -1,6 +1,6 @@
-define(["text!./viewCode.html"], function(template){
+define(["text!./viewCode.html", 'core/pluginapi'], function(template, api){
 
-	var ko = req('vendors/knockout-2.2.1.debug');
+	var ko = api.ko;
 
 	// Fetch utility
 	function show(location){
@@ -12,7 +12,7 @@ define(["text!./viewCode.html"], function(template){
 		});
 	}
 
-	var ImageView = Widget({
+	var CodeView = api.Widget({
 		id: 'code-edit-view',
 		template: template,
 		init: function(args) {
@@ -28,5 +28,5 @@ define(["text!./viewCode.html"], function(template){
 			});
 		}
 	});
-	return ImageView;
+	return CodeView;
 });

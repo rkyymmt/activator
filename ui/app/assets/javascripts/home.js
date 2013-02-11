@@ -33,14 +33,6 @@ require([
 	'vendors/keymage.min'
 ],function(){
 	require([],function() {
-		// TODO - Removing debugging code...
-		window.blueprintFormValues = function() {
-			return {
-				name: $('#newappName').val(),
-				location: $('#newappLocation').val(),
-				blueprint: $('input:radio[name=blueprint]:checked').val()
-			};
-		};
 		// Register handlers on the UI.
 		$(function() {
 			// Register fancy radio button controlls.

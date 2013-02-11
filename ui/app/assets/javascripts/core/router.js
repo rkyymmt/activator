@@ -1,10 +1,10 @@
-define(function() {
-    var ko = req('vendors/knockout-2.2.1.debug');
+define(['./pluginapi'], function(api) {
+    var ko = api.ko;
 
     // Decomposed url in an array
     var breadcrumb = [];
     
-    var HomeWidget = Widget({
+    var HomeWidget = api.Widget({
   		id: 'home-widget',
   		title: '/',
   		template: '<h1>Welcome!</h1>'    	
@@ -47,7 +47,7 @@ define(function() {
     		'home': [HomeWidget]
     };
     // TODO - Put this somewhere else or configure it?
-    var ErrorWidget = Widget({
+    var ErrorWidget = api.Widget({
     		id: 'Error widget',
     		title: 'Not found!',
     		template: 'Url not found!'
