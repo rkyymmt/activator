@@ -17,7 +17,7 @@ case object StartServer extends ServerActorRequest
 // sent by the server to itself when it accepts the connection
 case class ServerAccepted(server: ipc.Server) extends ServerActorRequest
 
-class ServerActor(serverSocket: ServerSocket) extends Actor with ActorLogging {
+class ServerActor(serverSocket: ServerSocket, childActor: ActorRef) extends Actor with ActorLogging {
   var subscribers: Set[ActorRef] = Set.empty
 
   var serverOption: Option[ipc.Server] = None
@@ -26,7 +26,9 @@ class ServerActor(serverSocket: ServerSocket) extends Actor with ActorLogging {
 
   val selfRef = context.self
 
-  var pendingReplies = Map.empty[Long, ActorRef]
+  case class Requestor(ref: ActorRef, sendEvents: Boolean)
+
+  var pendingReplies = Map.empty[Long, Requestor]
 
   var disconnected = false
 
@@ -46,18 +48,18 @@ class ServerActor(serverSocket: ServerSocket) extends Actor with ActorLogging {
 
     case req: protocol.Request => {
       if (disconnected) {
-        sender ! protocol.ErrorResponse("sbt socket is disconnected", Nil)
+        sender ! protocol.ErrorResponse("sbt socket is disconnected")
       } else {
         val server = serverOption.getOrElse(throw new Exception("Made request before server accept"))
         try {
           val requestSerial = server.sendJson(req)
-          val pair = (requestSerial -> sender)
+          val pair = (requestSerial -> Requestor(sender, req.sendEvents))
           pendingReplies += pair
           log.debug("  added to pending replies: {}", pair)
         } catch {
           case e: Exception =>
             log.warning("failed to send message to child process", e)
-            sender ! protocol.ErrorResponse(e.getMessage, Nil)
+            sender ! protocol.ErrorResponse(e.getMessage)
         }
       }
     }
@@ -67,11 +69,24 @@ class ServerActor(serverSocket: ServerSocket) extends Actor with ActorLogging {
 
     case e: protocol.Envelope =>
       if (e.replyTo != 0L) {
-        // replies
-        log.debug("  dispatching pending reply to {}", e.replyTo)
+        // replies or events that "go with" a certain request
         val requestor = pendingReplies.get(e.replyTo).getOrElse(throw new RuntimeException("Nobody was waiting for " + e))
-        pendingReplies = pendingReplies - e.replyTo
-        requestor ! e.content
+        e.content match {
+          case response: protocol.Response =>
+            log.debug("  dispatching pending reply to {}", e.replyTo)
+            pendingReplies = pendingReplies - e.replyTo
+            childActor ! UnsubscribeOutput(requestor.ref) // auto-unsub the requestor
+            requestor.ref ! response
+          case event: protocol.Event =>
+            log.debug("  got event during request {}", e.replyTo)
+            if (requestor.sendEvents)
+              requestor.ref ! event
+            else
+              log.debug("Dropping event which was not requested {}", event)
+          case whatever =>
+            throw new RuntimeException("not expecting replyTo on: " + whatever)
+        }
+
       } else {
         // events
         log.debug("  dispatching event {} to {} subscribers", e.content, subscribers.size)
@@ -127,9 +142,10 @@ class ServerActor(serverSocket: ServerSocket) extends Actor with ActorLogging {
 
   def destroy() = {
     log.debug("  destroying")
-    pendingReplies.foreach { tup =>
-      log.debug("  sending error reply to a pending server request {}", tup)
-      tup._2 ! protocol.ErrorResponse("ServerActor died before it replied to request", Nil)
+    pendingReplies.foreach {
+      case (key, requestor) =>
+        log.debug("  sending error reply to a pending server request {} {}", key, requestor)
+        requestor.ref ! protocol.ErrorResponse("ServerActor died before it replied to request")
     }
     pendingReplies = Map.empty
 

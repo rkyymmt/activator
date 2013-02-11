@@ -13,6 +13,7 @@ import scala.util.control.NonFatal
 import scala.util.Try
 import play.Logger
 import play.api.libs.iteratee.{ Iteratee, Enumerator, Concurrent }
+import akka.pattern._
 
 case class ApplicationModel(
   id: String,
@@ -158,16 +159,28 @@ object Application extends Controller {
    * per-application for information.
    */
   def connectApp(id: String) = WebSocket.async[JsValue] { request =>
-    // TODO - Real websocket-y things here.
-    scala.concurrent.Future[(Iteratee[JsValue, _], Enumerator[JsValue])] {
-      val reads = Iteratee.foreach[JsValue] { input => System.err.println("Received: " + input) }
-      //  A channel that does nothing FOREVER and does it well...
-      val writes = Concurrent.unicast[JsValue](
-        onStart = channel => (channel.push(JsString("HI"))),
-        onComplete = (),
-        onError = (msg, input) => ())
-      (reads, writes)
+    Logger.info("Connect request for app id: " + id)
+    val streamsFuture = AppManager.loadApp(id) flatMap { app =>
+      // this is just easier to debug than a timeout; it isn't reliable
+      if (app.actor.isTerminated) throw new RuntimeException("App is dead")
+
+      import snap.WebSocketActor.timeout
+      (app.actor ? snap.CreateWebSocket).map {
+        case snap.WebSocketAlreadyUsed =>
+          throw new RuntimeException("can only open apps in one tab at a time")
+        case whatever => whatever
+      }.mapTo[(Iteratee[JsValue, _], Enumerator[JsValue])].map { streams =>
+        Logger.info("WebSocket streams created")
+        streams
+      }
     }
+
+    streamsFuture onFailure {
+      case e: Throwable =>
+        Logger.warn("WebSocket failed to open: " + e.getMessage)
+    }
+
+    streamsFuture
   }
 
   /** List all the applications in our history as JSON. */
@@ -183,7 +196,7 @@ object Application extends Controller {
     ApplicationModel(
       app.config.id,
       app.config.location.getAbsolutePath,
-      Seq("plugins/code/code", "plugins/play/play"),
+      Seq("plugins/code/code", "plugins/run/run"),
       app.config.cachedName getOrElse app.config.id,
       // TODO - something less lame than exception here...
       app.blueprintID)

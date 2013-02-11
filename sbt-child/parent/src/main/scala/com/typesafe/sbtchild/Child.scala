@@ -6,10 +6,19 @@ import akka.actor._
 import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
+import akka.util.ByteString
+
+sealed trait SbtChildRequest
+
+// these are automatically done during a protocol.Request (subscribe on request,
+// unsubscribe on response).
+case class SubscribeOutput(ref: ActorRef) extends SbtChildRequest
+case class UnsubscribeOutput(ref: ActorRef) extends SbtChildRequest
 
 // You are supposed to send this thing requests from protocol.Request,
-// to get back protocol.Reply
-class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) extends Actor with ActorLogging {
+// to get back protocol.Reply. It also handles subscribe/unsubscribe from
+// output events
+class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) extends EventSourceActor with ActorLogging {
 
   private val serverSocket = ipc.openServerSocket()
   private val port = serverSocket.getLocalPort()
@@ -33,10 +42,10 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
   private val process = context.actorOf(Props(new ProcessActor(sbtChildMaker.arguments(port),
     workingDir, textMode = true)), "sbt-process")
 
-  private val server = context.actorOf(Props(new ServerActor(serverSocket)), "sbt-server")
+  private val server = context.actorOf(Props(new ServerActor(serverSocket, self)), "sbt-server")
 
-  context.watch(server)
-  context.watch(process)
+  watch(server)
+  watch(process)
 
   server ! SubscribeServer(self)
   server ! StartServer
@@ -58,78 +67,103 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
     }
   }
 
+  override def onTerminated(ref: ActorRef): Unit = {
+    super.onTerminated(ref)
+    if (ref == process) {
+      processTerminated = true
+      // the socket will never connect, if it hasn't.
+      // we don't want accept() to perma-block
+      log.debug("closing server socket because process exited")
+      if (!serverSocket.isClosed())
+        serverSocket.close()
+      considerSuicide()
+    } else if (ref == server) {
+      serverTerminated = true
+      considerSuicide()
+    } else {
+      // probably death of a subscriber
+    }
+  }
+
+  private def forwardRequest(requestor: ActorRef, req: protocol.Request): Unit = {
+    if (protocolStarted) {
+      // checking isTerminated here is a race, but when the race fails the sender
+      // should still time out. We're just trying to short-circuit the timeout if
+      // we know it will time out.
+      if (serverTerminated || processTerminated || protocolStartedAndStopped) {
+        log.debug("Got request {} on already-shut-down server", req)
+        requestor ! protocol.ErrorResponse("ServerActor has already shut down")
+      } else {
+        // auto-subscribe to stdout/stderr; ServerActor is then responsible
+        // for sending an Unsubscribe back to us. Kind of hacky.
+        if (req.sendEvents)
+          subscribe(requestor)
+        // now forward the request
+        server.tell(req, requestor)
+      }
+    } else {
+      log.debug("storing request for when server gets a connection {}", req)
+      preStartBuffer = preStartBuffer :+ (req, sender)
+    }
+  }
+
   override def receive = {
     case Terminated(ref) =>
-      if (ref == process) {
-        processTerminated = true
-        // the socket will never connect, if it hasn't.
-        // we don't want accept() to perma-block
-        log.debug("closing server socket because process exited")
-        if (!serverSocket.isClosed())
-          serverSocket.close()
-        considerSuicide()
-      } else if (ref == server) {
-        serverTerminated = true
-        considerSuicide()
-      } else {
-        log.warning("Likely bug, got unknown death notification {}", ref)
-      }
+      onTerminated(ref)
+
+    case req: SbtChildRequest => req match {
+      case SubscribeOutput(ref) => subscribe(ref)
+      case UnsubscribeOutput(ref) => unsubscribe(ref)
+    }
 
     // request for the server actor
     case req: protocol.Request =>
-      if (protocolStarted) {
-        // checking isTerminated here is a race, but when the race fails the sender
-        // should still time out. We're just trying to short-circuit the timeout if
-        // we know it will time out.
-        if (serverTerminated || processTerminated || protocolStartedAndStopped) {
-          log.debug("Got request {} on already-shut-down server", req)
-          sender ! protocol.ErrorResponse("ServerActor has already shut down", Nil)
-        }
-        server.forward(req)
-      } else {
-        log.debug("storing request for when server gets a connection {}", req)
-        preStartBuffer = preStartBuffer :+ (req, sender)
-      }
+      forwardRequest(sender, req)
 
     // message from server actor other than a response
-    case event: protocol.Event => event match {
-      case protocol.Started =>
-        protocolStarted = true
-        preStartBuffer foreach { m =>
-          log.debug("Sending queued request to new server {}", m._1)
-          server.tell(m._1, m._2)
-        }
-        preStartBuffer = Vector.empty
-      case protocol.Stopped =>
-        log.debug("server actor says it's all done, killing it")
-        protocolStartedAndStopped = true
-        server ! PoisonPill
-      case protocol.MysteryMessage(something) =>
-        // let it crash
-        throw new RuntimeException("Received unexpected item on socket from sbt child: " + something)
-    }
+    case event: protocol.Event =>
+      event match {
+        case protocol.Started =>
+          protocolStarted = true
+          preStartBuffer foreach { m =>
+            forwardRequest(m._2, m._1)
+          }
+          preStartBuffer = Vector.empty
+        case protocol.Stopped =>
+          log.debug("server actor says it's all done, killing it")
+          protocolStartedAndStopped = true
+          server ! PoisonPill
+        case e: protocol.LogEvent =>
+          throw new RuntimeException("Not expecting a LogEvent here: " + e)
+        case protocol.MysteryMessage(something) =>
+          // let it crash
+          throw new RuntimeException("Received unexpected item on socket from sbt child: " + something)
+      }
 
     // event from process actor
-    case event: ProcessEvent => event match {
-      case ProcessStopped(status) =>
-        // we don't really need this event since ProcessActor self-suicides
-        // and we get Terminated
-        log.debug("sbt process stopped, status: {}", status)
-      case ProcessStdOut(bytes) => {
-        outDecoder.feed(bytes)
-        // FIXME do something better
-        val s = outDecoder.read.mkString
-        if (s.length > 0)
-          log.debug("sbt out: {}", s.trim())
+    case event: ProcessEvent =>
+
+      def handleOutput(label: String, decoder: ByteStringDecoder, entryMaker: String => protocol.LogEntry, bytes: ByteString): Unit = {
+        decoder.feed(bytes)
+        val s = decoder.read.mkString
+        if (s.length > 0) {
+          s.split("\n") foreach { line =>
+            log.debug("sbt {}: {}", label, line)
+            emitEvent(protocol.LogEvent(entryMaker(line)))
+          }
+        }
       }
-      case ProcessStdErr(bytes) => {
-        errDecoder.feed(bytes)
-        // FIXME do something better
-        val s = errDecoder.read.mkString
-        if (s.length > 0)
-          log.debug("sbt err: {}", s.trim())
+
+      event match {
+        case ProcessStopped(status) =>
+          // we don't really need this event since ProcessActor self-suicides
+          // and we get Terminated
+          log.debug("sbt process stopped, status: {}", status)
+        case ProcessStdOut(bytes) =>
+          handleOutput("out", outDecoder, protocol.LogStdOut.apply, bytes)
+        case ProcessStdErr(bytes) =>
+          handleOutput("err", errDecoder, protocol.LogStdErr.apply, bytes)
       }
-    }
   }
 
   override def postStop() = {
@@ -137,7 +171,7 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
 
     preStartBuffer foreach { m =>
       log.debug("On destroy, sending queued request that never made it to the socket {}", m._1)
-      m._2 ! protocol.ErrorResponse("sbt process never got in touch, so unable to handle request " + m._1, Nil)
+      m._2 ! protocol.ErrorResponse("sbt process never got in touch, so unable to handle request " + m._1)
     }
     preStartBuffer = Vector.empty
 

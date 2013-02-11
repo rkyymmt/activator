@@ -53,13 +53,13 @@ class ChildTest {
       val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
 
       try {
-        val name = Await.result(child ? NameRequest, timeout.duration) match {
-          case NameResponse(n, logs) => n
+        val name = Await.result(child ? NameRequest(sendEvents = false), timeout.duration) match {
+          case NameResponse(n) => n
         }
         assertEquals("talkToChild", name)
 
-        val name2 = Await.result(child ? NameRequest, timeout.duration) match {
-          case NameResponse(n, logs) => n
+        val name2 = Await.result(child ? NameRequest(sendEvents = false), timeout.duration) match {
+          case NameResponse(n) => n
         }
         assertEquals("talkToChild", name2)
 
@@ -99,8 +99,8 @@ class ChildTest {
       val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
 
       try {
-        Await.result(child ? RunRequest, timeout.duration) match {
-          case RunResponse(logs) =>
+        Await.result(child ? RunRequest(sendEvents = false), timeout.duration) match {
+          case RunResponse(success) =>
           case whatever => throw new AssertionError("did not get RunResponse")
         }
       } finally {

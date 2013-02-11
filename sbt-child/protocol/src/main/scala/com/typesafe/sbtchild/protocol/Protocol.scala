@@ -4,9 +4,14 @@ import com.typesafe.sbtchild.ipc
 import scala.util.parsing.json._
 import com.typesafe.sbtchild.ipc.JsonReader
 
-sealed trait LogEntry
+sealed trait LogEntry {
+  def message: String
+}
+
+case class LogStdOut(message: String) extends LogEntry
+case class LogStdErr(message: String) extends LogEntry
 case class LogSuccess(message: String) extends LogEntry
-case class LogTrace(throwableClass: String, throwableMessage: String) extends LogEntry
+case class LogTrace(throwableClass: String, message: String) extends LogEntry
 case class LogMessage(level: Int, message: String) extends LogEntry
 
 object LogEntry {
@@ -19,6 +24,11 @@ object LogEntry {
           Map("type" -> "trace", "class" -> klass, "message" -> message)
         case LogMessage(level, message) =>
           Map("type" -> "message", "level" -> level, "message" -> message)
+        case LogStdOut(message) =>
+          Map("type" -> "stdout", "message" -> message)
+        case LogStdErr(message) =>
+          Map("type" -> "stderr", "message" -> message)
+
       }
       JSONObject(obj)
     }
@@ -30,6 +40,8 @@ object LogEntry {
             case "success" => LogSuccess(obj("message").asInstanceOf[String])
             case "trace" => LogTrace(obj("class").asInstanceOf[String], obj("message").asInstanceOf[String])
             case "message" => LogMessage(obj("level").asInstanceOf[Number].intValue, obj("message").asInstanceOf[String])
+            case "stdout" => LogStdOut(obj("message").asInstanceOf[String])
+            case "stderr" => LogStdErr(obj("message").asInstanceOf[String])
             case whatever =>
               throw new Exception("unexpected LogEntry type: " + whatever)
           }
@@ -62,22 +74,27 @@ sealed trait Message {
   def jsonTypeString = removeDollar(lastChunk(getClass.getName))
 }
 
-sealed trait Request extends Message
+sealed trait Request extends Message {
+  // whether to send events between request/response, in
+  // addition to just the response.
+  def sendEvents: Boolean
+}
 sealed trait Response extends Message
 sealed trait Event extends Message
 
-case object NameRequest extends Request
-case class NameResponse(name: String, logs: List[LogEntry]) extends Response
+case class NameRequest(sendEvents: Boolean) extends Request
+case class NameResponse(name: String) extends Response
 
-case object CompileRequest extends Request
-case class CompileResponse(logs: List[LogEntry]) extends Response
+case class CompileRequest(sendEvents: Boolean) extends Request
+case class CompileResponse(success: Boolean) extends Response
 
-case object RunRequest extends Request
-case class RunResponse(logs: List[LogEntry]) extends Response
+case class RunRequest(sendEvents: Boolean) extends Request
+case class RunResponse(success: Boolean) extends Response
 
 // can be the response to anything
-case class ErrorResponse(error: String, logs: List[LogEntry]) extends Response
+case class ErrorResponse(error: String) extends Response
 
+case class LogEvent(entry: LogEntry) extends Event
 // pseudo-wire-messages we synthesize locally
 case object Started extends Event
 case object Stopped extends Event
@@ -96,18 +113,22 @@ object Message {
       import scala.util.parsing.json._
       val base = Map("type" -> m.jsonTypeString)
       val obj: Map[String, Any] = m match {
-        case CompileRequest | NameRequest | RunRequest | Started | Stopped =>
+        case req: Request =>
+          base ++ Map("sendEvents" -> req.sendEvents)
+        case Started | Stopped =>
           base
-        case NameResponse(name, logs) =>
-          base ++ Map("name" -> name, "logs" -> ipc.JsonWriter.toJsonArray(logs))
-        case CompileResponse(logs) =>
-          base ++ Map("logs" -> ipc.JsonWriter.toJsonArray(logs))
-        case RunResponse(logs) =>
-          base ++ Map("logs" -> ipc.JsonWriter.toJsonArray(logs))
-        case ErrorResponse(error, logs) =>
-          base ++ Map("error" -> error, "logs" -> ipc.JsonWriter.toJsonArray(logs))
+        case NameResponse(name) =>
+          base ++ Map("name" -> name)
+        case CompileResponse(success) =>
+          base ++ Map("success" -> success)
+        case RunResponse(success) =>
+          base ++ Map("success" -> success)
+        case ErrorResponse(error) =>
+          base ++ Map("error" -> error)
         case MysteryMessage(something) =>
           base ++ Map("something" -> something.toString)
+        case LogEvent(entry) =>
+          base ++ Map("entry" -> implicitly[ipc.JsonWriter[LogEntry]].toJson(entry))
         case whatever =>
           throw new Exception("Need to implement JSON serialization of: " + whatever)
       }
@@ -127,29 +148,34 @@ object Message {
     }
 
     override def fromJson(json: JSONType): Message = {
+      // "sendEvents" is optional so in a JSON API it can be defaulted to true
+      def getSendEvents(obj: Map[String, Any]): Boolean =
+        obj.get("sendEvents").map(_.asInstanceOf[Boolean]).getOrElse(true)
       json match {
         case JSONObject(obj) =>
           obj("type") match {
             case "NameRequest" =>
-              NameRequest
+              NameRequest(sendEvents = getSendEvents(obj))
             case "NameResponse" =>
-              NameResponse(obj("name").asInstanceOf[String], parseLogList(obj, "logs"))
+              NameResponse(obj("name").asInstanceOf[String])
             case "CompileRequest" =>
-              CompileRequest
+              CompileRequest(sendEvents = getSendEvents(obj))
             case "CompileResponse" =>
-              CompileResponse(parseLogList(obj, "logs"))
+              CompileResponse(obj("success").asInstanceOf[Boolean])
             case "RunRequest" =>
-              RunRequest
+              RunRequest(sendEvents = getSendEvents(obj))
             case "RunResponse" =>
-              RunResponse(parseLogList(obj, "logs"))
+              RunResponse(obj("success").asInstanceOf[Boolean])
             case "ErrorResponse" =>
-              ErrorResponse(obj("error").asInstanceOf[String], parseLogList(obj, "logs"))
+              ErrorResponse(obj("error").asInstanceOf[String])
             case "Started" =>
               Started
             case "Stopped" =>
               Stopped
             case "MysteryMessage" =>
               MysteryMessage(obj("something").asInstanceOf[String])
+            case "LogEvent" =>
+              LogEvent(implicitly[JsonReader[LogEntry]].fromJson(JSONObject(obj("entry").asInstanceOf[Map[String, Any]])))
             case whatever =>
               throw new Exception("unknown message type in json: " + whatever)
           }
@@ -174,9 +200,10 @@ object Envelope {
       implicitly[JsonReader[Message]].fromJson(json)
     } catch {
       case e: Exception =>
+        //System.err.println(e.getStackTraceString)
         // probably a JSON parse failure
         if (wire.replyTo != 0L)
-          ErrorResponse(e.getClass.getSimpleName + ": " + e.getMessage, Nil)
+          ErrorResponse("exception parsing json: " + e.getClass.getSimpleName + ": " + e.getMessage)
         else
           MysteryMessage(try wire.asString catch { case e: Exception => wire })
     }

@@ -10,6 +10,85 @@ import play.Logger
 import akka.util.Timeout
 import java.util.concurrent.TimeUnit
 import akka.actor._
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
+sealed trait AppCacheRequest
+
+case class GetApp(id: String) extends AppCacheRequest
+case object Cleanup extends AppCacheRequest
+
+sealed trait AppCacheReply
+
+case class GotApp(app: snap.App) extends AppCacheReply
+
+class AppCacheActor extends Actor with ActorLogging {
+  var appCache: Map[String, Future[snap.App]] = Map.empty
+
+  private def cleanup(deadRef: Option[ActorRef]): Unit = {
+    appCache = appCache.filter {
+      case (id, futureApp) =>
+        if (futureApp.isCompleted) {
+          try {
+            val app = Await.result(futureApp, 1.second)
+            if (Some(app.actor) == deadRef) {
+              log.debug("cleaning up terminated app actor {} {}", id, app.actor)
+              false
+            } else if (app.actor.isTerminated) {
+              // as side effect, mop up anything accidentally left over
+              log.warning("leftover app wasn't cleaned up before {} {}", id, app.actor)
+              false
+            } else {
+              true
+            }
+          } catch {
+            case e: Exception =>
+              log.warning("cleaning up app {} which failed to load due to '{}'", id, e.getMessage)
+              false
+          }
+        } else {
+          // still pending, keep it
+          true
+        }
+    }
+  }
+
+  override def receive = {
+    case Terminated(ref) =>
+      cleanup(Some(ref))
+
+    case req: AppCacheRequest => req match {
+      case GetApp(id) =>
+        appCache.get(id) match {
+          case Some(f) =>
+            f.map(GotApp(_)).pipeTo(sender)
+          case None => {
+            val appFuture: Future[snap.App] = RootConfig.user.applications.find(_.id == id) match {
+              case Some(config) =>
+                Promise.successful(new snap.App(config, snap.Akka.system, AppManager.sbtChildProcessMaker)).future
+              case whatever =>
+                Promise.failed(new RuntimeException("No such app with id: '" + id + "'")).future
+            }
+            appCache += (id -> appFuture)
+
+            // set up to watch the app's actor, or forget the future
+            // if the app is never created
+            appFuture.onComplete { value =>
+              value.foreach { app =>
+                context.watch(app.actor)
+              }
+              if (value.isFailure)
+                self ! Cleanup
+            }
+
+            appFuture.map(GotApp(_)).pipeTo(sender)
+          }
+        }
+      case Cleanup =>
+        cleanup(None)
+    }
+  }
+}
 
 object AppManager {
 
@@ -18,12 +97,7 @@ object AppManager {
   // to use the default "Debug" version.
   @volatile var sbtChildProcessMaker: SbtChildProcessMaker = DebugSbtChildProcessMaker
 
-  // TODO as a first cut, just cache one app. As long as only one tab
-  // is open this should be right, but of course it will be pure
-  // fail when two tabs are open... the real solution should be
-  // to tie one snap.App to each websocket, which will be associated
-  // with a tab, then we kill the App along with the socket.
-  @volatile var singleAppCache: Option[(String, Future[snap.App])] = None
+  val appCache = snap.Akka.system.actorOf(Props(new AppCacheActor), name = "app-cache")
 
   // Loads an application based on its id.
   // This needs to look in the RootConfig for the App/Location
@@ -32,22 +106,10 @@ object AppManager {
   //    Return error
   // If it exists
   //    Return the app
-  def loadApp(id: String): Future[snap.App] = singleAppCache match {
-    case Some((cachedId, f)) if id == cachedId => f
-    case other => {
-      synchronized {
-        singleAppCache.foreach(_._2.map(_.close()))
-
-        val appFuture: Future[snap.App] = RootConfig.user.applications.find(_.id == id) match {
-          case Some(config) =>
-            Promise.successful(new snap.App(config, snap.Akka.system, sbtChildProcessMaker)).future
-          case whatever =>
-            Promise.failed(new RuntimeException("No such app with id: '" + id + "'")).future
-        }
-
-        singleAppCache = Some((id, appFuture))
-        appFuture
-      }
+  def loadApp(id: String): Future[snap.App] = {
+    implicit val timeout = Timeout(10.seconds)
+    (appCache ? GetApp(id)).map {
+      case GotApp(app) => app
     }
   }
 
@@ -88,12 +150,12 @@ object AppManager {
       val sbt = SbtChild(snap.Akka.system, location, sbtChildProcessMaker)
       // TODO we need to test what happens here if sbt fails to start up (i.e. bad build files)
       implicit val timeout = Timeout(60, TimeUnit.SECONDS)
-      val result: Future[Either[String, AppConfig]] = (sbt ? protocol.NameRequest) map {
-        case protocol.NameResponse(name, logs) => {
+      val result: Future[Either[String, AppConfig]] = (sbt ? protocol.NameRequest(sendEvents = false)) map {
+        case protocol.NameResponse(name) => {
           Logger.info("sbt told us the name is: '" + name + "'")
           Right(name)
         }
-        case protocol.ErrorResponse(error, logs) =>
+        case protocol.ErrorResponse(error) =>
           Logger.info("error getting name from sbt: " + error)
           Left(error)
       } flatMap {

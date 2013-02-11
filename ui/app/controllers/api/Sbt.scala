@@ -20,28 +20,72 @@ import play.Logger
 import scala.concurrent.Future
 import snap.GetTaskActor
 import snap.TaskActorReply
+import snap.NotifyWebSocket
+import java.net.URLEncoder
 
 object Sbt extends Controller {
   implicit val timeout = Timeout(300.seconds)
 
+  // The point of this actor is to separate the "event" replies
+  // from the "response" reply and only reply with the "response"
+  // while forwarding the events to our socket
+  private class EventsForRequestActor(app: snap.App, taskId: String, taskActor: ActorRef) extends Actor with ActorLogging {
+    override def receive = awaitingRequest
+
+    def awaitingRequest: Receive = {
+      case req: protocol.Request =>
+        taskActor ! req
+        context.become(awaitingResponse(sender))
+    }
+
+    def awaitingResponse(requestor: ActorRef): Receive = {
+      case event: protocol.Event =>
+        log.debug("event: {}", event)
+        val json = scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(event))
+        app.actor ! NotifyWebSocket(JsObject(Seq("taskId" -> JsString(taskId), "event" -> json)))
+      case response: protocol.Response =>
+        app.actor ! NotifyWebSocket(JsObject(Seq("taskId" -> JsString(taskId),
+          "event" -> JsObject(Seq("type" -> JsString("TaskComplete"))))))
+        requestor ! response
+        self ! PoisonPill
+    }
+  }
+
+  def sendRequestGettingEvents(factory: ActorRefFactory, app: snap.App, taskId: String, taskActor: ActorRef, request: protocol.Request): Future[protocol.Response] = {
+    val actor = factory.actorOf(Props(new EventsForRequestActor(app, taskId, taskActor)),
+      name = "event-tee-" + URLEncoder.encode(taskId, "UTF-8"))
+    (actor ? request) map {
+      case response: protocol.Response => response
+      case whatever => throw new RuntimeException("unexpected response: " + whatever)
+    }
+  }
+
   // Incoming JSON should be:
   //  { "appId" : appid, "description" : human-readable,
+  //    "taskId" : uuid,
   //    "task" : json-as-we-define-in-sbtchild.protocol }
   // And the reply will be a message as defined in sbtchild.protocol
   def task() = jsonAction { json =>
     val appId = (json \ "appId").as[String]
+    val taskId = (json \ "taskId").as[String]
     val taskDescription = (json \ "description").as[String]
     val taskJson = (json \ "task")
 
-    val taskMessage = protocol.Message.JsonRepresentationOfMessage.fromJson(playJsonToScalaJson(taskJson))
+    val taskMessage = protocol.Message.JsonRepresentationOfMessage.fromJson(playJsonToScalaJson(taskJson)) match {
+      case req: protocol.Request => req
+      case whatever => throw new RuntimeException("not a request: " + whatever)
+    }
 
     val resultFuture = AppManager.loadApp(appId) flatMap { app =>
-      withTaskActor(taskDescription, app) { taskActor =>
-        val taskFuture = (taskActor ? taskMessage) map {
+      withTaskActor(taskId, taskDescription, app) { taskActor =>
+        val taskFuture = sendRequestGettingEvents(snap.Akka.system, app, taskId, taskActor, taskMessage) map {
           case message: protocol.Message =>
             Ok(scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(message)))
         }
-        taskFuture.onComplete(_ => taskActor ! PoisonPill)
+        taskFuture.onComplete { _ =>
+          Logger.debug("Killing task actor")
+          taskActor ! PoisonPill
+        }
         taskFuture
       }
     }
@@ -53,14 +97,14 @@ object Sbt extends Controller {
       try f(json)
       catch {
         case e: Exception =>
-          Logger.info("json action failed", e)
+          Logger.info("json action failed: " + e.getMessage(), e)
           BadRequest(e.getClass.getName + ": " + e.getMessage)
       }
     }).getOrElse(BadRequest("expecting JSON body"))
   }
 
-  private def withTaskActor[T](taskDescription: String, app: snap.App)(body: ActorRef => Future[T]): Future[T] = {
-    (app.actor ? GetTaskActor(taskDescription)) flatMap {
+  private def withTaskActor[T](taskId: String, taskDescription: String, app: snap.App)(body: ActorRef => Future[T]): Future[T] = {
+    (app.actor ? GetTaskActor(taskId, taskDescription)) flatMap {
       case TaskActorReply(taskActor) => body(taskActor)
     }
   }
@@ -114,5 +158,4 @@ object Sbt extends Controller {
         throw new RuntimeException("only JSON 'containers' allowed here, not " + other.getClass)
     }
   }
-
 }

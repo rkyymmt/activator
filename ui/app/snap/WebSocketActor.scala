@@ -1,18 +1,14 @@
 package snap
 
-// for the "10 seconds" duration sugar
-import language.postfixOps
-
 import akka.actor._
 import akka.pattern._
-import scala.concurrent._
+import scala.concurrent.{ Channel => _, _ }
 import scala.concurrent.duration._
 import akka.util._
 import play.api._
 import play.api.mvc._
 import play.api.data._
 import play.api.libs.iteratee._
-import play.api.libs.concurrent.Promise
 import scala.collection.immutable.Queue
 import play.api.mvc.WebSocket.FrameFormatter
 
@@ -20,10 +16,12 @@ private case object Ack
 
 private case object GetWebSocket
 
+private case object CloseWebSocket
+
 // This is a bunch of glue to convert Iteratee/Enumerator into an actor.
 // There's probably a better approach, oh well.
 abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatter[MessageType], mf: Manifest[MessageType]) extends Actor with ActorLogging {
-  private implicit def timeout = WebSocketActor.timeout
+  import WebSocketActor.timeout
   private implicit def ec: ExecutionContext = context.system.dispatcher
 
   protected sealed trait WebSocketMessage
@@ -58,7 +56,7 @@ abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatt
             log.debug("Sending error to the incoming websocket, can't consume since actor is terminated {}", i)
             Error("web socket consumer actor has been terminated", i)
           } else {
-            actor.ask(Incoming[In](x), 5 seconds).onFailure({
+            actor.ask(Incoming[In](x))(WebSocketActor.timeout).onFailure({
               case e: Exception ⇒
                 log.warning("Failed to consume incoming websocket message due to terminated actor")
             })
@@ -72,20 +70,22 @@ abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatt
   // this is called from a non-actor thread
   private def newConsumer(): Iteratee[MessageType, Unit] = new ActorIteratee[MessageType](self)
 
-  // when the WebSocketActor is stopped, this is also stopped, and
-  // then the enumerator is closed.
-  private var producerOption: Option[ActorRef] = None
-
   private var incomingCompleted = false
   private var outgoingCompleted = false
   private var triggeredFullyCompleted = false
   private var createdSocket = false
   private var ready = false
 
+  // don't restart children
+  override val supervisorStrategy = SupervisorStrategy.stoppingStrategy
+
+  private val producer = context.actorOf(Props(new ProducerProxy[MessageType]), name = "producer")
+
+  context.watch(producer)
+
   override def preStart(): Unit = {
-    producerOption = Some(context.actorOf(Props(new ProducerProxy[MessageType])))
-    producerOption.foreach(context.watch(_))
-    context.system.scheduler.scheduleOnce(11 seconds, self, InitialReadyTimeout)
+    log.debug("starting")
+    context.system.scheduler.scheduleOnce(WebSocketActor.timeout.duration, self, InitialReadyTimeout)
   }
 
   private def checkFullyCompleted() {
@@ -99,13 +99,13 @@ abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatt
     }
 
     if (incomingCompleted || outgoingCompleted) {
-      context.system.scheduler.scheduleOnce(12 seconds, self, TimeoutAfterHalfCompleted)
+      context.system.scheduler.scheduleOnce(WebSocketActor.timeout.duration, self, TimeoutAfterHalfCompleted)
     }
   }
 
   private def internalReceive: Receive = {
     case Terminated(child) ⇒
-      if (Some(child) == producerOption) {
+      if (child == producer) {
         log.debug("In websocket actor, got Terminated for producer actor")
         outgoingCompleted = true
         checkFullyCompleted()
@@ -117,6 +117,8 @@ abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatt
         log.debug("In websocket actor, got IncomingComplete signaling consumer actor is done")
         incomingCompleted = true
         checkFullyCompleted()
+        log.debug("poisoning producer to close our side of the socket")
+        producer ! PoisonPill
       case InitialReadyTimeout ⇒
         if (!ready) {
           log.warning("websocket actor not ready within its timeout, poisoning")
@@ -127,7 +129,7 @@ abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatt
       case TimeoutAfterHalfCompleted ⇒
         log.warning("websocket actor had incoming completed=" + incomingCompleted +
           " and outgoing completed=" + outgoingCompleted +
-          " and timed out before the other one completed")
+          " and timed out before the other one completed; force-terminating")
         incomingCompleted = true
         outgoingCompleted = true
         checkFullyCompleted()
@@ -136,19 +138,32 @@ abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatt
       onMessage(message.asInstanceOf[MessageType])
     case GetWebSocket ⇒
       if (createdSocket) {
+        log.warning("second connection attempt will fail")
         throw new Exception("Tried to attach a second web socket to the same WebSocketActor")
       } else {
+        log.info("Firing up web socket")
         val actor = self
-        val futureStreams = producerOption.getOrElse(throw new Exception("no producer created")).ask(GetProducer)
-          .mapTo[Enumerator[MessageType]]
-          .map({ enumerator ⇒
-            val consumer = newConsumer()
-            actor ! Ready
-            (consumer, enumerator)
+        val futureStreams = producer.ask(GetProducer)
+          .mapTo[GotProducer[MessageType]]
+          .map({
+            case GotProducer(enumerator) ⇒
+              log.debug("got producer enumerator")
+              val consumer = newConsumer()
+              actor ! Ready
+              (consumer, enumerator)
           })
         createdSocket = true
+
+        futureStreams onFailure {
+          case e: Throwable =>
+            log.warning("Failed to create producer and consumer, {}: {}", e.getClass.getSimpleName, e.getMessage)
+        }
+
         futureStreams pipeTo sender
       }
+    case CloseWebSocket =>
+      log.debug("got CloseWebSocket poisoning the producer")
+      producer ! PoisonPill
   }
 
   final override def receive = internalReceive orElse subReceive
@@ -159,39 +174,36 @@ abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatt
 
   }
 
-  protected def produce(message: MessageType): Unit = {
-    require(producerOption.isDefined)
-
-    producerOption.foreach({ producer ⇒
-      producer.ask(Outgoing(message), 5 seconds).onFailure({
+  protected final def produce(message: MessageType): Unit = {
+    if (producer.isTerminated) {
+      // this isn't reliable, it's just nicer to fail early instead of timing out
+      log.warning("producer actor is dead, sending isn't going to work")
+    } else {
+      producer.ask(OutgoingMessage(message))(WebSocketActor.timeout).mapTo[Ack.type].onFailure {
         case e: Exception ⇒
           log.debug("Producer actor failed to send Outgoing, {}: {}", e.getClass.getSimpleName, e.getMessage)
+          log.debug("Killing failed producer")
           // this is supposed to start a chain reaction where we get Terminated
           // on the producer and then kill ourselves as well
           producer ! PoisonPill
-      })
-    })
+      }
+    }
   }
 }
 
 object WebSocketActor {
-  implicit val timeout = Timeout(20 seconds)
-
-  def createHandler[M](webSocketActor: ActorRef)(implicit frameFormatter: FrameFormatter[M], mf: Manifest[M], executor: ExecutionContext): Future[WebSocket[M]] = {
-    webSocketActor.ask(GetWebSocket)
-      .mapTo[(Iteratee[M, _], Enumerator[M])]
-      .map({ streams ⇒
-        WebSocket.using({ header ⇒ streams })
-      })
-  }
+  implicit val timeout = Timeout(20.seconds)
 }
 
 private sealed trait ProducerProxyMessage
-private case object OutgoingReady extends ProducerProxyMessage
+private case class OutgoingReady[Out](channel: Concurrent.Channel[Out]) extends ProducerProxyMessage
 private case object OutgoingComplete extends ProducerProxyMessage
 private case class OutgoingError[Out](s: String, input: Input[Out]) extends ProducerProxyMessage
-private case class Outgoing[Out](message: Out) extends ProducerProxyMessage
+private case class OutgoingMessage[Out](message: Out) extends ProducerProxyMessage
 private case object GetProducer extends ProducerProxyMessage
+
+private sealed trait ProducerProxyReply
+private case class GotProducer[Out](enumerator: Enumerator[Out]) extends ProducerProxyReply
 
 private class ProducerProxy[Out] extends Actor with ActorLogging {
   private implicit def ec: ExecutionContext = context.system.dispatcher
@@ -200,42 +212,40 @@ private class ProducerProxy[Out] extends Actor with ActorLogging {
 
   // create a producer that accepts outgoing websocket messages
   // and sends us status updates on the producer channel
-
-  protected lazy val (stream, channel) = Concurrent.broadcast[Out]
-
-  protected lazy val enumerator = Enumerator.imperative[Out](
-    onStart = { () ⇒
-      log.debug("starting websocket producer (outgoing socket)")
-      self ! OutgoingReady
+  protected lazy val enumerator = Concurrent.unicast[Out](
+    onStart = { channel ⇒
+      log.debug("unicast onStart: sending channel to websocket producer")
+      self ! OutgoingReady[Out](channel)
     },
     onComplete = { () ⇒
-      log.debug("completing websocket producer")
+      log.debug("unicast onComplete: completing websocket producer")
       self ! OutgoingComplete
     },
     onError = { (s, input) ⇒
-      log.debug("error on websocket producer")
+      log.debug("unicast onError: websocket producer {}", s)
       self ! OutgoingError(s, input)
     })
 
-  var ready = false
+  var channelOption: Option[Concurrent.Channel[Out]] = None
   var buffer: Queue[Out] = Queue.empty
 
   private def push(message: Out): Unit = {
-    require(ready)
-    try {
-      if (enumerator.push(message.asInstanceOf[Out]))
-        log.debug("pushed message over socket")
-      else
-        throw new Exception("Tried to push over bad outgoing channel (not yet open?)")
-    } catch {
-      case other: Exception ⇒
-        log.warning("Exception {} sending to socket, suiciding: {}", other.getClass.getSimpleName, other.getMessage)
-        self ! PoisonPill
+    require(channelOption.isDefined)
+    for (channel <- channelOption) {
+      log.debug("pushing message to channel {}", message)
+      try {
+        channel.push(message)
+        log.debug("message pushed with no exception")
+      } catch {
+        case other: Exception ⇒
+          log.warning("Exception {} sending to socket, suiciding: {}", other.getClass.getSimpleName, other.getMessage)
+          self ! PoisonPill
+      }
     }
   }
 
   private def produce(message: Out): Unit = {
-    if (ready) {
+    if (channelOption.isDefined) {
       push(message)
     } else {
       log.debug("Buffering message {}", message)
@@ -244,29 +254,35 @@ private class ProducerProxy[Out] extends Actor with ActorLogging {
   }
 
   private def flushBuffer(): Unit = {
-    require(ready)
+    require(channelOption.isDefined)
+
+    if (buffer.isEmpty)
+      log.debug("No messages in buffer to flush")
 
     while (buffer.nonEmpty) {
-      val (e, remaining) = buffer.dequeue
-      log.debug("Flushing buffered message {}", e)
-      push(e)
+      val (m, remaining) = buffer.dequeue
+      log.debug("Flushing buffered message {}", m)
+      push(m)
       buffer = remaining
     }
   }
 
   override def receive = {
     case InitialReadyTimeout ⇒
-      if (!ready) {
+      if (!channelOption.isDefined) {
         log.warning("ProducerProxy not ready within initial timeout, poisoning")
         self ! PoisonPill
       }
     case ppMessage: ProducerProxyMessage ⇒ ppMessage match {
-      case Outgoing(message) ⇒
+      case OutgoingMessage(message) ⇒
+        log.debug("producer got outgoing: {}", message)
         produce(message.asInstanceOf[Out])
+        log.debug("producer sending Ack")
         sender ! Ack
-      case OutgoingReady ⇒
-        log.debug("ProducerProxy ready to go, flushing buffer")
-        ready = true
+      case OutgoingReady(channel) ⇒
+        log.debug("ProducerProxy ready to go, got channel {}", channel)
+        require(channelOption.isEmpty)
+        channelOption = Some(channel.asInstanceOf[Concurrent.Channel[Out]])
         flushBuffer()
       case OutgoingComplete ⇒
         log.debug("ProducerProxy got complete, closing down)")
@@ -276,21 +292,22 @@ private class ProducerProxy[Out] extends Actor with ActorLogging {
         self ! PoisonPill
       case GetProducer ⇒
         log.debug("ProducerProxy returning its enumerator: {}", enumerator)
-        sender ! enumerator
+        sender ! GotProducer(enumerator)
     }
   }
 
   override def preStart(): Unit = {
-    context.system.scheduler.scheduleOnce(10 seconds, self, InitialReadyTimeout)
+    log.debug("starting")
+    context.system.scheduler.scheduleOnce(WebSocketActor.timeout.duration, self, InitialReadyTimeout)
   }
 
   override def postStop(): Unit = {
-    try {
-      enumerator.close()
-    } catch {
-      case e: Exception ⇒
-        log.warning("Problem closing websocket outgoing producer: {}: {}", e.getClass.getSimpleName, e.getMessage)
+    log.debug("stopping")
+    channelOption.foreach { channel =>
+      try channel.eofAndEnd() catch {
+        case e: Exception ⇒
+          log.warning("Problem closing websocket outgoing producer: {}: {}", e.getClass.getSimpleName, e.getMessage)
+      }
     }
-    log.debug("Closed websocket producer actor")
   }
 }
