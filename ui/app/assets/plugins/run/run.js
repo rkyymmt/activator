@@ -1,14 +1,6 @@
-define(['text!./run.html', 'core/streams'], function(template, Streams){
+define(['text!./run.html', 'core/sbt'], function(template, sbt){
 
 	var ko = req('vendors/knockout-2.2.1.debug');
-
-	var randomShort = function() {
-		return Math.floor(Math.random() * 65536)
-	}
-
-	var genTaskId = function(prefix) {
-		return prefix + "-" + (new Date().getTime()) + "-" + randomShort() + "-" + randomShort() + "-" + randomShort()
-	}
 
 	// if we wanted to be cute we'd convert these to HTML tags perhaps
 	var ansiCodeRegex = new RegExp("\\033\\[[0-9;]+m", "g");
@@ -27,31 +19,18 @@ define(['text!./run.html', 'core/streams'], function(template, Streams){
 		},
 		runButtonClicked: function(self) {
 			console.log("Run was clicked");
-			// TODO factor all this out into some kind of SBT API
-			var runRequest = {
-				appId: serverAppModel.id,
-				taskId: genTaskId(serverAppModel.id),
-				description: "Run " + serverAppModel.name,
-				task: {
-					type: "RunRequest"
-				}
-			};
-			Streams.subscribeTask(runRequest.taskId, function(event) {
-				if ('type' in event && event.type == 'LogEvent') {
-					var message = event.entry.message;
-					var logType = event.entry.type;
-					self.logs.push(logType + ": " + stripAnsiCodes(message));
-				} else {
-					self.logs.push("unknown event: " + JSON.stringify(event))
-				}
-			})
 			self.logs.push("Running...\n");
-			$.ajax({
-				url: '/api/sbt/task',
-				type: 'POST',
-				dataType: 'json', // return type
-				contentType: 'application/json; charset=utf-8',
-				data: JSON.stringify(runRequest),
+			sbt.runTask({
+				task: 'RunRequest',
+				onmessage: function(event) {
+					if ('type' in event && event.type == 'LogEvent') {
+						var message = event.entry.message;
+						var logType = event.entry.type;
+						self.logs.push(logType + ": " + stripAnsiCodes(message));
+					} else {
+						self.logs.push("unknown event: " + JSON.stringify(event))
+					}					
+				},
 				success: function(data) {
 					console.log("run result: ", data);
 					if (data.type == 'ErrorResponse') {
@@ -76,13 +55,7 @@ define(['text!./run.html', 'core/streams'], function(template, Streams){
 		icon: "▶",
 		url: "#run",
 		routes: {
-			'run': function(bcs) {
-				return $.map(bcs, function(crumb) {
-					return {
-						widget: Run
-					};
-				});
-			}
+			'run': [Run]
 		}
 	};
 });

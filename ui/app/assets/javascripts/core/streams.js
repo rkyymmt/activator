@@ -1,5 +1,4 @@
 define(function() {
-    var ko = req('vendors/knockout-2.2.1.debug');
     var id = window.serverAppModel.wsUrl;
     // We can probably just connect immediately.
     var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket;
@@ -7,43 +6,80 @@ define(function() {
     console.log("WS opening: " + window.serverAppModel.wsUrl);
     var socket = new WS(window.serverAppModel.wsUrl);
 
-    var taskSubscribers = []
+    var subscribers = []
 
+    /** Sends a message down the event stream socket to the server. 
+     *  @param msg {object} 
+     */
     function sendMessage(msg) {
       socket.send(JSON.stringify(msg));
     }
 
-    // this is probably sort of a hacky API but it will get us going.
-    // May want to refactor to a more generic event bus thingy.
-    function subscribeTask(taskId, handler) {
-    	var subscriber = { taskId: taskId, handler: handler }
-    	taskSubscribers.push(subscriber)
+    // Base filtering function to use in absense of any other.
+    function allPass() {
+    	return true;
+    }
+    
+    function randomShort() {
+    	return Math.floor(Math.random() * 65536)
+    }
+    
+    function randomId() {
+    	return "listener-" + (new Date().getTime()) + "-" + randomShort() + "-" + randomShort() + "-" + randomShort();
+    }
+    
+    /** Generic subscription service.
+     * @param o {function|object} Either an event handling function or an object
+     *                              consisting of:
+     *                              - id (optional): The id used to deregister later
+     *                              - handler: The event handler
+     *                              - filter (optional): A filter on messages you wish to receive.
+     * 
+     * @return {object}  The subscription information, including
+     *                   the chosen filter, id and event handler.
+     *                   Note: You need to remember the ID to unregister.
+     */
+    function subscribe(o) {
+    	var subscriber = {};
+    	if(typeof(o) == 'function') {
+    		subscriber.handler = o
+    	} else {
+    		subscriber.handler = o.handler;
+    	}
+    	subscriber.filter = o.filter || allPass;
+      subscriber.id = o.id || randomId();
+    	subscribers.push(subscriber)
+    	return subscriber;
+    }
+    
+    /**
+     * Unsubscribes a message handler.
+     * 
+     * @param o {String|Object}  Either the id of the listener, or the subscription object
+     *                           returned by `subscribe` method.
+     */
+    function unsubscribe(o) {
+    	// Assume an object or a string
+    	var id = o.id || o;
+    	subscribers = $.grep(subscribers, function(subscriber, idx) {
+    		return subscriber.id = id;
+    	});
+    	
     }
 
+    // Internal method to handle receiving websocket events.
     function receiveEvent(event) {
     	console.log("WS Event: ", event.data, event);
     	var obj = JSON.parse(event.data);
-    	if ('taskId' in obj) {
-    		if (obj.event.type == "TaskComplete") {
-    			console.log("task " + obj.taskId + " complete, removing its subscribers");
-    			// $.grep callback takes value,index while $.each takes index,value
-    			// awesome?
-    			taskSubscribers = $.grep(taskSubscribers, function(subscriber, index) {
-    				// keep only tasks that are not complete
-    				return subscriber.taskId != obj.taskId;
-    			});
-    		} else {
-	    		$.each(taskSubscribers, function(index, subscriber) {
-	    			if (subscriber.taskId == obj.taskId) {
-	    				try {
-	    					subscriber.handler(obj.event);
-	    				} catch(e) {
-	    					console.log("handler for " + subscriber.taskId + " failed", e);
-	    				}
-	    			}
-	    		});
+    	$.each(subscribers, function(idx, subscriber) {
+    		if(subscriber.filter(obj)) {
+    			try {
+    			  subscriber.handler(obj);
+    			} catch(e) {
+    				console.log('Handler ', subscriber, ' failed on message ', obj, ' with error ', e);
+    			}
     		}
-    	}
+    	});
     }
 
     function onOpen(event) {
@@ -72,6 +108,7 @@ define(function() {
     return {
     	// TODO - we need more public API then just "send message".
     	send: sendMessage,
-    	subscribeTask: subscribeTask
+    	subscribe: subscribe,
+    	unsubscribe: unsubscribe
     };
 });
