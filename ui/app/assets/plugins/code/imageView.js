@@ -1,6 +1,6 @@
-define(["text!./viewImage.html"], function(template){
+define(["text!./viewImage.html", 'core/pluginapi'], function(template, api){
 
-	var ImageView = Widget({
+	var ImageView = api.Widget({
 		id: 'code-image-view',
 		template: template,
 		init: function(args) {

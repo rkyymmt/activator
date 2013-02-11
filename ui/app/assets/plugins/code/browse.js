@@ -1,7 +1,8 @@
-define(['css!./code.css', 'text!./browse.html'], function(css, template) {
+define(['css!./code.css', 'text!./browse.html', 'core/pluginapi'], function(css, template, api) {
 
-	var ko = req('vendors/knockout-2.2.1.debug'),
-		key = req('vendors/keymage.min');
+	var ko = api.ko,
+		key = api.key
+		Widget = api.Widget;
 
 	var FileModel = Class({
 		init: function(config) {

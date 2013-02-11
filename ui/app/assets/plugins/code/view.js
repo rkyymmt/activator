@@ -1,10 +1,10 @@
-define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./codeView", "./browse"], function(viewOuter, defaultTemplate, ImageView, CodeView, DirView) {
+define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./codeView", "./browse", 'core/pluginapi'], function(viewOuter, defaultTemplate, ImageView, CodeView, DirView, api) {
 
-	var ko = req('vendors/knockout-2.2.1.debug'),
-		key = req('vendors/keymage.min');
+	var ko = api.ko,
+		key = api.key;
 
 	// Default view for when we don't know which other to use.
-	var DefaultView = Widget({
+	var DefaultView = api.Widget({
 		id: 'code-default-view',
 		template: defaultTemplate,
 		init: function(args) {
@@ -28,7 +28,7 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 			}
 		});
 	}
-	var FileBrowser = Widget({
+	var FileBrowser = api.Widget({
 		id: 'file-browser-widget',
 		template: viewOuter,
 		init: function(args) {

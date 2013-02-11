@@ -1,8 +1,8 @@
 // Sort of MVC (Module, Grid, Router)
-define(['./plugin', './grid', './router', './streams'], function(plugins, Grid, router, Streams) {
+define(['./plugin', './grid', './router', './pluginapi'], function(plugins, Grid, router, api) {
 
-	var ko = req('vendors/knockout-2.2.1.debug'),
-		key = req('vendors/keymage.min');
+	var ko = api.ko,
+		key = api.key;
 
 	// Model for the whole app view
 	var model = {
@@ -14,7 +14,6 @@ define(['./plugin', './grid', './router', './streams'], function(plugins, Grid, 
 		plugins: plugins,
 		router: router,
 		grid: Grid,
-		streams: Streams,
 		// This is the initialization of the application...
 		init: function() {
 			var self = this;
@@ -25,7 +24,10 @@ define(['./plugin', './grid', './router', './streams'], function(plugins, Grid, 
 			self.router.init();
 			ko.applyBindings(self, window.body);
 			return self;
-		}
+		},
+		api: api
 	};
 	window.model = model.init();
+	
+	return model;
 });
