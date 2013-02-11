@@ -140,12 +140,20 @@ object ProcessError {
 /**
  * This class represents a successful validation
  */
-case class ProcessSuccess[T](value: T) extends ProcessResult[T]
-case class ProcessFailure(failures: Seq[ProcessError]) extends ProcessResult[Nothing]
+final case class ProcessSuccess[T](value: T) extends ProcessResult[T]
+final case class ProcessFailure(failures: Seq[ProcessError]) extends ProcessResult[Nothing]
 object ProcessFailure {
   def apply(failure: ProcessError): ProcessFailure = new ProcessFailure(Seq(failure))
 }
 
+/**
+ * This object provides a way to wrap an expression so that the result
+ * is placed into a  ProcessResult[T].  If any non-fatal errors happen during the
+ * execution, they are captured in the failure state.
+ *
+ * You can also use the "withMsg" function to ensure a useful error message on failure.
+ *
+ */
 object Validating {
   def apply[T](process: => T): ProcessResult[T] = util.Try(process)
   def withMsg[T](msg: String)(process: => T): ProcessResult[T] =
