@@ -128,7 +128,7 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
         // now enter have-sbt mode
         context.become(haveSbt(sbt))
 
-      // when we die, the reservation should be auto-released by ServerActor
+      // when we die, the reservation should be auto-released by ChildPool
     }
 
     private def haveSbt(sbt: ActorRef): Receive = {
