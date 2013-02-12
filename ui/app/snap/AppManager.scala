@@ -182,4 +182,9 @@ object AppManager {
       Promise.successful(Left("Not a directory: " + location.getAbsolutePath())).future
     }
   }
+
+  def onApplicationStop() = {
+    Logger.debug("Killing app cache actor onApplicationStop")
+    appCache ! PoisonPill
+  }
 }
