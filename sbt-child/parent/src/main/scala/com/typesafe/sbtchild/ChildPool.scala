@@ -52,6 +52,8 @@ class ChildPool(val childFactory: SbtChildFactory, val minChildren: Int = 1, val
 
   def total = reserved.size + available.size
 
+  override val supervisorStrategy = SupervisorStrategy.stoppingStrategy
+
   def emitChangedAfter[R](body: => R): R = {
     // "reserved" is supposed to be lazy-evaluated so after the body runs
     emitEventIfOutermost({ SbtReservationsChanged(reserved) })(body)
