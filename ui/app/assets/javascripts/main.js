@@ -31,13 +31,14 @@ require([
 	'vendors/keymage.min',
 	'vendors/knockout-2.2.1.debug'
 ],function() {
-	require(['core/templates'], function() {
-	require([
-		// Core
-		'core/utils',
-		'core/sbt'
-	], function() {
-		require(['core/snap'])
-	})
-	})
+  require(['core/templates'], function() {
+    require([
+      // Core
+      'core/utils',
+      'core/sbt',
+      'plugins/tutorial/tutorial'
+    ], function() {
+      require(['core/snap'])
+    })
+  })
 })

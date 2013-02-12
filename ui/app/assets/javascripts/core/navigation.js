@@ -27,9 +27,6 @@ define(function(css, template){
 				window.location.href = e.target.href;
 			}
 		})
-		$("body > aside").click(function(){
-			$("body").toggleClass("right-open").trigger("resize")
-		})
 		// -------------------------
 	}
 

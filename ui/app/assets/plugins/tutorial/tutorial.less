@@ -2,6 +2,8 @@ aside.tutorial {
 	background: #384046;
 	nav {
 		height: 50px;
+		border-bottom: 1px solid rgba(255,255,255,.1);
+		-webkit-user-select: none;
 		.previous, .next {
 			color: #fff;
 			display: block;
@@ -26,27 +28,45 @@ aside.tutorial {
 			float: right;
 			border-left: 1px solid rgba(255,255,255,.1);
 		}
-		dl {
-			display: block;
-			height: 50px;
-			dt {
-				line-height: 50px;
-				background: rgba(0,0,0,.2);
-				color: #fff;
-				span {
-					float: left;
-					display: inline-block;
-					min-width: 20px;
-					height: 20px;
-					margin: 15px 10px;
-					line-height: 20px;
-					vertical-align: middle;
-					color: rgba(255,255,255,.5);
-					border: 1px solid rgba(255,255,255,.3);
-					text-align: center;	
-					border-radius: 2px;
+		h1 {
+			line-height: 50px;
+			padding: 0 60px;
+			background: rgba(0,0,0,.2);
+			color: #fff;
+			span {
+				float: left;
+				display: inline-block;
+				min-width: 20px;
+				height: 20px;
+				margin: 15px 10px;
+				line-height: 20px;
+				vertical-align: middle;
+				color: rgba(255,255,255,.5);
+				border: 1px solid rgba(255,255,255,.3);
+				text-align: center;	
+				border-radius: 2px;
+			}
+		}
+		ul {
+			position: absolute;
+			top: 50px;
+			right: 0;
+			background: white;
+			width: 100%;
+			height: 0;
+			overflow: auto;
+			li {
+				padding: 5px 10px;
+				border-bottom: 1px solid #eee;
+				cursor: pointer;
+				&:hover {
+					background: #53cdec;
+					color: #fff;
 				}
 			}
+		}
+		ul.open {
+			height: 100%;
 		}
 	}
 	a.button {
@@ -63,6 +83,8 @@ aside.tutorial {
 	}
 	article {
 		padding: 10px;
+		width: 100%;
+		overflow: auto;
 		background: none;
 		color: #D3D9DF;
 		color: rgba(255,255,255,.6);
@@ -72,6 +94,16 @@ aside.tutorial {
 			line-height: 40px;
 			padding: 0;
 			margin: 0;
+		}
+		h2 {
+			color: #fff;
+			height: 30px;
+			line-height: 30px;
+			padding: 0;
+			margin: 0;
+		}
+		p {
+			margin: 1em 0;
 		}
 		ul, ol {
 			margin: 10px 0;
@@ -86,6 +118,11 @@ aside.tutorial {
 		ol li {
 			list-style-type: decimal;
 		}
-
+		div {
+			display: none;
+		}
+		div.active {
+			display: block;
+		}
 	}
 }
