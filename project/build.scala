@@ -127,6 +127,19 @@ object TheSnapBuild extends Build {
           update
       }
     )
+    settings(
+      Keys.compile in Compile <<= (Keys.compile in Compile, Keys.baseDirectory, Keys.streams) map { (oldCompile, baseDir, streams) =>
+        val jsErrors = JsChecker.checkAll(baseDir)
+        for (error <- jsErrors) {
+          streams.log.error(error)
+        }
+        if (jsErrors.nonEmpty)
+          throw new RuntimeException(jsErrors.length + " JavaScript formatting errors found")
+        else
+          streams.log.info("JavaScript whitespace meets our exacting standards")
+        oldCompile
+      }
+    )
   )
 
   // TODO - SBT plugin, or just SBT integration?

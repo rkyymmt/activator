@@ -74,7 +74,7 @@ define(function() {
 		$.each(subscribers, function(idx, subscriber) {
 			if(subscriber.filter(obj)) {
 				try {
-				  subscriber.handler(obj);
+					subscriber.handler(obj);
 				} catch(e) {
 					console.log('Handler ', subscriber, ' failed on message ', obj, ' with error ', e);
 				}
