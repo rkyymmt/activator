@@ -81,6 +81,11 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
     val pb = (new ProcessBuilder(argv.asJava)).directory(cwd)
     val process = pb.start()
 
+    // we don't want the process to block on stdin.
+    // redirecting stdin from /dev/null would be nicer than
+    // closing it, but Java doesn't seem to have a way to do that.
+    loggingFailure(log) { process.getOutputStream().close() }
+
     selfRef ! process
 
     def startReader(label: String, rawStream: InputStream, wrap: ByteString => ProcessEvent): Unit = try {
