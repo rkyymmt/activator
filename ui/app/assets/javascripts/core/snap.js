@@ -31,3 +31,4 @@ define(['./plugin', './grid', './router', './pluginapi'], function(plugins, Grid
 
 	return model;
 });
+

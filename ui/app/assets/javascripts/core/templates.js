@@ -32,25 +32,25 @@ define([], function() {
 	});
 
 
-  // We add a custom binding that allows us to delegate to a view for binding things :)
-  // Kinda lazy, but it can help.
-  ko.bindingHandlers.customBind = {
-  		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-        // This will be called when the binding is first applied to an element
-        var wrappedHandler = valueAccessor();
-        var handler = ko.utils.unwrapObservable(wrappedHandler);
-        if(handler.init) {
-        	handler.init(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
-        }
-  		},
-  		update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-  		// This will be called when the binding is first applied to an element
-        var wrappedHandler = valueAccessor();
-        var handler = ko.utils.unwrapObservable(wrappedHandler);
-        if(handler.update) {
-        	handler.update(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
-        }
-  		}
+	// We add a custom binding that allows us to delegate to a view for binding things :)
+	// Kinda lazy, but it can help.
+	ko.bindingHandlers.customBind = {
+			init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+		// This will be called when the binding is first applied to an element
+		var wrappedHandler = valueAccessor();
+		var handler = ko.utils.unwrapObservable(wrappedHandler);
+		if(handler.init) {
+			handler.init(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
+		}
+			},
+			update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+			// This will be called when the binding is first applied to an element
+		var wrappedHandler = valueAccessor();
+		var handler = ko.utils.unwrapObservable(wrappedHandler);
+		if(handler.update) {
+			handler.update(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
+		}
+			}
 	}
 
 	function createStringTemplateEngine(templateEngine, templates) {

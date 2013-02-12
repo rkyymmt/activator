@@ -99,10 +99,10 @@ var Class = function(o) {
 }
 
 
-  return {
-  	Class: Class,
-  	Settings: Settings,
-  	Event: Event,
-  	inUrl: inUrl
-  }
+	return {
+		Class: Class,
+		Settings: Settings,
+		Event: Event,
+		inUrl: inUrl
+	}
 });

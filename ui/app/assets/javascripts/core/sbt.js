@@ -4,46 +4,46 @@ define(['./streams'], function(streams) {
 	var taskSubscribers = [];
 
 	function taskMultiplexer(obj) {
-  		if (obj.event.type == "TaskComplete") {
-  			console.log("task " + obj.taskId + " complete, removing its subscribers");
-  			// $.grep callback takes value,index while $.each takes index,value
-  			// awesome?
-  			taskSubscribers = $.grep(taskSubscribers, function(subscriber, index) {
-  				// keep only tasks that are not complete
-  				return subscriber.taskId != obj.taskId;
-  			});
-  		} else {
-  			// Just forward everything on.
-    		$.each(taskSubscribers, function(index, subscriber) {
-    			if (subscriber.taskId == obj.taskId) {
-    				try {
-    					subscriber.handler(obj.event);
-    				} catch(e) {
-    					console.log("handler for " + subscriber.taskId + " failed", e);
-    				}
-    			}
-    		});
-  		}
+			if (obj.event.type == "TaskComplete") {
+				console.log("task " + obj.taskId + " complete, removing its subscribers");
+				// $.grep callback takes value,index while $.each takes index,value
+				// awesome?
+				taskSubscribers = $.grep(taskSubscribers, function(subscriber, index) {
+					// keep only tasks that are not complete
+					return subscriber.taskId != obj.taskId;
+				});
+			} else {
+				// Just forward everything on.
+			$.each(taskSubscribers, function(index, subscriber) {
+				if (subscriber.taskId == obj.taskId) {
+					try {
+						subscriber.handler(obj.event);
+					} catch(e) {
+						console.log("handler for " + subscriber.taskId + " failed", e);
+					}
+				}
+			});
+			}
 	}
 
-  function isSbtTaskEvent(obj) {
-  	return 'taskId' in obj;
-  }
+	function isSbtTaskEvent(obj) {
+		return 'taskId' in obj;
+	}
 
-  // this is probably sort of a hacky API but it will get us going.
-  // May want to refactor to a more generic event bus thingy.
-  function subscribeTask(taskId, handler) {
-    var subscriber = { taskId: taskId, handler: handler }
-    taskSubscribers.push(subscriber)
-   }
+	// this is probably sort of a hacky API but it will get us going.
+	// May want to refactor to a more generic event bus thingy.
+	function subscribeTask(taskId, handler) {
+	var subscriber = { taskId: taskId, handler: handler }
+	taskSubscribers.push(subscriber)
+	 }
 
-  // Subscribes our own task-event streams to the websocket, and we hide that from
-  // clients.  We need to detail how events flow more formally in apis, but
-  // this is used so we can deregister from the socket if needed.
-  var subscription = streams.subscribe({
-    filter: isSbtTaskEvent,
-    handler: taskMultiplexer
-  });
+	// Subscribes our own task-event streams to the websocket, and we hide that from
+	// clients.  We need to detail how events flow more formally in apis, but
+	// this is used so we can deregister from the socket if needed.
+	var subscription = streams.subscribe({
+	filter: isSbtTaskEvent,
+	handler: taskMultiplexer
+	});
 
 
 	function randomShort() {
@@ -54,7 +54,7 @@ define(['./streams'], function(streams) {
 		return prefix + "-" + (new Date().getTime()) + "-" + randomShort() + "-" + randomShort() + "-" + randomShort();
 	}
 
-  /** Generates an SbtTaskRequest.  This attempts a series of input types into
+	/** Generates an SbtTaskRequest.  This attempts a series of input types into
 	 * the only acceptable JSON for the server.
 	 * @param o {String|Object}
 	 *          Either the task string to run, or an object with the
@@ -65,13 +65,13 @@ define(['./streams'], function(streams) {
 	function SbtTaskRequest(o) {
 		var taskName = (typeof(o) == 'string') ? o : o.task;
 		var request = {
-		  appId: serverAppModel.id,
-	    taskId: genTaskId(serverAppModel.id),
-		  description: (o.description  || (taskName + " " + serverAppModel.id)),
-	    task: {
-	    	type: taskName
-	    }
-	  };
+			appId: serverAppModel.id,
+			taskId: genTaskId(serverAppModel.id),
+			description: (o.description  || (taskName + " " + serverAppModel.id)),
+			task: {
+				type: taskName
+			}
+		};
 		return request;
 	};
 
