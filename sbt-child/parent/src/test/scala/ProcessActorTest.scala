@@ -36,7 +36,7 @@ class ProcessActorTest {
     process ! SubscribeProcess(recorder)
     process ! StartProcess
 
-    val result = Await.result(resultPromise.future, 3 seconds)
+    val result = Await.result(resultPromise.future, 3.seconds)
 
     system.shutdown()
 

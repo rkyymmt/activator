@@ -29,7 +29,7 @@ trait JsonWriter[-T] {
 
 object JsonWriter {
   def toJsonArray[T: JsonWriter](ts: Seq[T]): JSONArray = {
-    JSONArray(ts map { t => implicitly[JsonWriter[T]].toJson(t) } toList)
+    JSONArray((ts map { t => implicitly[JsonWriter[T]].toJson(t) }).toList)
   }
 }
 

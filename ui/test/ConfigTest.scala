@@ -21,7 +21,7 @@ class ConfigTest {
         AppConfig(new File("foo"), "id") +: old.applications
       old.copy(applications = appList)
     }
-    Await.ready(rewritten, 5 seconds)
+    Await.ready(rewritten, 5.seconds)
     val c = RootConfig.user
     assertTrue("app 'foo' now in user config", c.applications.exists(_.location.getPath == "foo"))
   }
@@ -36,7 +36,7 @@ class ConfigTest {
       val appList = withNoName +: old.applications.filter(_.location.getPath != "foo")
       old.copy(applications = appList)
     }
-    Await.ready(rewritten, 5 seconds)
+    Await.ready(rewritten, 5.seconds)
     val c = RootConfig.user
     assertTrue("app 'foo' now in user config with no name",
       c.applications.exists({ p => p.location.getPath == "foo" && p.cachedName.isEmpty }))
@@ -55,7 +55,7 @@ class ConfigTest {
       val appList = withName +: old.applications.filter(_.location.getPath != "foo")
       old.copy(applications = appList)
     }
-    Await.ready(rewritten, 5 seconds)
+    Await.ready(rewritten, 5.seconds)
     val c = RootConfig.user
     assertTrue("app 'foo' now in user config with a name",
       c.applications.exists({ p => p.location.getPath == "foo" && p.cachedName == Some("Hello World") }))

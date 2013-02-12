@@ -17,9 +17,9 @@ object Main extends App {
     val child = SbtChild(system, new File(args(0)), DebugSbtChildProcessMaker)
     try {
 
-      implicit val timeout = Timeout(60 seconds)
+      implicit val timeout = Timeout(60.seconds)
 
-      val name = Await.result(child ? protocol.NameRequest(sendEvents = false), 60 seconds) match {
+      val name = Await.result(child ? protocol.NameRequest(sendEvents = false), 60.seconds) match {
         case protocol.NameResponse(n) => {
           n
         }
@@ -28,7 +28,7 @@ object Main extends App {
       }
       println("Project is: " + name)
 
-      val compiled = Await.result(child ? protocol.CompileRequest(sendEvents = false), 60 seconds) match {
+      val compiled = Await.result(child ? protocol.CompileRequest(sendEvents = false), 60.seconds) match {
         case protocol.CompileResponse(logs) => {
           System.err.println("logs=" + logs)
           true
