@@ -1,5 +1,5 @@
 // Sort of MVC (Module, Grid, Router)
-define(['./plugin', './grid', './router', './pluginapi'], function(plugins, Grid, router, api) {
+define(['./plugin', './grid', './router', './pluginapi', './navigation'], function(plugins, Grid, router, api, navigation) {
 
 	var ko = api.ko,
 		key = api.key;
@@ -23,6 +23,7 @@ define(['./plugin', './grid', './router', './pluginapi'], function(plugins, Grid
 			});
 			self.router.init();
 			ko.applyBindings(self, window.body);
+			navigation.init();
 			return self;
 		},
 		api: api
