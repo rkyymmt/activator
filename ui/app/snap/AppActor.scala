@@ -128,7 +128,7 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
         // now enter have-sbt mode
         context.become(haveSbt(sbt))
 
-      // when we die, the reservation should be auto-released by ServerActor
+      // when we die, the reservation should be auto-released by ChildPool
     }
 
     private def haveSbt(sbt: ActorRef): Receive = {
@@ -146,12 +146,12 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
 
     override def subReceive: Receive = {
       case NotifyWebSocket(json) =>
-        log.info("sending message on web socket: {}", json)
+        log.debug("sending message on web socket: {}", json)
         produce(json)
     }
 
     override def postStop(): Unit = {
-      log.debug("stopping")
+      log.debug("postStop")
     }
   }
 }

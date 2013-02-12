@@ -81,6 +81,11 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
     val pb = (new ProcessBuilder(argv.asJava)).directory(cwd)
     val process = pb.start()
 
+    // we don't want the process to block on stdin.
+    // redirecting stdin from /dev/null would be nicer than
+    // closing it, but Java doesn't seem to have a way to do that.
+    loggingFailure(log) { process.getOutputStream().close() }
+
     selfRef ! process
 
     def startReader(label: String, rawStream: InputStream, wrap: ByteString => ProcessEvent): Unit = try {
@@ -94,7 +99,6 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
               val count = stream.read(bytes)
               if (count > 0) {
                 selfRef ! wrap(ByteString.fromArray(bytes, 0, count))
-                log.debug("    sent {} bytes from the child std{}", count, label)
               } else if (count == -1) {
                 eof = true
               }
@@ -107,6 +111,7 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
           } finally {
             gotOutputLatch.countDown()
             log.debug("    ending std{} reader thread", label)
+            try stream.close() catch { case e: IOException => }
           }
         }
       })

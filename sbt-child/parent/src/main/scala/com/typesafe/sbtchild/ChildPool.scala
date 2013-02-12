@@ -44,13 +44,15 @@ class DefaultSbtChildFactory(val workingDir: File, val sbtChildMaker: SbtChildPr
 // communicate with that instance. Of course you have to
 // be prepared to wait to get the instance.
 class ChildPool(val childFactory: SbtChildFactory, val minChildren: Int = 1, val maxChildren: Int = 3)
-  extends Actor with EventSourceActor {
+  extends Actor with EventSourceActor with ActorLogging {
 
   var reserved = Set.empty[SbtReservation]
   var available = Set.empty[ActorRef]
   var waiting = Seq.empty[SbtReservation]
 
   def total = reserved.size + available.size
+
+  override val supervisorStrategy = SupervisorStrategy.stoppingStrategy
 
   def emitChangedAfter[R](body: => R): R = {
     // "reserved" is supposed to be lazy-evaluated so after the body runs
@@ -65,8 +67,12 @@ class ChildPool(val childFactory: SbtChildFactory, val minChildren: Int = 1, val
         r.sbt.foreach({ sbt =>
           // we may have removed the reservation due to sbt crash,
           // if so we don't put that sbt back in the pool obvs
-          if (!sbt.isTerminated)
+          if (sbt.isTerminated) {
+            log.debug("sbt child is dead, not returning to pool {}", sbt)
+          } else {
             available = available + sbt
+            log.debug("returned to sbt pool {}", sbt)
+          }
           // we may need to start a replacement sbt, or use the newly-available one
           check()
         })
@@ -77,6 +83,7 @@ class ChildPool(val childFactory: SbtChildFactory, val minChildren: Int = 1, val
   def startNewChild(): Unit = {
     require(total < maxChildren)
     val child = childFactory.newChild(context)
+    log.debug("started new sbt child {}; {} were in use, {} were idle", child, reserved.size, available.size)
     available = available + child
     watch(child)
   }
@@ -142,13 +149,24 @@ class ChildPool(val childFactory: SbtChildFactory, val minChildren: Int = 1, val
     super.onTerminated(ref)
 
     // handle terminated sbt child by dropping its reservation
-    reserved.find(_.sbt == Some(ref)).foreach({ r =>
+    reserved.find(_.sbt == Some(ref)).foreach { r =>
+      log.debug("sbt child terminated, dropping reservation {}", r)
       release(r.id)
-    })
+    }
+
+    // handle terminated reservation owner
+    reserved.find(_.owner == Some(ref)).foreach { r =>
+      log.debug("owner terminated, dropping reservation {}", r)
+      release(r.id)
+    }
 
     // handle terminated sbt child which was idle
     if (available contains ref) {
       available = available - ref
     }
+  }
+
+  override def postStop() = {
+    log.debug("postStop")
   }
 }

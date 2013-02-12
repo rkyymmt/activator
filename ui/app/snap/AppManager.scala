@@ -25,6 +25,8 @@ case class GotApp(app: snap.App) extends AppCacheReply
 class AppCacheActor extends Actor with ActorLogging {
   var appCache: Map[String, Future[snap.App]] = Map.empty
 
+  override val supervisorStrategy = SupervisorStrategy.stoppingStrategy
+
   private def cleanup(deadRef: Option[ActorRef]): Unit = {
     appCache = appCache.filter {
       case (id, futureApp) =>
@@ -87,6 +89,14 @@ class AppCacheActor extends Actor with ActorLogging {
       case Cleanup =>
         cleanup(None)
     }
+  }
+
+  override def postStop() = {
+    log.debug("postStop")
+  }
+
+  override def preRestart(reason: Throwable, message: Option[Any]) = {
+    log.debug("preRestart {} {}", reason, message)
   }
 }
 
@@ -181,5 +191,10 @@ object AppManager {
     } else {
       Promise.successful(Left("Not a directory: " + location.getAbsolutePath())).future
     }
+  }
+
+  def onApplicationStop() = {
+    Logger.debug("Killing app cache actor onApplicationStop")
+    appCache ! PoisonPill
   }
 }
