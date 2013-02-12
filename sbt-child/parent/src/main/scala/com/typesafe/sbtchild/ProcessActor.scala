@@ -99,7 +99,6 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
               val count = stream.read(bytes)
               if (count > 0) {
                 selfRef ! wrap(ByteString.fromArray(bytes, 0, count))
-                log.debug("    sent {} bytes from the child std{}", count, label)
               } else if (count == -1) {
                 eof = true
               }

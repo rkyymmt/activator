@@ -90,6 +90,14 @@ class AppCacheActor extends Actor with ActorLogging {
         cleanup(None)
     }
   }
+
+  override def postStop() = {
+    log.debug("postStop")
+  }
+
+  override def preRestart(reason: Throwable, message: Option[Any]) = {
+    log.debug("preRestart {} {}", reason, message)
+  }
 }
 
 object AppManager {
