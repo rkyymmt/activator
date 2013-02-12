@@ -8,7 +8,7 @@ define(["./view"], function(Viewer){
 		routes: {
 			'code': function(bcs) {
 				return $.map(bcs, function(crumb, idx) {
-					var file = bcs.slice(1, 1+idx).join('/');    
+					var file = bcs.slice(1, 1+idx).join('/');
 					return {
 						widget: Viewer,
 						file: file

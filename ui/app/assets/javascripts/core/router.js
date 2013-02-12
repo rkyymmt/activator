@@ -3,11 +3,11 @@ define(['./pluginapi'], function(api) {
 
     // Decomposed url in an array
     var breadcrumb = [];
-    
+
     var HomeWidget = api.Widget({
   		id: 'home-widget',
   		title: '/',
-  		template: '<h1>Welcome!</h1>'    	
+  		template: '<h1>Welcome!</h1>'
     });
 
     // Routes are nested:
@@ -25,7 +25,7 @@ define(['./pluginapi'], function(api) {
     //  }
     // Note
     // :rest will redirect all /foo/bar/.* urls.
-    // 
+    //
     // WidgetClass is assumed to be a function that can be "newed" to create a renderable widget.
     // A Widget class needs the following:
     // constructor(args) - Where Args is a set of JSON representing the current breadcrumb, with the following format:
@@ -81,7 +81,7 @@ define(['./pluginapi'], function(api) {
     }
     // Returns the *key* used to find the next router.
     // args:  routes - all possible routes (in an object, by URL)
-    //        url    - The current url to route.  
+    //        url    - The current url to route.
 
     function lookUpNextRouter(routes, url) {
         // Hierarchy of how we look up routes
@@ -145,7 +145,7 @@ define(['./pluginapi'], function(api) {
     var match = function(bc, routes, modules) {
     			  var fixed_bc = bc[0] ? bc : [ 'home' ] ;
             var url = bc[0] ? bc[0] : 'home';
-            
+
             var routesKey = lookUpNextRouter(routes, url);
 
             if(routes[routesKey] && (typeof(routes[routesKey]) != 'function')) {

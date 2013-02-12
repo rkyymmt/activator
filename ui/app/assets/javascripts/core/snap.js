@@ -28,6 +28,6 @@ define(['./plugin', './grid', './router', './pluginapi'], function(plugins, Grid
 		api: api
 	};
 	window.model = model.init();
-	
+
 	return model;
 });

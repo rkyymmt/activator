@@ -38,7 +38,7 @@ define([], function() {
   		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
         // This will be called when the binding is first applied to an element
         var wrappedHandler = valueAccessor();
-        var handler = ko.utils.unwrapObservable(wrappedHandler); 
+        var handler = ko.utils.unwrapObservable(wrappedHandler);
         if(handler.init) {
         	handler.init(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
         }
@@ -46,7 +46,7 @@ define([], function() {
   		update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
   		// This will be called when the binding is first applied to an element
         var wrappedHandler = valueAccessor();
-        var handler = ko.utils.unwrapObservable(wrappedHandler); 
+        var handler = ko.utils.unwrapObservable(wrappedHandler);
         if(handler.update) {
         	handler.update(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
         }

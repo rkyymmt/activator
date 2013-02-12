@@ -5,7 +5,7 @@ var ko = req('vendors/knockout-2.2.0'),
 	key = req('vendors/keymage.min');
 
 return {
-	
+
 }
 
 });

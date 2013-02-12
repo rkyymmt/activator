@@ -1,8 +1,8 @@
 define(['./streams'], function(streams) {
-	
+
 	// Internal list of subscribers for task events.
 	var taskSubscribers = [];
-	
+
 	function taskMultiplexer(obj) {
   		if (obj.event.type == "TaskComplete") {
   			console.log("task " + obj.taskId + " complete, removing its subscribers");
@@ -25,18 +25,18 @@ define(['./streams'], function(streams) {
     		});
   		}
 	}
-		
+
   function isSbtTaskEvent(obj) {
   	return 'taskId' in obj;
   }
-		
+
   // this is probably sort of a hacky API but it will get us going.
   // May want to refactor to a more generic event bus thingy.
   function subscribeTask(taskId, handler) {
     var subscriber = { taskId: taskId, handler: handler }
     taskSubscribers.push(subscriber)
    }
-  
+
   // Subscribes our own task-event streams to the websocket, and we hide that from
   // clients.  We need to detail how events flow more formally in apis, but
   // this is used so we can deregister from the socket if needed.
@@ -44,16 +44,16 @@ define(['./streams'], function(streams) {
     filter: isSbtTaskEvent,
     handler: taskMultiplexer
   });
- 
-	
+
+
 	function randomShort() {
 		return Math.floor(Math.random() * 65536)
 	}
-	
+
 	function genTaskId(prefix) {
 		return prefix + "-" + (new Date().getTime()) + "-" + randomShort() + "-" + randomShort() + "-" + randomShort();
 	}
-	
+
   /** Generates an SbtTaskRequest.  This attempts a series of input types into
 	 * the only acceptable JSON for the server.
 	 * @param o {String|Object}
@@ -74,11 +74,11 @@ define(['./streams'], function(streams) {
 	  };
 		return request;
 	};
-	
+
 	/**
 	 * Runs an SBT task, attaching listeners for in-progress information
 	 * updates, or general success/failure.
-	 * 
+	 *
 	 * @param o {Object}  An object havin the following format:
 	 *        - task -> The task request (anything acceptible to the SbtTaskRequest is
 	 *                  accepted here.
@@ -89,9 +89,9 @@ define(['./streams'], function(streams) {
 	 */
 	function runTask(o) {
 		var request = SbtTaskRequest(o.task);
-		
+
 		// TODO - Ensure sane-ness of data...
-		
+
 		// Register our listener appropriately.
 		if(o.onmessage) {
 			var handler = o.onmessage;
@@ -119,7 +119,7 @@ define(['./streams'], function(streams) {
 		if(o.success) areq.success = o.success;
 		$.ajax(areq);
 	}
-	
+
 	return {
 		runTask: runTask
 	};

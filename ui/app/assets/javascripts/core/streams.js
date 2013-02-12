@@ -8,8 +8,8 @@ define(function() {
 
     var subscribers = []
 
-    /** Sends a message down the event stream socket to the server. 
-     *  @param msg {object} 
+    /** Sends a message down the event stream socket to the server.
+     *  @param msg {object}
      */
     function sendMessage(msg) {
       socket.send(JSON.stringify(msg));
@@ -19,22 +19,22 @@ define(function() {
     function allPass() {
     	return true;
     }
-    
+
     function randomShort() {
     	return Math.floor(Math.random() * 65536)
     }
-    
+
     function randomId() {
     	return "listener-" + (new Date().getTime()) + "-" + randomShort() + "-" + randomShort() + "-" + randomShort();
     }
-    
+
     /** Generic subscription service.
      * @param o {function|object} Either an event handling function or an object
      *                              consisting of:
      *                              - id (optional): The id used to deregister later
      *                              - handler: The event handler
      *                              - filter (optional): A filter on messages you wish to receive.
-     * 
+     *
      * @return {object}  The subscription information, including
      *                   the chosen filter, id and event handler.
      *                   Note: You need to remember the ID to unregister.
@@ -51,10 +51,10 @@ define(function() {
     	subscribers.push(subscriber)
     	return subscriber;
     }
-    
+
     /**
      * Unsubscribes a message handler.
-     * 
+     *
      * @param o {String|Object}  Either the id of the listener, or the subscription object
      *                           returned by `subscribe` method.
      */
@@ -64,7 +64,7 @@ define(function() {
     	subscribers = $.grep(subscribers, function(subscriber, idx) {
     		return subscriber.id = id;
     	});
-    	
+
     }
 
     // Internal method to handle receiving websocket events.
