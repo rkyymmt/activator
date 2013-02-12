@@ -18,24 +18,20 @@ define(function(css, template){
 				$(this).removeClass("over")
 			})
 
-		$("#switch").click(function(e){
-			e.preventDefault()
-			$(this).toggleClass("open")
+	  // This allows us to select previously opened applications.
+		$('#switch').click(function(e){
+			e.preventDefault();
+			$(this).toggleClass("open");
+			if(e.target.href && (window.location.href != e.target.href)) {
+				// We clicked a link, let's go to it.
+				window.location.href = e.target.href;
+			}
 		})
 		$("body > aside").click(function(){
 			$("body").toggleClass("right-open").trigger("resize")
 		})
 		// -------------------------
 	}
-
-/*
-		// KEYBOARD NAVIGATION
-		$("#wrapper").on("click", "article.list li, article.list dd", function(e){
-			var el = $(this).closest("li, dd")
-			window.location = el.find("a").attr("href")
-			el.addClass("active").siblings().removeClass("active")
-		})
-*/
 
 	return {
 		init: init

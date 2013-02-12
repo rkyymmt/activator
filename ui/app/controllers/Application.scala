@@ -20,7 +20,8 @@ case class ApplicationModel(
   location: String,
   plugins: Seq[String],
   name: String,
-  blueprint: Option[String]) {
+  blueprint: Option[String],
+  recentApps: Seq[AppConfig]) {
 
   def jsLocation = location.replaceAll("'", "\\'")
 }
@@ -199,7 +200,8 @@ object Application extends Controller {
       Seq("plugins/code/code", "plugins/run/run"),
       app.config.cachedName getOrElse app.config.id,
       // TODO - something less lame than exception here...
-      app.blueprintID)
+      app.blueprintID,
+      RootConfig.user.applications)
 
   /** The current working directory of the app. */
   val cwd = (new java.io.File(".").getAbsoluteFile.getParentFile)
