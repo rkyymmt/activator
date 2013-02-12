@@ -41,7 +41,7 @@ object TheSnapBuild extends Build {
 
   lazy val common = (
     SnapProject("common")
-    dependsOnRemote(junitInterface % "test")
+    dependsOnRemote(junitInterface % "test", specs2 % "test")
   )
 
 

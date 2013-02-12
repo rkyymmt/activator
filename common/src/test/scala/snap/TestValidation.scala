@@ -1,52 +1,84 @@
 package snap
 
-import org.junit.Assert._
-import org.junit._
+import org.specs2.mutable.Specification
 
-class TestValidation {
+object TestValidation extends Specification {
 
-  @Test
-  def testMap() {
-    assertEquals(ProcessSuccess(10), ProcessSuccess(5) map (_ + 5))
+  "A ProcessResult" should {
     val err: ProcessResult[Int] = ProcessFailure("Failed!")
-    assertEquals(err, err map (_ + 5))
-  }
-
-  @Test
-  def testFlatMap() {
-    assertEquals(ProcessSuccess(10), ProcessSuccess(5) flatMap (x => ProcessSuccess(x + 5)))
-    val err: ProcessResult[Int] = ProcessFailure("Failed!")
-    assertEquals(err, err flatMap (x => ProcessSuccess(x + 5)))
-    assertEquals(err, ProcessSuccess(5) flatMap (x => err))
-  }
-
-  @Test
-  def testZip() {
+    val err2: ProcessResult[Int] = ProcessFailure("Failed Two!")
     val one = Validating(1)
     val two = Validating(2)
-    val err: ProcessResult[Int] = ProcessFailure("err")
-    val err2: ProcessResult[Int] = ProcessFailure("err2")
 
-    assertTrue((err zip err2).isFailure)
-    assertEquals(2, (err zip err2).asInstanceOf[ProcessFailure].failures.size)
-    assertEquals(Validating(3), one zip two map { case (o, t) => o + t })
-    assertEquals(err, one zip err)
-    assertEquals(err, err zip one)
-    assertEquals(err2, err2 zip two)
+    "successfully map success" in {
+      ProcessSuccess(5) map (_ + 5) must equalTo(ProcessSuccess(10))
+    }
+    "do nothing when mapping a failure" in {
+      err map (_ + 5) must equalTo(err)
+    }
+    "successfull chain success with flatMap" in {
+      ProcessSuccess(5) flatMap (x => ProcessSuccess(x + 5)) must equalTo(ProcessSuccess(10))
+    }
+    "do nothing when chaining an error with flatMap" in {
+      err flatMap (x => ProcessSuccess(x + 5)) must equalTo(err)
+    }
+    "Drop results when chaining to an error in flatMap" in {
+      ProcessSuccess(5) flatMap (x => err) must equalTo(err)
+    }
+
+    "Successfully zip with another result" in {
+      one zip two must equalTo(Validating(1 -> 2))
+    }
+    "Successfully zip together errors" in {
+      err zip err2 must equalTo(ProcessFailure(Seq[ProcessError]("Failed!", "Failed Two!")))
+    }
+    "Take an error when zipping error and success" in {
+      err zip one must equalTo(err)
+      one zip err must equalTo(err)
+    }
   }
-  @Test
-  def testValidation() {
 
+  "A processResult validate call" should {
+    val err1 = "number is not odd"
+    val err2 = "number is not less than 100"
     def check(c: ProcessResult[Int]) =
       c.validate(
-        Validation("number is not odd")(_ % 2 == 1),
-        Validation("number is less than 100")(_ < 100))
+        Validation(err1)(_ % 2 == 1),
+        Validation(err2)(_ < 100))
+    "Join together failures" in {
+      check(Validating(102)) must equalTo(ProcessFailure(Seq[ProcessError](err1, err2)))
+    }
+    "Only report valid errors" in {
+      check(Validating(101)) must equalTo(ProcessFailure(Seq[ProcessError](err2)))
+      check(Validating(2)) must equalTo(ProcessFailure(Seq[ProcessError](err1)))
+    }
+    "Allow successful valdiations through" in {
+      check(Validating(3)) must equalTo(Validating(3))
+    }
+  }
 
-    assertEquals(Validating(1), check(Validating(1)))
-    assertTrue(check(Validating(101)).isFailure)
-    assertEquals(1, check(Validating(101)).asInstanceOf[ProcessFailure].failures.size)
-    assertTrue(check(Validating(102)).isFailure)
-    assertEquals(2, check(Validating(102)).asInstanceOf[ProcessFailure].failures.size)
+  "Validating convenience" should {
+    "Catch errors as failures" in {
+      Validating(sys.error("O NOES")).isFailure must beTrue
+    }
+    "Attach custom messages" in {
+      val msg =
+        Validating.withMsg("Hello, World")(sys.error("O NOES")) match {
+          case ProcessFailure(Seq(err)) => err.msg
+          case _ => ""
+        }
+      msg must equalTo("Hello, World")
+    }
+  }
 
+  "Default validations" should {
+    "detect non empty strings" in {
+      Validating("Hello").validate(Validation.nonEmptyString("O NOES")) must equalTo(Validating("Hello"))
+      Validating("").validate(Validation.nonEmptyString("O NOES")).isFailure must beTrue
+    }
+    "detect non empty collections" in {
+      Validating(Seq(1, 2)).validate(Validation.nonEmptyCollection("A")).isFailure must beFalse
+      Validating(Seq.empty[Int]).validate(Validation.nonEmptyCollection("A")).isFailure must beTrue
+    }
   }
 }
