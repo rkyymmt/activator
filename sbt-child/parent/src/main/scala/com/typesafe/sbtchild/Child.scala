@@ -94,11 +94,7 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
         log.debug("Got request {} on already-shut-down server", req)
         requestor ! protocol.ErrorResponse("ServerActor has already shut down")
       } else {
-        // auto-subscribe to stdout/stderr; ServerActor is then responsible
-        // for sending an Unsubscribe back to us. Kind of hacky.
-        if (req.sendEvents)
-          subscribe(requestor)
-        // now forward the request
+        // otherwise forward the request
         server.tell(req, requestor)
       }
     } else {
@@ -118,6 +114,16 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
 
     // request for the server actor
     case req: protocol.Request =>
+      // auto-subscribe to stdout/stderr; ServerActor is then responsible
+      // for sending an Unsubscribe back to us when it sends the Response.
+      // Kind of hacky. If ServerActor never starts up, we will stop ourselves
+      // and so we don't need to unsubscribe our listeners. We want to subscribe
+      // right away, not just when the server starts, because we want sbt's startup
+      // messages.
+      if (req.sendEvents)
+        subscribe(sender)
+
+      // now send the request on
       forwardRequest(sender, req)
 
     // message from server actor other than a response
