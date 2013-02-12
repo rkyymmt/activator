@@ -98,6 +98,7 @@ class SbtTest {
       }
 
       val runJson = JsObject(Seq("appId" -> JsString(appId),
+        "taskId" -> JsString("test-run-child-task-id"),
         "description" -> JsString("Run Child Test"),
         "task" -> JsObject(Seq("type" -> JsString("RunRequest")))))
 
