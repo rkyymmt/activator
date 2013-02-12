@@ -25,6 +25,8 @@ case class GotApp(app: snap.App) extends AppCacheReply
 class AppCacheActor extends Actor with ActorLogging {
   var appCache: Map[String, Future[snap.App]] = Map.empty
 
+  override val supervisorStrategy = SupervisorStrategy.stoppingStrategy
+
   private def cleanup(deadRef: Option[ActorRef]): Unit = {
     appCache = appCache.filter {
       case (id, futureApp) =>
