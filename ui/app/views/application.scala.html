@@ -1,5 +1,10 @@
 @(model: controllers.ApplicationModel)(implicit request: RequestHeader)
 
+@name(app: snap.AppConfig) = {
+  @app.cachedName.getOrElse(app.id)
+}
+@className(app: snap.AppConfig) = {@if(app.cachedName.getOrElse(app.id) == model.name) {default} else {}}
+
 
 <!DOCTYPE html>
 <html>
@@ -30,14 +35,12 @@
 				<span class="label" data-bind="text: snap.appName"></span>
 				<div>
 					<ul>
+                                        @model.recentApps.zipWithIndex.map { case (app, idx) =>
 						<li>
-							<a class="current" href="#">Sample app</a>
-							<span class="counter">4</span>
+                                                        <a href="@routes.Application.app(app.id)" class="@className(app)">@name(app)</a>
+                                                        <span class="counter">@(idx+1)</span>
 						</li>
-						<li>
-							<a class="current" href="#">Awesome app</a>
-							<span class="counter">5</span>
-						</li>
+                                        }
 					</ul>
 				</div>
 			</div>
