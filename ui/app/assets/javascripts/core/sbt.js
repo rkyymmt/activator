@@ -33,16 +33,16 @@ define(['./streams'], function(streams) {
 	// this is probably sort of a hacky API but it will get us going.
 	// May want to refactor to a more generic event bus thingy.
 	function subscribeTask(taskId, handler) {
-	var subscriber = { taskId: taskId, handler: handler }
-	taskSubscribers.push(subscriber)
-	 }
+		var subscriber = { taskId: taskId, handler: handler }
+		taskSubscribers.push(subscriber)
+	}
 
 	// Subscribes our own task-event streams to the websocket, and we hide that from
 	// clients.  We need to detail how events flow more formally in apis, but
 	// this is used so we can deregister from the socket if needed.
 	var subscription = streams.subscribe({
-	filter: isSbtTaskEvent,
-	handler: taskMultiplexer
+		filter: isSbtTaskEvent,
+		handler: taskMultiplexer
 	});
 
 

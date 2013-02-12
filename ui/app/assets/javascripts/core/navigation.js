@@ -18,7 +18,7 @@ define(function(css, template){
 				$(this).removeClass("over")
 			})
 
-	  // This allows us to select previously opened applications.
+		// This allows us to select previously opened applications.
 		$('#switch').click(function(e){
 			e.preventDefault();
 			$(this).toggleClass("open");

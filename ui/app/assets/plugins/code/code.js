@@ -19,4 +19,3 @@ define(["./view"], function(Viewer){
 	};
 
 });
-

@@ -32,4 +32,3 @@ define(['./plugin', './grid', './router', './pluginapi', './navigation'], functi
 
 	return model;
 });
-
