@@ -13,6 +13,9 @@ import play.api.libs.iteratee.Concurrent.Channel
 import concurrent.Future
 import akka.pattern.ask
 
+// Enumeratee.map
+import language.reflectiveCalls
+
 /** This controller handles piping events out to folks. */
 object Events extends Controller {
   // Enumerator that starts a new actor listening to the event stream per-event-stream request.
