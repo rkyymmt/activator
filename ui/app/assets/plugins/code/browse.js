@@ -54,4 +54,4 @@ define(['css!./code.css', 'text!./browse.html', 'core/pluginapi'], function(css,
 	});
 	return Browser;
 
-})
+});

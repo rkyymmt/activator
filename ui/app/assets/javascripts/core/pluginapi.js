@@ -1,6 +1,6 @@
 define(['vendors/knockout-2.2.1.debug', './sbt', './templates', 'vendors/keymage.min', './utils'], function(ko, sbt, templates, key, utils) {
-	
-	
+
+
 //base class for widgets, with convenience.
 //All widget classes should support the following static fields:
 //  id - The identifier of the widget.
@@ -29,7 +29,7 @@ var Widget = function(o) {
 	});
 	return WidgetClass;
 }
-	
+
 	return {
 		ko: ko,
 		sbt: sbt,

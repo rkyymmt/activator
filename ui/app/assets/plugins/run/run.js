@@ -30,7 +30,7 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 						self.logs.push(logType + ": " + stripAnsiCodes(message));
 					} else {
 						self.logs.push("unknown event: " + JSON.stringify(event))
-					}					
+					}
 				},
 				success: function(data) {
 					console.log("run result: ", data);
