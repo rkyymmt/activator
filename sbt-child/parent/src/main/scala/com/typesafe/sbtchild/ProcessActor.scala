@@ -112,6 +112,7 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
           } finally {
             gotOutputLatch.countDown()
             log.debug("    ending std{} reader thread", label)
+            try stream.close() catch { case e: IOException => }
           }
         }
       })
