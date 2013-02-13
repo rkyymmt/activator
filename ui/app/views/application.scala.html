@@ -73,7 +73,19 @@
 				</dd>
 			</dl>
 		</header>
-		<aside></aside>
+		<aside class="tutorial" data-step="0">
+			<nav>
+				<a class="previous" disabled>←</a>
+				<a class="next">→</a>
+				<h1 data-bind=""></h1>
+				<ul data-bind="foreach: pages">
+					<li class="step" data-bind="html: link"></li>
+				</ul>
+			</nav>
+			<article data-bind="foreach: pages">
+				<div data-bind="html: content"></div>
+			</article>
+		</aside>
 		<div id="wrapper" data-bind="foreach: { data: router.breadcrumbs(), afterRender: grid.afterRender,  afterAdd: grid.afterAdd, beforeRemove: grid.beforeRemove }"><div data-bind="template: { name: module.view, data: module, afterRender: module.onRender }"></div></div>
   </body>
 </html>
