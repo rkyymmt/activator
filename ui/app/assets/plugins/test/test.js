@@ -3,27 +3,31 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 	var sbt = api.sbt;
 
 	// ---- EVERYTHING HERE AND BELOW IS A TESTING HACK ----
-	var testingResults = [{
-		testName: 'test.Test',
-		result: 'pass',
-		description: 'With flying colors'
-	},{
-		testName: 'test.Test2',
-		result: 'fail',
-		description: 'It was ugly.'
-	},{
-		testName: 'generic.test.suite.Stuff',
-		result: 'pass',
-		description: 'ZOMG!!!! AMAZING.'
-	},{
-		testName: 'test.Test3',
-		result: 'error',
-		description: 'It was a big explosion.'
-	},{
-		testName: 'test.Test3',
-		result: 'pending',
-		description: 'Still running....'
-	}];
+	function randomStatus() {
+		var result = Math.random();
+		if(result > 0.4) {
+			return 'pass';
+		}
+		if(result > 0.2) {
+			return 'fail';
+		}
+		if(result > 0.1) {
+			return 'error';
+		}
+		return 'pending';
+	}
+	function makeTestStatus(name) {
+		return {
+			testName: name,
+			result: randomStatus(),
+			description: 'PUT STUFF HERE'
+		};
+	}
+	function makeTestingResults() {
+		return $.map(['test.Works', 'test.Werks', 'test.Stuff', 'AbstractProxyBeanFactoryTest'], function(name) {
+			return makeTestStatus(name);
+		});
+	}
 
 	// Fakes the streaming API for us if SBT fails.
 	var LazyCheatStreamStuff = function(displayWidget, events) {
@@ -73,7 +77,6 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 		template: template,
 		init: function(parameters) {
 			var self = this;
-			// TODO - don't stub, actually run tests.
 			self.results = ko.observableArray();
 			self.testStatus = ko.observable('Waiting to test');
 			self.waiting = ko.observable(false);
@@ -90,7 +93,8 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 			console.log('Running tests...')
 			self.testStatus('Running tests...')
 			self.waiting(true);
-			self.results([]);
+			// TODO - Do we want to clear the test data we had previously
+			// or append?  Tests may disappear and we'd never know...
 			sbt.runTask({
 				task: 'TestRequest',
 				onmessage: function(event) {
@@ -109,14 +113,20 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 					self.testStatus('Testing failed: ' + err.responseText);
 					self.waiting(false);
 					// TODO - Stop stubbing data when Havoc's part is complete.
-					LazyCheatStreamStuff(self, testingResults);
+					LazyCheatStreamStuff(self, makeTestingResults());
 				}
 			});
 		},
 		updateTest: function(testEvent) {
-			// TODO - Find if we have the test already
-			var test = new TestResult(testEvent);
-			this.results.push(test);
+			var match = ko.utils.arrayFirst(this.results(), function(item) {
+				return testEvent.testName === item.testName;
+			});
+			if(!match) {
+				var test = new TestResult(testEvent);
+				this.results.push(test);
+			} else {
+				match.update(testEvent);
+			}
 		}
 	});
 	return {
