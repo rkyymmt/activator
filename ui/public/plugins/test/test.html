@@ -2,7 +2,7 @@
     <header><h1>Tests!</h1></header>
     <footer><p data-bind="text: testStatus"></p></footer>
     <section class="wrapper">
-    <button class="run-button" data-bind="click: runTests">Run Tests</button>
+    <button class="run-button" data-bind="click: runTests, disable: waiting">Run Tests</button>
     <table class="testResults" data-bind="if: hasResults">
     	<thead>
     		<tr>
