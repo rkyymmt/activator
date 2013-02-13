@@ -48,6 +48,25 @@ class SbtTest {
     dir
   }
 
+  def makeDummySbtProjectWithBrokenBuild(relativeDir: String): File = {
+    val dir = makeDummySbtProject(relativeDir)
+
+    val build = new File(dir, "build.sbt")
+    createFile(build, "BLARG := \"" + relativeDir + "\"\n")
+
+    dir
+  }
+
+  def makeDummySbtProjectWithNoMain(relativeDir: String): File = {
+    val dir = makeDummySbtProject(relativeDir)
+
+    val main = new File(dir, "src/main/scala/hello.scala")
+    // doesn't extend App
+    createFile(main, "object Main { println(\"Hello World\") }\n")
+
+    dir
+  }
+
   private def deAsync(result: Result): Result = result match {
     case AsyncResult(p) => {
       implicit val timeout = Timeout(120, TimeUnit.SECONDS)
@@ -78,9 +97,8 @@ class SbtTest {
     Json.parse(contentAsString(result))
   }
 
-  @Test
-  def testRunChild(): Unit = {
-    val dummy = makeDummySbtProject("runChild")
+  private def childTest(projectMaker: String => File, projectName: String)(assertions: JsValue => Unit): Unit = {
+    val dummy = projectMaker(projectName)
 
     running(FakeApplication()) {
       val uri = (new URI("/api/app/fromLocation")).addQueryParameter("location", dummy.getPath)
@@ -98,8 +116,8 @@ class SbtTest {
       }
 
       val runJson = JsObject(Seq("appId" -> JsString(appId),
-        "taskId" -> JsString("test-run-child-task-id"),
-        "description" -> JsString("Run Child Test"),
+        "taskId" -> JsString("test-" + projectName + "-task-id"),
+        "description" -> JsString(projectName + " Test"),
         "task" -> JsObject(Seq("type" -> JsString("RunRequest")))))
 
       val runReq = FakeRequest(method = "POST", uri = "/api/sbt/task", body = AnyContentAsJson(runJson),
@@ -108,7 +126,30 @@ class SbtTest {
 
       val taskJson = routeThrowingIfNotJson(runReq, runJson)
 
+      assertions(taskJson)
+    }
+  }
+
+  @Test
+  def testRunChild(): Unit = {
+    childTest(makeDummySbtProject, "runChild") { taskJson =>
       assertEquals(JsString("RunResponse"), taskJson \ "type")
+    }
+  }
+
+  @Test
+  def testRunChildBrokenBuild(): Unit = {
+    childTest(makeDummySbtProjectWithBrokenBuild, "runChildBrokenBuild") { taskJson =>
+      assertEquals(JsString("ErrorResponse"), taskJson \ "type")
+      assertEquals(JsString("sbt process never got in touch, so unable to handle request RunRequest(true)"), taskJson \ "error")
+    }
+  }
+
+  @Test
+  def testRunChildMissingMain(): Unit = {
+    childTest(makeDummySbtProjectWithNoMain, "runChildMissingMain") { taskJson =>
+      assertEquals(JsString("ErrorResponse"), taskJson \ "type")
+      assertEquals(JsString("exception during sbt task: Incomplete: null"), taskJson \ "error")
     }
   }
 }

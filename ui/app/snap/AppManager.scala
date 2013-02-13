@@ -135,8 +135,9 @@ object AppManager {
       case None => {
         doInitialAppAnalysis(location) map {
           case Left(error) =>
-            Logger.error("Failed to load app at: " + location.getAbsolutePath())
-            ProcessFailure("Failed to load app at: " + location.getAbsolutePath())
+            val message = "Failed to load app at " + location.getAbsolutePath() + " due to: " + error
+            Logger.error(message)
+            ProcessFailure(message)
           case Right(appConfig) =>
             ProcessSuccess(appConfig.id)
         }
@@ -158,29 +159,30 @@ object AppManager {
   private def doInitialAppAnalysis(location: File): Future[Either[String, AppConfig]] = {
     if (location.isDirectory()) {
       val sbt = SbtChild(snap.Akka.system, location, sbtChildProcessMaker)
-      // TODO we need to test what happens here if sbt fails to start up (i.e. bad build files)
       implicit val timeout = Timeout(60, TimeUnit.SECONDS)
       val result: Future[Either[String, AppConfig]] = (sbt ? protocol.NameRequest(sendEvents = false)) map {
         case protocol.NameResponse(name) => {
           Logger.info("sbt told us the name is: '" + name + "'")
-          Right(name)
+          name
         }
         case protocol.ErrorResponse(error) =>
+          // here we need to just recover, because if you can't open the app
+          // you can't work on it to fix it
           Logger.info("error getting name from sbt: " + error)
-          Left(error)
-      } flatMap {
-        case Right(name) => RootConfig.rewriteUser { root =>
+          val name = location.getName
+          Logger.info("using file basename as app name: " + name)
+          name
+      } flatMap { name =>
+        RootConfig.rewriteUser { root =>
           val config = AppConfig(id = newIdFromName(root, name), cachedName = Some(name), location = location)
           val newApps = root.applications.filterNot(_.location == config.location) :+ config
           root.copy(applications = newApps)
         } map { Unit =>
           RootConfig.user.applications.find(_.location == location) match {
             case Some(config) => Right(config)
-            case None => Left("Somehow failed to save new app in config")
+            case None => Left("Somehow failed to save new app at " + location.getPath + " in config")
           }
         }
-        case Left(error) =>
-          Promise.successful(Left(error)).future
       }
 
       result onComplete { _ =>
@@ -194,7 +196,8 @@ object AppManager {
   }
 
   def onApplicationStop() = {
-    Logger.debug("Killing app cache actor onApplicationStop")
-    appCache ! PoisonPill
+    Logger.warn("AppManager onApplicationStop is disabled pending some refactoring so it works with FakeApplication in tests")
+    //Logger.debug("Killing app cache actor onApplicationStop")
+    //appCache ! PoisonPill
   }
 }
