@@ -30,7 +30,7 @@ object TheSnapBuild extends Build {
   )
 
   // Theser are the projects we want in the local SNAP repository
-  lazy val publishedProjects = Seq(ui, launcher, props, cache, sbtRemoteProbe, sbtDriver)
+  lazy val publishedProjects = Seq(common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver)
 
   // basic project that gives us properties to use in other projects.
   lazy val props = (
