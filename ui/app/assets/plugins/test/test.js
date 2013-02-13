@@ -86,6 +86,29 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 			self.hasResults = ko.computed(function() {
 				return self.results().length > 0;
 			});
+			self.testFilter = ko.observable('all');
+			self.filterTestsText = ko.computed(function() {
+				if(self.testFilter() == 'all') {
+					return 'Show only failures';
+				}
+				return 'Show all tests';
+			});
+			self.displayedResults = ko.computed(function() {
+				if(self.testFilter() == 'failures') {
+					return ko.utils.arrayFilter(self.results(), function(item) {
+						return item.result() != 'pass';
+					});
+				}
+				return self.results();
+			});
+		},
+		filterTests: function() {
+			// TODO - More states.
+			if(this.testFilter() == 'all') {
+				this.testFilter('failures')
+			} else {
+				this.testFilter('all')
+			}
 		},
 		runTests: function() {
 			// TODO - Make sbt call here.
