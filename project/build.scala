@@ -197,7 +197,9 @@ object TheSnapBuild extends Build {
             "commons-codec" % "commons-codec" % "1.3",
             "org.apache.httpcomponents" % "httpclient" % "4.0.1",
             "com.google.guava" % "guava" % "11.0.2",
-            "xml-apis" % "xml-apis" % "1.0.b2"
+            "xml-apis" % "xml-apis" % "1.0.b2",
+            // USED BY templates. TODO - autofind these
+            "org.scalatest" % "scalatest_2.10" % "1.9.1"
         ),
       localRepoArtifacts ++= {
         val sbt = "0.12"
