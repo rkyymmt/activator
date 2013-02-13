@@ -90,6 +90,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 			console.log('Running tests...')
 			self.testStatus('Running tests...')
 			self.waiting(true);
+			self.results([]);
 			sbt.runTask({
 				task: 'TestRequest',
 				onmessage: function(event) {
