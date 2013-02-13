@@ -6,7 +6,7 @@ import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import com.typesafe.sbtchild.SbtChildProcessMaker
 import play.api.libs.json.{ JsString, JsObject, JsArray, JsNumber, JsValue }
-import snap.{ RootConfig, AppConfig, AppManager }
+import snap.{ RootConfig, AppConfig, AppManager, ProcessResult }
 import snap.cache.TemplateMetadata
 import snap.properties.SnapProperties
 import scala.util.control.NonFatal
@@ -49,10 +49,10 @@ object Application extends Controller {
   def index = Action {
     Async {
       AppManager.loadAppIdFromLocation(cwd) map {
-        case Some(name) => Redirect(routes.Application.app(name))
-        // TODO we need to have an error message and "flash" it then
-        // display it on home screen
-        case _ => Redirect(routes.Application.forceHome)
+        case snap.ProcessSuccess(name) => Redirect(routes.Application.app(name))
+        case snap.ProcessFailure(errors) =>
+          // TODO FLASH THE ERROR, BABY
+          Redirect(routes.Application.forceHome)
       }
     }
   }
@@ -72,27 +72,28 @@ object Application extends Controller {
    */
   def newApplication = Action { implicit request =>
     Async {
+      val form = newAppForm.bindFromRequest
       // Attempt to create the new location and return a Try, so we have
       // a chance of knowing what the error is.
-      val location: Future[File] =
+      val location: Future[ProcessResult[File]] =
         Future {
-          val model = newAppForm.bindFromRequest.get
+          val model = form.get
           val location = new File(model.location)
           // TODO - Store template cache somehwere better...
           snap.cache.Actions.cloneTemplate(
             api.Templates.templateCache,
             model.blueprint,
-            location)
-          location
+            location) map (_ => location)
         }
       // Now look up the app name and register this location
       // with recently loaded apps.
-      val id = location flatMap AppManager.loadAppIdFromLocation
+      import concurrent.ExecutionContext.Implicits.global
+      val id = location flatMapNested AppManager.loadAppIdFromLocation
       id map {
-        case Some(id) => Redirect(routes.Application.app(id))
-        case _ =>
-          // TODO - Fill the form with old values...
-          BadRequest(views.html.home(homeModel, newAppForm))
+        case snap.ProcessSuccess(id) => Redirect(routes.Application.app(id))
+        case snap.ProcessFailure(errrors) =>
+          // TODO - flash the errors we now have...
+          BadRequest(views.html.home(homeModel, form))
       }
     }
   }
@@ -133,26 +134,20 @@ object Application extends Controller {
    */
   def appFromLocation() = Action { implicit request =>
     val form = fromLocationForm.bindFromRequest.get
-    val file = try {
-      val f = new File(form.location)
-      if (!f.exists)
-        throw new RuntimeException("does not exist: " + form.location)
-      Right(f)
-    } catch {
-      case e: Exception =>
-        Left(e)
+
+    val file = snap.Validating(new File(form.location)).validate(
+      snap.Validation.fileExists,
+      snap.Validation.isDirectory)
+    import concurrent.ExecutionContext.Implicits.global
+    val id = file flatMapNested AppManager.loadAppIdFromLocation
+
+    Async {
+      id map {
+        case snap.ProcessSuccess(id) => Ok(JsObject(Seq("id" -> JsString(id))))
+        // TODO - Return with form and flash errors?
+        case snap.ProcessFailure(errors) => BadRequest(errors map (_.msg) mkString "\n")
+      }
     }
-    file.fold({ e =>
-      BadRequest(e.getMessage())
-    }, { file =>
-      // TODO loadAppIdFromLocation should return an Either with an error string
-      val id = AppManager.loadAppIdFromLocation(file)
-      Async(id map {
-        case Some(id) => Ok(JsObject(Seq("id" -> JsString(id))))
-        case _ =>
-          BadRequest("failed to load app at " + file.getAbsolutePath)
-      })
-    })
   }
 
   /**

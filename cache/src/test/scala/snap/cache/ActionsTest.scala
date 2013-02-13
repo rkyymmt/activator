@@ -31,7 +31,9 @@ class ActionsTest {
 
     assert(!installLocation.exists)
     // Run the command
-    Actions.cloneTemplate(DummyCache, id, installLocation)
+    val result = Actions.cloneTemplate(DummyCache, id, installLocation)
+
+    assert(!result.isFailure)
 
     // Now verify it worked!
     assert(installLocation.exists && installLocation.isDirectory)

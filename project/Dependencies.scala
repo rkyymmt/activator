@@ -18,6 +18,7 @@ object SnapDependencies {
   val commonsIo            = "commons-io" % "commons-io" % "2.0.1"
 
   val junitInterface       = "com.novocode" % "junit-interface" % "0.7"
+  val specs2               = "org.specs2" % "specs2_2.10" % "1.13"
 
 
   // Mini DSL
