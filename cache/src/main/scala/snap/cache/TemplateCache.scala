@@ -64,11 +64,9 @@ class DemoTemplateCache() extends TemplateCache {
       // TODO - Put more hardcoded template metadata for the demo here!
       TemplateMetadata(
         id = "a5227c77d39109b6550a47758c2f9a1341e06524",
-        name = "Getting Started with Play in Java",
+        name = "Hello Scala!",
         version = "1.0",
-        description = """|Get started with a Java web application.  This Blueprint will walk you through 
-                         |the basics of building a Java web application using the Typesafe technologies.  
-                         |You will first learn the basics of the Play Framework.""".stripMargin,
+        description = """Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way.  This very simple Scala application will get you started building and testing standalone Scala apps.  This app uses Scala 2.10 and ScalaTest.""",
         tags = Seq("play", "java", "starter")))
 
   private val index: Map[String, TemplateMetadata] = (metadata map (m => m.id -> m)).toMap
