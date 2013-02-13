@@ -43,7 +43,7 @@ define(['css!./tutorial.css','text!./tutorial.html'], function(css, template){
 	var tuts = $("aside.tutorial");
 	function display(target){
 		tuts.find(".previous").attr("disabled", false);
-		tuts.find(".next").attr("disabled", false);			
+		tuts.find(".next").attr("disabled", false);
 		if (target >= tuts.find("ul li").length) {
 			tuts.find(".next").attr("disabled", true);
 		} else if (target <= 0) {
