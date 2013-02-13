@@ -21,10 +21,10 @@ object Actions {
           (file, path) <- template.files
           to = new java.io.File(location, path)
         } if (file.isDirectory) snap.cache.IO.createDirectory(to)
-          else {
-            snap.cache.IO.copyFile(file, to)
-            if (file.canExecute) to.setExecutable(true)
-         }
+        else {
+          snap.cache.IO.copyFile(file, to)
+          if (file.canExecute) to.setExecutable(true)
+        }
       }
       _ <- Validating.withMsg("Failed to update property file") {
         // Write necessary IDs to the properties file!
