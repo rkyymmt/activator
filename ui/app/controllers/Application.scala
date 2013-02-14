@@ -6,7 +6,7 @@ import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import com.typesafe.sbtchild.SbtChildProcessMaker
 import play.api.libs.json.{ JsString, JsObject, JsArray, JsNumber, JsValue }
-import snap.{ RootConfig, AppConfig, AppManager, ProcessResult }
+import snap.{ RootConfig, AppConfig, AppManager, ProcessResult, Platform }
 import snap.cache.TemplateMetadata
 import snap.properties.SnapProperties
 import scala.util.control.NonFatal
@@ -191,7 +191,7 @@ object Application extends Controller {
   def getApplicationModel(app: snap.App) =
     ApplicationModel(
       app.config.id,
-      app.config.location.getAbsolutePath,
+      Platform.filename(app.config.location),
       Seq("plugins/code/code", "plugins/run/run"),
       app.config.cachedName getOrElse app.config.id,
       // TODO - something less lame than exception here...

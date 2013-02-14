@@ -4,13 +4,15 @@ import play.api.mvc.{ Action, Controller }
 import play.api.libs.json._
 import play.api.Play
 import java.io.File
+import snap.Platform
 
 object Local extends Controller {
 
   def getEnv = Action { request =>
     val localEnvJson = Json.toJson(
       Map(
-        "desktopDir" -> Json.toJson((new File(System.getProperty("user.home"), "Desktop")).getAbsolutePath),
+        "desktopDir" ->
+          Json.toJson(Platform.filename(new File(System.getProperty("user.home"), "Desktop"))),
         "separator" -> Json.toJson(File.separator)))
 
     Ok(localEnvJson)
@@ -57,7 +59,7 @@ object Local extends Controller {
     def writes(o: File): JsValue =
       JsObject(
         List("name" -> JsString(o.getName),
-          "location" -> JsString(o.getCanonicalPath),
+          "location" -> JsString(Platform.filename(o)),
           "isDirectory" -> JsBoolean(o.isDirectory)) ++ (if (o.isDirectory) Nil else List("type" -> JsString(getFileType(o.getName)))))
     //We don't need reads, really
     def reads(json: JsValue): JsResult[File] =
@@ -77,13 +79,13 @@ object Local extends Controller {
   }
 
   def browse(location: String) = Action { request =>
-    val loc = new java.io.File(location)
+    val loc = Platform.file(location)
     if (!loc.exists) NotAcceptable(s"${location} is not a file!")
     else Ok(Json toJson InterestingFile(loc))
   }
 
   def show(location: String) = Action { request =>
-    val loc = new java.io.File(location)
+    val loc = Platform.file(location)
     if (!loc.exists) NotAcceptable(s"${location} is not a file!")
     else (Ok sendFile loc)
   }
