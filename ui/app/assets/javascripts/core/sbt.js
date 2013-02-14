@@ -115,7 +115,8 @@ define(['./streams'], function(streams) {
 			data: JSON.stringify(request)
 		};
 		if(o.context) areq.context = o.context;
-		if(o.failure) areq.failure = o.failure;
+		if(o.failure) areq.error = o.failure;
+		if(o.error) areq.error = o.error;
 		if(o.success) areq.success = o.success;
 		$.ajax(areq);
 	}

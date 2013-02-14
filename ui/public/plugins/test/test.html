@@ -1,0 +1,22 @@
+<article class="list test" data-width="3">
+    <header><h1>Tests!</h1></header>
+    <footer><p data-bind="text: testStatus"></p></footer>
+    <section class="wrapper">
+    <div><button class="run-button" data-bind="click: runTests, disable: waiting">Run Tests</button>
+    <button class="select-button" data-bind="click: filterTests, text: filterTestsText"></button></div>
+    <table class="testResults" data-bind="if: hasResults">
+    	<thead>
+    		<tr>
+    			<th class="result">Result</th>
+    			<th class="testName">Test</th>
+    		</tr>
+    	</thead>
+    	<tbody data-bind="foreach: displayedResults">
+    		<tr>
+    			<td data-bind="text: result, css: resultClass" class='result'></td>
+    			<td data-bind="text: testName" class="testName"></td>
+    		</tr>
+    	</tbody>
+    </table>
+    </section>
+</article>
