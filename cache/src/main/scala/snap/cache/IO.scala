@@ -75,7 +75,25 @@ object IO {
     }
     files.toVector
   }
+  /**
+   * Creates a file in the default temporary directory, calls `action` with the file, deletes the file, and returns the result of calling `action`.
+   * The name of the file will begin with `prefix`, which must be at least three characters long, and end with `postfix`, which has no minimum length.
+   */
+  def withTemporaryFile[T](prefix: String, postfix: String)(action: File => T): T = {
+    val file = File.createTempFile(prefix, postfix)
+    try action(file)
+    finally file.delete()
+  }
 
+  def move(a: File, b: File): Unit = {
+    if (b.exists) delete(b)
+    createDirectory(b.getParentFile)
+    if (!a.renameTo(b)) {
+      // TODO - Preserve last modified...
+      copyFile(a, b)
+      delete(a)
+    }
+  }
   /**
    * Creates a temporary directory and provides its location to the given function.  The directory
    * is deleted after the function returns.

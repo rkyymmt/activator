@@ -99,10 +99,10 @@ object Local extends Controller {
     val loc = Platform.fromClientFriendlyFilename(location)
     // We should probably just save any file...
     import snap.cache.IO
-    if (!loc.exists) NotAcceptable(s"${location} is not a file!")
-    else {
-      snap.cache.IO.write(loc, content)
-      Ok(content)
+    IO.withTemporaryFile("builder", "save-file") { file =>
+      IO.write(file, content)
+      IO.move(file, loc)
     }
+    Ok(content)
   }
 }
