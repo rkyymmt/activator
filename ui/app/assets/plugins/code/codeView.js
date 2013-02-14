@@ -1,4 +1,4 @@
-define(["text!./viewCode.html", 'css!./viewCode.css', 'core/pluginapi'], function(template, css, api){
+define(["text!./viewCode.html", 'core/pluginapi'], function(template, api){
 
 	var ko = api.ko;
 
