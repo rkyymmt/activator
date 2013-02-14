@@ -178,10 +178,9 @@ object AppManager {
           val newApps = root.applications.filterNot(_.location == config.location) :+ config
           root.copy(applications = newApps)
         } map { Unit =>
-          RootConfig.user.applications.find(_.location == location) match {
-            case Some(config) => ProcessSuccess(config)
-            case None => ProcessFailure(s"Somehow failed to save new app at ${location.getPath} in config")
-          }
+          import ProcessResult.opt2Process
+          RootConfig.user.applications.find(_.location == location)
+            .validated(s"Somehow failed to save new app at ${location.getPath} in config")
         }
       }
 
