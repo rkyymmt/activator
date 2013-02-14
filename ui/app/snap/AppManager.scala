@@ -133,14 +133,7 @@ object AppManager {
     RootConfig.user.applications.find(_.location == absolute) match {
       case Some(app) => Promise.successful(ProcessSuccess(app.id)).future
       case None => {
-        doInitialAppAnalysis(location) map {
-          case Left(error) =>
-            val message = "Failed to load app at " + location.getAbsolutePath() + " due to: " + error
-            Logger.error(message)
-            ProcessFailure(message)
-          case Right(appConfig) =>
-            ProcessSuccess(appConfig.id)
-        }
+        doInitialAppAnalysis(location) map { _.map(_.id) }
       }
     }
   }
@@ -156,11 +149,18 @@ object AppManager {
     }
   }
 
-  private def doInitialAppAnalysis(location: File): Future[Either[String, AppConfig]] = {
-    if (location.isDirectory()) {
+  private def doInitialAppAnalysis(location: File): Future[ProcessResult[AppConfig]] = {
+    val validated = ProcessSuccess(location).validate(
+      Validation.isDirectory,
+      Validation(s"Directory does not contain an sbt build: ${location.getAbsolutePath}") { dir =>
+        (new File(dir, "build.sbt")).exists ||
+          (new File(dir, "project/build.properties")).exists
+      })
+
+    validated flatMapNested { location =>
       val sbt = SbtChild(snap.Akka.system, location, sbtChildProcessMaker)
       implicit val timeout = Timeout(60, TimeUnit.SECONDS)
-      val result: Future[Either[String, AppConfig]] = (sbt ? protocol.NameRequest(sendEvents = false)) map {
+      val resultFuture: Future[ProcessResult[AppConfig]] = (sbt ? protocol.NameRequest(sendEvents = false)) map {
         case protocol.NameResponse(name) => {
           Logger.info("sbt told us the name is: '" + name + "'")
           name
@@ -179,19 +179,17 @@ object AppManager {
           root.copy(applications = newApps)
         } map { Unit =>
           RootConfig.user.applications.find(_.location == location) match {
-            case Some(config) => Right(config)
-            case None => Left("Somehow failed to save new app at " + location.getPath + " in config")
+            case Some(config) => ProcessSuccess(config)
+            case None => ProcessFailure(s"Somehow failed to save new app at ${location.getPath} in config")
           }
         }
       }
 
-      result onComplete { _ =>
+      resultFuture onComplete { _ =>
         sbt ! PoisonPill
       }
 
-      result
-    } else {
-      Promise.successful(Left("Not a directory: " + location.getAbsolutePath())).future
+      resultFuture
     }
   }
 
