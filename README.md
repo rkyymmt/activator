@@ -67,6 +67,21 @@ or just
 
 Generates the file `dist/target/universal/snap.zip`.
 
+## Publishing the Distribution
+
+First, make sure your credentials are in an appropriate spot.  For me, that's in `~/.sbt/user.sbt` with the following content:
+
+    credentials += Credentials("Amazon S3", "downloads.typesafe.com.s3.amazonaws.com", <AWS KEY>, <AWS PW>)
+
+Then you can run simply:
+
+    sbt> snap-dist/s3-upload
+
+*OR*
+
+    sbt> s3-upload
+    
+
 
 # Issues
 
