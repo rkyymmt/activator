@@ -21,6 +21,7 @@ POST    /api/sbt/task               controllers.api.Sbt.task
 GET     /api/local/env              controllers.api.Local.getEnv
 GET     /api/local/browse           controllers.api.Local.browse(location)
 GET     /api/local/show             controllers.api.Local.show(location)
+PUT     /api/local/save             controllers.api.Local.save
 
 # Events API
 GET     /api/event/stream           controllers.api.Events.eventSource

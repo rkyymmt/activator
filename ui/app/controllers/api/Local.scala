@@ -5,6 +5,8 @@ import play.api.libs.json._
 import play.api.Play
 import java.io.File
 import snap.Platform
+import play.api.data._
+import play.api.data.Forms._
 
 object Local extends Controller {
 
@@ -88,5 +90,19 @@ object Local extends Controller {
     val loc = Platform.fromClientFriendlyFilename(location)
     if (!loc.exists) NotAcceptable(s"${location} is not a file!")
     else (Ok sendFile loc)
+  }
+
+  val saveFileForm = Form(tuple("location" -> text, "content" -> text))
+  def save = Action { implicit request =>
+    // TODO - use Validation here.
+    val (location, content) = saveFileForm.bindFromRequest.get
+    val loc = Platform.fromClientFriendlyFilename(location)
+    // We should probably just save any file...
+    import snap.cache.IO
+    if (!loc.exists) NotAcceptable(s"${location} is not a file!")
+    else {
+      snap.cache.IO.write(loc, content)
+      Ok(content)
+    }
   }
 }
