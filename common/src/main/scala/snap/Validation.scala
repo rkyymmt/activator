@@ -98,7 +98,7 @@ object ProcessResult {
   import concurrent._
   implicit class uglyFutureChainingJunk[T](val value: Future[ProcessResult[T]]) extends AnyVal {
     // Since we're not using Scalaz and crazy moandT junk, we just hack the hell out of our normal stack of monads.
-    def flatMapNested[U](f: T => Future[ProcessResult[U]])(implicit ctx: ExecutionContextExecutor): Future[ProcessResult[U]] = {
+    def flatMapNested[U](f: T => Future[ProcessResult[U]])(implicit ctx: ExecutionContext): Future[ProcessResult[U]] = {
       val result = promise[ProcessResult[U]]
       value map {
         case ProcessSuccess(value) =>
@@ -109,7 +109,7 @@ object ProcessResult {
     }
   }
   implicit class uglyChainingJunk2[T](val value: ProcessResult[T]) extends AnyVal {
-    def flatMapNested[U](f: T => Future[ProcessResult[U]])(implicit ctx: ExecutionContextExecutor): Future[ProcessResult[U]] = {
+    def flatMapNested[U](f: T => Future[ProcessResult[U]])(implicit ctx: ExecutionContext): Future[ProcessResult[U]] = {
       val result = promise[ProcessResult[U]]
       value match {
         case ProcessSuccess(v) =>
