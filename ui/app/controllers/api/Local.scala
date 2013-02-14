@@ -12,7 +12,7 @@ object Local extends Controller {
     val localEnvJson = Json.toJson(
       Map(
         "desktopDir" ->
-          Json.toJson(Platform.filename(new File(System.getProperty("user.home"), "Desktop"))),
+          Json.toJson(Platform.getClientFriendlyFilename(new File(System.getProperty("user.home"), "Desktop"))),
         "separator" -> Json.toJson(File.separator)))
 
     Ok(localEnvJson)
@@ -59,7 +59,7 @@ object Local extends Controller {
     def writes(o: File): JsValue =
       JsObject(
         List("name" -> JsString(o.getName),
-          "location" -> JsString(Platform.filename(o)),
+          "location" -> JsString(Platform.getClientFriendlyFilename(o)),
           "isDirectory" -> JsBoolean(o.isDirectory)) ++ (if (o.isDirectory) Nil else List("type" -> JsString(getFileType(o.getName)))))
     //We don't need reads, really
     def reads(json: JsValue): JsResult[File] =
@@ -78,14 +78,14 @@ object Local extends Controller {
       JsError("Reading Files not supported!")
   }
 
-  def browse(location: String) = Action { request =>
-    val loc = Platform.file(location)
+  def browse(location: String) = Action { rromClientFriendlyFilenamuest =>
+    val loc = Platform.fromClientFriendlyFilename(location)
     if (!loc.exists) NotAcceptable(s"${location} is not a file!")
     else Ok(Json toJson InterestingFile(loc))
   }
 
-  def show(location: String) = Action { request =>
-    val loc = Platform.file(location)
+  def show(location: String) = Action { rromClientFriendlyFilenamuest =>
+    val loc = Platform.fromClientFriendlyFilename(location)
     if (!loc.exists) NotAcceptable(s"${location} is not a file!")
     else (Ok sendFile loc)
   }

@@ -11,8 +11,8 @@ class PlatformTest {
   def transformIsReversable(): Unit = {
     def testReversal(name: String, platform: Platform, names: Seq[String]): Unit = {
       val files = names map (new File(_))
-      val translated = files map platform.filename
-      val files2 = names map platform.file
+      val translated = files map platform.getClientFriendlyFilename
+      val files2 = names map platform.fromClientFriendlyFilename
       Assert.assertTrue(s"failed to canonically convert $name files: ", files zip files2 forall {
         case (l, r) => l.getAbsolutePath == r.getAbsolutePath
       })

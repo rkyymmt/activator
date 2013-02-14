@@ -191,7 +191,7 @@ object Application extends Controller {
   def getApplicationModel(app: snap.App) =
     ApplicationModel(
       app.config.id,
-      Platform.filename(app.config.location),
+      Platform.getClientFriendlyFilename(app.config.location),
       Seq("plugins/code/code", "plugins/run/run"),
       app.config.cachedName getOrElse app.config.id,
       // TODO - something less lame than exception here...
