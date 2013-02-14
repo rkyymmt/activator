@@ -222,7 +222,8 @@ object TheSnapBuild extends Build {
       Keys.mappings in S3.upload <<= (Keys.packageBin in Universal, Keys.version) map { (zip, v) =>
         Seq(zip -> ("typesafe-builder/%s/typesafe-builder-%s.zip" format (v, v)))
       },
-      S3.host in S3.upload := "downloads.typesafe.com.s3.amazonaws.com"
+      S3.host in S3.upload := "downloads.typesafe.com.s3.amazonaws.com",
+      S3.progress in S3.upload := true
     )
   )
 }
