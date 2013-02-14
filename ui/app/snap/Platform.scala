@@ -2,9 +2,8 @@ package snap
 
 import java.io.File
 
-object Platform {
-  val isWindows = sys.props("os.name").toLowerCase.indexOf("win") >= 0
-
+/** We extract this so we can test it on non-windows machines. */
+private[snap] class Platform(val isWindows: Boolean) {
   def filename(f: File): String = {
     val raw = f.getCanonicalPath
     if (isWindows) mungeWindows(raw)
@@ -21,3 +20,5 @@ object Platform {
   private def unmungeWindows(name: String): String =
     name.replaceAll("/", "\\\\")
 }
+
+object Platform extends Platform(sys.props("os.name").toLowerCase.indexOf("win") >= 0)
