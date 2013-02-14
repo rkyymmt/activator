@@ -78,13 +78,13 @@ object Local extends Controller {
       JsError("Reading Files not supported!")
   }
 
-  def browse(location: String) = Action { rromClientFriendlyFilenamuest =>
+  def browse(location: String) = Action { request =>
     val loc = Platform.fromClientFriendlyFilename(location)
     if (!loc.exists) NotAcceptable(s"${location} is not a file!")
     else Ok(Json toJson InterestingFile(loc))
   }
 
-  def show(location: String) = Action { rromClientFriendlyFilenamuest =>
+  def show(location: String) = Action { request =>
     val loc = Platform.fromClientFriendlyFilename(location)
     if (!loc.exists) NotAcceptable(s"${location} is not a file!")
     else (Ok sendFile loc)
