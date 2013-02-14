@@ -5,7 +5,10 @@ import java.io.File
 /** We extract this so we can test it on non-windows machines. */
 private[snap] class Platform(val isWindows: Boolean) {
   def filename(f: File): String = {
-    val raw = f.getCanonicalPath
+    // TODO - We can't use canonical path
+    // because we don't want to follow symlinks...
+    // If you change this, you will break the UI, so DON'T.
+    val raw = f.getAbsolutePath
     if (isWindows) mungeWindows(raw)
     else raw
   }

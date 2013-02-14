@@ -12,6 +12,8 @@ define(['css!./code.css', 'text!./browse.html', 'core/pluginapi'], function(css,
 			this.isDirectory = config.isDirectory;
 			this.mimeType = config.mimeType;
 			var path = ['code'];
+			// TODO - If we have a symlink, we're f'd here if it's resolved to real location.
+			// in the future we probably pass full symlink path separately.
 			var relative = config.location.replace(serverAppModel.location, "");
 			if(relative[0] == '/') {
 				relative = relative.slice(1);
