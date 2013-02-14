@@ -1,6 +1,7 @@
 package snap
 
 import language._
+import java.io.File
 /**
  * This class represents some kind of result of an (sequence of) operation(s) that may or may not have failed.
  * You can later extract the result, or group together errors.
@@ -181,4 +182,6 @@ object Validation {
   def isDirectory = make[java.io.File](file => s"${file} is not a directory")(_.isDirectory)
   def nonEmptyString(name: String) = apply[String](s"$name must be non-empty")(!_.isEmpty)
   def nonEmptyCollection(name: String) = apply[Traversable[_]](s"$name must be non-empty")(!_.isEmpty)
+  def looksLikeAnSbtProject: File => Option[ProcessError] =
+    make[java.io.File](file => s"Directory does not contain an sbt build: ${file}")(Sbt.looksLikeAProject(_))
 }

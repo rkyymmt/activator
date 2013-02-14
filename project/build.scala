@@ -154,7 +154,7 @@ object TheSnapBuild extends Build {
   lazy val launcher = (
     SnapProject("launcher")
     dependsOnRemote(sbtLauncherInterface)
-    dependsOn(props)
+    dependsOn(props, common)
   )
 
   // A hack project just for convenient IvySBT when resolving artifacts into new local repositories.

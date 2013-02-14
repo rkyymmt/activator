@@ -152,10 +152,7 @@ object AppManager {
   private def doInitialAppAnalysis(location: File): Future[ProcessResult[AppConfig]] = {
     val validated = ProcessSuccess(location).validate(
       Validation.isDirectory,
-      Validation(s"Directory does not contain an sbt build: ${location.getAbsolutePath}") { dir =>
-        (new File(dir, "build.sbt")).exists ||
-          (new File(dir, "project/build.properties")).exists
-      })
+      Validation.looksLikeAnSbtProject)
 
     validated flatMapNested { location =>
       val sbt = SbtChild(snap.Akka.system, location, sbtChildProcessMaker)
