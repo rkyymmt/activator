@@ -48,30 +48,33 @@ object SetupSbtChild extends (State => State) {
     val ref = Project.extract(origState).currentRef
     val extracted = Extracted(Project.structure(origState), Project.session(origState), ref)(Project.showFullKey)
 
+    def exceptionsToErrorResponse(serial: Long)(block: => State): State = {
+      try {
+        block
+      } catch {
+        case e: Exception =>
+          client.replyJson(serial,
+            protocol.ErrorResponse("exception during sbt task: " + e.getClass.getSimpleName + ": " + e.getMessage))
+          origState
+      }
+    }
+
     req match {
       case protocol.Envelope(serial, replyTo, protocol.NameRequest(_)) =>
         val result = extracted.get(name)
         client.replyJson(serial, protocol.NameResponse(result))
         origState
       case protocol.Envelope(serial, replyTo, protocol.CompileRequest(_)) =>
-        try {
+        exceptionsToErrorResponse(serial) {
           val (s, result) = extracted.runTask(compile in Compile, origState)
           client.replyJson(serial, protocol.CompileResponse(success = true))
           s
-        } catch {
-          case e: Exception =>
-            client.replyJson(serial, protocol.ErrorResponse("error in compile: " + e.getMessage))
-            origState
         }
       case protocol.Envelope(serial, replyTo, protocol.RunRequest(_)) =>
-        try {
+        exceptionsToErrorResponse(serial) {
           val s = runInputTask(run in Compile, extracted, origState)
           client.replyJson(serial, protocol.RunResponse(success = true))
           s
-        } catch {
-          case e: Exception =>
-            client.replyJson(serial, protocol.ErrorResponse("error in run: " + e.getMessage))
-            origState
         }
       case _ => {
         client.replyJson(req.serial, protocol.ErrorResponse("Unknown request: " + req))

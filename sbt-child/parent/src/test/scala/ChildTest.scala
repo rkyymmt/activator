@@ -42,6 +42,25 @@ class ChildTest {
     dir
   }
 
+  def makeDummySbtProjectWithBrokenBuild(relativeDir: String): File = {
+    val dir = makeDummySbtProject(relativeDir)
+
+    val build = new File(dir, "build.sbt")
+    createFile(build, "BLARG := \"" + relativeDir + "\"\n")
+
+    dir
+  }
+
+  def makeDummySbtProjectWithNoMain(relativeDir: String): File = {
+    val dir = makeDummySbtProject(relativeDir)
+
+    val main = new File(dir, "src/main/scala/hello.scala")
+    // doesn't extend App
+    createFile(main, "object Main { println(\"Hello World\") }\n")
+
+    dir
+  }
+
   @Test
   def testTalkToChild(): Unit = {
     implicit val timeout = Timeout(60.seconds)
@@ -102,6 +121,54 @@ class ChildTest {
         Await.result(child ? RunRequest(sendEvents = false), timeout.duration) match {
           case RunResponse(success) =>
           case whatever => throw new AssertionError("did not get RunResponse")
+        }
+      } finally {
+        system.stop(child)
+      }
+
+    } finally {
+      system.shutdown()
+    }
+  }
+
+  @Test
+  def testBrokenBuild(): Unit = {
+    implicit val timeout = Timeout(60.seconds)
+
+    val dummy = makeDummySbtProjectWithBrokenBuild("brokenBuild")
+
+    val system = ActorSystem("test-broken-build")
+    try {
+      val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
+
+      try {
+        Await.result(child ? RunRequest(sendEvents = false), timeout.duration) match {
+          case ErrorResponse(message) if message.contains("sbt process never got in touch") =>
+          case whatever => throw new AssertionError("unexpected result sending RunRequest to broken build: " + whatever)
+        }
+      } finally {
+        system.stop(child)
+      }
+
+    } finally {
+      system.shutdown()
+    }
+  }
+
+  @Test
+  def testMissingMain(): Unit = {
+    implicit val timeout = Timeout(60.seconds)
+
+    val dummy = makeDummySbtProjectWithNoMain("noMain")
+
+    val system = ActorSystem("test-no-main")
+    try {
+      val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
+
+      try {
+        Await.result(child ? RunRequest(sendEvents = false), timeout.duration) match {
+          case ErrorResponse(message) if message.contains("during sbt task: Incomplete") =>
+          case whatever => throw new AssertionError("unexpected result sending RunRequest to app with no main method: " + whatever)
         }
       } finally {
         system.stop(child)
