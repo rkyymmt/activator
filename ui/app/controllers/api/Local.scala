@@ -29,31 +29,49 @@ object Local extends Controller {
     } yield (sub drop 1)) getOrElse ""
 
   // TODO - Make this configurable!
-  def getFileType(name: String): String = getExtension(name) match {
-    case "jpg" => "image"
-    case "png" => "image"
-    case "gif" => "image"
+  def getFileType(file: File): String = getExtension(file.getName) match {
     case "html" => "code"
-    case "java" => "code"
     case "scala" => "code"
-    case "sbt" => "code"
+    case "java" => "code"
+    case "jpg" => "image"
     case "js" => "code"
+    case "gif" => "image"
+    case "png" => "image"
+    case "sbt" => "code"
+    case "conf" => "code"
     case "css" => "code"
     case "less" => "code"
     case "text" => "code"
     case "md" => "code"
     case "rst" => "code"
     case "properties" => "code"
-    case "conf" => "code"
+    case "bat" => "code"
     // TODO - New "tail" viewer for logs?
     case "log" => "code"
 
     // If we can't find any specific handler based on extension, certain files still need
     // to be handled by name....
-    case _ => name match {
+    case _ => file.getName match {
       case "routes" => "code"
-      case _ => "binary" // Assume binary ok? 
+      case _ => detectTypeFromMime(file)
     }
+  }
+
+  def detectTypeFromMime(f: File): String = {
+    val mime = getMimeType(f)
+    System.err.println(s"Checking mime type for $f, found: $mime");
+    if (mime startsWith "text") "code"
+    else if (mime startsWith "image") "image"
+    else if (mime contains "x-shellscript") "code" // TODO - highlighting is still borked for this guy
+    else "binary"
+  }
+
+  // Magically discover the mime type!
+  def getMimeType(file: File): String = {
+    import eu.medsea.mimeutil._
+    MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
+    val mimeTypes = MimeUtil getMimeTypes file
+    MimeUtil.getFirstMimeType(mimeTypes.toString).toString
   }
 
   // Here's the JSON rendering of template metadata.
@@ -62,7 +80,8 @@ object Local extends Controller {
       JsObject(
         List("name" -> JsString(o.getName),
           "location" -> JsString(Platform.getClientFriendlyFilename(o)),
-          "isDirectory" -> JsBoolean(o.isDirectory)) ++ (if (o.isDirectory) Nil else List("type" -> JsString(getFileType(o.getName)))))
+          "isDirectory" -> JsBoolean(o.isDirectory)) ++
+          (if (o.isDirectory) Nil else List("type" -> JsString(getFileType(o)))))
     //We don't need reads, really
     def reads(json: JsValue): JsResult[File] =
       JsError("Reading TemplateMetadata not supported!")
