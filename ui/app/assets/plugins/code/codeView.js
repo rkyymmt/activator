@@ -2,7 +2,12 @@ define(["text!./viewCode.html", 'core/pluginapi'], function(template, api){
 	var ko = api.ko;
 	ko.bindingHandlers.ace = {
 		init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-			var editorValue = valueAccessor();
+			// First pull out all the options we may or may not use.
+			var options = valueAccessor();
+			var editorValue = options.contents;
+			var dirtyValue = options.dirty;
+
+			// We have to write our text into the element before instantiating the editor.
 			$(element).text(ko.utils.unwrapObservable(editorValue))
 
 			var editor = ace.edit(element);
@@ -17,14 +22,30 @@ define(["text!./viewCode.html", 'core/pluginapi'], function(template, api){
 				if (ko.isWriteableObservable(editorValue)) {
 					editorValue(editor.getValue());
 				}
+				// mark things dirty after an edit.
+				if(ko.isWriteableObservable(dirtyValue)) {
+					dirtyValue(true);
+				}
+			});
+			// Ensure things are cleaned on destruction.
+			ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
+				editor.destroy();
 			});
 		},
 		update: function (element, valueAccessor, allBindingsAccessor, viewModel) {
-			var content = ko.utils.unwrapObservable(valueAccessor());
+			var options = valueAccessor();
+			var editorValue = options.contents;
+			var dirtyValue = options.dirty;
+			var content = ko.utils.unwrapObservable(editorValue);
 			var editor = viewModel.editor;
-			// TODO - Don't freaking do this all the time.
+			// TODO - Don't freaking do this all the time.  We should not
+			// involved in changes we caused.
 			if(editor.getValue() != content) {
 				editor.setValue(content, editor.getCursorPosition());
+				// Update dirty value.
+				if(ko.isWriteableObservable(dirtyValue)) {
+					dirtyValue(false);
+				}
 			}
 		}
 	};
@@ -57,6 +78,7 @@ define(["text!./viewCode.html", 'core/pluginapi'], function(template, api){
 			this.fileLoc = args.fileLoc;
 			this.fileLoadUrl = args.fileLoadUrl;
 			this.contents = ko.observable('Loading...');
+			this.isDirty = ko.observable(false);
 			this.load();
 		},
 		load: function() {

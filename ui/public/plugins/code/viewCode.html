@@ -1,7 +1,7 @@
 <!--  TODO - Bind id from unique id... -->
 <span class="code-control-bar">
   <button class="refresh" data-bind="click: load">Refresh</button>
-  <button class="save" data-bind="click: save">Save</button>
+  <button class="save" data-bind="click: save, enable: isDirty">Save</button>
 </span>
-<div class="code-editor" data-bind="ace: contents">
+<div class="code-editor" data-bind="ace: { contents: contents, dirty: isDirty }">
 </div>
