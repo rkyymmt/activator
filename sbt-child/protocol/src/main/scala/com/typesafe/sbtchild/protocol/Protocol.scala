@@ -91,10 +91,57 @@ case class CompileResponse(success: Boolean) extends Response
 case class RunRequest(sendEvents: Boolean) extends Request
 case class RunResponse(success: Boolean) extends Response
 
+sealed trait TestOutcome {
+  final def success: Boolean = {
+    this != TestError && this != TestFailed
+  }
+
+  final def combine(other: TestOutcome): TestOutcome = {
+    // this same logic is used to compute an overall result in sbt.TestEvent
+    if (other == TestError || this == TestError)
+      TestError
+    else if (other == TestFailed || this == TestFailed)
+      TestFailed
+    else if (other == TestPassed || this == TestPassed)
+      TestPassed
+    else
+      TestSkipped
+  }
+}
+
+object TestOutcome {
+  def apply(s: String): TestOutcome = s match {
+    case "passed" => TestPassed
+    case "failed" => TestFailed
+    case "error" => TestError
+    case "skipped" => TestSkipped
+  }
+}
+
+case object TestPassed extends TestOutcome {
+  override def toString = "passed"
+}
+case object TestFailed extends TestOutcome {
+  override def toString = "failed"
+}
+case object TestError extends TestOutcome {
+  override def toString = "error"
+}
+case object TestSkipped extends TestOutcome {
+  override def toString = "skipped"
+}
+
+case class TestRequest(sendEvents: Boolean) extends Request
+case class TestResponse(outcome: TestOutcome) extends Response {
+  def success: Boolean = outcome.success
+}
+
 // can be the response to anything
 case class ErrorResponse(error: String) extends Response
 
 case class LogEvent(entry: LogEntry) extends Event
+case class TestEvent(name: String, description: Option[String], outcome: TestOutcome, error: Option[String]) extends Event
+
 // pseudo-wire-messages we synthesize locally
 case object Started extends Event
 case object Stopped extends Event
@@ -123,12 +170,18 @@ object Message {
           base ++ Map("success" -> success)
         case RunResponse(success) =>
           base ++ Map("success" -> success)
+        case TestResponse(outcome) =>
+          base ++ Map("outcome" -> outcome.toString)
         case ErrorResponse(error) =>
           base ++ Map("error" -> error)
         case MysteryMessage(something) =>
           base ++ Map("something" -> something.toString)
         case LogEvent(entry) =>
           base ++ Map("entry" -> implicitly[ipc.JsonWriter[LogEntry]].toJson(entry))
+        case TestEvent(name, descriptionOpt, outcome, errorOpt) =>
+          base ++ Map("name" -> name, "outcome" -> outcome.toString) ++
+            descriptionOpt.map(desc => Map("description" -> desc)).getOrElse(Map.empty) ++
+            errorOpt.map(e => Map("error" -> e)).getOrElse(Map.empty)
         case whatever =>
           throw new Exception("Need to implement JSON serialization of: " + whatever)
       }
@@ -162,6 +215,10 @@ object Message {
               CompileRequest(sendEvents = getSendEvents(obj))
             case "CompileResponse" =>
               CompileResponse(obj("success").asInstanceOf[Boolean])
+            case "TestRequest" =>
+              TestRequest(sendEvents = getSendEvents(obj))
+            case "TestResponse" =>
+              TestResponse(outcome = TestOutcome(obj("outcome").asInstanceOf[String]))
             case "RunRequest" =>
               RunRequest(sendEvents = getSendEvents(obj))
             case "RunResponse" =>
@@ -176,6 +233,11 @@ object Message {
               MysteryMessage(obj("something").asInstanceOf[String])
             case "LogEvent" =>
               LogEvent(implicitly[JsonReader[LogEntry]].fromJson(JSONObject(obj("entry").asInstanceOf[Map[String, Any]])))
+            case "TestEvent" =>
+              TestEvent(obj("name").asInstanceOf[String],
+                obj.get("description").map(_.asInstanceOf[String]),
+                TestOutcome(obj("outcome").asInstanceOf[String]),
+                obj.get("error").map(_.asInstanceOf[String]))
             case whatever =>
               throw new Exception("unknown message type in json: " + whatever)
           }

@@ -2,73 +2,35 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 	var ko = api.ko;
 	var sbt = api.sbt;
 
-	// ---- EVERYTHING HERE AND BELOW IS A TESTING HACK ----
-	function randomStatus() {
-		var result = Math.random();
-		if(result > 0.4) {
-			return 'pass';
-		}
-		if(result > 0.2) {
-			return 'fail';
-		}
-		if(result > 0.1) {
-			return 'error';
-		}
-		return 'pending';
-	}
-	function makeTestStatus(name) {
-		return {
-			testName: name,
-			result: randomStatus(),
-			description: 'PUT STUFF HERE'
-		};
-	}
-	function makeTestingResults() {
-		return $.map(['test.Works', 'test.Werks', 'test.Stuff', 'AbstractProxyBeanFactoryTest'], function(name) {
-			return makeTestStatus(name);
-		});
-	}
-
-	// Fakes the streaming API for us if SBT fails.
-	var LazyCheatStreamStuff = function(displayWidget, events) {
-		displayWidget.waiting(true);
-		var timeouts = $.map(events, function(item, idx)  {
-			return window.setTimeout(function() {
-				displayWidget.updateTest(item);
-				window.clearTimeout(timeouts[idx]);
-			}, 2000 * idx);
-		});
-
-		var finalTo = window.setTimeout(function() {
-			displayWidget.waiting(false);
-			displayWidget.testStatus('Completed');
-			window.clearTimeout(finalTo);
-		}, 2000 * events.length + 2000)
-	}
-	// ---- EVERYTHING HERE AND ABOVE IS A TESTING HACK ----
+	var Outcome = {
+		PASSED: 'passed',
+		FAILED: 'failed',
+		ERROR: 'error',
+		SKIPPED: 'skipped',
+		// PENDING doesn't arrive from server, it's just a state we use locally
+		PENDING: 'pending'
+	};
 
 	// TODO - Other widgety things here.
 	var TestResult = api.Class({
 		init: function(config) {
 			var self = this;
-			self.testName = config.testName;
-			self.result = ko.observable(config.result);
+			self.name = config.name;
+			self.outcome = ko.observable(config.outcome);
 			self.description = ko.observable(config.description);
-			self.resultClass = ko.computed(function() {
-				// TODO - handle real strings...
-				if(self.result() == 'pass') {
-					return 'pass';
+			self.outcomeClass = ko.computed(function() {
+				var current = self.outcome();
+				if (current === Outcome.PASSED || current === Outcome.PENDING) {
+					return current;
+				} else {
+					return Outcome.FAILED;
 				}
-				if(self.result() == 'pending') {
-					return 'pending';
-				}
-				return 'fail';
 			});
 		},
 		// Update our state from an event.
 		update: function(event) {
 			this.description(event.description);
-			this.result(event.result);
+			this.outcome(event.outcome);
 		}
 	});
 	var TestDisplay = api.Widget({
@@ -96,7 +58,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 			self.displayedResults = ko.computed(function() {
 				if(self.testFilter() == 'failures') {
 					return ko.utils.arrayFilter(self.results(), function(item) {
-						return item.result() != 'pass';
+						return item.outcome() != Outcome.PASSED;
 					});
 				}
 				return self.results();
@@ -122,7 +84,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 				task: 'TestRequest',
 				onmessage: function(event) {
 					if('type' in event && event.type == 'TestEvent') {
-						self.udpateTest(event);
+						self.updateTest(event);
 					}
 					// TODO - Should we show logs?
 					// TODO - Should we be able to query for test console output?
@@ -135,14 +97,12 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 					console.log("test failed: ", err)
 					self.testStatus('Testing failed: ' + err.responseText);
 					self.waiting(false);
-					// TODO - Stop stubbing data when Havoc's part is complete.
-					LazyCheatStreamStuff(self, makeTestingResults());
 				}
 			});
 		},
 		updateTest: function(testEvent) {
 			var match = ko.utils.arrayFirst(this.results(), function(item) {
-				return testEvent.testName === item.testName;
+				return testEvent.name === item.name;
 			});
 			if(!match) {
 				var test = new TestResult(testEvent);

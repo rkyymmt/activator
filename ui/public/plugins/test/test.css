@@ -12,7 +12,7 @@
   padding: 0px 2px 2px 1em;
 }
 
-.testResults .testName {
+.testResults .name {
 	text-align: left;
 }
 .testResults .result {
@@ -22,11 +22,11 @@
 	width: 10%;
 }
 
-.testResults .pass {
+.testResults .passed {
 	color: green;
 }
 
-.testResults .fail {
+.testResults .failed {
 	color: red;
 	font-weight: bold;
 }

@@ -33,12 +33,49 @@ class ChildTest {
     createFile(props, "sbt.version=" + snap.properties.SnapProperties.SBT_VERSION)
 
     val build = new File(dir, "build.sbt")
-    createFile(build, "name := \"" + relativeDir + "\"\n")
+    createFile(build, s"""
+name := "${relativeDir}"
+
+libraryDependencies += "com.novocode" % "junit-interface" % "0.7" % "test"
+""")
 
     val scalaSource = new File(dir, "src/main/scala")
     if (!scalaSource.isDirectory()) scalaSource.mkdirs()
     val main = new File(scalaSource, "hello.scala")
     createFile(main, "object Main extends App { println(\"Hello World\") }\n")
+
+    val testSource = new File(dir, "src/test/scala")
+    if (!testSource.isDirectory()) testSource.mkdirs()
+    val tests = new File(testSource, "tests.scala")
+    createFile(tests, """
+import org.junit.Assert._
+import org.junit._
+
+class OnePassOneFailTest {
+    @Test
+    def testThatShouldPass: Unit = {
+    }
+
+    @Test
+    def testThatShouldFail: Unit = {
+        assertTrue("this is not true", false)
+    }
+}
+
+class OnePassTest {
+    @Test
+    def testThatShouldPass: Unit = {
+    }
+}
+
+class OneFailTest {
+    @Test
+    def testThatShouldFail: Unit = {
+        assertTrue("this is not true", false)
+    }
+}
+""")
+
     dir
   }
 
@@ -59,6 +96,93 @@ class ChildTest {
     createFile(main, "object Main { println(\"Hello World\") }\n")
 
     dir
+  }
+
+  private class TestRequestActor(dummy: File) extends Actor with ActorLogging {
+    val child = SbtChild(context, dummy, DebugSbtChildProcessMaker)
+
+    var recorded: Seq[protocol.Message] = Nil
+    var requestor: Option[ActorRef] = None
+    var done = false
+
+    override def receive = {
+      case m: protocol.Message =>
+        recorded = recorded :+ m
+        m match {
+          case r: protocol.Response =>
+            done = true
+            requestor.foreach(_ ! recorded)
+          case _ =>
+        }
+      case "get" =>
+        if (done)
+          sender ! recorded
+        else
+          requestor = Some(sender)
+    }
+  }
+
+  private def requestTest(dummy: File)(sendRequest: (ActorRef, ActorContext) => Unit)(checkResults: Seq[protocol.Message] => Unit): Unit = {
+    implicit val timeout = Timeout(120.seconds)
+
+    val system = ActorSystem("test-" + dummy.getName)
+    try {
+      val req = system.actorOf(Props(new TestRequestActor(dummy) {
+        sendRequest(child, context)
+      }))
+
+      Await.result(req ? "get", timeout.duration) match {
+        case s: Seq[_] =>
+          checkResults(s.collect({ case m: protocol.Message => m }))
+        case whatever => throw new AssertionError("unexpected reply from TestRequestActor: " + whatever)
+      }
+
+    } finally {
+      system.shutdown()
+    }
+  }
+
+  private def noLogs(results: Seq[protocol.Message]): Seq[protocol.Message] = {
+    results flatMap {
+      case e: protocol.LogEvent => Seq.empty
+      case m: protocol.Message => Seq(m)
+    }
+  }
+
+  // this is just an ad hoc attempt to make the event order more
+  // deterministic. We assume a stable sort.
+  private implicit val messageOrdering: Ordering[protocol.Message] = new Ordering[protocol.Message]() {
+    override def compare(a: protocol.Message, b: protocol.Message): Int = {
+      (a, b) match {
+        // sort test events by the test name since they
+        // otherwise arrive in undefined order
+        case (a: protocol.TestEvent, b: protocol.TestEvent) =>
+          a.name.compareTo(b.name)
+        // leave it alone
+        case (a, b) =>
+          0
+      }
+    }
+  }
+
+  @Test
+  def testRunTests(): Unit = {
+    requestTest(makeDummySbtProject("testing123")) { (child, context) =>
+      implicit val self = context.self
+      child ! TestRequest(sendEvents = true)
+    } { results =>
+      noLogs(results).sorted match {
+        case Seq(TestEvent("OneFailTest.testThatShouldFail",
+          Some("this is not true"), TestFailed, Some("this is not true")),
+          TestEvent("OnePassOneFailTest.testThatShouldFail",
+            Some("this is not true"), TestFailed, Some("this is not true")),
+          TestEvent("OnePassOneFailTest.testThatShouldPass", None, TestPassed, None),
+          TestEvent("OnePassTest.testThatShouldPass", None, TestPassed, None),
+          ErrorResponse("exception during sbt task: Incomplete: null")) =>
+        // yay!
+        case whatever => throw new AssertionError("got wrong results: " + whatever)
+      }
+    }
   }
 
   @Test
