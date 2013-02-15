@@ -4,7 +4,8 @@ define(["text!./viewCode.html", 'core/pluginapi'], function(template, api){
 		init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 			// First pull out all the options we may or may not use.
 			var options = valueAccessor();
-			var editorValue = options.contents;
+			// If they only provide a text field to bind into, we allow that too.
+			var editorValue = options.contents || options;
 			var dirtyValue = options.dirty;
 
 			// We have to write our text into the element before instantiating the editor.
