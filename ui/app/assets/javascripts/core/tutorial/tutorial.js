@@ -1,7 +1,7 @@
-define(['css!./tutorial.css','text!./tutorial.html'], function(css, template){
+define(['css!./tutorial.css', 'core/pluginapi'], function(css, api){
 
-	var ko = req('vendors/knockout-2.2.1.debug'),
-		key = req('vendors/keymage.min');
+	var ko = api.ko,
+		key = api.key;
 
 	function Page(index, content) {
 		var title = $(content).find("h1,h2").text();
@@ -77,6 +77,5 @@ define(['css!./tutorial.css','text!./tutorial.html'], function(css, template){
 	// BAAAAAAD
 	// BAAAAAAD
 
-	Tutorials();
-
+	return new Tutorials();
 });

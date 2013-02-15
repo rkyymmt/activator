@@ -2,6 +2,7 @@ package snap
 
 import xsbti.{ AppMain, AppConfiguration }
 import snap.properties.SnapProperties
+import java.io.File
 
 /** Expose for SBT launcher support. */
 class SnapLauncher extends AppMain {
@@ -11,7 +12,7 @@ class SnapLauncher extends AppMain {
     try configuration.arguments match {
       case Array("ui") => RebootToUI(configuration)
       case Array("shell") => RebootToSbt(configuration, useArguments = false)
-      case _ if isLocalProject => RebootToSbt(configuration, useArguments = true)
+      case _ if Sbt.looksLikeAProject(new File(".")) => RebootToSbt(configuration, useArguments = true)
       case _ => displayHelp(configuration)
     } catch {
       case e: Exception => generateErrorReport(e)
@@ -35,13 +36,6 @@ class SnapLauncher extends AppMain {
     // TODO - Make a real error report.
     e.printStackTrace()
     Exit(2)
-  }
-
-  // TODO - Add better local project detection.
-  def isLocalProject: Boolean = {
-    // We assume we test against CWD here...
-    val file = new java.io.File("project/build.properties")
-    file.exists
   }
 }
 // Wrapper to return the UI application.

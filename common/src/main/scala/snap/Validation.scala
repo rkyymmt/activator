@@ -1,6 +1,7 @@
 package snap
 
 import language._
+import java.io.File
 /**
  * This class represents some kind of result of an (sequence of) operation(s) that may or may not have failed.
  * You can later extract the result, or group together errors.
@@ -98,7 +99,7 @@ object ProcessResult {
   import concurrent._
   implicit class uglyFutureChainingJunk[T](val value: Future[ProcessResult[T]]) extends AnyVal {
     // Since we're not using Scalaz and crazy moandT junk, we just hack the hell out of our normal stack of monads.
-    def flatMapNested[U](f: T => Future[ProcessResult[U]])(implicit ctx: ExecutionContextExecutor): Future[ProcessResult[U]] = {
+    def flatMapNested[U](f: T => Future[ProcessResult[U]])(implicit ctx: ExecutionContext): Future[ProcessResult[U]] = {
       val result = promise[ProcessResult[U]]
       value map {
         case ProcessSuccess(value) =>
@@ -109,7 +110,7 @@ object ProcessResult {
     }
   }
   implicit class uglyChainingJunk2[T](val value: ProcessResult[T]) extends AnyVal {
-    def flatMapNested[U](f: T => Future[ProcessResult[U]])(implicit ctx: ExecutionContextExecutor): Future[ProcessResult[U]] = {
+    def flatMapNested[U](f: T => Future[ProcessResult[U]])(implicit ctx: ExecutionContext): Future[ProcessResult[U]] = {
       val result = promise[ProcessResult[U]]
       value match {
         case ProcessSuccess(v) =>
@@ -181,4 +182,6 @@ object Validation {
   def isDirectory = make[java.io.File](file => s"${file} is not a directory")(_.isDirectory)
   def nonEmptyString(name: String) = apply[String](s"$name must be non-empty")(!_.isEmpty)
   def nonEmptyCollection(name: String) = apply[Traversable[_]](s"$name must be non-empty")(!_.isEmpty)
+  def looksLikeAnSbtProject: File => Option[ProcessError] =
+    make[java.io.File](file => s"Directory does not contain an sbt build: ${file}")(Sbt.looksLikeAProject(_))
 }

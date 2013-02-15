@@ -35,8 +35,7 @@ require([
 	require([
 		// Core
 		'core/utils',
-		'core/sbt',
-		'plugins/tutorial/tutorial'
+		'core/sbt'
 	], function() {
 		require(['core/snap'])
 	})

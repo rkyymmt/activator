@@ -27,10 +27,15 @@ class SbtTest {
     finally writer.close()
   }
 
-  /** Creates a dummy project we can run sbt against. */
-  def makeDummySbtProject(relativeDir: String): File = {
+  def makeDummyEmptyDirectory(relativeDir: String): File = {
     val dir = new File(new File("ui/target/scratch"), relativeDir)
     if (!dir.isDirectory()) dir.mkdirs()
+    dir
+  }
+
+  /** Creates a dummy project we can run sbt against. */
+  def makeDummySbtProject(relativeDir: String): File = {
+    val dir = makeDummyEmptyDirectory(relativeDir)
 
     val project = new File(dir, "project")
     if (!project.isDirectory()) project.mkdirs()
@@ -90,11 +95,40 @@ class SbtTest {
     }
   }
 
+  private def routeExpectingAnError[B](req: FakeRequest[_], body: B)(implicit w: Writeable[B]): String = {
+    route(req, body) map deAsync match {
+      case Some(result: SimpleResult[_]) if result.header.status != Status.OK => contentAsString(result)
+      case Some(whatever) =>
+        val message = try contentAsString(whatever)
+        catch { case e: Exception => "" }
+        throw new RuntimeException("unexpected result: " + whatever + ": " + message)
+      case None =>
+        throw new RuntimeException("got None back from request: " + req)
+    }
+  }
+
   private def routeThrowingIfNotJson[B](req: FakeRequest[_], body: B)(implicit w: Writeable[B]): JsValue = {
     val result = routeThrowingIfNotSuccess(req, body)
     if (contentType(result) != Some("application/json"))
       throw new RuntimeException("Wrong content type: " + contentType(result))
     Json.parse(contentAsString(result))
+  }
+
+  // we are supposed to fail to "import" an empty directory
+  @Test
+  def testHandleEmptyDirectory(): Unit = {
+    val dummy = makeDummyEmptyDirectory("notAnSbtProject")
+
+    running(FakeApplication()) {
+      val uri = (new URI("/api/app/fromLocation")).addQueryParameter("location", dummy.getPath)
+
+      val message =
+        routeExpectingAnError(FakeRequest(method = "POST", uri = uri.getRawPath + "?" + uri.getRawQuery,
+          headers = FakeHeaders(Seq.empty), body = ""), "")
+
+      if (!message.contains("Directory does not contain an sbt build"))
+        throw new AssertionError(s"Got wrong error message: '$message'")
+    }
   }
 
   private def childTest(projectMaker: String => File, projectName: String)(assertions: JsValue => Unit): Unit = {
@@ -152,4 +186,5 @@ class SbtTest {
       assertEquals(JsString("exception during sbt task: Incomplete: null"), taskJson \ "error")
     }
   }
+
 }
