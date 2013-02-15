@@ -80,10 +80,7 @@ object SetupSbtChild extends (State => State) {
 
     var overallOutcome: protocol.TestOutcome = protocol.TestPassed
 
-    // each test group is in its own thread so this has to be
-    // synchronized or we'll stomp on our mutable state and
-    // try to use "client" from multiple threads at once
-    override def testEvent(event: TestEvent): Unit = synchronized {
+    override def testEvent(event: TestEvent): Unit = {
       // event.result is just all the detail results folded,
       // we replicate that ourselves below
       for (detail <- event.detail) {
@@ -94,7 +91,11 @@ object SetupSbtChild extends (State => State) {
           case TResult.Skipped => protocol.TestSkipped
         }
 
-        overallOutcome = overallOutcome.combine(outcome)
+        // each test group is in its own thread so this has to be
+        // synchronized
+        synchronized {
+          overallOutcome = overallOutcome.combine(outcome)
+        }
 
         client.replyJson(serial,
           protocol.TestEvent(detail.testName,
