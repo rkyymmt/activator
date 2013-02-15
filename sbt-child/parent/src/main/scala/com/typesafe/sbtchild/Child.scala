@@ -141,6 +141,8 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
           server ! PoisonPill
         case e: protocol.LogEvent =>
           throw new RuntimeException("Not expecting a LogEvent here: " + e)
+        case e: protocol.TestEvent =>
+          throw new RuntimeException("Not expecting a TestEvent here: " + e)
         case protocol.MysteryMessage(something) =>
           // let it crash
           throw new RuntimeException("Received unexpected item on socket from sbt child: " + something)

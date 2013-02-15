@@ -8,13 +8,13 @@
     	<thead>
     		<tr>
     			<th class="result">Result</th>
-    			<th class="testName">Test</th>
+                <th class="name">Test</th>
     		</tr>
     	</thead>
     	<tbody data-bind="foreach: displayedResults">
     		<tr>
-    			<td data-bind="text: result, css: resultClass" class='result'></td>
-    			<td data-bind="text: testName" class="testName"></td>
+                <td data-bind="text: outcome, css: outcomeClass" class='result'></td>
+                <td data-bind="text: name" class="name"></td>
     		</tr>
     	</tbody>
     </table>

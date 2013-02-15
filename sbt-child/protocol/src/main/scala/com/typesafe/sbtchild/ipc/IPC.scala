@@ -101,6 +101,8 @@ abstract class Peer(protected val socket: Socket) {
     val length = in.readInt()
     val serial = in.readLong()
     val replyTo = in.readLong()
+    if (length > (1024 * 1024))
+      throw new RuntimeException("Ridiculously huge message (" + length + " bytes)")
     val bytes = new Array[Byte](length)
     in.readFully(bytes)
     WireEnvelope(length, serial, replyTo, bytes)
