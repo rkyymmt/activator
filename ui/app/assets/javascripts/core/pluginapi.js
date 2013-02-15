@@ -48,17 +48,18 @@ ko.bindingHandlers.ace = {
 			var editorValue = options.contents || options;
 			var dirtyValue = options.dirty;
 			// TODO - unwrap observable?
-			var theme = options.theme || 'ace/theme/xcode';
-			var highlight = options.highlight || 'scala';
+			var theme = ko.utils.unwrapObservable(options.theme || 'ace/theme/xcode');
+			var highlight = ko.utils.unwrapObservable(options.highlight || 'text');
 
 			// We have to write our text into the element before instantiating the editor.
 			$(element).text(ko.utils.unwrapObservable(editorValue))
 
 			var editor = ace.edit(element);
-			editor.setTheme(ko.utils.unwrapObservable(theme));
+
+			editor.setTheme(theme);
 			// TODO - Check for no highlight mode as well, or allow non-built-in
 			// highlighting...
-			editor.getSession().setMode('ace/mode/'+ko.utils.unwrapObservable(highlight));
+			editor.getSession().setMode('ace/mode/'+highlight);
 
 			// Assume we can sneak this on here.
 			viewModel.editor = editor;

@@ -3,5 +3,5 @@
   <button class="refresh" data-bind="click: load, enable: isDirty">Reload</button>
   <button class="save" data-bind="click: save, enable: isDirty">Save</button>
 </span>
-<div class="code-editor" data-bind="ace: { contents: contents, dirty: isDirty }">
+<div class="code-editor" data-bind="ace: { contents: contents, dirty: isDirty, highlight: highlight }">
 </div>
