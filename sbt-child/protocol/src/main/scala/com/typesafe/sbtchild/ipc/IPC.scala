@@ -10,6 +10,7 @@ import java.nio.charset.Charset
 import java.io.InputStream
 import scala.util.parsing.json._
 import java.net.SocketException
+import java.util.concurrent.atomic.AtomicInteger
 
 trait Envelope[T] {
   def serial: Long
@@ -41,20 +42,21 @@ trait JsonRepresentation[T] extends JsonWriter[T] with JsonReader[T] {
 
 }
 
-// This is intended to support reading from one thread
-// while writing from another, but not two threads both
-// reading or both writing concurrently
+// This is thread-safe in that it should send/receive each message atomically,
+// but multiple threads will have to be careful that they don't send messages
+// in a nonsensical sequence.
 abstract class Peer(protected val socket: Socket) {
   require(!socket.isClosed())
   require(socket.getInputStream() ne null)
   require(socket.getOutputStream() ne null)
 
+  // these two need to be protected by synchronized on the streams
   private val in = new DataInputStream(new BufferedInputStream(socket.getInputStream()))
   private val out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()))
 
   // this would only be useful if we buffered received messages and
   // allowed replies to be sent out of order
-  private var nextSerial = 1L
+  private val nextSerial = new AtomicInteger(1)
 
   protected def handshake(toSend: String, toExpect: String): Unit = {
     sendString(toSend)
@@ -74,7 +76,7 @@ abstract class Peer(protected val socket: Socket) {
 
   def isClosed = socket.isClosed()
 
-  def send(message: WireEnvelope): Unit = {
+  def send(message: WireEnvelope): Unit = out.synchronized {
     if (isClosed)
       throw new SocketException("socket is closed")
     out.writeInt(message.length)
@@ -89,13 +91,12 @@ abstract class Peer(protected val socket: Socket) {
   }
 
   def reply(replyTo: Long, message: Array[Byte]): Long = {
-    val serial = nextSerial
-    nextSerial += 1
+    val serial = nextSerial.getAndIncrement()
     send(WireEnvelope(message.length, serial, replyTo, message))
     serial
   }
 
-  def receive(): WireEnvelope = {
+  def receive(): WireEnvelope = in.synchronized {
     if (isClosed)
       throw new SocketException("socket is closed")
     val length = in.readInt()
@@ -125,6 +126,9 @@ abstract class Peer(protected val socket: Socket) {
   }
 
   def close(): Unit = {
+    // don't synchronize the close() calls, we need to be able
+    // to close from another thread (and we're assuming that
+    // Java streams are OK with that)
     ignoringIOException { in.close() }
     ignoringIOException { out.close() }
     ignoringIOException { socket.close() }
