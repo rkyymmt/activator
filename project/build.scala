@@ -109,7 +109,7 @@ object TheSnapBuild extends Build {
   lazy val ui = (
     SnapPlayProject("ui")
     dependsOnRemote(
-      commonsIo,
+      commonsIo, mimeUtil,
       sbtLauncherInterface % "provided"
     )
     dependsOn(props, cache, sbtDriver, common)

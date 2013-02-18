@@ -2,6 +2,7 @@ package snap.cache
 
 import java.io._
 import java.nio.channels._
+import java.nio.charset.Charset
 // HACK NOTICE - This is mimicked from SBT until we can replace it.
 
 object IO {
@@ -74,7 +75,25 @@ object IO {
     }
     files.toVector
   }
+  /**
+   * Creates a file in the default temporary directory, calls `action` with the file, deletes the file, and returns the result of calling `action`.
+   * The name of the file will begin with `prefix`, which must be at least three characters long, and end with `postfix`, which has no minimum length.
+   */
+  def withTemporaryFile[T](prefix: String, postfix: String)(action: File => T): T = {
+    val file = File.createTempFile(prefix, postfix)
+    try action(file)
+    finally file.delete()
+  }
 
+  def move(a: File, b: File): Unit = {
+    if (b.exists) delete(b)
+    createDirectory(b.getParentFile)
+    if (!a.renameTo(b)) {
+      // TODO - Preserve last modified...
+      copyFile(a, b)
+      delete(a)
+    }
+  }
   /**
    * Creates a temporary directory and provides its location to the given function.  The directory
    * is deleted after the function returns.
@@ -168,5 +187,25 @@ object IO {
     try props.store(output, "")
     finally output.close()
   }
+
+  val utf8 = Charset.forName("UTF-8")
+  def defaultCharset = utf8
+
+  def write(file: File, content: String, charset: Charset = defaultCharset, append: Boolean = false): Unit =
+    writer(file, content, charset, append) { _.write(content) }
+
+  def writer[T](file: File, content: String, charset: Charset, append: Boolean = false)(f: BufferedWriter => T): T =
+    if (charset.newEncoder.canEncode(content)) {
+      // Annoying APIs, YEAH!
+      val out = new java.io.FileOutputStream(file, append)
+      val writer = new java.io.OutputStreamWriter(out, charset)
+      val buf = new java.io.BufferedWriter(writer)
+      try f(buf)
+      finally {
+        buf.close()
+        // That should delegate to all the other closers.
+      }
+    } else sys.error("String cannot be encoded by charset " + charset.name)
+
 }
 
