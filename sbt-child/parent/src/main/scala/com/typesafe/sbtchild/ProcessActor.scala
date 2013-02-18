@@ -93,9 +93,9 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
         override def run = {
           val stream = new BufferedInputStream(rawStream)
           try {
+            val bytes = new Array[Byte](4096)
             var eof = false
             while (!eof) {
-              val bytes = new Array[Byte](256)
               val count = stream.read(bytes)
               if (count > 0) {
                 selfRef ! wrap(ByteString.fromArray(bytes, 0, count))

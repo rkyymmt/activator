@@ -78,7 +78,7 @@ class ServerActor(serverSocket: ServerSocket, childActor: ActorRef) extends Acto
             childActor ! UnsubscribeOutput(requestor.ref) // auto-unsub the requestor
             requestor.ref ! response
           case event: protocol.Event =>
-            log.debug("  got event during request {}", e.replyTo)
+            log.debug("  got event during request {}, {}, requestor={}", e.replyTo, event, requestor.ref)
             if (requestor.sendEvents)
               requestor.ref ! event
             else

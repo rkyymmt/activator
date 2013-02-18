@@ -1,0 +1,36 @@
+.test table {
+	min-width: 100px;
+}
+
+.testResults th {
+	font-weight: bold;
+	border-bottom: 1px solid black;
+}
+
+.testResults td, .testResults th {
+  margin: 1em;
+  padding: 0px 2px 2px 1em;
+}
+
+.testResults .name {
+	text-align: left;
+}
+.testResults .result {
+	text-align: right;
+}
+.testResults td.result {
+	width: 10%;
+}
+
+.testResults .passed {
+	color: green;
+}
+
+.testResults .failed {
+	color: red;
+	font-weight: bold;
+}
+.testResults .pending {
+	color: gray;
+	font-style: italic;
+}
