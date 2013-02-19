@@ -82,8 +82,8 @@ object Sbt extends Controller {
           case message: protocol.Message =>
             Ok(scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(message)))
         }
-        taskFuture.onComplete { _ =>
-          Logger.debug("Killing task actor")
+        taskFuture.onComplete { value =>
+          Logger.debug(s"Killing task actor task future completed with ${value}")
           taskActor ! PoisonPill
         }
         taskFuture
