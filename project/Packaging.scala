@@ -49,7 +49,7 @@ object Packaging {
     }
   )
   
-  def settings: Seq[Setting[_]] = packagerSettings ++ makeLocalRepoSettings(localRepoName) ++ Seq(
+  def settings: Seq[Setting[_]] = packagerSettings ++ useNativeZip ++ makeLocalRepoSettings(localRepoName) ++ Seq(
     name <<= version apply ("snap-" + _),
     wixConfig := <wix/>,
     maintainer := "Josh Suereth <joshua.suereth@typesafe.com>",
