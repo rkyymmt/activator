@@ -15,9 +15,24 @@ import java.io.EOFException
 import java.io.IOException
 
 object SetupSbtChild extends (State => State) {
+
+  private lazy val client = ipc.openClient(getPort())
+
+  val ListenCommandName = "listen"
+
   // this is the entry point invoked by sbt
   override def apply(s: State): State = {
-    s ++ Seq(listen)
+    val betweenRequestsLogger = new EventLogger(client, 0L)
+    addLogger(s, betweenRequestsLogger) ++ Seq(listen)
+  }
+
+  private def addLogger(origState: State, logger: Logger): State = {
+    val newLogging = origState.globalLogging.copy(full = logger)
+    origState.copy(globalLogging = newLogging)
+  }
+
+  private def withLogger(origState: State, logger: Logger)(f: State => State): State = {
+    f(addLogger(origState, logger)).copy(globalLogging = origState.globalLogging)
   }
 
   private def getPort(): Int = {
@@ -27,10 +42,6 @@ object SetupSbtChild extends (State => State) {
     val port = Integer.parseInt(portString)
     port
   }
-
-  lazy val client = ipc.openClient(getPort())
-
-  val ListenCommandName = "listen"
 
   private def extractWithRef(state: State): (Extracted, ProjectRef) = {
     val ref = Project.extract(state).currentRef
@@ -143,7 +154,7 @@ object SetupSbtChild extends (State => State) {
     (reloadWithAppended(s1, settings), ours.overallOutcome)
   }
 
-  private def handleRequest(req: protocol.Envelope, origState: State, logger: CaptureLogger): State = {
+  private def handleRequest(req: protocol.Envelope, origState: State, logger: EventLogger): State = {
     def exceptionsToErrorResponse(serial: Long)(block: => State): State = {
       try {
         block
@@ -195,31 +206,31 @@ object SetupSbtChild extends (State => State) {
         throw new RuntimeException("not reached") // compiler doesn't know that System.exit never returns
     }
 
-    val newLogger = new CaptureLogger(client, req.serial, origState.globalLogging.full)
-    val newLogging = origState.globalLogging.copy(full = newLogger)
-    val loggedState = origState.copy(globalLogging = newLogging)
+    val newLogger = new EventLogger(client, req.serial)
 
-    val afterTaskState: State = handleRequest(req, loggedState, newLogger)
+    withLogger(origState, newLogger) { loggedState =>
+      val afterTaskState: State = handleRequest(req, loggedState, newLogger)
 
-    val newState = afterTaskState.copy(onFailure = Some(ListenCommandName),
-      remainingCommands = ListenCommandName +: origState.remainingCommands,
-      globalLogging = origState.globalLogging)
-    newState
+      val newState = afterTaskState.copy(onFailure = Some(ListenCommandName),
+        remainingCommands = ListenCommandName +: afterTaskState.remainingCommands)
+      newState
+    }
   }
 
-  private class CaptureLogger(client: ipc.Client, requestSerial: Long, delegate: Logger) extends Logger {
-    private def add(entry: protocol.LogEntry) = synchronized {
+  // requestSerial would be 0 for "not during a request"
+  private class EventLogger(client: ipc.Client, requestSerial: Long) extends Logger {
+    def send(entry: protocol.LogEntry) = {
       client.replyJson(requestSerial, protocol.LogEvent(entry))
     }
 
     def trace(t: => Throwable): Unit = {
-      add(protocol.LogTrace(t.getClass.getSimpleName, t.getMessage))
+      send(protocol.LogTrace(t.getClass.getSimpleName, t.getMessage))
     }
     def success(message: => String): Unit = {
-      add(protocol.LogSuccess(message))
+      send(protocol.LogSuccess(message))
     }
     def log(level: Level.Value, message: => String): Unit = {
-      add(protocol.LogMessage(level.id, message))
+      send(protocol.LogMessage(level.id, message))
     }
   }
 }
