@@ -154,7 +154,7 @@ object SetupSbtChild extends (State => State) {
     (reloadWithAppended(s1, settings), ours.overallOutcome)
   }
 
-  private def handleRequest(req: protocol.Envelope, origState: State, logger: EventLogger): State = {
+  private def handleRequest(req: protocol.Envelope, origState: State): State = {
     def exceptionsToErrorResponse(serial: Long)(block: => State): State = {
       try {
         block
@@ -209,7 +209,7 @@ object SetupSbtChild extends (State => State) {
     val newLogger = new EventLogger(client, req.serial)
 
     withLogger(origState, newLogger) { loggedState =>
-      val afterTaskState: State = handleRequest(req, loggedState, newLogger)
+      val afterTaskState: State = handleRequest(req, loggedState)
 
       val newState = afterTaskState.copy(onFailure = Some(ListenCommandName),
         remainingCommands = ListenCommandName +: afterTaskState.remainingCommands)
