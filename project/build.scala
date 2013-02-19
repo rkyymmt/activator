@@ -109,7 +109,7 @@ object TheSnapBuild extends Build {
   lazy val ui = (
     SnapPlayProject("ui")
     dependsOnRemote(
-      commonsIo, mimeUtil,
+      commonsIo, mimeUtil, slf4jLog4j,
       sbtLauncherInterface % "provided"
     )
     dependsOn(props, cache, sbtDriver, common)
@@ -214,7 +214,7 @@ object TheSnapBuild extends Build {
         Seq(
           Defaults.sbtPluginExtra("com.typesafe.sbt" % "sbt-site" % "0.6.0", sbt, scala),
           Defaults.sbtPluginExtra("com.typesafe" % "sbt-native-packager" % "0.4.3", sbt, scala),
-          Defaults.sbtPluginExtra("play" % "sbt-plugin" % "2.1-RC1", sbt, scala),
+          Defaults.sbtPluginExtra("play" % "sbt-plugin" % "2.1.0", sbt, scala),
           Defaults.sbtPluginExtra("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.0", sbt, scala),
           Defaults.sbtPluginExtra("com.typesafe.sbt" % "sbt-pgp" % "0.7", sbt, scala)
         )
