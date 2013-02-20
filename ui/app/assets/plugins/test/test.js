@@ -115,7 +115,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 	return {
 		id: 'test',
 		name: "Test",
-		icon: '𐑏',
+		icon: 'ꙫ',
 		url: "#test",
 		routes: {
 			'test': [TestDisplay]

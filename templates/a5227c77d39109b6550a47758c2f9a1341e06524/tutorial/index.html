@@ -1,67 +1,42 @@
 <html>
 <head>
-  <title>Hello Scala - Builder Blueprint</title>
+    <title>Hello Scala - Builder Blueprint</title>
 </head>
 <body>
-	<div>
-	<p>You've just created a very simply Scala application!  Now lets explore the code, see it run, and makes some changes.</p>
+<div>
+    <p>You've just created a very simply Scala application!  Now lets explore the code, see it run, and makes some changes.</p>
 
-	<h2> Explore the Code</h2>
+    <h2> Explore the Code</h2>
 
-	<p>This very simple application contains just one source file.  To navigate to that file, select "Code" on the left, then select the "app" directory, and select the "Hello.scala" file.  &gt;<a href="#code/app/Hello.scala">Shortcut: Take me there</a>&lt;</p>
+    <p>This very simple application contains just one source file.  To navigate to that file, select "Code" on the left, then select the "app" directory, and select the <a href="#code/app/Hello.scala" class="shortcut">Hello.scala</a> file.</p>
 
-	<p>Now you are seeing source of the "Hello" object.  You'll notice that this object extends the "App" trait which provides a simple way to create an executable application.  The body of the object simply prints "hello, world" to the console.</p>
-	</div>
-	<div>
-	<h2> Run the App</h2>
+    <p>Now you are seeing source of the "Hello" object.  You'll notice that this object extends the "App" trait which provides a simple way to create an executable application.  The body of the object simply prints "hello, world" to the console.</p>
+</div>
+<div>
+    <h2> Run the App</h2>
 
-	<p>When you created this new application it was automatically run.  To see the output select "Run" on the left where you should see the "hello, world" message.  &gt;<a href="#run">Shortcut: Take me there</a>&lt;</p>
+    <p>To see the output select <a href="#run" class="shortcut">Run</a> on the left, then select "Run It!".  In the logs you should see the "hello, world" message.</p>
+    <!--
+    <p>Every time the source code for the application changes, the application will be recompiled and rerun.  If the application has compile errors they will be displayed in the Run console.  You can disable auto-running of the application by unchecking the "auto-run" box.</p>
+    -->
+</div>
+<div>
+    <h2> Make Changes</h2>
 
-	<p>Every time the source code for the application changes, the application will be recompiled and rerun.  If the application has compile errors they will be displayed in the Run console.  You can disable auto-running of the application by unchecking the "auto-run" box.</p>
-	</div>
-	<div>
-	<h2> Make Changes</h2>
+    <p>To make changes to the application go back to <a href="#code/app/Hello.scala" class="shortcut">Hello.scala</a> and change "hello, world" to "hello, Builder" and select "Save".</p>
 
-	<p>To make changes to the application go back to Code &gt;<a href="#code/app/Hello.scala">Shortcut: Take me there</a>&lt; and then select the app's location to open your file explorer.  Now open the "Hello.scala" file in the text editor of your choice.  Change "hello, world" to "hello, Builder" and save the file.</p>
+    <p>Navigate back to <a href="#run" class="shortcut">Run</a> and select "Run It!".  You should now see "hello, Builder" displayed.</p>
+</div>
+<div>
+    <h2> Test the App</h2>
 
-	<p>Navigate back to Run &gt;<a href="#run">Shortcut: Take me there</a>&lt; and you should now see "hello, Builder" displayed.</p>
+    <p>Select <a href="#test" class="shortcut">Test</a> and then select "Run Tests" to see the test results.</p>
 
-	<p>You can also open this application in either Eclipse or IntelliJ IDEA.  In the Code Plugin, select either "Open in Eclipse" or "Open in IntelliJ" to generate the project files and then follow the instructions to open the project.</p>
-	</div>
-	<div>
-	<h2> Test the App</h2>
-
-	<p>Like Run, this application is automatically tested when the source code changes.  Select Test to see the test results and test output.  &gt;<a href="#test">Shortcut: Take me there</a>&lt;</p>
-
-	<p>The application has one test that is currently passing.  Navigate to the source code either by selecting "HelloTest" or by going to Code, navigating into the "test" directory, and selecting the "HelloSpec.scala" file. &gt;<a href="#code/test/HelloSpec.scala">Shortcut: Take me there</a>&lt;</p>
-	<p>Open the "HelloTest.scala" file in your text editor or IDE and change "hello" to "howdy".  Save the file and the Test console will re-run the tests, this time indicating that the test has failed.  Change the "hello" to "howdy" in the "Hello.scala" file to fix the application.</p>
-	</div>
-	<div>
-	<h2> Add New Code</h2>
-
-	<p>Before writing new application code, create a new test which will fail at first.  In Code, select the "test" directory, select "New...", and enter "FooSpec.scala" as the file name.  Edit the new file and update it's contents to be:</p>
-
-	<pre><code>
-	import collection.mutable.Stack
-	import org.scalatest._
-
-	class FooSpec extends FlatSpec with ShouldMatchers {
-	  "A Foo" should "return a greeting" in {
-	    val foo = new Foo
-	    foo.howdy("Jim") should equal "howdy, Jim"
-	  }
-	}
-	</code></pre>
-
-	<p>Save the "FooSpec.scala" file.  This will trigger a compile error because the "Foo" class does not get exist.  In Code, navigate to the "app" directory and create a new file named "Foo.scala" containing:</p>
-
-	<pre><code>
-	class Foo {
-	    def howdy(name: String) = "howdy, " + name
-	}
-	</code></pre>
-
-	<p>Save the "Foo.scala" file.  This will cause the application to be recompiled, re-run, and re-tested.  Now both tests should pass.</p>
-	</div>
+    <p>The application has one test that is currently passing.  The <a href="#code/test/HelloSpec.scala" class="shortcut">HelloSpec.scala</a> file contains the test code.</p>
+    <p>Add a new test by adding the following after line 8:
+<pre><code>  "1 + 1" should "equal 2" in {
+    (1 + 1) should equal (2)
+  }</code></pre>Save the file and then re-run the tests.  You should now have two tests passing.</p>
+</div>
 </body>
 </html>
