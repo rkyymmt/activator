@@ -1,10 +1,10 @@
-define(["./view"], function(Viewer){
+define(["./view", "core/pluginapi"], function(Viewer, api){
 
-	return {
+	return api.Plugin({
 		id: 'code',
 		name: "Code",
 		icon: "",
-		url: "#code",
+		url: "#code" /*,
 		routes: {
 			'code': function(bcs) {
 				return $.map(bcs, function(crumb, idx) {
@@ -15,7 +15,7 @@ define(["./view"], function(Viewer){
 					};
 				});
 			}
-		}
-	};
+		}*/
+	});
 
 });

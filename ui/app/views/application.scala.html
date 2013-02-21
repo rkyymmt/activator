@@ -54,11 +54,6 @@
 			</ul>
 		</nav>
 		<header>
-			<nav id="breadcrumb">
-		        <div data-bind="foreach: router.breadcrumbs()">
-					<a href="#d" data-bind="text: module.title, attr: { href: '#' + url }"></a>
-        		</div>
-			</nav>
 			<a href="http://www.typesafe.com">Typesafe</a>
 			<dl id="user">
 				<dt>
@@ -86,6 +81,9 @@
 				<div data-bind="html: content"></div>
 			</article>
 		</aside>
-		<div id="wrapper" data-bind="foreach: { data: router.breadcrumbs(), afterRender: grid.afterRender,  afterAdd: grid.afterAdd, beforeRemove: grid.beforeRemove }"><div data-bind="template: { name: module.view, data: module, afterRender: module.onRender }"></div></div>
+		<!-- -->
+		<div id="wrapper" data-bind="foreach: { data: widgets }">
+		  <div data-bind="template: { name: view, data: $data, afterRender: onRender }, visible: id == $parent.snap.activeWidget()"></span>
+		</div>
   </body>
 </html>

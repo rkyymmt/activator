@@ -9,7 +9,8 @@ define(['./plugin', './grid', './router', './pluginapi', './navigation', './tuto
 		snap: {
 			// TODO - This should be obversvable and we get notified of changes by sbt....
 			appName: window.serverAppModel.name ? window.serverAppModel.name : window.serverAppModel.id,
-			pageTitle: ko.observable()
+			pageTitle: ko.observable(),
+			activeWidget: api.activeWidget
 		},
 		plugins: plugins,
 		router: router,
@@ -17,9 +18,13 @@ define(['./plugin', './grid', './router', './pluginapi', './navigation', './tuto
 		// This is the initialization of the application...
 		init: function() {
 			var self = this;
+			self.widgets = [];
 			// TODO - initialize plugins...
 			$.each(self.plugins.list, function(idx,plugin) {
 				self.router.registerRoutes(plugin.routes);
+				$.each(plugin.widgets, function(idx, widget) {
+					self.widgets.push(widget);
+				});
 			});
 			self.router.init();
 			ko.applyBindings(self, window.body);

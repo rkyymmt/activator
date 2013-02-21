@@ -66,13 +66,16 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 		}
 	});
 
-	return {
+	var runConsole = new Run();
+
+	return api.Plugin({
 		id: 'run',
 		name: "Run",
 		icon: "▶",
 		url: "#run",
 		routes: {
-			'run': [Run]
-		}
-	};
+			'run': function() { api.setActiveWidget(runConsole); }
+		},
+		widgets: [runConsole]
+	});
 });
