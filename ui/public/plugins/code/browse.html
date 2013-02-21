@@ -1,7 +1,12 @@
-<h1 data-bind="text: directory().relative()"></h1>
-<p style="display:none" data-bind="visible: directory().children().length == 0">Empty folder</p>
-<ul data-bind="foreach: directory().children()" class="directory">
-  <li class="file" data-bind="css: {folder: isDirectory, file: !isDirectory}">
+<h1 data-bind="text: name"></h1>
+<p style="display:none" data-bind="visible: isEmpty">Empty folder</p>
+<ul class="directory">
+  <li class="folder">
+    <h2><a data-bind="attr: {href: prevDirUrl}">..</a></h2>
+  </li>
+   <!-- ko foreach: files() -->
+  <li class="file" data-bind="css: {folder: isDirectory, file: !isDirectory()}">
     <h2><a data-bind="text:name, click: select, attr: {href: '#'+url()}"></a></h2>
   </li>
+  <!-- /ko -->
 </ul>

@@ -1,4 +1,4 @@
-define(['core/pluginapi', 'text!./home.html', './files', './browse', 'css!./code.css'], function(api, template, files, Browser){
+define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', 'css!./code.css'], function(api, template, files, Browser, Viewer){
 
 	var ko = api.ko;
 
@@ -7,14 +7,46 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', 'css!./code
 		template: template,
 		init: function() {
 			var self = this;
-			self.currentDirectory = ko.observable(new files.FileModel({
-				location: serverAppModel.location
-			}));
-			self.currentFile = ko.observable(self.currentDirectory());
+			self.relativeCrumbs = ko.observableArray([]);
+			self.root = new files.FileModel({
+				location: serverAppModel.location,
+				autoLoad: true
+			});
+			self.currentDirectory = ko.computed(function() {
+				var dir = self.root;
+				var crumbs = self.relativeCrumbs();
+				for(var idx = 0; idx < crumbs.length; idx++) {
+					var files = dir.childLookup();
+					var crumb = crumbs[idx];
+					if(files.hasOwnProperty(crumb) && files[crumb].loadInfo().isDirectory()) {
+						dir = files[crumb];
+					} else {
+						return dir;
+					}
+				}
+				return dir;
+			});
+			self.currentFile = ko.computed(function() {
+				var file= self.root;
+				var crumbs = self.relativeCrumbs();
+				for(var idx = 0; idx < crumbs.length && file.isDirectory(); idx++) {
+					var files = file.childLookup();
+					var crumb = crumbs[idx];
+					if(files.hasOwnProperty(crumb)) {
+						file = files[crumb];
+					} else {
+						return file;
+					}
+				}
+				return file;
+			});
 			self.status = ko.observable('');
 			self.browser = new Browser({
 				directory: self.currentDirectory
 			});
+			self.viewer = new Viewer({
+				file: self.currentFile
+			})
 		}
 	});
 
@@ -29,21 +61,7 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', 'css!./code
 			code: function(bcs) {
 				// Make us the default widget, and try to find the current file.
 				api.setActiveWidget(home);
-				var file = serverAppModel.location + '/' + bcs.rest.join('/');
-				if(home.currentFile().location != file) {
-					home.currentFile(new files.FileModel({
-						location: file,
-						autoLoad: true
-					}));
-				}
-				var dir = serverAppModel.location + '/' + bcs.rest.slice(0, bcs.rest.length - 1).join('/')
-				if(home.currentDirectory().location != dir) {
-					home.currentDirectory(new files.FileModel({
-						location: dir,
-						autoLoad: true
-					}));
-				}
-				// TODO - Do we need to load the file info?
+				home.relativeCrumbs(bcs.rest);
 			}
 		},
 		widgets: [home]

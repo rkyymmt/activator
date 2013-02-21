@@ -44,9 +44,17 @@ define(['core/pluginapi'], function(api) {
 			// TODO - Split this into relative + absolute/canonical locations...
 			self.location = config.location;
 			self.name = ko.observable(config.name || '');
-			self.isDirectory = ko.observable(false);
-			self.mimeType = ko.observable();
+			self.isDirectory = ko.observable(config.isDirectory || false);
+			self.mimeType = ko.observable(config.mimeType);
+			self.type = ko.observable(config.type);
 			self.children = ko.observableArray([]);
+			self.childLookup = ko.computed(function() {
+				var lookup = {};
+				$.each(self.children(), function(idx, child) {
+					lookup[child.name()] = child;
+				});
+				return lookup;
+			});
 			self.relative = ko.computed(function() {
 				// TODO - If we have a symlink, we're f'd here if it's resolved to real location.
 				// in the future we probably pass full symlink path separately.
@@ -68,17 +76,30 @@ define(['core/pluginapi'], function(api) {
 			window.location.hash = this.url();
 		},
 		loadInfo: function() {
+			// TODO - Rate limit this...
 			var self = this;
 			browse(this.location).done(function(values) {
-				self.name(values.name);
-				self.mimeType(values.mimeType);
-				self.name(values.name);
-				self.isDirectory(values.isDirectory);
-				self.children($.map(values.children || [], function(config) {
-					return new FileModel(config);
-				}));
+				self.updateWith(values);
 			}).error(function() {
 				alert('Failed to load information about file: ' + self.location)
+			});
+			return self;
+		},
+		updateWith: function(config) {
+			var self = this;
+			if(config.name) self.name(config.name);
+			if(config.mimeType) self.mimeType(config.mimeType);
+			if(config.name) self.name(config.name);
+			if(config.isDirectory) self.isDirectory(config.isDirectory);
+			if(config.type) self.type(config.type);
+			// TODO - Find the best way to do this...
+			var children = self.childLookup();
+			$.each(config.children || [], function(idx, config) {
+				if(children[config.name]) {
+					children[config.name].updateWith(config);
+				} else {
+					self.children.push(new FileModel(config));
+				}
 			});
 		},
 		loadContents: function() {
@@ -89,7 +110,8 @@ define(['core/pluginapi'], function(api) {
 			}).error(function() {
 				// TODO - Figure out alerting!
 				alert("Failed to load file: " + self.location)
-			})
+			});
+			return self;
 		},
 		saveContents: function() {
 			var self = this;
@@ -99,6 +121,9 @@ define(['core/pluginapi'], function(api) {
 				//TODO - figure out alerting!
 				alert('Failed to save file: '+ self.location)
 			});
+		},
+		toString: function() {
+			return 'File['+this.location+']';
 		}
 	});
 

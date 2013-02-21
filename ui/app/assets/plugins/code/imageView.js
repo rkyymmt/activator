@@ -4,7 +4,12 @@ define(["text!./viewImage.html", 'core/pluginapi'], function(template, api){
 		id: 'code-image-view',
 		template: template,
 		init: function(args) {
-			this.fileLoadUrl = args.fileLoadUrl;
+			var self = this;
+			self.file = args.file;
+			self.fileLoadUrl = api.ko.computed(function() {
+				var file = self.file();
+				return '/api/local/show?location=' + file.location;
+			});
 		}
 	});
 	return ImageView;
