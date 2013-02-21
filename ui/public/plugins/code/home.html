@@ -1,25 +1,12 @@
-<article class="list code home">
-	<header><h1>Code</h1></header>
-	<footer><p></p></footer>
-	<section class="wrapper">
-		<ul>
-			<li data-icon="&#59156;">
-				<h2><a href="#code/browse">Browse code</a></h2>
-				<span class="error-counter">12</span>
-			</li>
-			<li data-icon="&#128363;">
-				<h2><a href="#code/commits">Commits</a></h2>
-				<span class="error-counter">2</span>
-			</li>
-			<li data-icon="&#128361;">
-				<h2><a href="#code/branches">Branches &amp; tags</a></h2>
-			</li>
-			<li data-icon="&#59160;">
-				<h2><a href="#code/comments">Comments</a></h2>
-			</li>
-			<li data-icon="&#128213;">
-				<h2><a href="#code/wiki">Wiki</a></h2>
-			</li>
-		</ul>
+<article class="list code home" data-width="3">
+	<header><h1>Code</h1>(<span data-bind="text: currentFile.relative"></span>)</header>
+	<footer><p data-bind="text: status"></p></footer>
+	<section class="container">
+		<div class="browser" data-bind="template: { name: browser.view, data: browser, afterRender: browser.onRender }"></div>
+
+ 
+ 
+ 
+		<div class="editor"><h1>Editor</h1></div>
 	</section>
 </article>

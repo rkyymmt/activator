@@ -96,7 +96,7 @@ ko.bindingHandlers.ace = {
 		}
 	};
 
-  // Verifies that a new plugin configuration is acceptable for our application, or
+	// Verifies that a new plugin configuration is acceptable for our application, or
 	// issues debugging log statements on what the issue is.
 	function Plugin(config) {
 		//Verify plugins are 'complete'.

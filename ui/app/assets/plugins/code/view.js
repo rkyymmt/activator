@@ -1,4 +1,4 @@
-define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./codeView", "./browse", 'core/pluginapi'], function(viewOuter, defaultTemplate, ImageView, CodeView, DirView, api) {
+define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./codeView", 'core/pluginapi'], function(viewOuter, defaultTemplate, ImageView, CodeView, api) {
 
 	var ko = api.ko,
 		key = api.key;
