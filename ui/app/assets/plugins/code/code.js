@@ -56,7 +56,9 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 		id: 'code',
 		name: "Code",
 		icon: "",
-		url: "#code",
+		url: ko.computed(function() {
+			return '#' + home.currentFile().url();
+		}),
 		routes: {
 			code: function(bcs) {
 				// Make us the default widget, and try to find the current file.
