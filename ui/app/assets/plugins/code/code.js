@@ -63,7 +63,11 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 			code: function(bcs) {
 				// Make us the default widget, and try to find the current file.
 				api.setActiveWidget(home);
-				home.relativeCrumbs(bcs.rest);
+				// DON'T UPDATE OBSERVABLES if they're the same.
+				// Otherwise, we reload junk and do all sorts of not-quite right behavior for remembering where we were....
+				if(home.relativeCrumbs().join('/') != bcs.rest.join('/')) {
+					home.relativeCrumbs(bcs.rest);
+				}
 			}
 		},
 		widgets: [home]
