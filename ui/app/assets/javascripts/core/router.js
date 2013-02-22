@@ -23,8 +23,7 @@ define(['./pluginapi'], function(api) {
 	//
 	//  Where action =
 	//  a function that takes in these arguments:
-	//  - urlInfo
-	//    {
+	//  - urlInfo {
 	//      name: 'bar',            // The current portion of the url
 	//      full: ['foo', 'bar'],  // The decomposed breadcrumbs of the full url currently used.
 	//      rest: [],              // An array of remaining url pieces.
@@ -36,12 +35,10 @@ define(['./pluginapi'], function(api) {
 	//  For any given URL that's hit, all the actions found leading down the tree are
 	//  executed.
 
-	//
-	// this.title =  A widget class must support a title property (either a function that returns one, or a direct attribute).
-	// this.render ???  - The rendering of the widget....
+	// The set of routes we can use.
 	var routes = {};
 
-	// This is our default errorRoute
+	// This is our default errorRoute.  Right now it just logs an error and displays an alert.
 	var errorRoute = {
 			action: function(args) {
 				console.log('Failed to find router for ', args)
@@ -49,8 +46,17 @@ define(['./pluginapi'], function(api) {
 			}
 	}
 
-	// Create the args setting for breadcrumbs.
-	// Args: bcs - The current set of breadcrumbs.
+	// Create the 'rich' classes for breadcrumbs that are passed to router action handlers.
+	// bcs - an array of url pieces
+	// returns:
+	//      an array of "Rich" URL pieces witht he following info:
+	// {
+	//   name -  The full text of this url piece.  So for the url /foo/bar/baz/bish, this represents on of foo, bar, baz or bish.
+	//   full -  All the url pieces being routed.  So for the url /foo/bar/baz/bish, this would be ['foo', 'bar', 'baz', 'bish'].
+	//   rest -  The url pieces after the current url piece. So for the url /foo/bar/baz/bish, when on the "baz" piece, this would be ['bish']
+	//   before - The url path before the current piece.  So, for the url /foo/bar/baz/bish, when on the "baz" piece, this would be /foo/bar
+	//   path  - The path to this url piece, so for url /foo/bar/baz/bish, this would be /foo/bar/baz when on the "baz" piece.
+	// }
 	function createArgs(bcs) {
 		return $.map(bcs, function(bc, idx) {
 			// Check to see if this guy is new to the URL and needs executed:
@@ -66,6 +72,8 @@ define(['./pluginapi'], function(api) {
 		});
 	}
 
+	// This functions pickes the next route name to grab.
+	// Keeps track of precednece of direct names vs. matching urls, like ":id" or ":all".
 	function pickRouteName(urlPart, routes) {
 		var name = urlPart.name;
 		if(routes.hasOwnProperty(name)) {
@@ -107,6 +115,8 @@ define(['./pluginapi'], function(api) {
 		}
 	}
 
+	// Parse a new # url and execute the actions associated with the route.
+	// Note:  the url parameter is optional. If none is passed, this will pull the current window.location.hash.
 	var parse = function(url) {
 		// If no arguments, take the hash
 		url = url || window.location.hash;
@@ -122,6 +132,7 @@ define(['./pluginapi'], function(api) {
 	};
 
 	return {
+		// Registers our initialization so that we drive the application from the hash.
 		init: function() {
 			// Register for future changes, and also parse immediately.
 			$(window).on('hashchange', function() {
@@ -130,7 +141,7 @@ define(['./pluginapi'], function(api) {
 			parse(window.location.hash);
 		},
 		// Register a plugin's routes.
-		// TODO - do this recursive.
+		// TODO - do this recursive and *merge* routes.
 		registerRoutes: function(newRoutes) {
 			for(route in newRoutes) {
 				if(newRoutes.hasOwnProperty(route)) {

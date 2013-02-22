@@ -1,5 +1,4 @@
-define([], function() {
-	var ko = req('vendors/knockout-2.2.1.debug');
+define(['vendors/knockout-2.2.1.debug'], function(ko) {
 	var templates = {};
 	// Register a template (by text) with the template engine.
 

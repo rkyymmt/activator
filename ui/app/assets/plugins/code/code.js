@@ -56,9 +56,11 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 		id: 'code',
 		name: "Code",
 		icon: "",
+		// The URL for our shortcut on the right.
 		url: ko.computed(function() {
 			return '#' + home.currentFile().url();
 		}),
+		// How we route calls to our URLs.  By default we handle #code.
 		routes: {
 			code: function(bcs) {
 				// Make us the default widget, and try to find the current file.
@@ -70,6 +72,8 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 				}
 			}
 		},
+		// This is the list of widgets that are always rendered and active.  We can only set one of these active at a time
+		// on the screen.
 		widgets: [home]
 	});
 

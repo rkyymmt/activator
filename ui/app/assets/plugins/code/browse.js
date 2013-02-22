@@ -17,11 +17,10 @@ define(['text!./browse.html', 'core/pluginapi'], function(template, api, files) 
 			});
 			self.files = ko.computed(function() {
 				var dir = self.directory();
-				// TODO - Calculate parent stub file...
 				return dir.children();
 			});
 			self.name = ko.computed(function() {
-				// TODO - Trim the name apporpiately.
+				// TODO - Trim the name in a nicer way
 				return './' + self.directory().name();
 			});
 			self.isEmpty = ko.computed(function() {
