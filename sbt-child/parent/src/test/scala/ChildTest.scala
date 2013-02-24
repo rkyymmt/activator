@@ -15,88 +15,9 @@ import akka.util.Timeout
 
 class ChildTest {
 
-  def createFile(name: java.io.File, content: String): Unit = {
-    val writer = new java.io.FileWriter(name)
-    try writer.write(content)
-    finally writer.close()
-  }
+  val testUtil = new TestUtil(scratchDir = new File("sbt-child/parent/target/scratch"))
 
-  /** Creates a dummy project we can run sbt against. */
-  def makeDummySbtProject(relativeDir: String): File = {
-    val dir = new File(new File("sbt-child/parent/target/scratch"), relativeDir)
-    if (!dir.isDirectory()) dir.mkdirs()
-
-    val project = new File(dir, "project")
-    if (!project.isDirectory()) project.mkdirs()
-
-    val props = new File(project, "build.properties")
-    createFile(props, "sbt.version=" + snap.properties.SnapProperties.SBT_VERSION)
-
-    val build = new File(dir, "build.sbt")
-    createFile(build, s"""
-name := "${relativeDir}"
-
-libraryDependencies += "com.novocode" % "junit-interface" % "0.7" % "test"
-""")
-
-    val scalaSource = new File(dir, "src/main/scala")
-    if (!scalaSource.isDirectory()) scalaSource.mkdirs()
-    val main = new File(scalaSource, "hello.scala")
-    createFile(main, "object Main extends App { println(\"Hello World\") }\n")
-
-    val testSource = new File(dir, "src/test/scala")
-    if (!testSource.isDirectory()) testSource.mkdirs()
-    val tests = new File(testSource, "tests.scala")
-    createFile(tests, """
-import org.junit.Assert._
-import org.junit._
-
-class OnePassOneFailTest {
-    @Test
-    def testThatShouldPass: Unit = {
-    }
-
-    @Test
-    def testThatShouldFail: Unit = {
-        assertTrue("this is not true", false)
-    }
-}
-
-class OnePassTest {
-    @Test
-    def testThatShouldPass: Unit = {
-    }
-}
-
-class OneFailTest {
-    @Test
-    def testThatShouldFail: Unit = {
-        assertTrue("this is not true", false)
-    }
-}
-""")
-
-    dir
-  }
-
-  def makeDummySbtProjectWithBrokenBuild(relativeDir: String): File = {
-    val dir = makeDummySbtProject(relativeDir)
-
-    val build = new File(dir, "build.sbt")
-    createFile(build, "BLARG := \"" + relativeDir + "\"\n")
-
-    dir
-  }
-
-  def makeDummySbtProjectWithNoMain(relativeDir: String): File = {
-    val dir = makeDummySbtProject(relativeDir)
-
-    val main = new File(dir, "src/main/scala/hello.scala")
-    // doesn't extend App
-    createFile(main, "object Main { println(\"Hello World\") }\n")
-
-    dir
-  }
+  import testUtil._
 
   private class TestRequestActor(dummy: File) extends Actor with ActorLogging {
     val child = SbtChild(context, dummy, DebugSbtChildProcessMaker)
@@ -172,8 +93,9 @@ class OneFailTest {
       child ! TestRequest(sendEvents = true)
     } { results =>
       noLogs(results).sorted match {
-        case Seq(TestEvent("OneFailTest.testThatShouldFail",
-          Some("this is not true"), TestFailed, Some("this is not true")),
+        case Seq(Started,
+          TestEvent("OneFailTest.testThatShouldFail",
+            Some("this is not true"), TestFailed, Some("this is not true")),
           TestEvent("OnePassOneFailTest.testThatShouldFail",
             Some("this is not true"), TestFailed, Some("this is not true")),
           TestEvent("OnePassOneFailTest.testThatShouldPass", None, TestPassed, None),

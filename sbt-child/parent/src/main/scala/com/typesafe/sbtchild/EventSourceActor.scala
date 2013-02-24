@@ -16,6 +16,10 @@ trait EventSourceActor extends SafeWatchActor {
       watch(ref)
   }
 
+  final protected def isSubscribed(ref: ActorRef): Boolean = {
+    subscribers.contains(ref)
+  }
+
   final protected def unsubscribe(ref: ActorRef): Unit = {
     val oldCount = subscribers.get(ref).getOrElse(0)
     if (oldCount > 1) {

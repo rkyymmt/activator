@@ -112,7 +112,7 @@ object TheSnapBuild extends Build {
       commonsIo, mimeUtil, slf4jLog4j,
       sbtLauncherInterface % "provided"
     )
-    dependsOn(props, cache, sbtDriver, common)
+    dependsOn(props, cache, sbtDriver, common, sbtDriver % "test->test")
     // set up debug props for forked tests
     settings(configureSbtTest(Keys.test): _*)
     settings(configureSbtTest(Keys.testOnly): _*)

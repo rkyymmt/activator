@@ -13,7 +13,6 @@ import org.scalatools.testing.{ Logger => _, Result => TResult, _ }
 import java.net.SocketException
 import java.io.EOFException
 import java.io.IOException
-import java.io.BufferedWriter
 import java.io.PrintWriter
 import java.io.Writer
 import scala.util.matching.Regex
@@ -322,6 +321,6 @@ object SetupSbtChild extends (State => State) {
       override def close(): Unit = flushConsoleBuf
     }
 
-    private val consoleOut = ConsoleLogger.bufferedWriterOut(new BufferedWriter(consoleWriter))
+    private val consoleOut = ConsoleLogger.printWriterOut(new PrintWriter(consoleWriter))
   }
 }
