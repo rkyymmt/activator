@@ -21,56 +21,9 @@ import play.api.libs.iteratee._
 
 class SbtTest {
 
-  def createFile(name: java.io.File, content: String): Unit = {
-    val writer = new java.io.FileWriter(name)
-    try writer.write(content)
-    finally writer.close()
-  }
+  val testUtil = new com.typesafe.sbtchild.TestUtil(scratchDir = new File("ui/target/scratch"))
 
-  def makeDummyEmptyDirectory(relativeDir: String): File = {
-    val dir = new File(new File("ui/target/scratch"), relativeDir)
-    if (!dir.isDirectory()) dir.mkdirs()
-    dir
-  }
-
-  /** Creates a dummy project we can run sbt against. */
-  def makeDummySbtProject(relativeDir: String): File = {
-    val dir = makeDummyEmptyDirectory(relativeDir)
-
-    val project = new File(dir, "project")
-    if (!project.isDirectory()) project.mkdirs()
-
-    val props = new File(project, "build.properties")
-    createFile(props, "sbt.version=" + snap.properties.SnapProperties.SBT_VERSION)
-
-    val build = new File(dir, "build.sbt")
-    createFile(build, "name := \"" + relativeDir + "\"\n")
-
-    val scalaSource = new File(dir, "src/main/scala")
-    if (!scalaSource.isDirectory()) scalaSource.mkdirs()
-    val main = new File(scalaSource, "hello.scala")
-    createFile(main, "object Main extends App { println(\"Hello World\") }\n")
-    dir
-  }
-
-  def makeDummySbtProjectWithBrokenBuild(relativeDir: String): File = {
-    val dir = makeDummySbtProject(relativeDir)
-
-    val build = new File(dir, "build.sbt")
-    createFile(build, "BLARG := \"" + relativeDir + "\"\n")
-
-    dir
-  }
-
-  def makeDummySbtProjectWithNoMain(relativeDir: String): File = {
-    val dir = makeDummySbtProject(relativeDir)
-
-    val main = new File(dir, "src/main/scala/hello.scala")
-    // doesn't extend App
-    createFile(main, "object Main { println(\"Hello World\") }\n")
-
-    dir
-  }
+  import testUtil._
 
   private def deAsync(result: Result): Result = result match {
     case AsyncResult(p) => {
