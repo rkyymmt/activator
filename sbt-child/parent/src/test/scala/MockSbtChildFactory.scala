@@ -19,6 +19,8 @@ class MockSbtChildFactory extends SbtChildFactory {
             sender ! protocol.CompileResponse(success = true)
           case protocol.RunRequest(_) =>
             sender ! protocol.RunResponse(success = true)
+          case protocol.TestRequest(_) =>
+            sender ! protocol.TestResponse(outcome = protocol.TestPassed)
         }
     }
   }
