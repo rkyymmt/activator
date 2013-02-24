@@ -12,7 +12,14 @@ case class LogStdOut(message: String) extends LogEntry
 case class LogStdErr(message: String) extends LogEntry
 case class LogSuccess(message: String) extends LogEntry
 case class LogTrace(throwableClass: String, message: String) extends LogEntry
-case class LogMessage(level: Int, message: String) extends LogEntry
+case class LogMessage(level: String, message: String) extends LogEntry {
+  if (!LogMessage.validLevels.contains(level))
+    throw new RuntimeException("Not a valid log level: '" + level + "'")
+}
+
+object LogMessage {
+  private[protocol] val validLevels = Set("debug", "info", "warn", "error")
+}
 
 object LogEntry {
   implicit object JsonRepresentationOfLogEntry extends ipc.JsonRepresentation[LogEntry] {
@@ -39,7 +46,7 @@ object LogEntry {
           obj("type") match {
             case "success" => LogSuccess(obj("message").asInstanceOf[String])
             case "trace" => LogTrace(obj("class").asInstanceOf[String], obj("message").asInstanceOf[String])
-            case "message" => LogMessage(obj("level").asInstanceOf[Number].intValue, obj("message").asInstanceOf[String])
+            case "message" => LogMessage(obj("level").asInstanceOf[String], obj("message").asInstanceOf[String])
             case "stdout" => LogStdOut(obj("message").asInstanceOf[String])
             case "stderr" => LogStdErr(obj("message").asInstanceOf[String])
             case whatever =>

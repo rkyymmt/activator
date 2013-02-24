@@ -32,6 +32,8 @@ trait EventSourceActor extends SafeWatchActor {
     for (s <- subscribers.keys) {
       s ! event
     }
+    if (subscribers.isEmpty)
+      log.debug("event had no listeners: {}", event)
   }
 
   private var freezeCount = 0
