@@ -1,15 +1,22 @@
-<article class="list run">
+<article class="list run" data-width="3">
     <header><h1>Run</h1></header>
     <footer><p></p></footer>
     <section class="wrapper">
         <div>
-           <button class="start" data-bind="click: runButtonClicked">Run It!</button>
+           Run: <a href="#">MainClass (not implemented)</a> <input type="checkbox">Reload on change (not implemented)</a> <button class="start" data-bind="click: runButtonClicked">Start</button>
+           <button class="stop">Stop (not implemented)</button>
+        </div>
+        <header><h1>Output</h1></header>
+        <div>
+            <div data-bind="foreach: output">
+                <div data-bind="text: $data"></div>
+            </div>
         </div>
         <header><h1>Logs</h1></header>
         <div>
-           <div data-bind="foreach: logs">
+            <div data-bind="foreach: logs">
                 <div data-bind="text: $data"></div>
-           </div>
+            </div>
         </div>
     </section>
 </article>

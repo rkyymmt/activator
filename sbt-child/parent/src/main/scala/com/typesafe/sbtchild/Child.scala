@@ -132,6 +132,13 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
         case protocol.Started =>
           protocolStarted = true
           preStartBuffer foreach { m =>
+            // We want the requestor to know the boundary between sbt
+            // startup and it connecting to us, so it can probabilistically
+            // ignore startup messages for example.
+            // We do NOT send this event if the request arrives after sbt
+            // has already started up, only if the request's lifetime
+            // includes an sbt startup.
+            m._2.forward(event)
             forwardRequest(m._2, m._1)
           }
           preStartBuffer = Vector.empty
@@ -140,7 +147,9 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
           protocolStartedAndStopped = true
           server ! PoisonPill
         case e: protocol.LogEvent =>
-          throw new RuntimeException("Not expecting a LogEvent here: " + e)
+          // this is a log event outside of the context of a particular request
+          // (if they go with a request they just go to the requestor)
+          emitEvent(e)
         case e: protocol.TestEvent =>
           throw new RuntimeException("Not expecting a TestEvent here: " + e)
         case protocol.MysteryMessage(something) =>

@@ -13,6 +13,10 @@ import org.scalatools.testing.{ Logger => _, Result => TResult, _ }
 import java.net.SocketException
 import java.io.EOFException
 import java.io.IOException
+import java.io.BufferedWriter
+import java.io.PrintWriter
+import java.io.Writer
+import scala.util.matching.Regex
 
 object SetupSbtChild extends (State => State) {
 
@@ -23,16 +27,30 @@ object SetupSbtChild extends (State => State) {
   // this is the entry point invoked by sbt
   override def apply(s: State): State = {
     val betweenRequestsLogger = new EventLogger(client, 0L)
-    addLogger(s, betweenRequestsLogger) ++ Seq(listen)
+    addLogger(s, betweenRequestsLogger.toGlobalLogging) ++ Seq(listen)
   }
 
-  private def addLogger(origState: State, logger: Logger): State = {
-    val newLogging = origState.globalLogging.copy(full = logger)
-    origState.copy(globalLogging = newLogging)
+  private def addLogger(origState: State, logging: GlobalLogging): State = {
+    addLogManager(origState.copy(globalLogging = logging), logging.full)
   }
 
-  private def withLogger(origState: State, logger: Logger)(f: State => State): State = {
-    f(addLogger(origState, logger)).copy(globalLogging = origState.globalLogging)
+  private def withLogger(origState: State, logging: GlobalLogging)(f: State => State): State = {
+    // This never restores the original LogManager, for now it doesn't matter since
+    // it does restore one that uses origState.globalLogging.full which will be the
+    // logger we want.
+    addLogger(f(addLogger(origState, logging)), origState.globalLogging)
+  }
+
+  private case class ContextIndifferentLogManager(logger: Logger) extends LogManager {
+    override def apply(data: Settings[Scope], state: State, task: ScopedKey[_], writer: PrintWriter): Logger = logger
+  }
+
+  private def addLogManager(state: State, logger: Logger): State = {
+    val (extracted, ref) = extractWithRef(state)
+
+    val settings = makeAppendSettings(Seq(logManager := ContextIndifferentLogManager(logger)), ref, extracted)
+
+    reloadWithAppended(state, settings)
   }
 
   private def getPort(): Int = {
@@ -208,7 +226,7 @@ object SetupSbtChild extends (State => State) {
 
     val newLogger = new EventLogger(client, req.serial)
 
-    withLogger(origState, newLogger) { loggedState =>
+    withLogger(origState, newLogger.toGlobalLogging) { loggedState =>
       val afterTaskState: State = handleRequest(req, loggedState)
 
       val newState = afterTaskState.copy(onFailure = Some(ListenCommandName),
@@ -226,11 +244,84 @@ object SetupSbtChild extends (State => State) {
     def trace(t: => Throwable): Unit = {
       send(protocol.LogTrace(t.getClass.getSimpleName, t.getMessage))
     }
+
     def success(message: => String): Unit = {
       send(protocol.LogSuccess(message))
     }
+
     def log(level: Level.Value, message: => String): Unit = {
-      send(protocol.LogMessage(level.id, message))
+      send(protocol.LogMessage(level.toString, message))
     }
+
+    private val ansiCodeRegex = "\\033\\[[0-9;]+m".r
+    private val logLevelRegex = new Regex("^\\[([a-z]+)\\] *(.*)", "level", "message")
+
+    private def logLine(line: String): Unit = {
+      val noCodes = ansiCodeRegex.replaceAllIn(line, "")
+      logLineNoCodes(noCodes)
+    }
+
+    // log a "cooked" line (that already has [info] prepended etc.)
+    private def logLineNoCodes(line: String): Unit = {
+      val entry: protocol.LogEntry = logLevelRegex.findFirstMatchIn(line) flatMap { m =>
+        val levelString = m.group("level")
+        val message = m.group("message")
+        Level(levelString) match {
+          case Some(level) => Some(protocol.LogMessage(level.toString, message))
+          case None => levelString match {
+            case "success" => Some(protocol.LogSuccess(message))
+            case _ => None
+          }
+        }
+      } getOrElse {
+        protocol.LogMessage(Level.Info.toString, line)
+      }
+      send(entry)
+    }
+
+    private def throwawayBackingFile = java.io.File.createTempFile("builder-", ".log")
+
+    private def newBacking = GlobalLogBacking(file = throwawayBackingFile,
+      last = None,
+      newLogger = (writer, oldBacking) => toGlobalLogging,
+      newBackingFile = () => throwawayBackingFile)
+
+    def toGlobalLogging: GlobalLogging = {
+      GlobalLogging(this, ConsoleLogger(consoleOut), newBacking)
+    }
+
+    private val consoleBuf = new java.lang.StringBuilder()
+
+    private def flushConsoleBuf(): Unit = {
+      val maybeLine = consoleBuf.synchronized {
+        val i = consoleBuf.indexOf("\n")
+        if (i >= 0) {
+          val line = consoleBuf.substring(0, i)
+          consoleBuf.delete(0, i + 1)
+          Some(line)
+        } else {
+          None
+        }
+      }
+
+      for (line <- maybeLine) {
+        logLine(line)
+        flushConsoleBuf()
+      }
+    }
+
+    private val consoleWriter = new Writer() {
+      override def write(chars: Array[Char], offset: Int, length: Int): Unit = {
+        consoleBuf.synchronized {
+          consoleBuf.append(chars, offset, length);
+        }
+      }
+
+      override def flush(): Unit = flushConsoleBuf
+
+      override def close(): Unit = flushConsoleBuf
+    }
+
+    private val consoleOut = ConsoleLogger.bufferedWriterOut(new BufferedWriter(consoleWriter))
   }
 }
