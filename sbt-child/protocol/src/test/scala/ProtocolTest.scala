@@ -76,7 +76,7 @@ class ProtocolTest {
       { (client) =>
         protocol.Envelope(client.receive()) match {
           case protocol.Envelope(serial, replyTo, protocol.NameRequest(_)) =>
-            client.replyJson(serial, protocol.LogEvent(protocol.LogMessage(1, "a message")))
+            client.replyJson(serial, protocol.LogEvent(protocol.LogMessage("info", "a message")))
             client.replyJson(serial, protocol.NameResponse("foobar"))
           case protocol.Envelope(serial, replyTo, other) =>
             client.replyJson(serial, protocol.ErrorResponse("did not understand request: " + other))

@@ -11,7 +11,7 @@ class MockSbtChildFactory extends SbtChildFactory {
     override def receive = {
       case req: protocol.Request =>
         if (req.sendEvents)
-          sender ! protocol.LogEvent(protocol.LogMessage(level = 1, message = "Hello!"))
+          sender ! protocol.LogEvent(protocol.LogMessage(level = "info", message = "Hello!"))
         req match {
           case protocol.NameRequest(_) =>
             sender ! protocol.NameResponse("foo")
