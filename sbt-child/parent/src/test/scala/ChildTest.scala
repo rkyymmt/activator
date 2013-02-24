@@ -172,8 +172,9 @@ class OneFailTest {
       child ! TestRequest(sendEvents = true)
     } { results =>
       noLogs(results).sorted match {
-        case Seq(TestEvent("OneFailTest.testThatShouldFail",
-          Some("this is not true"), TestFailed, Some("this is not true")),
+        case Seq(Started,
+          TestEvent("OneFailTest.testThatShouldFail",
+            Some("this is not true"), TestFailed, Some("this is not true")),
           TestEvent("OnePassOneFailTest.testThatShouldFail",
             Some("this is not true"), TestFailed, Some("this is not true")),
           TestEvent("OnePassOneFailTest.testThatShouldPass", None, TestPassed, None),
