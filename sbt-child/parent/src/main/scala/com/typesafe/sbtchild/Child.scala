@@ -138,7 +138,8 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
             // We do NOT send this event if the request arrives after sbt
             // has already started up, only if the request's lifetime
             // includes an sbt startup.
-            m._2.forward(event)
+            if (isSubscribed(m._2))
+              m._2.forward(event)
             forwardRequest(m._2, m._1)
           }
           preStartBuffer = Vector.empty
