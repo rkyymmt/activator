@@ -13,9 +13,37 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 		id: 'play-run-widget',
 		template: template,
 		init: function(parameters){
+			var self = this
+
 			this.title = ko.observable("Run");
 			this.logs = ko.observableArray();
 			this.output = ko.observableArray();
+			this.mainClasses = ko.observableArray();
+			this.currentMainClass = ko.observable("(loading main class)");
+
+			// TODO we need to re-run this on changes (whenever we recompile)
+			sbt.runTask({
+				task: 'DiscoveredMainClassesRequest',
+				onmessage: function(event) {
+					console.log("event getting main class", event);
+				},
+				success: function(data) {
+					console.log("main class result", data);
+					if (data.type == 'DiscoveredMainClassesResponse') {
+						self.mainClasses(data.names);
+					} else {
+						self.mainClasses([]);
+					}
+					if (self.mainClasses().length > 0) {
+						self.currentMainClass(self.mainClasses()[0]);
+					} else {
+						self.currentMainClass("(no main class)");
+					}
+				},
+				failure: function(message) {
+					console.log("getting main class failed", message);
+				}
+			});
 		},
 		update: function(parameters){
 		},
