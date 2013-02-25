@@ -1,9 +1,11 @@
 <article class="list test" data-width="3">
-    <header><h1>Tests!</h1></header>
+    <header><h1>Tests</h1>
+    	<p><span data-bind="text: resultStats().passed"></span> Passed, <span data-bind="text: resultStats().failed"></span> Failed</p>
+    	<button class="run-button" data-bind="click: runTests, disable: waiting">Run Tests</button>
+    	<input type="checkbox">Run tests on change (not implemented)</a>
+    </header>
     <footer><p data-bind="text: testStatus"></p></footer>
     <section class="wrapper">
-    <div><button class="run-button" data-bind="click: runTests, disable: waiting">Run Tests</button>
-    <button class="select-button" data-bind="click: filterTests, text: filterTestsText"></button></div>
     <table class="testResults" data-bind="if: hasResults">
     	<thead>
     		<tr>
@@ -18,5 +20,11 @@
     		</tr>
     	</tbody>
     </table>
+    <div class="logs">
+    	<header><h1>Logs</h1></header>
+    	<div data-bind="foreach: logs">
+    	  <p data-bind="text: $data"></p>
+    	</div>
+    </div>
     </section>
 </article>

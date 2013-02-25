@@ -34,3 +34,17 @@
 	color: gray;
 	font-style: italic;
 }
+
+.test header h1, .test header p {
+	display: inline;
+}
+
+.test table {
+	clear: none;
+	width: 50%;
+}
+.test div.logs {
+	display: inline;
+	width: 50%;
+	float: right;
+}
