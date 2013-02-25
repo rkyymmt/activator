@@ -29,7 +29,6 @@ define(['./pluginapi'], function(api) {
 	//      rest: [],              // An array of remaining url pieces.
 	//      before: 'foo',         // The url string before this one (for back functionality).
 	//      path: '',              // The full url path to this breadcrumb.
-	//      isNew: true            // A flag representing if this is a new part of the URL or not.
 	//    }
 	//
 	//  For any given URL that's hit, all the actions found leading down the tree are
@@ -65,9 +64,7 @@ define(['./pluginapi'], function(api) {
 				full: bcs,
 				rest: bcs.slice(idx+1),
 				before: bcs.slice(0, idx).join('/'),
-				path: bcs.slice(0,idx+1).join('/'),
-				// Tells us if this part of the URL is new.
-				isNew: !((idx in breadcrumbs) && breadcrumbs[idx] == bc)
+				path: bcs.slice(0,idx+1).join('/')
 			};
 		});
 	}
@@ -106,7 +103,6 @@ define(['./pluginapi'], function(api) {
 				};
 				route = routes[current.name];
 			}
-			// TODO - Is this context right?
 			route.action.call(route.context || route, current);
 			// See if we need to continue
 			if(route.next) {
