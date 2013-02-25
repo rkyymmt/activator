@@ -92,6 +92,9 @@ sealed trait Event extends Message
 case class NameRequest(sendEvents: Boolean) extends Request
 case class NameResponse(name: String) extends Response
 
+case class DiscoveredMainClassesRequest(sendEvents: Boolean) extends Request
+case class DiscoveredMainClassesResponse(names: Seq[String]) extends Response
+
 case class CompileRequest(sendEvents: Boolean) extends Request
 case class CompileResponse(success: Boolean) extends Response
 
@@ -173,6 +176,8 @@ object Message {
           base
         case NameResponse(name) =>
           base ++ Map("name" -> name)
+        case DiscoveredMainClassesResponse(names) =>
+          base ++ Map("names" -> JSONArray(names.toList))
         case CompileResponse(success) =>
           base ++ Map("success" -> success)
         case RunResponse(success) =>
@@ -218,6 +223,13 @@ object Message {
               NameRequest(sendEvents = getSendEvents(obj))
             case "NameResponse" =>
               NameResponse(obj("name").asInstanceOf[String])
+            case "DiscoveredMainClassesRequest" =>
+              DiscoveredMainClassesRequest(sendEvents = getSendEvents(obj))
+            case "DiscoveredMainClassesResponse" =>
+              DiscoveredMainClassesResponse(obj("names") match {
+                case list: Seq[_] => list.map(_.asInstanceOf[String])
+                case whatever => throw new RuntimeException("'names' field in DiscoveredMainClassesResponse has unexpected value: " + whatever)
+              })
             case "CompileRequest" =>
               CompileRequest(sendEvents = getSendEvents(obj))
             case "CompileResponse" =>

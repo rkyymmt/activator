@@ -98,4 +98,26 @@ class ProtocolTest {
         assertEquals("foobar", name)
       })
   }
+
+  @Test
+  def testRetrieveEmptyMainClasses(): Unit = {
+    testClientServer(
+      { (client) =>
+        protocol.Envelope(client.receive()) match {
+          case protocol.Envelope(serial, replyTo, protocol.DiscoveredMainClassesRequest(_)) =>
+            client.replyJson(serial, protocol.DiscoveredMainClassesResponse(Nil))
+          case protocol.Envelope(serial, replyTo, other) =>
+            client.replyJson(serial, protocol.ErrorResponse("did not understand request: " + other))
+        }
+      },
+      { (server) =>
+        server.sendJson(protocol.DiscoveredMainClassesRequest(sendEvents = true))
+        val names = protocol.Envelope(server.receive()) match {
+          case protocol.Envelope(serial, replyTo, r: protocol.DiscoveredMainClassesResponse) => r.names
+          case protocol.Envelope(serial, replyTo, r) =>
+            throw new AssertionError("unexpected response: " + r)
+        }
+        assertTrue("no names returned", names.isEmpty)
+      })
+  }
 }

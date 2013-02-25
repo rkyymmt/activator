@@ -202,12 +202,12 @@ class ChildTest {
   }
 
   @Test
-  def testMissingMain(): Unit = {
+  def testRunWithMissingMain(): Unit = {
     implicit val timeout = Timeout(60.seconds)
 
-    val dummy = makeDummySbtProjectWithNoMain("noMain")
+    val dummy = makeDummySbtProjectWithNoMain("noMainRun")
 
-    val system = ActorSystem("test-no-main")
+    val system = ActorSystem("test-no-main-run")
     try {
       val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
 
@@ -215,6 +215,54 @@ class ChildTest {
         Await.result(child ? RunRequest(sendEvents = false), timeout.duration) match {
           case ErrorResponse(message) if message.contains("during sbt task: Incomplete") =>
           case whatever => throw new AssertionError("unexpected result sending RunRequest to app with no main method: " + whatever)
+        }
+      } finally {
+        system.stop(child)
+      }
+
+    } finally {
+      system.shutdown()
+    }
+  }
+
+  @Test
+  def testDiscoverMissingMain(): Unit = {
+    implicit val timeout = Timeout(60.seconds)
+
+    val dummy = makeDummySbtProjectWithNoMain("noMainDiscover")
+
+    val system = ActorSystem("test-no-main-discover")
+    try {
+      val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
+
+      try {
+        Await.result(child ? DiscoveredMainClassesRequest(sendEvents = false), timeout.duration) match {
+          case DiscoveredMainClassesResponse(Seq()) =>
+          case whatever => throw new AssertionError("unexpected result sending DiscoveredMainClassesRequest to app with no main method: " + whatever)
+        }
+      } finally {
+        system.stop(child)
+      }
+
+    } finally {
+      system.shutdown()
+    }
+  }
+
+  @Test
+  def testDiscoverMultipleMain(): Unit = {
+    implicit val timeout = Timeout(60.seconds)
+
+    val dummy = makeDummySbtProjectWithMultipleMain("multiMainDiscover")
+
+    val system = ActorSystem("test-multi-main-discover")
+    try {
+      val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
+
+      try {
+        Await.result(child ? DiscoveredMainClassesRequest(sendEvents = false), timeout.duration) match {
+          case DiscoveredMainClassesResponse(Seq("Main1", "Main2", "Main3")) =>
+          case whatever => throw new AssertionError("unexpected result sending DiscoveredMainClassesRequest to app with multi main method: " + whatever)
         }
       } finally {
         system.stop(child)

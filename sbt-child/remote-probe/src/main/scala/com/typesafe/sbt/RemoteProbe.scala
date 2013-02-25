@@ -188,6 +188,12 @@ object SetupSbtChild extends (State => State) {
         val result = extract(origState).get(name)
         client.replyJson(serial, protocol.NameResponse(result))
         origState
+      case protocol.Envelope(serial, replyTo, protocol.DiscoveredMainClassesRequest(_)) =>
+        exceptionsToErrorResponse(serial) {
+          val (s, result) = extract(origState).runTask(discoveredMainClasses in Compile in run, origState)
+          client.replyJson(serial, protocol.DiscoveredMainClassesResponse(names = result))
+          s
+        }
       case protocol.Envelope(serial, replyTo, protocol.CompileRequest(_)) =>
         exceptionsToErrorResponse(serial) {
           val (s, result) = extract(origState).runTask(compile in Compile, origState)
