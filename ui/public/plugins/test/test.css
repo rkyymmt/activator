@@ -41,10 +41,13 @@
 
 .test table {
 	clear: none;
+	position: absolute;
 	width: 50%;
+	left: 0;
 }
 .test div.logs {
 	display: inline;
 	width: 50%;
-	float: right;
+	position: absolute;
+	right: 0;
 }
