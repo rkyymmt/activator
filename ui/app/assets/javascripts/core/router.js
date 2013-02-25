@@ -2,216 +2,133 @@ define(['./pluginapi'], function(api) {
 	var ko = api.ko;
 
 	// Decomposed url in an array
-	var breadcrumb = [];
+	var breadcrumbs = [];
 
-	var HomeWidget = api.Widget({
-			id: 'home-widget',
-			title: '/',
-			template: '<h1>Welcome!</h1>'
-	});
-
-	// Routes are nested:
-	// " /projects/:id/code/ " would call each related route
-	// And each route is associated with a requirejs plugin
-	// Example:
-	//  {
-	//      'foo':                  [ WidgetClass , {
-	//          'bar':              [ WidgetClass , ":rest" ],
-	//          ':id':              [ WidgetClass ]
-	//      }],
-	//      'baz':          function(urlFragments) {
-	//                          return makeBreadCrumbFragments(urlFragments);
-	//                      }
-	//  }
-	// Note
-	// :rest will redirect all /foo/bar/.* urls.
-	//
-	// WidgetClass is assumed to be a function that can be "newed" to create a renderable widget.
-	// A Widget class needs the following:
-	// constructor(args) - Where Args is a set of JSON representing the current breadcrumb, with the following format:
+	// New router API:
+	//  Route format:
 	// {
-	//   args: {
-	//      url: 'bar',            // The current portion of the url
-	//      full: ['foo', 'bar'],  // The decomposed breadcrumbs of the full url currently used.
-	//      rest: [],              // An array of remaining breadcrumbs, used after this widget.
-	//      before: 'foo',         // The url string before this one (for back functionality).
-	//      path: '',              // The full url path to this breadcrumb.
-	//   },
-	//   index: 2                  // The index relative to other breadcrumbs
-	//   url: 'foo/bar'            // The *full* url to current breadcrumb.
+	//    'foo':    [ action, {
+	//                   'bar': [ action ]
+	//                   ':id': [ action ]
+	//               }]
+	//    'baz':  action,
+	//    'crazy': {
+	//      action: function(urlInfo) {},
+	//      next: {
+	//        ':id': function() {}
+	//      },
+	//      context: this
+	//    }
 	// }
 	//
-	// this.title =  A widget class must support a title property (either a function that returns one, or a direct attribute).
-	// this.render ???  - The rendering of the widget....
-	var routes = {
-			'home': [HomeWidget]
-	};
-	// TODO - Put this somewhere else or configure it?
-	var ErrorWidget = api.Widget({
-			id: 'Error widget',
-			title: 'Not found!',
-			template: 'Url not found!'
-	});
+	//  Where action =
+	//  a function that takes in these arguments:
+	//  - urlInfo {
+	//      name: 'bar',            // The current portion of the url
+	//      full: ['foo', 'bar'],  // The decomposed breadcrumbs of the full url currently used.
+	//      rest: [],              // An array of remaining url pieces.
+	//      before: 'foo',         // The url string before this one (for back functionality).
+	//      path: '',              // The full url path to this breadcrumb.
+	//    }
+	//
+	//  For any given URL that's hit, all the actions found leading down the tree are
+	//  executed.
 
-	// Create the args setting for breadcrumbs.
-	// Args: bc - The current set of breadcrumbs.
-	//       modules - The list of 'resolved configuration' for the route.
+	// The set of routes we can use.
+	var routes = {};
 
-	function makeArgs(bc, modules) {
-		var i = modules.length;
-		var url = bc[0];
-		return {
-			url: url,
-			full: breadcrumb,
-			rest: bc.slice(1),
-			before: i > 0 ? modules[i - 1].url : '',
-			path: i > 0 ? modules[i - 1].args.path + '/' + url : url
-		};
+	// This is our default errorRoute.  Right now it just logs an error and displays an alert.
+	var errorRoute = {
+			action: function(args) {
+				console.log('Failed to find router for ', args)
+				alert("This is not a valid link: #" + args.path);
+			}
 	}
-	// Adds a new configuration to the list of modules.
-	// Args: config  - The configuration for the current breadcrumb
-	//       bc      - The remain url breadcrumbs
-	//       modules - The 'resolved' breadcrumb configuration.
 
-	function addBc(config, bc, modules) {
-		config.args = makeArgs(bc, modules);
-		config.url = (config.args.before ? config.args.before + "/" : "") + config.args.url;
-		config.index = modules.length;
-		modules[modules.length] = config;
+	// Create the 'rich' classes for breadcrumbs that are passed to router action handlers.
+	// bcs - an array of url pieces
+	// returns:
+	//      an array of "Rich" URL pieces witht he following info:
+	// {
+	//   name -  The full text of this url piece.  So for the url /foo/bar/baz/bish, this represents on of foo, bar, baz or bish.
+	//   full -  All the url pieces being routed.  So for the url /foo/bar/baz/bish, this would be ['foo', 'bar', 'baz', 'bish'].
+	//   rest -  The url pieces after the current url piece. So for the url /foo/bar/baz/bish, when on the "baz" piece, this would be ['bish']
+	//   before - The url path before the current piece.  So, for the url /foo/bar/baz/bish, when on the "baz" piece, this would be /foo/bar
+	//   path  - The path to this url piece, so for url /foo/bar/baz/bish, this would be /foo/bar/baz when on the "baz" piece.
+	// }
+	function createArgs(bcs) {
+		return $.map(bcs, function(bc, idx) {
+			// Check to see if this guy is new to the URL and needs executed:
+			return {
+				name: bc,
+				full: bcs,
+				rest: bcs.slice(idx+1),
+				before: bcs.slice(0, idx).join('/'),
+				path: bcs.slice(0,idx+1).join('/')
+			};
+		});
 	}
-	// Returns the *key* used to find the next router.
-	// args:  routes - all possible routes (in an object, by URL)
-	//        url    - The current url to route.
 
-	function lookUpNextRouter(routes, url) {
-		// Hierarchy of how we look up routes
-		if(routes[url]) {
-			return url;
+	// This functions pickes the next route name to grab.
+	// Keeps track of precednece of direct names vs. matching urls, like ":id" or ":all".
+	function pickRouteName(urlPart, routes) {
+		var name = urlPart.name;
+		if(routes.hasOwnProperty(name)) {
+			return name;
 		}
-		if(routes[":id"]) {
+		if(routes.hasOwnProperty(":id")) {
 			return ":id";
 		}
-		if(routes[":rest"]) {
-			return ":rest";
-		}
-		// TODO - Special handling?
-		return "404";
+		return ":all";
 	}
-	// This is a helper function used when
-	// compiling routes into functions.
-	// args:  routes - The current router configuration
-	//        bc     - The bread crumbs to route
-	var doRoute = function(router, bc) {
-			// If the router *is* a function, just use that to construct BC configs,
-			// Otherwise, assume we need to construct some routing function.
-			if(typeof(router) == 'function') {
-				return router(bc);
+	// Executes the routing functions we need, based on the parsed url parts.
+	var executeRoutes = function(routes, urlParts) {
+		if(urlParts.length > 0) {
+			var current = urlParts[0];
+			var routeProp = pickRouteName(current, routes);
+			var route = routes[current.name] || errorRoute;
+			// Here - we unify all our data into the same format...
+			// First, if it's a raw object, promote into route object.
+			if(typeof(route) == 'function') {
+				routes[current.name] = {
+						action: route
+				};
+				route = routes[current.name];
 			}
-			var rest = bc.slice(1);
-			var url = bc[0];
-			var result = [{
-				widget: router[0]
-			}];
-			if(router[1] == ":rest") {
-				return result;
+			// Here, if we have an array we unify into a route object.
+			if(route.hasOwnProperty('length')) {
+				routes[current.name] = {
+						action: route[0],
+						next: route[1]
+				};
+				route = routes[current.name];
 			}
-			if(router[1] && bc.length) {
-				var routes = router[1];
-				var route = lookUpNextRouter(routes, url);
-				// compile the route.
-				if(routes[route] && (typeof(routes[route]) != 'function')) {
-					routes[route] = compileRoute(routes[route]);
-				}
-				if(routes[route]) {
-					result.push.apply(result, routes[route](rest));
-				} else {
-					result.push({
-						widget: ErrorWidget
-					});
-				}
+			route.action.call(route.context || route, current);
+			// See if we need to continue
+			if(route.next) {
+				executeRoutes(route.next, urlParts.slice(1));
 			}
-			return result;
 		}
-		// Compilers a router configuration into a function
-		// that returns breadcrumb configuration arrays.
-
-	function compileRoute(router) {
-		return function(bc) {
-			return doRoute(router, bc);
-		};
 	}
 
-	// From the breadcrumb, checks route syntax and get module (breadcrumb configuration arrays).
-	var match = function(bc, routes, modules) {
-			var fixed_bc = bc[0] ? bc : [ 'home' ] ;
-			var url = bc[0] ? bc[0] : 'home';
-
-			var routesKey = lookUpNextRouter(routes, url);
-
-			if(routes[routesKey] && (typeof(routes[routesKey]) != 'function')) {
-				// compile the route.
-				routes[routesKey] = compileRoute(routes[routesKey]);
-			}
-			if(routes[routesKey]) {
-				// Add arguments to the route?
-				$.each(routes[routesKey](fixed_bc), function(idx, config) {
-					addBc(config, fixed_bc.slice(idx), modules);
-				});
-			} else {
-				addBc({
-					widget: ErrorWidget
-				}, ['404'], modules);
-			}
-			return modules;
-		}
-
-	var parsedBreadcrumbs = ko.observableArray();
-
-	// Find the common prefix *length* for two arrays, using the given equals comparator.
-
-	function commonPrefixIdx(one, two, comparator) {
-		for(var idx = 0; idx < one.length && idx < two.length; idx++) {
-			if(!comparator(one[idx], two[idx])) {
-				return idx;
-			}
-		}
-		return(one.length > two.length) ? two.length : one.length;
-	}
-	// merges the new breadcrumbs with the existing breadcrumbs, preserving the models already there if possible.
-	// Note:  This will instantiate the widgets of new breadcrumbs.
-
-	function mergeBreadCrumbs(newCrumbs) {
-		var existing = parsedBreadcrumbs();
-		var sameIdx = commonPrefixIdx(existing, newCrumbs, function(lhs, rhs) {
-			return lhs.url == rhs.url;
-		});
-		// Remove stale crumbs
-		var removeCount = existing.length - sameIdx;
-		for(var i = 0; i < removeCount; i++) {
-			parsedBreadcrumbs.pop();
-		}
-		// Grab the uninitialized crumbs and initialize them.
-		// Also add them to the chain of stuff
-		var uninitailizedCrumbs = newCrumbs.slice(sameIdx);
-		$.each(uninitailizedCrumbs, function(idx, bc) {
-			var widget = bc.widget;
-			// Wait to instantiate widgets until we have to...
-			bc.module = new widget(bc);
-			parsedBreadcrumbs.push(bc);
-		});
-	}
-
+	// Parse a new # url and execute the actions associated with the route.
+	// Note:  the url parameter is optional. If none is passed, this will pull the current window.location.hash.
 	var parse = function(url) {
-			// If no arguments, take the hash
-			url = url || window.location.hash;
-			// Split full path in modules
-			breadcrumb = url ? /^#?\/?(.+)\/?$/.exec(url)[1].split("/") : [];
-			// Check if modules are loaded, or retrieve module object
-			loaded = match(breadcrumb.slice(0), routes, []);
-			// Merge breadcrumbs with those already there.
-			mergeBreadCrumbs(loaded);
-		};
+		// If no arguments, take the hash
+		url = url || window.location.hash;
+		// Split full path in modules
+		var bcs = url ? /^#?\/?(.+)\/?$/.exec(url)[1].split("/") : [];
+		// Make arguments to churn through routers...
+		var args = createArgs(bcs);
+		// TODO - Check if we're empty and add a link to the 'home' widget action?
+		// Check if modules are loaded, or retrieve module object
+		executeRoutes(routes, args);
+		// Update the breadcrumbs so we remember what happened.
+		breadcrumbs = bcs;
+	};
+
 	return {
+		// Registers our initialization so that we drive the application from the hash.
 		init: function() {
 			// Register for future changes, and also parse immediately.
 			$(window).on('hashchange', function() {
@@ -219,14 +136,14 @@ define(['./pluginapi'], function(api) {
 			});
 			parse(window.location.hash);
 		},
-		// Register a plugin's routes
+		// Register a plugin's routes.
+		// TODO - do this recursive and *merge* routes.
 		registerRoutes: function(newRoutes) {
 			for(route in newRoutes) {
 				if(newRoutes.hasOwnProperty(route)) {
 					routes[route] = newRoutes[route];
 				}
 			}
-		},
-		breadcrumbs: parsedBreadcrumbs
+		}
 	};
 });

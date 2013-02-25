@@ -1,6 +1,8 @@
 // The grid handles the views, and pannels (Templating & Positioning)
 define(function() {
 
+	// TODO - Is this doing anything anymore?
+
 	var ko = req('vendors/knockout-2.2.1.debug'),
 		key = req('vendors/keymage.min');
 

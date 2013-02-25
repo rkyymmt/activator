@@ -90,6 +90,8 @@ object Local extends Controller {
   implicit object IFileProtocol extends Format[InterestingFile] {
     def writes(o: InterestingFile): JsValue =
       if (o.file.isDirectory) JsObject(List(
+        "name" -> JsString(o.file.getName),
+        "isDirectory" -> JsBoolean(true),
         "type" -> JsString("directory"),
         // TODO - Gitignore/file filters here.
         "children" -> Json.toJson(o.file.listFiles().filterNot(_.getName startsWith "."))))

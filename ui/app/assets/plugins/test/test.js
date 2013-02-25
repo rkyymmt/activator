@@ -112,13 +112,17 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 			}
 		}
 	});
-	return {
+
+	var testConsole = new TestDisplay();
+
+	return api.Plugin({
 		id: 'test',
 		name: "Test",
 		icon: 'ꙫ',
 		url: "#test",
 		routes: {
-			'test': [TestDisplay]
-		}
-	};
+			'test': function() { api.setActiveWidget(testConsole); }
+		},
+		widgets: [testConsole]
+	});
 });

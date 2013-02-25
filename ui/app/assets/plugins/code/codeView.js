@@ -1,27 +1,6 @@
 define(["text!./viewCode.html", 'core/pluginapi'], function(template, api){
 	var ko = api.ko;
 
-	// Fetch utility
-	function show(location){
-		return $.ajax({
-			url: '/api/local/show',
-			type: 'GET',
-			dataType: 'text',
-			data: { location: location }
-		});
-	}
-	function save(location, code) {
-		return $.ajax({
-			url: '/api/local/save',
-			type: 'PUT',
-			dataType: 'text',
-			data: {
-				location: location,
-				content: code
-			}
-		});
-	}
-
 	function endsWith(str, suffix) {
 		return str.indexOf(suffix, str.length - suffix.length) !== -1;
 	}
@@ -65,28 +44,19 @@ define(["text!./viewCode.html", 'core/pluginapi'], function(template, api){
 		id: 'code-edit-view',
 		template: template,
 		init: function(args) {
-			this.fileLoc = args.fileLoc;
-			this.fileLoadUrl = args.fileLoadUrl;
-			this.contents = ko.observable('Loading...');
-			this.isDirty = ko.observable(false);
+			var self = this;
+			this.file = args.file;
+			this.contents = args.file().contents;
+			this.isDirty = args.file().isContentsDirty;
 			// TODO - Grab the extension for now to figure out highlighting...
-			this.highlight = highlightModeFor(args.filename);
-			this.load();
+			this.highlight = highlightModeFor(args.file().name());
+			this.file().loadContents();
 		},
 		load: function() {
-			var self = this;
-			show(self.fileLoc).done(function(contents) {
-				self.contents(contents);
-			});
+			this.file().loadContents();
 		},
 		save: function() {
-			var self = this;
-			save(self.fileLoc, self.contents()).done(function(contents) {
-				// TODO - update contents or notify user?
-			}).error(function() {
-				// TODO - Handle errors?
-				alert("Failed to save file: " + self.fileLoc)
-			});
+			this.file().saveContents();
 		}
 	});
 	return CodeView;

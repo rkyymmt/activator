@@ -1,57 +1,35 @@
-define(['css!./code.css', 'text!./browse.html', 'core/pluginapi'], function(css, template, api) {
+define(['text!./browse.html', 'core/pluginapi'], function(template, api, files) {
 
 	var ko = api.ko,
 		key = api.key,
 		Widget = api.Widget,
 		Class = api.Class;
 
-	var FileModel = Class({
-		init: function(config) {
-			this.name = config.name;
-			this.location = config.location;
-			this.isDirectory = config.isDirectory;
-			this.mimeType = config.mimeType;
-			var path = ['code'];
-			// TODO - If we have a symlink, we're f'd here if it's resolved to real location.
-			// in the future we probably pass full symlink path separately.
-			var relative = config.location.replace(serverAppModel.location, "");
-			if(relative[0] == '/') {
-				relative = relative.slice(1);
-			}
-			// TODO - Is it ok to drop browse history when viewing a file?
-			this.url = 'code/' + relative;
-		},
-		select: function() {
-			window.location.hash = this.url;
-		}
-	});
 
 	var Browser = Widget({
 		id: 'code-browser-view',
 		template: template,
-		dataIndex: 1,
-		init: function(parameters, datas) {
-			this.url = parameters.fileLoc;
-			var children = datas.children || [];
-			this.tree = ko.observableArray($.map(children, function(config) {
-				return new FileModel(config);
-			}));
-			this.pageType = ko.computed(function(o) {
+		init: function(config) {
+			var self = this;
+			self.directory = config.directory;
+			self.pageType = ko.computed(function(o) {
 				return "browser"
-			}, this);
-		},
-		onRender: function(views) {
-			// TODO:  find a better way to retrieve the view
-			var ul = $(views[2])
-			if(!ul.find(".active").length) {
-				ul.find("li,dd").first().addClass("active")
-			}
-			// Click helper
-			// Need Bubbling here
-			ul[0].addEventListener("click",function(e){
-				$(e.target).closest("li,dd").addClass("active").siblings().removeClass("active");
-			},false);
-
+			});
+			self.files = ko.computed(function() {
+				var dir = self.directory();
+				return dir.children();
+			});
+			self.name = ko.computed(function() {
+				// TODO - Trim the name in a nicer way
+				return './' + self.directory().name();
+			});
+			self.isEmpty = ko.computed(function() {
+				return self.files().length == 0;
+			});
+			self.prevDirUrl = ko.computed(function() {
+				var parts = self.directory().relative().split('/');
+				return '#code/' + parts.slice(0, parts.length -1).join('/');
+			});
 		}
 	});
 	return Browser;

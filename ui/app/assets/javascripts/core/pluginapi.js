@@ -96,12 +96,36 @@ ko.bindingHandlers.ace = {
 		}
 	};
 
+	// Verifies that a new plugin configuration is acceptable for our application, or
+	// issues debugging log statements on what the issue is.
+	function Plugin(config) {
+		//Verify plugins are 'complete'.
+		if(!config.id) console.log('Error, plugin has no id: ', config);
+		if(!config.name) console.log('Error, plugin has no name: ', config);
+		if(!config.icon) console.log('Error, plugin has no icon: ', config);
+		if(!config.url) console.log('Error, plugin has no url (default link): ', config)
+		if(!config.widgets) config.widgets = [];
+		return config;
+	}
+
+	var activeWidget = ko.observable();
+	function setActiveWidget(widget) {
+		if(typeof(widget) == 'string') {
+			activeWidget(widget);
+		} else if(widget.id){
+			activeWidget(widget.id);
+		}
+	}
 
 	return {
 		ko: ko,
 		sbt: sbt,
 		key: key,
 		Class: utils.Class,
-		Widget: Widget
+		Widget: Widget,
+		Plugin: Plugin,
+		// TODO - should this be non-public?
+		activeWidget: activeWidget,
+		setActiveWidget: setActiveWidget
 	};
 });
