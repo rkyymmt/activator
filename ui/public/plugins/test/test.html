@@ -1,22 +1,33 @@
 <article class="list test" data-width="3">
-    <header><h1>Tests!</h1></header>
+    <header><h1>Tests</h1>
+    	<p><span data-bind="text: resultStats().passed"></span> Passed, <span data-bind="text: resultStats().failed"></span> Failed</p>
+    	<button class="run-button" data-bind="click: runTests, disable: waiting">Run Tests</button>
+    	<input type="checkbox">Run tests on change (not implemented)</a>
+    </header>
     <footer><p data-bind="text: testStatus"></p></footer>
     <section class="wrapper">
-    <div><button class="run-button" data-bind="click: runTests, disable: waiting">Run Tests</button>
-    <button class="select-button" data-bind="click: filterTests, text: filterTestsText"></button></div>
-    <table class="testResults" data-bind="if: hasResults">
-    	<thead>
-    		<tr>
-    			<th class="result">Result</th>
-                <th class="name">Test</th>
-    		</tr>
-    	</thead>
-    	<tbody data-bind="foreach: displayedResults">
-    		<tr>
-                <td data-bind="text: outcome, css: outcomeClass" class='result'></td>
-                <td data-bind="text: name" class="name"></td>
-    		</tr>
-    	</tbody>
-    </table>
+    <div class="results">
+    	<h1>Results</h1>
+    	<table class="testResults" data-bind="if: hasResults">
+    		<thead>
+	    		<tr>
+    				<th class="result">Result</th>
+        	        <th class="name">Test</th>
+    			</tr>
+    		</thead>
+    		<tbody data-bind="foreach: displayedResults">
+    			<tr>
+	                <td data-bind="text: outcome, css: outcomeClass" class='result'></td>
+                	<td data-bind="text: name" class="name"></td>
+    			</tr>
+    		</tbody>
+    	</table>
+    </div>
+    <div class="logs">
+    	<h1>Logs</h1>
+    	<div data-bind="foreach: logs">
+    	  <p data-bind="text: $data"></p>
+    	</div>
+    </div>
     </section>
 </article>

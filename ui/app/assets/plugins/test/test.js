@@ -11,6 +11,15 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 		PENDING: 'pending'
 	};
 
+	// TODO - Copy-pasted from run.  We should move this to a util library *OR* just
+	// not do it at all.
+	// if we wanted to be cute we'd convert these to HTML tags perhaps
+	var ansiCodeRegex = new RegExp("\\033\\[[0-9;]+m", "g");
+	var stripAnsiCodes = function(s) {
+		return s.replace(ansiCodeRegex, "");
+	}
+
+
 	// TODO - Other widgety things here.
 	var TestResult = api.Class({
 		init: function(config) {
@@ -41,6 +50,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 			var self = this;
 			self.results = ko.observableArray();
 			self.testStatus = ko.observable('Waiting to test');
+			self.logs = ko.observableArray();
 			self.waiting = ko.observable(false);
 			// TODO - Store state beyond the scope of this widget!
 			// We should probably be listening to tests *always*
@@ -62,6 +72,21 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 					});
 				}
 				return self.results();
+			});
+			// Rollup results.
+			self.resultStats = ko.computed(function() {
+				var results = {
+						passed: 0,
+						failed: 0
+				};
+				$.each(self.results(), function(idx, result) {
+					if(result.outcome() != Outcome.PASSED) {
+						results.failed = results.failed + 1;
+					} else {
+						results.passed = results.passed + 1;
+					}
+				});
+				return results;
 			});
 		},
 		filterTests: function() {
@@ -85,6 +110,16 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 				onmessage: function(event) {
 					if('type' in event && event.type == 'TestEvent') {
 						self.updateTest(event);
+					} else if ('type' in event && event.type == 'LogEvent') {
+						var message = event.entry.message;
+						var logType = event.entry.type;
+						if (logType == 'stdout' || logType == 'stderr') {
+							self.logs.push(stripAnsiCodes(message))
+						} else if (logType == 'message') {
+							self.logs.push(event.entry.level + ": " + stripAnsiCodes(message));
+						} else {
+							self.logs.push(logType + ": " + stripAnsiCodes(message));
+						}
 					}
 					// TODO - Should we show logs?
 					// TODO - Should we be able to query for test console output?

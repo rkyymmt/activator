@@ -34,3 +34,20 @@
 	color: gray;
 	font-style: italic;
 }
+
+.test header h1, .test header p {
+	display: inline;
+}
+
+.test div.results {
+	clear: none;
+	position: absolute;
+	width: 50%;
+	left: 0;
+}
+.test div.logs {
+	display: inline;
+	width: 50%;
+	position: absolute;
+	right: 0;
+}
