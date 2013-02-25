@@ -39,7 +39,7 @@
 	display: inline;
 }
 
-.test table {
+.test div.results {
 	clear: none;
 	position: absolute;
 	width: 50%;
