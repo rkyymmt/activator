@@ -17,6 +17,7 @@ case class SubscribeSbts(ref: ActorRef) extends ChildPoolRequest
 case class UnsubscribeSbts(ref: ActorRef) extends ChildPoolRequest
 case class RequestAnSbt(reservation: SbtReservation) extends ChildPoolRequest
 case class ReleaseAnSbt(reservationId: String) extends ChildPoolRequest
+case class ForceStopAnSbt(reservationId: String) extends ChildPoolRequest
 
 // sent to owner of SbtReservation only.
 // Once granted, the owner can use the sbt actor until 1) the owner sends ReleaseAnSbt
@@ -80,6 +81,23 @@ class ChildPool(val childFactory: SbtChildFactory, val minChildren: Int = 1, val
     }
   }
 
+  def forceStop(id: String): Unit = {
+    for (r <- reserved.find(_.id == id)) {
+      // simply killing the sbt process should eventually make
+      // ProcessActor die which should make the sbt actor die
+      // which should send us Terminated which should cause us
+      // to drop the reservation. whew!
+      r.sbt.foreach { sbt =>
+        log.debug("Killing sbt process {} due to forceStop request on {}", sbt, id)
+        sbt ! KillSbtProcess
+      }
+    }
+
+    // if we stop and haven't gotten a reservation yet,
+    // we don't want a reservation
+    waiting = waiting.filter(_.id != id)
+  }
+
   def startNewChild(): Unit = {
     require(total < maxChildren)
     val child = childFactory.newChild(context)
@@ -131,6 +149,9 @@ class ChildPool(val childFactory: SbtChildFactory, val minChildren: Int = 1, val
 
       case ReleaseAnSbt(id) =>
         release(id)
+
+      case ForceStopAnSbt(id) =>
+        forceStop(id)
 
       case SubscribeSbts(ref) =>
         ref ! SbtReservationsChanged(reserved) // send current state

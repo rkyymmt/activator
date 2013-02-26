@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit
 import akka.util.ByteString
 
 sealed trait SbtChildRequest
+case object KillSbtProcess extends SbtChildRequest
 
 // these are automatically done during a protocol.Request (subscribe on request,
 // unsubscribe on response).
@@ -91,8 +92,8 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
       // should still time out. We're just trying to short-circuit the timeout if
       // we know it will time out.
       if (serverTerminated || processTerminated || protocolStartedAndStopped) {
-        log.debug("Got request {} on already-shut-down server", req)
-        requestor ! protocol.ErrorResponse("ServerActor has already shut down")
+        log.debug("Got request {} on already-shut-down ServerActor", req)
+        requestor ! protocol.ErrorResponse("sbt has already shut down")
       } else {
         // otherwise forward the request
         server.tell(req, requestor)
@@ -110,6 +111,12 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
     case req: SbtChildRequest => req match {
       case SubscribeOutput(ref) => subscribe(ref)
       case UnsubscribeOutput(ref) => unsubscribe(ref)
+      case KillSbtProcess => {
+        // synthesize a nice message for the logs
+        emitEvent(protocol.LogEvent(protocol.LogMessage(protocol.LogMessage.INFO, "Attempting to stop SBT process")))
+        // now try to kill it
+        process ! KillProcess
+      }
     }
 
     // request for the server actor

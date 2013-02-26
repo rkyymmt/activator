@@ -92,6 +92,18 @@ object Sbt extends Controller {
     Async(resultFuture)
   }
 
+  // Incoming JSON { "appId" : appId, "taskId" : uuid }
+  // reply is empty
+  def killTask() = jsonAction { json =>
+    val appId = (json \ "appId").as[String]
+    val taskId = (json \ "taskId").as[String]
+    val resultFuture = AppManager.loadApp(appId) map { app =>
+      app.actor ! snap.ForceStopTask(taskId)
+      Ok(JsObject(Nil))
+    }
+    Async(resultFuture)
+  }
+
   private def jsonAction(f: JsValue => Result): Action[AnyContent] = Action { request =>
     request.body.asJson.map({ json =>
       try f(json)

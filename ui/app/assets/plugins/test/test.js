@@ -128,9 +128,9 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 					self.testStatus('Testing complete');
 					self.waiting(false);
 				},
-				failure: function(err) {
-					console.log("test failed: ", err)
-					self.testStatus('Testing failed: ' + err.responseText);
+				failure: function(xhr, status, err) {
+					console.log("test failed: ", status, err)
+					self.testStatus('Testing failed: ' + xhr.responseText);
 					self.waiting(false);
 				}
 			});

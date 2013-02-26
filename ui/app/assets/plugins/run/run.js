@@ -58,7 +58,7 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 		},
 		update: function(parameters){
 		},
-		runButtonClicked: function(self) {
+		startButtonClicked: function(self) {
 			console.log("Run was clicked");
 			self.logs.removeAll();
 			self.output.removeAll();
@@ -101,13 +101,27 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 						self.logs.push('Unexpected reply: ' + JSON.stringify(data));
 					}
 				},
-				failure: function(message) {
-					console.log("run failed: ", message)
+				failure: function(xhr, status, message) {
+					console.log("run failed: ", status, message)
 					self.activeTask("");
 					self.logs.push("HTTP request failed: " + message);
 				}
 			});
 			self.activeTask(taskId);
+		},
+		stopButtonClicked: function(self) {
+			if (self.haveActiveTask()) {
+				sbt.killTask({
+					taskId: self.activeTask(),
+					success: function(data) {
+						console.log("kill success: ", data)
+					},
+					failure: function(xhr, status, message) {
+						console.log("kill failed: ", status, message)
+						self.logs.push("HTTP request to kill task failed: " + message)
+					}
+				});
+			}
 		}
 	});
 

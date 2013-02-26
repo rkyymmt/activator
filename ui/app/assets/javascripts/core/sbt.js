@@ -45,6 +45,20 @@ define(['./streams'], function(streams) {
 		handler: taskMultiplexer
 	});
 
+	function makeJsonRequest(o, url, request) {
+		var areq = {
+			url: url,
+			type: 'POST',
+			dataType: 'json', // return type
+			contentType: 'application/json; charset=utf-8',
+			data: JSON.stringify(request)
+		};
+		if(o.context) areq.context = o.context;
+		if(o.failure) areq.error = o.failure;
+		if(o.error) areq.error = o.error;
+		if(o.success) areq.success = o.success;
+		return $.ajax(areq);
+	}
 
 	function randomShort() {
 		return Math.floor(Math.random() * 65536)
@@ -109,24 +123,34 @@ define(['./streams'], function(streams) {
 			subscribeTask(request.taskId, handler);
 		}
 
-		// Make SBT AJAX call now.
-		var areq = {
-			url: '/api/sbt/task',
-			type: 'POST',
-			dataType: 'json', // return type
-			contentType: 'application/json; charset=utf-8',
-			data: JSON.stringify(request)
-		};
-		if(o.context) areq.context = o.context;
-		if(o.failure) areq.error = o.failure;
-		if(o.error) areq.error = o.error;
-		if(o.success) areq.success = o.success;
-		$.ajax(areq);
+		makeJsonRequest(o, '/api/sbt/task', request);
 
 		return request.taskId;
 	}
 
+	/**
+	 * Kills a task by ID. Fire-and-forget (i.e. you won't know if the
+	 * task never existed)
+	 *
+	 * @param o {Object}  An object havin the following format:
+	 *        - taskId -> The task ID from runTask
+	 *        - success (optional) -> A handler for when the request is successfully delivered.
+	 *        - failure (optional) -> A handler for when the request fails to be delivered.
+	 *        - context (optional) -> A new 'this' object for the various callbacks.
+	 */
+	function killTask(o) {
+		if (!('taskId' in o))
+			throw new Error("no taskId to kill");
+		var request = {
+			appId: serverAppModel.id,
+			taskId: o.taskId
+		};
+
+		makeJsonRequest(o, '/api/sbt/killTask', request);
+	}
+
 	return {
-		runTask: runTask
+		runTask: runTask,
+		killTask: killTask
 	};
 });

@@ -18,7 +18,11 @@ case class LogMessage(level: String, message: String) extends LogEntry {
 }
 
 object LogMessage {
-  private[protocol] val validLevels = Set("debug", "info", "warn", "error")
+  val DEBUG = "debug"
+  val INFO = "info"
+  val WARN = "warn"
+  val ERROR = "error"
+  private[protocol] val validLevels = Set(DEBUG, INFO, WARN, ERROR)
 }
 
 object LogEntry {

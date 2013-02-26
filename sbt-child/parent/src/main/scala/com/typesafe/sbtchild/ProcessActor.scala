@@ -12,12 +12,13 @@ import akka.event.Logging
 import java.io.InputStream
 import java.io.BufferedInputStream
 import java.util.concurrent.RejectedExecutionException
+import scala.concurrent.duration._
 
 sealed trait ProcessRequest
 case class SubscribeProcess(ref: ActorRef) extends ProcessRequest
 case class UnsubscribeProcess(ref: ActorRef) extends ProcessRequest
 case object StartProcess extends ProcessRequest
-case object DestroyProcess extends ProcessRequest
+case object KillProcess extends ProcessRequest
 
 sealed trait ProcessEvent
 case class ProcessStdOut(bytes: ByteString) extends ProcessEvent
@@ -27,9 +28,9 @@ case class ProcessStopped(exitValue: Int) extends ProcessEvent
 class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) extends Actor with ActorLogging {
   var subscribers: Set[ActorRef] = Set.empty
   var process: Option[Process] = None
-  // flag handles the race where we get a destroy request
+  // flag handles the race where we get a kill request
   // before the process starts
-  var destroyRequested = false
+  var killRequested = false
 
   val pool = NamedThreadFactory.newPool("ProcessActor")
 
@@ -47,11 +48,16 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
         subscribers = subscribers - ref
         context.unwatch(ref)
       case StartProcess =>
-        if (!destroyRequested)
+        if (killRequested)
+          self ! ProcessStopped
+        else
           start()
-      case DestroyProcess =>
-        destroyRequested = true
-        destroy()
+      case KillProcess =>
+        killRequested = true
+        // here we want to stop the process but NOT kill the actor
+        // prematurely if the process fails to die. Since we only
+        // send TERM not KILL on Linux, it could well fail to die.
+        process.foreach { _.destroy() }
     }
 
     case Terminated(ref) =>
@@ -70,8 +76,8 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
 
     case p: Process =>
       process = Some(p)
-      if (destroyRequested) {
-        destroy()
+      if (killRequested) {
+        p.destroy()
       }
   }
 
@@ -149,31 +155,40 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
     }
   }
 
-  def destroy() = {
-    process.foreach({ p =>
+  override def postStop() = {
+    log.debug("postStop")
+    process.foreach { p =>
 
       process = None
 
       log.debug("  stopping process")
 
+      // this unfortunately is a TERM not a KILL on Unix.
+      // no way in Java (short of forking shell commands)
+      // to do a KILL.
       p.destroy()
 
+      // force-kill the streams in case that helps things
+      // to die. Delay it so we have a chance to read a little
+      // bit more.
+      implicit val ec = context.system.dispatcher
+      context.system.scheduler.scheduleOnce(2.seconds) {
+        try p.getInputStream().close() catch { case e: IOException => }
+        try p.getErrorStream().close() catch { case e: IOException => }
+      }
+
       // briefly pause if we haven't read the stdout/stderr yet,
-      // to just have a chance to get them
-      gotOutputLatch.await(2000, TimeUnit.MILLISECONDS)
-    })
+      // to just have a chance to get them. Note that this delay
+      // is slightly longer than the scheduled stream close above.
+      gotOutputLatch.await(3, TimeUnit.SECONDS)
+    }
 
     // if we haven't started up the stdout/err reader or waitFor threads
     // yet, at this point they would get RejectedExecutionException
     if (!pool.isShutdown())
       pool.shutdown()
     if (!pool.isTerminated())
-      pool.awaitTermination(2000, TimeUnit.MILLISECONDS)
-  }
-
-  override def postStop() = {
-    log.debug("postStop")
-    destroy()
+      pool.awaitTermination(2, TimeUnit.SECONDS)
   }
 }
 

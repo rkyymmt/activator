@@ -16,6 +16,7 @@ case class GetTaskActor(id: String, description: String) extends AppRequest
 case object CreateWebSocket extends AppRequest
 case class NotifyWebSocket(json: JsValue) extends AppRequest
 case object InitialTimeoutExpired extends AppRequest
+case class ForceStopTask(id: String) extends AppRequest
 
 sealed trait AppReply
 
@@ -31,6 +32,8 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
   val socket = context.actorOf(Props(new AppSocketActor()), name = "socket")
 
   var webSocketCreated = false
+
+  var tasks = Map.empty[String, ActorRef]
 
   context.watch(sbts)
   context.watch(socket)
@@ -50,13 +53,23 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
         log.info("socket terminated, killing AppActor")
         self ! PoisonPill
       } else {
-        log.warning("other actor terminated (why are we watching it?) {}", ref)
+        tasks.find { kv => kv._2 == ref } match {
+          case Some((taskId, task)) =>
+            log.debug("forgetting terminated task {} {}", taskId, task)
+            tasks -= taskId
+          case None =>
+            log.warning("other actor terminated (why are we watching it?) {}", ref)
+        }
       }
 
     case req: AppRequest => req match {
       case GetTaskActor(taskId, description) =>
-        sender ! TaskActorReply(context.actorOf(Props(new ChildTaskActor(taskId, description, sbts)),
-          name = "task-" + URLEncoder.encode(taskId, "UTF-8")))
+        val task = context.actorOf(Props(new ChildTaskActor(taskId, description, sbts)),
+          name = "task-" + URLEncoder.encode(taskId, "UTF-8"))
+        tasks += (taskId -> task)
+        context.watch(task)
+        log.debug("created task {} {}", taskId, task)
+        sender ! TaskActorReply(task)
       case CreateWebSocket =>
         log.debug("got CreateWebSocket")
         if (webSocketCreated) {
@@ -72,6 +85,11 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
         if (!webSocketCreated) {
           log.warning("Nobody every connected to {}, killing it", config.id)
           self ! PoisonPill
+        }
+      case ForceStopTask(id) =>
+        tasks.get(id).foreach { ref =>
+          log.debug("ForceStopTask for {} sending stop to {}", id, ref)
+          ref ! ForceStop
         }
     }
   }
@@ -94,6 +112,9 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
     }
   }
 
+  private sealed trait ChildTaskRequest
+  private case object ForceStop extends ChildTaskRequest
+
   // this actor's lifetime corresponds to one sequence of interactions with
   // an sbt instance obtained from the sbt pool.
   // It gets the pool from the app; reserves an sbt in the pool; and
@@ -101,6 +122,7 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
   class ChildTaskActor(val taskId: String, val taskDescription: String, val pool: ActorRef) extends Actor {
 
     val reservation = SbtReservation(id = taskId, taskName = taskDescription)
+
     var requestSerial = 0
     def nextRequestName() = {
       requestSerial += 1
@@ -114,10 +136,28 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
         sbt = sbt, request = request)), name = nextRequestName())
     }
 
+    private def errorOnStopped(requestor: ActorRef, request: protocol.Request) = {
+      requestor ! protocol.ErrorResponse(s"Task has been stopped (task ${reservation.id} request ${request})")
+    }
+
+    private def handleTerminated(ref: ActorRef, sbtOption: Option[ActorRef]): Unit = {
+      if (Some(ref) == sbtOption) {
+        log.debug("sbt actor died, task actor self-destructing")
+        self ! PoisonPill // our sbt died
+      }
+    }
+
     override def receive = gettingReservation(Nil)
 
     private def gettingReservation(requestQueue: List[(ActorRef, protocol.Request)]): Receive = {
-      case req: protocol.Request => context.become(gettingReservation((sender, req) :: requestQueue))
+      case req: ChildTaskRequest => req match {
+        case ForceStop =>
+          pool ! ForceStopAnSbt(reservation.id) // drops our reservation
+          requestQueue.reverse.foreach(tuple => errorOnStopped(tuple._1, tuple._2))
+          context.become(forceStopped(None))
+      }
+      case req: protocol.Request =>
+        context.become(gettingReservation((sender, req) :: requestQueue))
       case SbtGranted(filled) =>
         val sbt = filled.sbt.getOrElse(throw new RuntimeException("we were granted a reservation with no sbt"))
         // send the queue
@@ -133,9 +173,18 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
 
     private def haveSbt(sbt: ActorRef): Receive = {
       case req: protocol.Request => handleRequest(sender, sbt, req)
-      case Terminated(ref) =>
-        log.debug("sbt actor died, task actor self-destructing")
-        self ! PoisonPill // our sbt died
+      case ForceStop => {
+        pool ! ForceStopAnSbt(reservation.id)
+        context.become(forceStopped(Some(sbt)))
+      }
+      case Terminated(ref) => handleTerminated(ref, Some(sbt))
+    }
+
+    private def forceStopped(sbtOption: Option[ActorRef]): Receive = {
+      case req: protocol.Request => errorOnStopped(sender, req)
+      case Terminated(ref) => handleTerminated(ref, sbtOption)
+      case SbtGranted(filled) =>
+        pool ! ReleaseAnSbt(reservation.id)
     }
   }
 
