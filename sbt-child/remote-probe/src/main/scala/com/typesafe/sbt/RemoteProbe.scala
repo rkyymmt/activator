@@ -69,13 +69,15 @@ object SetupSbtChild extends (State => State) {
     extractWithRef(state)._1
   }
 
-  private def runInputTask[T](key: ScopedKey[T], state: State): State = {
+  private def runInputTask[T](key: ScopedKey[T], state: State, args: String): State = {
     val extracted = extract(state)
     implicit val display = Project.showContextKey(state)
     val it = extracted.get(SettingKey(key.key) in key.scope)
     val keyValues = KeyValue(key, it) :: Nil
     val parser = Aggregation.evaluatingParser(state, extracted.structure, show = false)(keyValues)
-    DefaultParsers.parse("", parser) match {
+    // we put a space in front of the args because the parsers expect
+    // *everything* after the task name it seems
+    DefaultParsers.parse(" " + args, parser) match {
       case Left(message) =>
         throw new Exception("Failed to run task: " + display(key) + ": " + message)
       case Right(f) =>
@@ -200,9 +202,13 @@ object SetupSbtChild extends (State => State) {
           client.replyJson(serial, protocol.CompileResponse(success = true))
           s
         }
-      case protocol.Envelope(serial, replyTo, protocol.RunRequest(_)) =>
+      case protocol.Envelope(serial, replyTo, protocol.RunRequest(_, mainClass)) =>
         exceptionsToErrorResponse(serial) {
-          val s = runInputTask(run in Compile, origState)
+          val s = mainClass map { klass =>
+            runInputTask(runMain in Compile, origState, args = klass)
+          } getOrElse {
+            runInputTask(run in Compile, origState, args = "")
+          }
           client.replyJson(serial, protocol.RunResponse(success = true))
           s
         }

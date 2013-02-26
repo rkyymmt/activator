@@ -61,6 +61,7 @@ define(['./streams'], function(streams) {
 	 *          following format:
 	 *             task - The task id to run
 	 *             description - The description for this task request.
+	 *             params - extra parameters for the task
 	 */
 	function SbtTaskRequest(o) {
 		var taskName = (typeof(o) == 'string') ? o : o.task;
@@ -72,6 +73,8 @@ define(['./streams'], function(streams) {
 				type: taskName
 			}
 		};
+		if (typeof(o.params) == 'object')
+			$.extend(request.task, o.params)
 		return request;
 	};
 

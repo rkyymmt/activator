@@ -98,7 +98,7 @@ case class DiscoveredMainClassesResponse(names: Seq[String]) extends Response
 case class CompileRequest(sendEvents: Boolean) extends Request
 case class CompileResponse(success: Boolean) extends Response
 
-case class RunRequest(sendEvents: Boolean) extends Request
+case class RunRequest(sendEvents: Boolean, mainClass: Option[String]) extends Request
 case class RunResponse(success: Boolean) extends Response
 
 sealed trait TestOutcome {
@@ -171,7 +171,14 @@ object Message {
       val base = Map("type" -> m.jsonTypeString)
       val obj: Map[String, Any] = m match {
         case req: Request =>
-          base ++ Map("sendEvents" -> req.sendEvents)
+          base ++ Map("sendEvents" -> req.sendEvents) ++ {
+            req match {
+              case RunRequest(_, Some(mainClass)) =>
+                Map("mainClass" -> mainClass)
+              case _ =>
+                Map.empty[String, Any]
+            }
+          }
         case Started | Stopped =>
           base
         case NameResponse(name) =>
@@ -239,7 +246,8 @@ object Message {
             case "TestResponse" =>
               TestResponse(outcome = TestOutcome(obj("outcome").asInstanceOf[String]))
             case "RunRequest" =>
-              RunRequest(sendEvents = getSendEvents(obj))
+              RunRequest(sendEvents = getSendEvents(obj),
+                mainClass = obj.get("mainClass").map(_.asInstanceOf[String]))
             case "RunResponse" =>
               RunResponse(obj("success").asInstanceOf[Boolean])
             case "ErrorResponse" =>

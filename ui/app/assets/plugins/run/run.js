@@ -19,7 +19,10 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 			this.logs = ko.observableArray();
 			this.output = ko.observableArray();
 			this.mainClasses = ko.observableArray();
-			this.currentMainClass = ko.observable("(loading main class)");
+			this.currentMainClass = ko.observable("");
+			this.haveMainClass = ko.computed(function() {
+				return self.mainClasses().length > 0;
+			}, this);
 
 			// TODO we need to re-run this on changes (whenever we recompile)
 			sbt.runTask({
@@ -34,10 +37,14 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 					} else {
 						self.mainClasses([]);
 					}
-					if (self.mainClasses().length > 0) {
-						self.currentMainClass(self.mainClasses()[0]);
-					} else {
-						self.currentMainClass("(no main class)");
+					// only force current selection to change if it's no longer
+					// valid.
+					if (self.mainClasses().indexOf(self.currentMainClass()) < 0)
+						self.currentMainClass("");
+					if (self.haveMainClass()) {
+						// if no current one, set it
+						if (self.currentMainClass() == "")
+							self.currentMainClass(self.mainClasses()[0]);
 					}
 				},
 				failure: function(message) {
@@ -52,8 +59,11 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 			self.logs.removeAll();
 			self.output.removeAll();
 			self.logs.push("Running...\n");
+			var task = { task: 'RunRequest' };
+			if (self.haveMainClass())
+				task.params = { mainClass: self.currentMainClass() };
 			sbt.runTask({
-				task: 'RunRequest',
+				task: task,
 				onmessage: function(event) {
 					if ('type' in event && event.type == 'LogEvent') {
 						var message = event.entry.message;

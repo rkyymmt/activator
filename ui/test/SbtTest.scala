@@ -128,7 +128,7 @@ class SbtTest {
   def testRunChildBrokenBuild(): Unit = {
     childTest(makeDummySbtProjectWithBrokenBuild, "runChildBrokenBuild") { taskJson =>
       assertEquals(JsString("ErrorResponse"), taskJson \ "type")
-      assertEquals(JsString("sbt process never got in touch, so unable to handle request RunRequest(true)"), taskJson \ "error")
+      assertEquals(JsString("sbt process never got in touch, so unable to handle request RunRequest(true,None)"), taskJson \ "error")
     }
   }
 
