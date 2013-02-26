@@ -3,8 +3,8 @@
     <footer><p></p></footer>
     <section class="wrapper">
         <div>
-           <button class="start" data-bind="click: runButtonClicked">Start</button>
-           <button class="stop">Stop (not implemented)</button>
+           <button class="start" data-bind="disable: haveActiveTask, click: runButtonClicked">Start</button>
+           <button class="stop" data-bind="enable: haveActiveTask">Stop (not implemented)</button>
            <input type="checkbox">Reload on change (not implemented)</input>
            <span data-bind="visible: haveMainClass">| Main class: <select data-bind="options: mainClasses, value: currentMainClass"></select></span>
         </div>

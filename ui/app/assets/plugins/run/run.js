@@ -18,10 +18,14 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 			this.title = ko.observable("Run");
 			this.logs = ko.observableArray();
 			this.output = ko.observableArray();
+			this.activeTask = ko.observable(""); // empty string or taskId
 			this.mainClasses = ko.observableArray();
 			this.currentMainClass = ko.observable("");
 			this.haveMainClass = ko.computed(function() {
 				return self.mainClasses().length > 0;
+			}, this);
+			this.haveActiveTask = ko.computed(function() {
+				return self.activeTask() != "";
 			}, this);
 
 			// TODO we need to re-run this on changes (whenever we recompile)
@@ -62,7 +66,7 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 			var task = { task: 'RunRequest' };
 			if (self.haveMainClass())
 				task.params = { mainClass: self.currentMainClass() };
-			sbt.runTask({
+			var taskId = sbt.runTask({
 				task: task,
 				onmessage: function(event) {
 					if ('type' in event && event.type == 'LogEvent') {
@@ -88,6 +92,7 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 				},
 				success: function(data) {
 					console.log("run result: ", data);
+					self.activeTask("");
 					if (data.type == 'ErrorResponse') {
 						self.logs.push(data.error);
 					} else if (data.type == 'RunResponse') {
@@ -98,9 +103,11 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 				},
 				failure: function(message) {
 					console.log("run failed: ", message)
+					self.activeTask("");
 					self.logs.push("HTTP request failed: " + message);
 				}
 			});
+			self.activeTask(taskId);
 		}
 	});
 

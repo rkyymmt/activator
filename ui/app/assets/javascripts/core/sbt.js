@@ -80,7 +80,7 @@ define(['./streams'], function(streams) {
 
 	/**
 	 * Runs an SBT task, attaching listeners for in-progress information
-	 * updates, or general success/failure.
+	 * updates, or general success/failure. Returns the task ID.
 	 *
 	 * @param o {Object}  An object havin the following format:
 	 *        - task -> The task request (anything acceptible to the SbtTaskRequest is
@@ -122,6 +122,8 @@ define(['./streams'], function(streams) {
 		if(o.error) areq.error = o.error;
 		if(o.success) areq.success = o.success;
 		$.ajax(areq);
+
+		return request.taskId;
 	}
 
 	return {
