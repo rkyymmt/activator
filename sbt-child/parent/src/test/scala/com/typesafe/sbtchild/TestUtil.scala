@@ -91,4 +91,17 @@ class OneFailTest {
 
     dir
   }
+
+  def makeDummySbtProjectWithMultipleMain(relativeDir: String): File = {
+    val dir = makeDummySbtProject(relativeDir)
+
+    val main = new File(dir, "src/main/scala/hello.scala")
+    createFile(main, """
+object Main1 extends App { println("Hello World 1") }
+object Main2 extends App { println("Hello World 2") }
+object Main3 extends App { println("Hello World 3") }
+""")
+
+    dir
+  }
 }

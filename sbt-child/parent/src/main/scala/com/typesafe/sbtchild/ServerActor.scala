@@ -145,7 +145,7 @@ class ServerActor(serverSocket: ServerSocket, childActor: ActorRef) extends Acto
     pendingReplies.foreach {
       case (key, requestor) =>
         log.debug("  sending error reply to a pending server request {} {}", key, requestor)
-        requestor.ref ! protocol.ErrorResponse("ServerActor died before it replied to request")
+        requestor.ref ! protocol.ErrorResponse("SBT did not send a reply to our request, perhaps it was killed or failed to start")
     }
     pendingReplies = Map.empty
 

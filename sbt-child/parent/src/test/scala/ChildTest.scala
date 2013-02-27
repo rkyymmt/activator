@@ -164,9 +164,9 @@ class ChildTest {
       val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
 
       try {
-        Await.result(child ? RunRequest(sendEvents = false), timeout.duration) match {
+        Await.result(child ? RunRequest(sendEvents = false, mainClass = None), timeout.duration) match {
           case RunResponse(success) =>
-          case whatever => throw new AssertionError("did not get RunResponse")
+          case whatever => throw new AssertionError("did not get RunResponse got " + whatever)
         }
       } finally {
         system.stop(child)
@@ -188,7 +188,7 @@ class ChildTest {
       val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
 
       try {
-        Await.result(child ? RunRequest(sendEvents = false), timeout.duration) match {
+        Await.result(child ? RunRequest(sendEvents = false, mainClass = None), timeout.duration) match {
           case ErrorResponse(message) if message.contains("sbt process never got in touch") =>
           case whatever => throw new AssertionError("unexpected result sending RunRequest to broken build: " + whatever)
         }
@@ -202,17 +202,17 @@ class ChildTest {
   }
 
   @Test
-  def testMissingMain(): Unit = {
+  def testRunWithMissingMain(): Unit = {
     implicit val timeout = Timeout(60.seconds)
 
-    val dummy = makeDummySbtProjectWithNoMain("noMain")
+    val dummy = makeDummySbtProjectWithNoMain("noMainRun")
 
-    val system = ActorSystem("test-no-main")
+    val system = ActorSystem("test-no-main-run")
     try {
       val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
 
       try {
-        Await.result(child ? RunRequest(sendEvents = false), timeout.duration) match {
+        Await.result(child ? RunRequest(sendEvents = false, mainClass = None), timeout.duration) match {
           case ErrorResponse(message) if message.contains("during sbt task: Incomplete") =>
           case whatever => throw new AssertionError("unexpected result sending RunRequest to app with no main method: " + whatever)
         }
@@ -224,4 +224,81 @@ class ChildTest {
       system.shutdown()
     }
   }
+
+  @Test
+  def testDiscoverMissingMain(): Unit = {
+    implicit val timeout = Timeout(60.seconds)
+
+    val dummy = makeDummySbtProjectWithNoMain("noMainDiscover")
+
+    val system = ActorSystem("test-no-main-discover")
+    try {
+      val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
+
+      try {
+        Await.result(child ? DiscoveredMainClassesRequest(sendEvents = false), timeout.duration) match {
+          case DiscoveredMainClassesResponse(Seq()) =>
+          case whatever => throw new AssertionError("unexpected result sending DiscoveredMainClassesRequest to app with no main method: " + whatever)
+        }
+      } finally {
+        system.stop(child)
+      }
+
+    } finally {
+      system.shutdown()
+    }
+  }
+
+  @Test
+  def testDiscoverMultipleMain(): Unit = {
+    implicit val timeout = Timeout(60.seconds)
+
+    val dummy = makeDummySbtProjectWithMultipleMain("multiMainDiscover")
+
+    val system = ActorSystem("test-multi-main-discover")
+    try {
+      val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
+
+      try {
+        Await.result(child ? DiscoveredMainClassesRequest(sendEvents = false), timeout.duration) match {
+          case DiscoveredMainClassesResponse(Seq("Main1", "Main2", "Main3")) =>
+          case whatever => throw new AssertionError("unexpected result sending DiscoveredMainClassesRequest to app with multi main method: " + whatever)
+        }
+      } finally {
+        system.stop(child)
+      }
+
+    } finally {
+      system.shutdown()
+    }
+  }
+
+  @Test
+  def testRunMultipleMain(): Unit = {
+    implicit val timeout = Timeout(60.seconds)
+
+    val dummy = makeDummySbtProjectWithMultipleMain("runSelectingAMain")
+
+    val system = ActorSystem("test-run-selecting-a-main")
+    try {
+      val child = SbtChild(system, dummy, DebugSbtChildProcessMaker)
+
+      try {
+        Await.result(child ? RunRequest(sendEvents = false, mainClass = Some("Main2")), timeout.duration) match {
+          case RunResponse(success) =>
+          case whatever => throw new AssertionError("did not get RunResponse got " + whatever)
+        }
+        Await.result(child ? RunRequest(sendEvents = false, mainClass = Some("Main3")), timeout.duration) match {
+          case RunResponse(success) =>
+          case whatever => throw new AssertionError("did not get RunResponse got " + whatever)
+        }
+      } finally {
+        system.stop(child)
+      }
+
+    } finally {
+      system.shutdown()
+    }
+  }
+
 }

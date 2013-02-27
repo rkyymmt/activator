@@ -18,7 +18,11 @@ case class LogMessage(level: String, message: String) extends LogEntry {
 }
 
 object LogMessage {
-  private[protocol] val validLevels = Set("debug", "info", "warn", "error")
+  val DEBUG = "debug"
+  val INFO = "info"
+  val WARN = "warn"
+  val ERROR = "error"
+  private[protocol] val validLevels = Set(DEBUG, INFO, WARN, ERROR)
 }
 
 object LogEntry {
@@ -92,10 +96,13 @@ sealed trait Event extends Message
 case class NameRequest(sendEvents: Boolean) extends Request
 case class NameResponse(name: String) extends Response
 
+case class DiscoveredMainClassesRequest(sendEvents: Boolean) extends Request
+case class DiscoveredMainClassesResponse(names: Seq[String]) extends Response
+
 case class CompileRequest(sendEvents: Boolean) extends Request
 case class CompileResponse(success: Boolean) extends Response
 
-case class RunRequest(sendEvents: Boolean) extends Request
+case class RunRequest(sendEvents: Boolean, mainClass: Option[String]) extends Request
 case class RunResponse(success: Boolean) extends Response
 
 sealed trait TestOutcome {
@@ -168,11 +175,20 @@ object Message {
       val base = Map("type" -> m.jsonTypeString)
       val obj: Map[String, Any] = m match {
         case req: Request =>
-          base ++ Map("sendEvents" -> req.sendEvents)
+          base ++ Map("sendEvents" -> req.sendEvents) ++ {
+            req match {
+              case RunRequest(_, Some(mainClass)) =>
+                Map("mainClass" -> mainClass)
+              case _ =>
+                Map.empty[String, Any]
+            }
+          }
         case Started | Stopped =>
           base
         case NameResponse(name) =>
           base ++ Map("name" -> name)
+        case DiscoveredMainClassesResponse(names) =>
+          base ++ Map("names" -> JSONArray(names.toList))
         case CompileResponse(success) =>
           base ++ Map("success" -> success)
         case RunResponse(success) =>
@@ -218,6 +234,13 @@ object Message {
               NameRequest(sendEvents = getSendEvents(obj))
             case "NameResponse" =>
               NameResponse(obj("name").asInstanceOf[String])
+            case "DiscoveredMainClassesRequest" =>
+              DiscoveredMainClassesRequest(sendEvents = getSendEvents(obj))
+            case "DiscoveredMainClassesResponse" =>
+              DiscoveredMainClassesResponse(obj("names") match {
+                case list: Seq[_] => list.map(_.asInstanceOf[String])
+                case whatever => throw new RuntimeException("'names' field in DiscoveredMainClassesResponse has unexpected value: " + whatever)
+              })
             case "CompileRequest" =>
               CompileRequest(sendEvents = getSendEvents(obj))
             case "CompileResponse" =>
@@ -227,7 +250,8 @@ object Message {
             case "TestResponse" =>
               TestResponse(outcome = TestOutcome(obj("outcome").asInstanceOf[String]))
             case "RunRequest" =>
-              RunRequest(sendEvents = getSendEvents(obj))
+              RunRequest(sendEvents = getSendEvents(obj),
+                mainClass = obj.get("mainClass").map(_.asInstanceOf[String]))
             case "RunResponse" =>
               RunResponse(obj("success").asInstanceOf[Boolean])
             case "ErrorResponse" =>

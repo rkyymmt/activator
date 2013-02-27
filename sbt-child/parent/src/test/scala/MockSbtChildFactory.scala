@@ -15,9 +15,11 @@ class MockSbtChildFactory extends SbtChildFactory {
         req match {
           case protocol.NameRequest(_) =>
             sender ! protocol.NameResponse("foo")
+          case protocol.DiscoveredMainClassesRequest(_) =>
+            sender ! protocol.DiscoveredMainClassesResponse(Nil)
           case protocol.CompileRequest(_) =>
             sender ! protocol.CompileResponse(success = true)
-          case protocol.RunRequest(_) =>
+          case protocol.RunRequest(_, _) =>
             sender ! protocol.RunResponse(success = true)
           case protocol.TestRequest(_) =>
             sender ! protocol.TestResponse(outcome = protocol.TestPassed)

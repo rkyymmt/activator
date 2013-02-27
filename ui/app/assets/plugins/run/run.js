@@ -13,19 +13,61 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 		id: 'play-run-widget',
 		template: template,
 		init: function(parameters){
+			var self = this
+
 			this.title = ko.observable("Run");
 			this.logs = ko.observableArray();
 			this.output = ko.observableArray();
+			this.activeTask = ko.observable(""); // empty string or taskId
+			this.mainClasses = ko.observableArray();
+			this.currentMainClass = ko.observable("");
+			this.haveMainClass = ko.computed(function() {
+				return self.mainClasses().length > 0;
+			}, this);
+			this.haveActiveTask = ko.computed(function() {
+				return self.activeTask() != "";
+			}, this);
+
+			// TODO we need to re-run this on changes (whenever we recompile)
+			sbt.runTask({
+				task: 'DiscoveredMainClassesRequest',
+				onmessage: function(event) {
+					console.log("event getting main class", event);
+				},
+				success: function(data) {
+					console.log("main class result", data);
+					if (data.type == 'DiscoveredMainClassesResponse') {
+						self.mainClasses(data.names);
+					} else {
+						self.mainClasses([]);
+					}
+					// only force current selection to change if it's no longer
+					// valid.
+					if (self.mainClasses().indexOf(self.currentMainClass()) < 0)
+						self.currentMainClass("");
+					if (self.haveMainClass()) {
+						// if no current one, set it
+						if (self.currentMainClass() == "")
+							self.currentMainClass(self.mainClasses()[0]);
+					}
+				},
+				failure: function(message) {
+					console.log("getting main class failed", message);
+				}
+			});
 		},
 		update: function(parameters){
 		},
-		runButtonClicked: function(self) {
+		startButtonClicked: function(self) {
 			console.log("Run was clicked");
 			self.logs.removeAll();
 			self.output.removeAll();
 			self.logs.push("Running...\n");
-			sbt.runTask({
-				task: 'RunRequest',
+			var task = { task: 'RunRequest' };
+			if (self.haveMainClass())
+				task.params = { mainClass: self.currentMainClass() };
+			var taskId = sbt.runTask({
+				task: task,
 				onmessage: function(event) {
 					if ('type' in event && event.type == 'LogEvent') {
 						var message = event.entry.message;
@@ -50,6 +92,7 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 				},
 				success: function(data) {
 					console.log("run result: ", data);
+					self.activeTask("");
 					if (data.type == 'ErrorResponse') {
 						self.logs.push(data.error);
 					} else if (data.type == 'RunResponse') {
@@ -58,11 +101,27 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 						self.logs.push('Unexpected reply: ' + JSON.stringify(data));
 					}
 				},
-				failure: function(message) {
-					console.log("run failed: ", message)
+				failure: function(xhr, status, message) {
+					console.log("run failed: ", status, message)
+					self.activeTask("");
 					self.logs.push("HTTP request failed: " + message);
 				}
 			});
+			self.activeTask(taskId);
+		},
+		stopButtonClicked: function(self) {
+			if (self.haveActiveTask()) {
+				sbt.killTask({
+					taskId: self.activeTask(),
+					success: function(data) {
+						console.log("kill success: ", data)
+					},
+					failure: function(xhr, status, message) {
+						console.log("kill failed: ", status, message)
+						self.logs.push("HTTP request to kill task failed: " + message)
+					}
+				});
+			}
 		}
 	});
 

@@ -16,6 +16,7 @@ POST    /api/app/fromLocation       controllers.Application.appFromLocation
 
 # sbt things
 POST    /api/sbt/task               controllers.api.Sbt.task
+POST    /api/sbt/killTask           controllers.api.Sbt.killTask
 
 # Local system operations
 GET     /api/local/env              controllers.api.Local.getEnv
