@@ -1,24 +1,16 @@
-
 .code {
-	.file:before {
-		content: "\E731";
+	.list {
+		li.file:before {
+			content: "\E731";
+		}
+		li.folder:before {
+			content: "\1F4C1";
+		}
+		li.hidden:before {
+			opacity: .5;
+		}
 	}
-	.folder:before {
-		content: "\1F4C1";
-	}
-	.hidden:before {
-		opacity: .5;
-	}
-	nav {
-		position: absolute;
-		top: 60px;
-		left: 0;
-		right: 0;
-		z-index: 9;
-		background: #384046;
-		height: 40px;
-		line-height: 40px;
-		padding: 0 20px;
+	.breadcrumb {
 		a {
 			display: inline-block;
 			color: rgba(255,255,255,.5);
@@ -27,23 +19,23 @@
 			}
 		}
 	}
-	nav + .wrapper ul {
-		margin-top: 40px;
-	}
 	
 	div.browser {
-	  display: inline;
-      position: absolute;
-      left: 0%;
-      width: 33%;
-      height: 100%;
+		position: absolute;
+		background: white;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		width: 33%;
+		box-shadow: 2px 0 0 rgba(0,0,0,.1);
+		z-index: 20;
 	}
 	div.editor {
-	  display: inline;
-      position: absolute;
-      left: 33%;
-      width: 64%;
-      height: 100%;	  
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 33%;
+		right: 0;
 	}
 }
 
@@ -71,13 +63,15 @@ div.file-contents {
 }
 
 .code-control-bar {
-        height: 30px;
-        top: 0;
-        right:0;
-        left: 0;
+	position: absolute;
+    height: 30px;
+    top: -30px;
+    right: 20px;
+    z-index: 999;
 }
+
 div.code-editor {
-  top: 30px;
+  top: 0;
   right: 0;
   bottom: 0;
   left: 0;

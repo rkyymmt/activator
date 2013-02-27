@@ -29,8 +29,15 @@
 		<link rel="stylesheet" media="screen" href="/public/stylesheets/main.css">
 		<link rel="shortcut icon" type="image/png" href="/public/images/favicon.png">
 	</head>
-	<body class="noAnim left-open right-open">
-		<nav>
+	<body class="noAnim right-open">
+		<header>
+			<nav>
+				<ul class="rockets">
+					<li class="app" data-bind="foreach: plugins.list">
+						<a data-bind="text: name, attr: { 'data-icon': icon, href: url }"></a>
+					</li>
+				</ul>
+			</nav>
 			<div id="switch">
 				<span class="label" data-bind="text: snap.appName"></span>
 				<div>
@@ -47,14 +54,7 @@
 					</ul>
 				</div>
 			</div>
-			<ul class="rockets">
-				<li class="app" data-bind="foreach: plugins.list">
-					<a data-bind="text: name, attr: { 'data-icon': icon, href: url }"></a>
-				</li>
-			</ul>
-		</nav>
-		<header>
-			<a href="http://www.typesafe.com">Typesafe</a>
+			<a href="http://www.typesafe.com" id="typesafe">Typesafe</a>
 		</header>
 		<aside class="tutorial" data-step="0">
 			<nav>
@@ -71,7 +71,7 @@
 		</aside>
 		<!-- -->
 		<div id="wrapper" data-bind="foreach: { data: widgets }">
-		  <div data-bind="template: { name: view, data: $data, afterRender: onRender }, visible: id == $parent.snap.activeWidget()"></span>
+		  <div class="widget" data-bind="template: { name: view, data: $data, afterRender: onRender }, visible: id == $parent.snap.activeWidget()"></div>
 		</div>
   </body>
 </html>

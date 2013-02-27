@@ -24,6 +24,7 @@ if (!Function.prototype.bind) {
 
 require.config({
 	baseUrl:	'/public',
+	urlArgs: 'bust=' + (new Date()).getTime(),
 	paths: {
 		// Common paths
 		vendors:	'javascripts/vendors',

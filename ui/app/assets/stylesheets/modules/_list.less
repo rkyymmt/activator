@@ -1,5 +1,13 @@
-article.list section li ,
-article.list section dd {
+.list {
+	position: absolute;
+	top: 100px;
+	left: 0;
+	right: 0;
+	bottom: 20px;
+	overflow: auto;
+}
+.list li ,
+.list dd {
 	position: relative;
 	cursor: pointer;
 	padding: 10px;
@@ -40,8 +48,8 @@ article.list section dd {
 		border-radius: 3px;
 	}
 }
-.active article.list section li ,
-.active article.list section dd {
+.active .list li ,
+.active .list dd {
 	position: relative;
 	&.active {
 		border-color: #e25758 - #222;
@@ -61,8 +69,8 @@ article.list section dd {
 		}
 	}
 }
-article.list section li h2 a ,
-article.list section dd h2 a {
+.list li h2 a ,
+.list dd h2 a {
 	color: inherit;
 	font-size: 1.1em;
 	font-weight: 700;
@@ -75,17 +83,17 @@ article.list section dd h2 a {
 		bottom: 0;
 	}
 }
-article.list section li p ,
-article.list section dd p {
+.list li p ,
+.list dd p {
 	color: #9aadc3;
 	font-size: .85em;
 }
-article.list section li.event a ,
-article.list section dd .event a {
+.list li.event a ,
+.list dd .event a {
 
 	color: #01b8e3;
 }
-article.list section dt {
+.list dt {
 	padding: 0 10px;
 	line-height: 20px;
 	font-size: 11px;
