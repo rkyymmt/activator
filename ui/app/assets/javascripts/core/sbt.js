@@ -1,4 +1,4 @@
-define(['./streams'], function(streams) {
+define(['./streams', './events'], function(streams, events) {
 
 	// Internal list of subscribers for task events.
 	var taskSubscribers = [];
@@ -40,9 +40,23 @@ define(['./streams'], function(streams) {
 	// Subscribes our own task-event streams to the websocket, and we hide that from
 	// clients.  We need to detail how events flow more formally in apis, but
 	// this is used so we can deregister from the socket if needed.
-	var subscription = streams.subscribe({
+	var taskSubscription = streams.subscribe({
 		filter: isSbtTaskEvent,
 		handler: taskMultiplexer
+	});
+
+	function onFilesChanged(obj) {
+		// forward to the inter-plugin event bus
+		events.send(obj);
+	}
+
+	function isFilesChangedEvent(obj) {
+		return ('type' in obj) && obj.type == 'FilesChanged';
+	}
+
+	var filesChangedSubscription = streams.subscribe({
+		filter: isFilesChangedEvent,
+		handler: onFilesChanged
 	});
 
 	function makeJsonRequest(o, url, request) {
@@ -149,8 +163,20 @@ define(['./streams'], function(streams) {
 		makeJsonRequest(o, '/api/sbt/killTask', request);
 	}
 
+	function watchSources(o) {
+		var request = {
+			appId: serverAppModel.id,
+			taskId: genTaskId(serverAppModel.id)
+		};
+
+		makeJsonRequest(o, '/api/sbt/watchSources', request);
+
+		return request.taskId;
+	}
+
 	return {
 		runTask: runTask,
-		killTask: killTask
+		killTask: killTask,
+		watchSources: watchSources
 	};
 });

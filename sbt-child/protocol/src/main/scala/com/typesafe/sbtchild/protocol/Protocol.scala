@@ -3,6 +3,7 @@ package com.typesafe.sbtchild.protocol
 import com.typesafe.sbtchild.ipc
 import scala.util.parsing.json._
 import com.typesafe.sbtchild.ipc.JsonReader
+import java.io.File
 
 sealed trait LogEntry {
   def message: String
@@ -99,6 +100,9 @@ case class NameResponse(name: String) extends Response
 case class DiscoveredMainClassesRequest(sendEvents: Boolean) extends Request
 case class DiscoveredMainClassesResponse(names: Seq[String]) extends Response
 
+case class WatchTransitiveSourcesRequest(sendEvents: Boolean) extends Request
+case class WatchTransitiveSourcesResponse(files: Seq[File]) extends Response
+
 case class CompileRequest(sendEvents: Boolean) extends Request
 case class CompileResponse(success: Boolean) extends Response
 
@@ -189,6 +193,8 @@ object Message {
           base ++ Map("name" -> name)
         case DiscoveredMainClassesResponse(names) =>
           base ++ Map("names" -> JSONArray(names.toList))
+        case WatchTransitiveSourcesResponse(files) =>
+          base ++ Map("files" -> JSONArray(files.map(_.getPath).toList))
         case CompileResponse(success) =>
           base ++ Map("success" -> success)
         case RunResponse(success) =>
@@ -240,6 +246,13 @@ object Message {
               DiscoveredMainClassesResponse(obj("names") match {
                 case list: Seq[_] => list.map(_.asInstanceOf[String])
                 case whatever => throw new RuntimeException("'names' field in DiscoveredMainClassesResponse has unexpected value: " + whatever)
+              })
+            case "WatchTransitiveSourcesRequest" =>
+              WatchTransitiveSourcesRequest(sendEvents = getSendEvents(obj))
+            case "WatchTransitiveSourcesResponse" =>
+              WatchTransitiveSourcesResponse(obj("files") match {
+                case list: Seq[_] => list.map(_.asInstanceOf[String]).map(new File(_))
+                case whatever => throw new RuntimeException("'files' field in WatchTransitiveSourcesResponse has unexpected value: " + whatever)
               })
             case "CompileRequest" =>
               CompileRequest(sendEvents = getSendEvents(obj))

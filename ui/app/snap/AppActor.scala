@@ -9,6 +9,7 @@ import java.net.URLEncoder
 import akka.pattern._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.duration._
+import play.api.libs.json._
 
 sealed trait AppRequest
 
@@ -17,6 +18,7 @@ case object CreateWebSocket extends AppRequest
 case class NotifyWebSocket(json: JsValue) extends AppRequest
 case object InitialTimeoutExpired extends AppRequest
 case class ForceStopTask(id: String) extends AppRequest
+case class UpdateSourceFiles(files: Set[File]) extends AppRequest
 
 sealed trait AppReply
 
@@ -30,6 +32,7 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
   val childFactory = new DefaultSbtChildFactory(location, sbtMaker)
   val sbts = context.actorOf(Props(new ChildPool(childFactory)), name = "sbt-pool")
   val socket = context.actorOf(Props(new AppSocketActor()), name = "socket")
+  val watcher = context.actorOf(Props(new FileWatcher()), name = "watcher")
 
   var webSocketCreated = false
 
@@ -37,10 +40,14 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
 
   context.watch(sbts)
   context.watch(socket)
+  context.watch(watcher)
 
   // we can stay alive due to socket connection (and then die with the socket)
   // or else we just die after being around a short time
   context.system.scheduler.scheduleOnce(2.minutes, self, InitialTimeoutExpired)
+
+  // get file watch notifications
+  watcher ! SubscribeFileChanges(self)
 
   override val supervisorStrategy = SupervisorStrategy.stoppingStrategy
 
@@ -51,6 +58,9 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
         self ! PoisonPill
       } else if (ref == socket) {
         log.info("socket terminated, killing AppActor")
+        self ! PoisonPill
+      } else if (ref == watcher) {
+        log.info("watcher terminated, killing AppActor")
         self ! PoisonPill
       } else {
         tasks.find { kv => kv._2 == ref } match {
@@ -91,7 +101,15 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
           log.debug("ForceStopTask for {} sending stop to {}", id, ref)
           ref ! ForceStop
         }
+      case UpdateSourceFiles(files) =>
+        watcher ! SetFilesToWatch(files)
     }
+
+    case event: FileWatcherEvent => event match {
+      case FilesChanged =>
+        socket ! NotifyWebSocket(JsObject(Seq("type" -> JsString("FilesChanged"))))
+    }
+
   }
 
   // this actor corresponds to one protocol.Request, and any

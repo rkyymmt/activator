@@ -196,6 +196,12 @@ object SetupSbtChild extends (State => State) {
           client.replyJson(serial, protocol.DiscoveredMainClassesResponse(names = result))
           s
         }
+      case protocol.Envelope(serial, replyTo, protocol.WatchTransitiveSourcesRequest(_)) =>
+        exceptionsToErrorResponse(serial) {
+          val (s, result) = extract(origState).runTask(watchTransitiveSources, origState)
+          client.replyJson(serial, protocol.WatchTransitiveSourcesResponse(files = result))
+          s
+        }
       case protocol.Envelope(serial, replyTo, protocol.CompileRequest(_)) =>
         exceptionsToErrorResponse(serial) {
           val (s, result) = extract(origState).runTask(compile in Compile, origState)

@@ -17,6 +17,8 @@ class MockSbtChildFactory extends SbtChildFactory {
             sender ! protocol.NameResponse("foo")
           case protocol.DiscoveredMainClassesRequest(_) =>
             sender ! protocol.DiscoveredMainClassesResponse(Nil)
+          case protocol.WatchTransitiveSourcesRequest(_) =>
+            sender ! protocol.WatchTransitiveSourcesResponse(Nil)
           case protocol.CompileRequest(_) =>
             sender ! protocol.CompileResponse(success = true)
           case protocol.RunRequest(_, _) =>
