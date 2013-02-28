@@ -4,8 +4,9 @@ define([
 	'./templates',
 	'vendors/keymage.min',
 	'./utils',
-	'vendors/ace/ace'],
-	function(ko, sbt, templates, key, utils, ignore_ace) {
+	'vendors/ace/ace',
+	'./events'],
+	function(ko, sbt, templates, key, utils, ignore_ace, events) {
 //base class for widgets, with convenience.
 //All widget classes should support the following static fields:
 //  id - The identifier of the widget.
@@ -126,6 +127,7 @@ ko.bindingHandlers.ace = {
 		Plugin: Plugin,
 		// TODO - should this be non-public?
 		activeWidget: activeWidget,
-		setActiveWidget: setActiveWidget
+		setActiveWidget: setActiveWidget,
+		events: events
 	};
 });

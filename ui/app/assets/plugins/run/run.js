@@ -27,8 +27,21 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 			this.haveActiveTask = ko.computed(function() {
 				return self.activeTask() != "";
 			}, this);
+			this.rerunOnBuild = ko.observable(false);
 
-			// TODO we need to re-run this on changes (whenever we recompile)
+			api.events.subscribe(function(event) {
+				return event.type == 'CompileSucceeded';
+			},
+			function(event) {
+				self.onCompileSucceeded(event);
+			});
+		},
+		update: function(parameters){
+		},
+		onCompileSucceeded: function(event) {
+			var self = this;
+
+			// update our list of main classes
 			sbt.runTask({
 				task: 'DiscoveredMainClassesRequest',
 				onmessage: function(event) {
@@ -51,18 +64,25 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 							self.currentMainClass(self.mainClasses()[0]);
 					}
 				},
-				failure: function(message) {
+				failure: function(xhr, status, message) {
 					console.log("getting main class failed", message);
 				}
 			});
+
+			if (self.rerunOnBuild() && !self.haveActiveTask()) {
+				self.doRun(true); // true=triggeredByBuild
+			}
 		},
-		update: function(parameters){
-		},
-		startButtonClicked: function(self) {
-			console.log("Run was clicked");
+		doRun: function(triggeredByBuild) {
+			var self = this;
+
 			self.logs.removeAll();
 			self.output.removeAll();
-			self.logs.push("Running...\n");
+			if (triggeredByBuild) {
+				self.logs.push("Build succeeded, running...");
+			} else {
+				self.logs.push("Running...");
+			}
 			var task = { task: 'RunRequest' };
 			if (self.haveMainClass())
 				task.params = { mainClass: self.currentMainClass() };
@@ -108,6 +128,10 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 				}
 			});
 			self.activeTask(taskId);
+		},
+		startButtonClicked: function(self) {
+			console.log("Run was clicked");
+			self.doRun(false); // false=!triggeredByBuild
 		},
 		stopButtonClicked: function(self) {
 			if (self.haveActiveTask()) {

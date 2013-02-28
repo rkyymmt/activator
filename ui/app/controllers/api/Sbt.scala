@@ -22,6 +22,7 @@ import snap.GetTaskActor
 import snap.TaskActorReply
 import snap.NotifyWebSocket
 import java.net.URLEncoder
+import snap.UpdateSourceFiles
 
 object Sbt extends Controller {
   implicit val timeout = Timeout(300.seconds)
@@ -100,6 +101,34 @@ object Sbt extends Controller {
     val resultFuture = AppManager.loadApp(appId) map { app =>
       app.actor ! snap.ForceStopTask(taskId)
       Ok(JsObject(Nil))
+    }
+    Async(resultFuture)
+  }
+
+  // Incoming JSON { "appId" : appId, "taskId" : uuid }
+  // reply body is empty on success or ErrorResponse otherwise
+  // the request causes us to reload the sources from sbt and watch them.
+  def watchSources() = jsonAction { json =>
+    val appId = (json \ "appId").as[String]
+    val taskId = (json \ "taskId").as[String]
+
+    val resultFuture = AppManager.loadApp(appId) flatMap { app =>
+      withTaskActor(taskId, "Finding sources to watch for changes", app) { taskActor =>
+        val taskFuture = sendRequestGettingEvents(snap.Akka.system, app, taskId, taskActor,
+          protocol.WatchTransitiveSourcesRequest(sendEvents = true)) map {
+            case protocol.WatchTransitiveSourcesResponse(files) =>
+              Logger.debug(s"Sending app actor ${files.length} source files")
+              app.actor ! UpdateSourceFiles(files.toSet)
+              Ok
+            case message: protocol.Message =>
+              Ok(scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(message)))
+          }
+        taskFuture.onComplete { value =>
+          Logger.debug(s"Killing task actor for watchSources completed with ${value}")
+          taskActor ! PoisonPill
+        }
+        taskFuture
+      }
     }
     Async(resultFuture)
   }
