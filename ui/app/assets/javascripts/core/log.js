@@ -49,14 +49,10 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 			if ('type' in event && event.type == 'LogEvent') {
 				var message = event.entry.message;
 				var logType = event.entry.type;
-				if (logType == 'stdout') {
-					this.stdout(stripAnsiCodes(message));
-				} else if (logType == 'stderr') {
-					this.stderr(stripAnsiCodes(message));
-				} else if (logType == 'message') {
+				if (logType == 'message') {
 					this.log(event.entry.level, stripAnsiCodes(message));
 				} else {
-					// this handles "success"
+					// this handles "success", "stdout", "stderr"
 					this.log(logType, stripAnsiCodes(message));
 				}
 				return true;
