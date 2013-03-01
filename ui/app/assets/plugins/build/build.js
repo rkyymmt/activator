@@ -38,21 +38,49 @@ define(['text!./build.html', 'core/pluginapi'], function(template, api, streams)
 				}
 			});
 
-			// FIXME we have to re-do this whenever the build changes
-			// or files are added/removed.
+			self.reloadSources(null);
+		},
+		update: function(parameters){
+		},
+		logEvent: function(event) {
+			var self = this;
+			if ('type' in event && event.type == 'LogEvent') {
+				var message = event.entry.message;
+				var logType = event.entry.type;
+				if (logType == 'stdout' || logType == 'stderr') {
+					self.logs.push(stripAnsiCodes(message))
+				} else if (logType == 'message') {
+					self.logs.push(event.entry.level + ": " + stripAnsiCodes(message));
+				} else {
+					self.logs.push(logType + ": " + stripAnsiCodes(message));
+				}
+			} else {
+				self.logs.push("unknown event: " + JSON.stringify(event))
+			}
+		},
+		// after = optional
+		reloadSources: function(after) {
+			var self = this;
+
+			self.logs.push("Refreshing list of source files to watch for changes...");
 			sbt.watchSources({
 				onmessage: function(event) {
 					console.log("event watching sources", event);
+					self.logEvent(event);
 				},
 				success: function(data) {
 					console.log("watching sources result", data);
+					self.logs.push("Will watch " + data.count + " source files.");
+					if (typeof(after) === 'function')
+						after();
 				},
 				failure: function(xhr, status, message) {
 					console.log("watching sources failed", message);
+					self.logs.push("Failed to reload source file list: " + message);
+					if (typeof(after) === 'function')
+						after();
 				}
 			});
-		},
-		update: function(parameters){
 		},
 		afterCompile: function(succeeded) {
 			var self = this;
@@ -62,7 +90,14 @@ define(['text!./build.html', 'core/pluginapi'], function(template, api, streams)
 				self.needCompile(false);
 				self.doCompile();
 			} else if (succeeded) {
-				api.events.send({ 'type' : 'CompileSucceeded' });
+				// asynchronously reload the list of sources in case
+				// they changed. we are trying to serialize sbt usage
+				// here so we only send our event out when we finish
+				// with the reload.
+				self.reloadSources(function() {
+					// notify others
+					api.events.send({ 'type' : 'CompileSucceeded' });
+				});
 			}
 		},
 		doCompile: function() {
@@ -80,19 +115,7 @@ define(['text!./build.html', 'core/pluginapi'], function(template, api, streams)
 			var taskId = sbt.runTask({
 				task: task,
 				onmessage: function(event) {
-					if ('type' in event && event.type == 'LogEvent') {
-						var message = event.entry.message;
-						var logType = event.entry.type;
-						if (logType == 'stdout' || logType == 'stderr') {
-							self.logs.push(stripAnsiCodes(message))
-						} else if (logType == 'message') {
-							self.logs.push(event.entry.level + ": " + stripAnsiCodes(message));
-						} else {
-							self.logs.push(logType + ": " + stripAnsiCodes(message));
-						}
-					} else {
-						self.logs.push("unknown event: " + JSON.stringify(event))
-					}
+					self.logEvent(event);
 				},
 				success: function(data) {
 					console.log("compile result: ", data);
