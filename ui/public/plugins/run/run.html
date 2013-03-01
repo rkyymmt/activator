@@ -10,16 +10,10 @@
            <span data-bind="visible: haveMainClass">| Main class: <select data-bind="options: mainClasses, value: currentMainClass"></select></span>
         </div>
         <header><h1>Output</h1></header>
-        <div>
-            <div data-bind="foreach: output">
-                <div data-bind="text: $data"></div>
-            </div>
+        <div data-bind="template: { name: outputModel.view, data: outputModel }">
         </div>
         <header><h1>Logs</h1></header>
-        <div>
-            <div data-bind="foreach: logs">
-                <div data-bind="text: $data"></div>
-            </div>
+        <div data-bind="template: { name: logModel.view, data: logModel }">
         </div>
     </section>
 </article>

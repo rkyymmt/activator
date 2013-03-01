@@ -1,13 +1,7 @@
-define(['text!./run.html', 'core/pluginapi'], function(template, api){
+define(['text!./run.html', 'core/pluginapi', 'core/log'], function(template, api, log){
 
 	var ko = api.ko;
 	var sbt = api.sbt;
-
-	// if we wanted to be cute we'd convert these to HTML tags perhaps
-	var ansiCodeRegex = new RegExp("\\033\\[[0-9;]+m", "g");
-	var stripAnsiCodes = function(s) {
-		return s.replace(ansiCodeRegex, "");
-	}
 
 	var Run = api.Widget({
 		id: 'play-run-widget',
@@ -16,8 +10,6 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 			var self = this
 
 			this.title = ko.observable("Run");
-			this.logs = ko.observableArray();
-			this.output = ko.observableArray();
 			this.activeTask = ko.observable(""); // empty string or taskId
 			this.mainClasses = ko.observableArray();
 			this.currentMainClass = ko.observable("");
@@ -36,6 +28,9 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 			function(event) {
 				self.onCompileSucceeded(event);
 			});
+
+			this.logModel = new log.Log();
+			this.outputModel = new log.Log();
 		},
 		update: function(parameters){
 		},
@@ -84,15 +79,15 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 		doRun: function(triggeredByBuild) {
 			var self = this;
 
-			self.logs.removeAll();
-			self.output.removeAll();
+			self.logModel.clear();
+			self.outputModel.clear();
 
 			if (triggeredByBuild) {
-				self.logs.push("Build succeeded, running...");
+				self.logModel.info("Build succeeded, running...");
 			} else if (self.restartPending()) {
-				self.logs.push("Restarting...");
+				self.logModel.info("Restarting...");
 			} else {
-				self.logs.push("Running...");
+				self.logModel.info("Running...");
 			}
 
 			self.restartPending(false);
@@ -104,40 +99,36 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 				task: task,
 				onmessage: function(event) {
 					if ('type' in event && event.type == 'LogEvent') {
-						var message = event.entry.message;
 						var logType = event.entry.type;
 						if (logType == 'stdout' || logType == 'stderr') {
-							self.output.push(stripAnsiCodes(message))
-						} else if (logType == 'message') {
-							self.logs.push(event.entry.level + ": " + stripAnsiCodes(message));
+							self.outputModel.event(event);
 						} else {
-							self.logs.push(logType + ": " + stripAnsiCodes(message));
+							self.logModel.event(event);
 						}
 					} else if ('type' in event && event.type == 'Started') {
 						// our request went to a fresh sbt, and we witnessed its startup.
 						// we may not get this event if an sbt was recycled.
 						// we move "output" to "logs" because the output is probably
 						// just sbt startup messages that were not redirected.
-						ko.utils.arrayPushAll(self.logs, self.output.removeAll());
-						self.logs.valueHasMutated();
+						self.logModel.moveFrom(self.outputModel);
 					} else {
-						self.logs.push("unknown event: " + JSON.stringify(event))
+						self.logModel.warn("unknown event: " + JSON.stringify(event))
 					}
 				},
 				success: function(data) {
 					console.log("run result: ", data);
 					if (data.type == 'ErrorResponse') {
-						self.logs.push(data.error);
+						self.logModel.error(data.error);
 					} else if (data.type == 'RunResponse') {
-						self.logs.push('Run complete.');
+						self.logModel.info('Run complete.');
 					} else {
-						self.logs.push('Unexpected reply: ' + JSON.stringify(data));
+						self.logModel.error('Unexpected reply: ' + JSON.stringify(data));
 					}
 					self.doAfterRun();
 				},
 				failure: function(xhr, status, message) {
 					console.log("run failed: ", status, message)
-					self.logs.push("HTTP request failed: " + message);
+					self.logModel.error("HTTP request failed: " + message);
 					self.doAfterRun();
 				}
 			});
@@ -153,7 +144,7 @@ define(['text!./run.html', 'core/pluginapi'], function(template, api){
 					},
 					failure: function(xhr, status, message) {
 						console.log("kill failed: ", status, message)
-						self.logs.push("HTTP request to kill task failed: " + message)
+						self.logModel.error("HTTP request to kill task failed: " + message)
 					}
 				});
 			}
