@@ -1,5 +1,3 @@
-<div class="log">
-    <div data-bind="foreach: logs">
-        <div><span data-bind="text: level"></span>: <span data-bind="text: message"></span></div>
-    </div>
+<div class="log" data-bind="foreach: logs">
+    <div data-bind="css: level"><span class="level"></span> <span class="message" data-bind="text: message"></span></div>
 </div>
