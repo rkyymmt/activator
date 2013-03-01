@@ -1,4 +1,4 @@
-define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(template, css, api) {
+define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], function(template, css, api, log) {
 	var ko = api.ko;
 	var sbt = api.sbt;
 
@@ -10,15 +10,6 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 		// PENDING doesn't arrive from server, it's just a state we use locally
 		PENDING: 'pending'
 	};
-
-	// TODO - Copy-pasted from run.  We should move this to a util library *OR* just
-	// not do it at all.
-	// if we wanted to be cute we'd convert these to HTML tags perhaps
-	var ansiCodeRegex = new RegExp("\\033\\[[0-9;]+m", "g");
-	var stripAnsiCodes = function(s) {
-		return s.replace(ansiCodeRegex, "");
-	}
-
 
 	// TODO - Other widgety things here.
 	var TestResult = api.Class({
@@ -50,8 +41,8 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 			var self = this;
 			self.results = ko.observableArray();
 			self.testStatus = ko.observable('Waiting to test');
-			self.logs = ko.observableArray();
 			self.waiting = ko.observable(false);
+			self.logModel = new log.Log();
 			// TODO - Store state beyond the scope of this widget!
 			// We should probably be listening to tests *always*
 			// and displaying latest status *always*.
@@ -110,16 +101,10 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi'], function(templa
 				onmessage: function(event) {
 					if('type' in event && event.type == 'TestEvent') {
 						self.updateTest(event);
-					} else if ('type' in event && event.type == 'LogEvent') {
-						var message = event.entry.message;
-						var logType = event.entry.type;
-						if (logType == 'stdout' || logType == 'stderr') {
-							self.logs.push(stripAnsiCodes(message))
-						} else if (logType == 'message') {
-							self.logs.push(event.entry.level + ": " + stripAnsiCodes(message));
-						} else {
-							self.logs.push(logType + ": " + stripAnsiCodes(message));
-						}
+					} else if (self.logModel.event(event)) {
+						// it was a log event
+					} else {
+						console.log("unknown event: ", event);
 					}
 					// TODO - Should we show logs?
 					// TODO - Should we be able to query for test console output?
