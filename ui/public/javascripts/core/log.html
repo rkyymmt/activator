@@ -1,5 +1,5 @@
 <div class="log">
     <div data-bind="foreach: logs">
-        <div data-bind="text: $data"></div>
+        <div><span data-bind="text: level"></span>: <span data-bind="text: message"></span></div>
     </div>
 </div>

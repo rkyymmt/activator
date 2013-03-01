@@ -15,7 +15,7 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 			this.logs = ko.observableArray();
 		},
 		log: function(level, message) {
-			this.logs.push(level + ": " + message)
+			this.logs.push({ level: level, message: message });
 		},
 		debug: function(message) {
 			this.log("debug", message);
@@ -30,10 +30,10 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 			this.log("error", message);
 		},
 		stderr: function(message) {
-			this.logs.push(message);
+			this.log("stderr", message);
 		},
 		stdout: function(message) {
-			this.logs.push(message);
+			this.log("stdout", message);
 		},
 		clear: function() {
 			return this.logs.removeAll();
