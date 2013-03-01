@@ -2,11 +2,35 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 
 	var ko = api.ko;
 
+	// TODO we should move both the ANSI stripping and the heuristic
+	// parseLogLevel to the server side. We could also use
+	// Djline.terminal=jline.UnsupportedTerminal when we launch
+	// sbt on the server to avoid stripping ansi codes.
+
+	var ansiCodeString = "\\033\\[[0-9;]+m";
 	// if we wanted to be cute we'd convert these to HTML tags perhaps
-	var ansiCodeRegex = new RegExp("\\033\\[[0-9;]+m", "g");
-	var stripAnsiCodes = function(s) {
+	var ansiCodeRegex = new RegExp(ansiCodeString, "g");
+	function stripAnsiCodes(s) {
 		return s.replace(ansiCodeRegex, "");
 	}
+
+	var logLevelWithCodesRegex = new RegExp("^" + ansiCodeString + "\[" +
+			ansiCodeString + "(debug|info|warn|error|success)" +
+			ansiCodeString + "\] (.*)");
+	var logLevelRegex = new RegExp("^\[(debug|info|warn|error|success)\] (.*)");
+	function parseLogLevel(level, message) {
+		if (level == 'stdout' || level == 'stderr') {
+			var m = logLevelWithCodesRegex.exec(message);
+			if (m !== null) {
+				return { level: m[1], message: m[2] };
+			}
+			m = logLevelRegex.exec(message);
+			if (m !== null) {
+				return { level: m[1], message: m[2] };
+			}
+		}
+		return { level: level, message: message };
+	};
 
 	var Log = api.Widget({
 		id: 'log-widget',
@@ -52,8 +76,15 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 				if (logType == 'message') {
 					this.log(event.entry.level, stripAnsiCodes(message));
 				} else {
-					// this handles "success", "stdout", "stderr"
-					this.log(logType, stripAnsiCodes(message));
+					if (logType == 'success') {
+						this.log(logType, stripAnsiCodes(message));
+					} else {
+						// sometimes we get stuff on stdout/stderr before
+						// we've intercepted sbt's logger, so try to parse
+						// the log level out of the [info] that sbt prepends.
+						var m = parseLogLevel(logType, message);
+						this.log(m.level, stripAnsiCodes(m.message));
+					}
 				}
 				return true;
 			} else {
