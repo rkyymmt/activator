@@ -5,20 +5,15 @@
         <div>
            <button class="start" data-bind="disable: haveActiveTask, click: startButtonClicked">Start</button>
            <button class="stop" data-bind="enable: haveActiveTask, click: stopButtonClicked">Stop</button>
+           <button class="restart" data-bind="enable: haveActiveTask() && !restartPending(), click: restartButtonClicked">Restart</button>
            <input type="checkbox" data-bind="checked: rerunOnBuild">Re-run on successful build</input>
            <span data-bind="visible: haveMainClass">| Main class: <select data-bind="options: mainClasses, value: currentMainClass"></select></span>
         </div>
         <header><h1>Output</h1></header>
-        <div>
-            <div data-bind="foreach: output">
-                <div data-bind="text: $data"></div>
-            </div>
+        <div data-bind="template: { name: outputModel.view, data: outputModel }">
         </div>
         <header><h1>Logs</h1></header>
-        <div>
-            <div data-bind="foreach: logs">
-                <div data-bind="text: $data"></div>
-            </div>
+        <div data-bind="template: { name: logModel.view, data: logModel }">
         </div>
     </section>
 </article>

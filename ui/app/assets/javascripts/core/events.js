@@ -13,7 +13,7 @@ define(function() {
 
 	function unsubscribe(id) {
 		subscribers = $.grep(subscribers, function(subscriber, index) {
-			return subscriber.id === id;
+			return subscriber.id !== id;
 		});
 	}
 

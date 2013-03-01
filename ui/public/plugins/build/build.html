@@ -8,10 +8,7 @@
            <input type="checkbox" data-bind="checked: rebuildOnChange">Rebuild on change</input>
         </div>
         <header><h1>Logs</h1></header>
-        <div>
-            <div data-bind="foreach: logs">
-                <div data-bind="text: $data"></div>
-            </div>
+        <div data-bind="template: { name: logModel.view, data: logModel }">
         </div>
     </section>
 </article>

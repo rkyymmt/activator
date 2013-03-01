@@ -106,8 +106,11 @@ object Sbt extends Controller {
   }
 
   // Incoming JSON { "appId" : appId, "taskId" : uuid }
-  // reply body is empty on success or ErrorResponse otherwise
   // the request causes us to reload the sources from sbt and watch them.
+  // This is only its own API (vs. "task" above) because we are
+  // trying to avoid sending the potentially big list of source files
+  // to the client and back. We still want the client to control when
+  // we refresh the list, though.
   def watchSources() = jsonAction { json =>
     val appId = (json \ "appId").as[String]
     val taskId = (json \ "taskId").as[String]
@@ -117,9 +120,11 @@ object Sbt extends Controller {
         val taskFuture = sendRequestGettingEvents(snap.Akka.system, app, taskId, taskActor,
           protocol.WatchTransitiveSourcesRequest(sendEvents = true)) map {
             case protocol.WatchTransitiveSourcesResponse(files) =>
-              Logger.debug(s"Sending app actor ${files.length} source files")
-              app.actor ! UpdateSourceFiles(files.toSet)
-              Ok
+              val filesSet = files.toSet
+              Logger.debug(s"Sending app actor ${filesSet.size} source files")
+              app.actor ! UpdateSourceFiles(filesSet)
+              Ok(JsObject(Seq("type" -> JsString("WatchTransitiveSourcesResponse"),
+                "count" -> JsNumber(filesSet.size))))
             case message: protocol.Message =>
               Ok(scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(message)))
           }

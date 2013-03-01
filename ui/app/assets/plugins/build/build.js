@@ -1,13 +1,7 @@
-define(['text!./build.html', 'core/pluginapi'], function(template, api, streams){
+define(['text!./build.html', 'core/pluginapi', 'core/log'], function(template, api, log){
 
 	var ko = api.ko;
 	var sbt = api.sbt;
-
-	// if we wanted to be cute we'd convert these to HTML tags perhaps
-	var ansiCodeRegex = new RegExp("\\033\\[[0-9;]+m", "g");
-	var stripAnsiCodes = function(s) {
-		return s.replace(ansiCodeRegex, "");
-	}
 
 	var Build = api.Widget({
 		id: 'build-widget',
@@ -16,13 +10,14 @@ define(['text!./build.html', 'core/pluginapi'], function(template, api, streams)
 			var self = this
 
 			this.title = ko.observable("Build");
-			this.logs = ko.observableArray();
 			this.activeTask = ko.observable(""); // empty string or taskId
 			this.haveActiveTask = ko.computed(function() {
 				return self.activeTask() != "";
 			}, this);
 			this.needCompile = ko.observable(false);
 			this.rebuildOnChange = ko.observable(true);
+
+			this.logModel = new log.Log();
 
 			api.events.subscribe(function(event) {
 				return event.type == 'FilesChanged';
@@ -38,21 +33,33 @@ define(['text!./build.html', 'core/pluginapi'], function(template, api, streams)
 				}
 			});
 
-			// FIXME we have to re-do this whenever the build changes
-			// or files are added/removed.
+			self.reloadSources(null);
+		},
+		update: function(parameters){
+		},
+		// after = optional
+		reloadSources: function(after) {
+			var self = this;
+
+			self.logModel.info("Refreshing list of source files to watch for changes...");
 			sbt.watchSources({
 				onmessage: function(event) {
 					console.log("event watching sources", event);
+					self.logModel.event(event);
 				},
 				success: function(data) {
 					console.log("watching sources result", data);
+					self.logModel.info("Will watch " + data.count + " source files.");
+					if (typeof(after) === 'function')
+						after();
 				},
 				failure: function(xhr, status, message) {
 					console.log("watching sources failed", message);
+					self.logModel.warn("Failed to reload source file list: " + message);
+					if (typeof(after) === 'function')
+						after();
 				}
 			});
-		},
-		update: function(parameters){
 		},
 		afterCompile: function(succeeded) {
 			var self = this;
@@ -62,7 +69,14 @@ define(['text!./build.html', 'core/pluginapi'], function(template, api, streams)
 				self.needCompile(false);
 				self.doCompile();
 			} else if (succeeded) {
-				api.events.send({ 'type' : 'CompileSucceeded' });
+				// asynchronously reload the list of sources in case
+				// they changed. we are trying to serialize sbt usage
+				// here so we only send our event out when we finish
+				// with the reload.
+				self.reloadSources(function() {
+					// notify others
+					api.events.send({ 'type' : 'CompileSucceeded' });
+				});
 			}
 		},
 		doCompile: function() {
@@ -74,42 +88,30 @@ define(['text!./build.html', 'core/pluginapi'], function(template, api, streams)
 				return;
 			}
 
-			self.logs.removeAll();
-			self.logs.push("Building...\n");
+			self.logModel.clear();
+			self.logModel.info("Building...");
 			var task = { task: 'CompileRequest' };
 			var taskId = sbt.runTask({
 				task: task,
 				onmessage: function(event) {
-					if ('type' in event && event.type == 'LogEvent') {
-						var message = event.entry.message;
-						var logType = event.entry.type;
-						if (logType == 'stdout' || logType == 'stderr') {
-							self.logs.push(stripAnsiCodes(message))
-						} else if (logType == 'message') {
-							self.logs.push(event.entry.level + ": " + stripAnsiCodes(message));
-						} else {
-							self.logs.push(logType + ": " + stripAnsiCodes(message));
-						}
-					} else {
-						self.logs.push("unknown event: " + JSON.stringify(event))
-					}
+					self.logModel.event(event);
 				},
 				success: function(data) {
 					console.log("compile result: ", data);
 					self.activeTask("");
 					if (data.type == 'ErrorResponse') {
-						self.logs.push(data.error);
+						self.logModel.error(data.error);
 					} else if (data.type == 'CompileResponse') {
-						self.logs.push('Compile complete.');
+						self.logModel.info('Compile complete.');
 					} else {
-						self.logs.push('Unexpected reply: ' + JSON.stringify(data));
+						self.logModel.error('Unexpected reply: ' + JSON.stringify(data));
 					}
 					self.afterCompile(true); // true=success
 				},
 				failure: function(xhr, status, message) {
 					console.log("compile failed: ", status, message)
 					self.activeTask("");
-					self.logs.push("HTTP request failed: " + message);
+					self.logModel.error("HTTP request failed: " + message);
 					self.afterCompile(false); // false=failed
 				}
 			});
@@ -124,7 +126,7 @@ define(['text!./build.html', 'core/pluginapi'], function(template, api, streams)
 					},
 					failure: function(xhr, status, message) {
 						console.log("kill failed: ", status, message)
-						self.logs.push("HTTP request to kill task failed: " + message)
+						self.logModel.error("HTTP request to kill task failed: " + message)
 					}
 				});
 			}
