@@ -67,6 +67,12 @@ class DemoTemplateCache() extends TemplateCache {
         name = "Hello Scala!",
         version = "1.0",
         description = """Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way.  This very simple Scala application will get you started building and testing standalone Scala apps.  This app uses Scala 2.10 and ScalaTest.""",
+        tags = Seq("scala", "starter")),
+      TemplateMetadata(
+        id = "c63e1fe7748dcebdc0fc0243685e5ae6d1ec4072",
+        name = "Hello Play Framework (Java)",
+        version = "1.0",
+        description = """Play Framework is the High Velocity Web Framework for Java and Scala.  Play is based on a lightweight, stateless, web-friendly architecture.  Built on Akka, Play provides predictable and minimal resource comsumption (CPU, memory, threads) for highly-scalable applications.  This app uses Play Framework 2.1 and Java.""",
         tags = Seq("play", "java", "starter")))
 
   private val index: Map[String, TemplateMetadata] = (metadata map (m => m.id -> m)).toMap
