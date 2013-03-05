@@ -15,7 +15,7 @@ sealed trait AppRequest
 
 case class GetTaskActor(id: String, description: String) extends AppRequest
 case object CreateWebSocket extends AppRequest
-case class NotifyWebSocket(json: JsValue) extends AppRequest
+case class NotifyWebSocket(json: JsObject) extends AppRequest
 case object InitialTimeoutExpired extends AppRequest
 case class ForceStopTask(id: String) extends AppRequest
 case class UpdateSourceFiles(files: Set[File]) extends AppRequest
@@ -90,7 +90,11 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
           socket.tell(GetWebSocket, sender)
         }
       case notify: NotifyWebSocket =>
-        socket.forward(notify)
+        if (validateEvent(notify.json)) {
+          socket.forward(notify)
+        } else {
+          log.error("Attempt to send invalid event {}", notify.json)
+        }
       case InitialTimeoutExpired =>
         if (!webSocketCreated) {
           log.warning("Nobody every connected to {}, killing it", config.id)
@@ -109,7 +113,24 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
       case FilesChanged =>
         socket ! NotifyWebSocket(JsObject(Seq("type" -> JsString("FilesChanged"))))
     }
+  }
 
+  private def validateEvent(json: JsObject): Boolean = {
+    // we need either a toplevel "type" or a toplevel "taskId"
+    // and then a nested "event" with a "type"
+    val hasType = json \ "type" match {
+      case JsString(t) => true
+      case _ => false
+    }
+    val hasTaskId = json \ "taskId" match {
+      case JsString(t) =>
+        json \ "event" \ "type" match {
+          case JsString(t) => true
+          case _ => false
+        }
+      case _ => false
+    }
+    hasType || hasTaskId;
   }
 
   // this actor corresponds to one protocol.Request, and any
