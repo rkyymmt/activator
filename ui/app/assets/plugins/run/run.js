@@ -98,14 +98,14 @@ define(['text!./run.html', 'core/pluginapi', 'core/log'], function(template, api
 			var taskId = sbt.runTask({
 				task: task,
 				onmessage: function(event) {
-					if ('type' in event && event.type == 'LogEvent') {
+					if (event.type == 'LogEvent') {
 						var logType = event.entry.type;
 						if (logType == 'stdout' || logType == 'stderr') {
 							self.outputModel.event(event);
 						} else {
 							self.logModel.event(event);
 						}
-					} else if ('type' in event && event.type == 'Started') {
+					} else if (event.type == 'Started') {
 						// our request went to a fresh sbt, and we witnessed its startup.
 						// we may not get this event if an sbt was recycled.
 						// we move "output" to "logs" because the output is probably

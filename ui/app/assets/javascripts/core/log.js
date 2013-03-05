@@ -70,7 +70,7 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 		},
 		// returns true if it was a log event
 		event: function(event) {
-			if ('type' in event && event.type == 'LogEvent') {
+			if (event.type == 'LogEvent') {
 				var message = event.entry.message;
 				var logType = event.entry.type;
 				if (logType == 'message') {
