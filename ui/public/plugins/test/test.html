@@ -1,8 +1,10 @@
 <article class="list test" data-width="3">
     <header><h1>Tests</h1>
-    	<p><span data-bind="text: resultStats().passed"></span> Passed, <span data-bind="text: resultStats().failed"></span> Failed</p>
-    	<button class="run-button" data-bind="click: runTests, disable: waiting">Run Tests</button>
-    	<input type="checkbox">Run tests on change (not implemented)</a>
+        <button class="start" data-bind="disable: haveActiveTask, click: startButtonClicked">Start</button>
+        <button class="stop" data-bind="enable: haveActiveTask, click: stopButtonClicked">Stop</button>
+        <button class="restart" data-bind="enable: haveActiveTask() && !restartPending(), click: restartButtonClicked">Restart</button>
+        <input type="checkbox" data-bind="checked: rerunOnBuild">Re-test on successful build</input>
+        <p><span data-bind="text: resultStats().passed"></span> Passed, <span data-bind="text: resultStats().failed"></span> Failed</p>
     </header>
     <footer><p data-bind="text: testStatus"></p></footer>
     <section class="wrapper">
