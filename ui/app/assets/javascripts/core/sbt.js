@@ -14,15 +14,15 @@ define(['./streams', './events'], function(streams, events) {
 				});
 			} else {
 				// Just forward everything on.
-			$.each(taskSubscribers, function(index, subscriber) {
-				if (subscriber.taskId == obj.taskId) {
-					try {
-						subscriber.handler(obj.event);
-					} catch(e) {
-						console.log("handler for " + subscriber.taskId + " failed", e);
+				$.each(taskSubscribers, function(index, subscriber) {
+					if (subscriber.taskId == obj.taskId) {
+						try {
+							subscriber.handler(obj.event);
+						} catch(e) {
+							console.log("handler for " + subscriber.taskId + " failed", e);
+						}
 					}
-				}
-			});
+				});
 			}
 	}
 
