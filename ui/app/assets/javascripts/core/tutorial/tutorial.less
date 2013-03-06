@@ -50,14 +50,18 @@ aside.tutorial {
 			color: #6F7F89;
 		}
 		ul {
+			display: none;
 			position: absolute;
 			top: 100px;
-			right: 0;
+			right: 40px;
+			left: 40px;
 			background: white;
-			width: 100%;
-			height: 0;
+			max-height: 300px;
 			overflow: auto;
+			box-shadow: 0 2px 5px rgba(0,0,0,.2);
 			li {
+				position: relative;
+				z-index: 9999;
 				padding: 5px 10px;
 				border-bottom: 1px solid #eee;
 				cursor: pointer;
@@ -66,9 +70,21 @@ aside.tutorial {
 					color: #fff;
 				}
 			}
-		}
-		ul.open {
-			height: 100%;
+			span.step {
+				opacity: .5;
+			}
+			&.open {
+				display: block;
+				&:after {
+					content: " ";
+					position: fixed;
+					top: 0;
+					left: 0;
+					bottom: 0;
+					right: 0;
+					z-index: 9990;
+				}
+			}
 		}
 	}
 	a.button {

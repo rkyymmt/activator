@@ -1,6 +1,6 @@
 <header>
 	<nav>
-		<dl class="dropdown">
+		<dl class="dropdown" todo>
 			<dt>+</dt>
 			<dd>
 				<p>Add in current directory...</p>
@@ -10,9 +10,13 @@
 		</dl>
 	</nav>
 	<h1 data-bind="text: name"></h1>
-	<p class="breadcrumb subheader">
-		<a href="#">home</a>
-	</p>
+	<div class="breadcrumb subheader" todo>
+		<p class="wrap">
+			<span class="slash">/</span><a href="#">home</a>
+			<span class="slash">/</span><a href="#">app</a>
+			<span class="slash">/</span><a href="#">assets</a>
+		</p>
+	</div>
 </header>
 <footer><p data-bind="text: status"></p></footer>
 <p style="display:none" data-bind="visible: isEmpty">Empty folder</p>

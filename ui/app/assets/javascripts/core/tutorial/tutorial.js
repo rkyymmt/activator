@@ -67,9 +67,8 @@ define(['css!./tutorial.css', 'core/pluginapi'], function(css, api){
 	tuts.find("h1").click(function(){
 		tuts.find("ul").toggleClass("open");
 	});
-	tuts.on("click","ul li", function(e){
+	tuts.on("click","ul, ul li", function(e){
 		tuts.find("ul").toggleClass("open");
-		console.log(e)
 		display( $(e.currentTarget).index() )
 	});
 	// BAAAAAAD

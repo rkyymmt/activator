@@ -1,51 +1,82 @@
 <article class="run">
-    <div class="container">
-        <div class="menu">
-            <header>
-                <nav>
-                    <a href="#">Open in browser</a>
-                    <button data-popup="runoptions">Options</a>
-                    <div id="runoptions">
-                        Run: <a href="#">MainClass (not implemented)</a> <input type="checkbox">Reload on change (not implemented)</a> <button class="start" data-bind="click: runButtonClicked">Start</button>
-                        <button class="stop">Stop (not implemented)</button>
-                    <div>
-                </nav>
-                <h1><a href="#">Run</a> Application</h1>
-                <p class="subheader">
-                    <!--
-                   Run: <a href="#">MainClass (not implemented)</a> <input type="checkbox">Reload on change (not implemented)</a> <button class="start" data-bind="click: runButtonClicked">Start</button>
-                   <button class="stop">Stop (not implemented)</button>
-                    -->
-                    <a href="#run/output" data-bind="css:{active: tab() == 'output'}">Output</a>
-                    <a href="#run/logs" data-bind="css:{active: tab() == 'logs'}">Logs</a>
-                    <a href="#run/monitor" data-bind="css:{active: tab() == 'monitor'}">JSON monitor</a>
-                </p>
-            </header>
-        </div>
+	<div class="container">
+		<div class="menu">
+			<header>
+				<nav>
+					<a href="#" todo>Open in browser</a>
+					<dl class="dropdown" todo>
+						<dt>options</dt>
+						<dd>
+							<p>Run options...</p>
+							<a href="#todo">MainClass</a>
+							<label todo><input type="checkbox">Reload on change</label>
+						</dd>
+					</dl>
+					<button class="start" data-bind="click: runButtonClicked">Start</button>
+					<button class="stop" todo>Stop</button>
+				</nav>
+				<h1><a href="#">Run</a> Application</h1>
+				<p class="subheader">
+					<!--
+				   Run: <a href="#">MainClass (not implemented)</a> <input type="checkbox">Reload on change (not implemented)</a> <button class="start" data-bind="click: runButtonClicked">Start</button>
+				   <button class="stop">Stop (not implemented)</button>
+					-->
+					<a href="#run/output" data-bind="css:{active: tab() == 'output'}">Output</a>
+					<a href="#run/logs" data-bind="css:{active: tab() == 'logs'}">Logs</a>
+				</p>
+			</header>
+		</div>
 
-        <div id="output" class="runapp" data-bind="visible: tab() == 'output'">
-            lol
-            <br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol
-            <div data-bind="foreach: output">
-                <div data-bind="text: $data"></div>
-            </div>
-        </div>
+		<div id="output" class="runapp" data-bind="visible: tab() == 'output'">
+			<ul class="outputList">
+<li>Compiled in 138msSequences of whitespace will collapse into a single whitespace.
+Text will wrap when necessary. This is default	Play it »
+nowrap	Sequences of whitespace will collapse into a single whitespace. Text will never wrap to the next line. The text continues on the same line</li>
+			</ul>
+			<ul class="outputList" data-bind="foreach: output">
+				<li data-bind="text: $data"></li>
+<li>Compiled in 138msSequences of whitespace will collapse into a single whitespace.
+Text will wrap when necessary. This is default	Play it »
+nowrap	Sequences of whitespace will collapse into a single whitespace. Text will never wrap to the next line. The text continues on the same line</li>
+			</ul>
+		</div>
 
-        <div id="logs" class="runapp" data-bind="visible: tab() == 'logs'">
-            lil
-            <div data-bind="foreach: logs">
-                <div data-bind="text: $data"></div>
-            </div>
-        </div>
+		<div id="logs" class="runapp" data-bind="visible: tab() == 'logs'">
+			<!--<ul class="logsList" data-bind="foreach: logs">
+				<li data-bind="text: $data">
+					<h2></h2>
+					<pre></pre>
+				</li>
+			</ul>-->
+			<ul class="logsList">
+				<li class="success">
+					<h2><strong>Compilation success:</strong> explaination</h2>
+					<pre>
+Compiled in 138msSequences of whitespace will collapse into a single whitespace.
+Text will wrap when necessary. This is default	Play it »
+nowrap	Sequences of whitespace will collapse into a single whitespace. Text will never wrap to the next line. The text continues on the same line</pre>
+				</li>
+				<li class="error">
+					<h2><strong>Compilation error</strong></h2>
+					<pre>
+Compiled in 138ms</pre>
+				</li>
+				<li class="warning">
+					<h2><strong>Compilation warning</strong></h2>
+					<pre>
+Compiled in 138ms</pre>
+				</li>
+				<li class="info">
+					<h2><strong>Compilation information</strong></h2>
+					<pre>
+Compiled in 138ms</pre>
+				</li>
+				<li class="dead">
+					<h2>DEAD</h2>
+				</li>
+				<li class="reload">Reload</li>
+			</ul>
+		</div>
 
-        <div id="monitor" class="runapp" data-bind="visible: tab() == 'monitor'">
-            lul
-            <div class="menu">
-                
-            </div>
-            <div class="response">
-                
-            </div>
-        </div>
-    </div>
+	</div>
 </article>

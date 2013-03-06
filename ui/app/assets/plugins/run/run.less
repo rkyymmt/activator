@@ -1,3 +1,6 @@
+/*
+test
+*/
 .run .subheader {
 	a {
 		display: block;
@@ -17,3 +20,59 @@
 	bottom: 0;
 	overflow: auto;
 }
+
+.outputList {
+	li {
+		padding: 10px 20px;
+		border-bottom: 1px solid #E4EAEF;
+		font-family: Monaco, monospace;
+		font-size: 12px;
+		color: #6F7F89;
+		line-height: 16px;
+	}
+
+
+}
+
+.logsList {
+
+	li {
+		padding: 10px 20px;
+		border-bottom: 1px solid #E4EAEF;
+		h2 {
+			font-weight: 900;
+			font-size: 14px;
+		}
+	}
+
+	li.success strong { color: #4BA300; }
+	li.error strong { color: #E25758; }
+	li.warning strong { color: #F89614; }
+	li.information strong { color: #E25758; }
+
+	li.reload {
+		color: #fff !important;
+		background: #53cdec !important;
+	}
+	li.dead {
+		color: #fff !important;
+		background: #E25758 !important;
+	}
+
+	pre {
+		font-family: Monaco, monospace;
+		font-size: 12px;
+		color: #6F7F89;
+		line-height: 16px;
+		overflow: auto;
+	}
+	&.wrapLines pre {
+		white-space: nowrap;
+		width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+}
+
+

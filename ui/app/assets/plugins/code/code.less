@@ -11,12 +11,25 @@
 		}
 	}
 	.breadcrumb {
+		font-weight: 900;
+		.wrap {
+			float: right;
+			white-space: nowrap;
+			text-align: left;
+			min-width: 100%;
+		}
 		a {
 			display: inline-block;
-			color: rgba(255,255,255,.5);
+			color: #fff;
 			&:last-child span {
 				color: #fff;
 			}
+		}
+		.slash {
+			color: rgba(255,255,255,.5);
+			padding-right: 5px;
+			font-size: 16px;
+			vertical-align: -2px;
 		}
 	}
 	
@@ -84,3 +97,4 @@ div.code-editor {
 	font: 12px "Monaco", monospace;
 	background: url(/public/images/code-line.png) 10px 10px;
 }
+

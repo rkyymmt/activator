@@ -1,7 +1,7 @@
 <!-- ko if: isFile() -->
 <header>
 	<nav>
-		<dl class="dropdown">
+		<dl class="dropdown" todo>
 			<dt>Open with...</dt>
 			<dd>
 				<p>Your favorite editor</p>
@@ -14,11 +14,11 @@
 	</nav>
 	<h1 data-bind='text: title'></h1>
 	<p class="subheader">
-		 Plain text  /  4 lines  /  0.1 kb
+		 Plain text  /  4 lines  /  0.1 kb<span todo></span>
 	</p>
 </header>
 <footer>
-	<p>/Users/full/path/to/document</p>
+	<p todo>/Users/full/path/to/document</p>
 </footer>
 <div class="wrapper" data-bind="template: { name: subView().id, data: subView(), afterRender: subView().onRender }"></div>
 <!-- /ko -->
