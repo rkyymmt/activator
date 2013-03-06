@@ -1,6 +1,14 @@
 <!-- ko if: isFile() -->
 <header>
 	<nav>
+		<dl class="dropdown">
+			<dt>Open with...</dt>
+			<dd>
+				<p>Your favorite editor</p>
+				<a href="#">Eclipse</a>
+				<a href="#">Configure a new one...</a>
+			</dd>
+		</dl>
 		<button class="revert" data-bind="click: subView().load, enable: subView().isDirty">revert</button>
 		<button class="save" data-bind="click: subView().save, enable: subView().isDirty">save</button>
 	</nav>
@@ -9,5 +17,8 @@
 		 Plain text  /  4 lines  /  0.1 kb
 	</p>
 </header>
+<footer>
+	<p>/Users/full/path/to/document</p>
+</footer>
 <div class="wrapper" data-bind="template: { name: subView().id, data: subView(), afterRender: subView().onRender }"></div>
 <!-- /ko -->

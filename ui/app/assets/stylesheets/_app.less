@@ -26,10 +26,10 @@ article h1 {
 	.ellipsis();
 }
 
-article nav {
+article header nav {
 	float: right;
 	padding: 15px 10px;
-	a, button {
+	a, button, dt {
 		background: none;
 		color: #fff;
 		display: inline-block;
@@ -37,6 +37,7 @@ article nav {
 		margin: 0 5px;
 		border: 1px solid rgba(255,255,255,.5);
 		border-radius: 3px;
+		cursor: pointer;
 		&:hover {
 			background: #fff;
 			color: #53cdec;
@@ -47,6 +48,71 @@ article nav {
 			color: rgba(255,255,255,.5);
 		}
 	}
+	dl.dropdown {
+		position: relative;
+		display: inline-block;
+		&.active dt {
+			background: #fff;
+			color: #53cdec;
+		}
+		dt:after {
+			content: "▾";
+			padding-left: 3px;
+		}
+		&.active:after {
+			content: " ";
+			position: fixed;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			right: 0;
+			z-index: 9990;
+		}
+		p {
+			margin: 5px 0;
+		}
+		dd {
+			display: none;
+			position: absolute;
+			top: 100%;
+			left: 50%;
+			margin-top: 10px;
+			margin-left: -100px;
+			width: 200px;
+			background: #fff;
+			z-index: 9999;
+			border-radius: 3px;
+			box-shadow: 0 1px 3px rgba(0,0,0,.2);
+			color: #999;
+			padding: 10px;
+			a {
+				margin: 0;
+				color: #53cdec;
+				display: block;
+				padding: 4px 0;
+				&:hover {
+					color: #246C7E;
+				}
+			}
+			&:before {
+				content: " ";
+				position: absolute;
+				left: 50%;
+				top: 0;
+				width: 0px;
+				height: 0px;
+				border-style: solid;
+				border-width: 0 7px 7px 7px;
+				margin-top: -7px;
+				margin-left: -7px;
+				border-color: transparent transparent #fff transparent;
+			}
+		}
+		&.active dd {
+			display: block;
+		}
+	}
+	
 }
 
 article header .subheader {
@@ -72,7 +138,7 @@ article footer {
 	line-height: 20px;
 	background: #F9EEB5;
 	color: #6F642E;
-	z-index: 1000;
+	z-index: 5;
 }
 article footer > * {
 	float: left;

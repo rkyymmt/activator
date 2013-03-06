@@ -1,34 +1,25 @@
-<article class="list test" data-width="3">
-    <header><h1>Tests</h1>
-        <button class="start" data-bind="disable: haveActiveTask, click: startButtonClicked">Start</button>
-        <button class="stop" data-bind="enable: haveActiveTask, click: stopButtonClicked">Stop</button>
-        <button class="restart" data-bind="enable: haveActiveTask() && !restartPending(), click: restartButtonClicked">Restart</button>
-        <input type="checkbox" data-bind="checked: rerunOnBuild">Re-test on successful build</input>
-        <p><span data-bind="text: resultStats().passed"></span> Passed, <span data-bind="text: resultStats().failed"></span> Failed</p>
+<article class="test">
+    <header>
+        <h1>Tests!</h1>
+        <p class="subheader">
+            <button class="run-button" data-bind="click: runTests, disable: waiting">Run Tests</button>
+            <button class="select-button" data-bind="click: filterTests, text: filterTestsText"></button>
+        </p>
     </header>
-    <footer><p data-bind="text: testStatus"></p></footer>
     <section class="wrapper">
-    <div class="results">
-    	<h1>Results</h1>
-    	<table class="testResults" data-bind="if: hasResults">
-    		<thead>
-	    		<tr>
-    				<th class="result">Result</th>
-        	        <th class="name">Test</th>
-    			</tr>
-    		</thead>
-    		<tbody data-bind="foreach: displayedResults">
-    			<tr>
-	                <td data-bind="text: outcome, css: outcomeClass" class='result'></td>
-                	<td data-bind="text: name" class="name"></td>
-    			</tr>
-    		</tbody>
-    	</table>
-    </div>
-    <div class="logs">
-    	<h1>Logs</h1>
-        <div data-bind="template: { name: logModel.view, data: logModel }">
-        </div>
-    </div>
+        <table class="testResults" data-bind="if: hasResults">
+        	<thead>
+        		<tr>
+        			<th class="result">Result</th>
+                    <th class="name">Test</th>
+        		</tr>
+        	</thead>
+        	<tbody data-bind="foreach: displayedResults">
+        		<tr>
+                    <td data-bind="text: outcome, css: outcomeClass" class='result'></td>
+                    <td data-bind="text: name" class="name"></td>
+        		</tr>
+        	</tbody>
+        </table>
     </section>
 </article>

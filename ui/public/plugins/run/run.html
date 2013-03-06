@@ -1,19 +1,51 @@
-<article class="list run" data-width="3">
-    <header><h1>Run</h1></header>
-    <footer><p></p></footer>
-    <section class="wrapper">
-        <div>
-           <button class="start" data-bind="disable: haveActiveTask, click: startButtonClicked">Start</button>
-           <button class="stop" data-bind="enable: haveActiveTask, click: stopButtonClicked">Stop</button>
-           <button class="restart" data-bind="enable: haveActiveTask() && !restartPending(), click: restartButtonClicked">Restart</button>
-           <input type="checkbox" data-bind="checked: rerunOnBuild">Re-run on successful build</input>
-           <span data-bind="visible: haveMainClass">| Main class: <select data-bind="options: mainClasses, value: currentMainClass"></select></span>
+<article class="run">
+    <div class="container">
+        <div class="menu">
+            <header>
+                <nav>
+                    <a href="#">Open in browser</a>
+                    <button data-popup="runoptions">Options</a>
+                    <div id="runoptions">
+                        Run: <a href="#">MainClass (not implemented)</a> <input type="checkbox">Reload on change (not implemented)</a> <button class="start" data-bind="click: runButtonClicked">Start</button>
+                        <button class="stop">Stop (not implemented)</button>
+                    <div>
+                </nav>
+                <h1><a href="#">Run</a> Application</h1>
+                <p class="subheader">
+                    <!--
+                   Run: <a href="#">MainClass (not implemented)</a> <input type="checkbox">Reload on change (not implemented)</a> <button class="start" data-bind="click: runButtonClicked">Start</button>
+                   <button class="stop">Stop (not implemented)</button>
+                    -->
+                    <a href="#run/output" data-bind="css:{active: tab() == 'output'}">Output</a>
+                    <a href="#run/logs" data-bind="css:{active: tab() == 'logs'}">Logs</a>
+                    <a href="#run/monitor" data-bind="css:{active: tab() == 'monitor'}">JSON monitor</a>
+                </p>
+            </header>
         </div>
-        <header><h1>Output</h1></header>
-        <div data-bind="template: { name: outputModel.view, data: outputModel }">
+
+        <div id="output" class="runapp" data-bind="visible: tab() == 'output'">
+            lol
+            <br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol<br>lol
+            <div data-bind="foreach: output">
+                <div data-bind="text: $data"></div>
+            </div>
         </div>
-        <header><h1>Logs</h1></header>
-        <div data-bind="template: { name: logModel.view, data: logModel }">
+
+        <div id="logs" class="runapp" data-bind="visible: tab() == 'logs'">
+            lil
+            <div data-bind="foreach: logs">
+                <div data-bind="text: $data"></div>
+            </div>
         </div>
-    </section>
+
+        <div id="monitor" class="runapp" data-bind="visible: tab() == 'monitor'">
+            lul
+            <div class="menu">
+                
+            </div>
+            <div class="response">
+                
+            </div>
+        </div>
+    </div>
 </article>

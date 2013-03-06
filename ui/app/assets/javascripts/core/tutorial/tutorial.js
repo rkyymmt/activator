@@ -44,7 +44,7 @@ define(['css!./tutorial.css', 'core/pluginapi'], function(css, api){
 	function display(target){
 		tuts.find(".previous").attr("disabled", false);
 		tuts.find(".next").attr("disabled", false);
-		if (target >= tuts.find("ul li").length) {
+		if (target >= tuts.find("ul li").length - 1) {
 			tuts.find(".next").attr("disabled", true);
 		} else if (target <= 0) {
 			tuts.find(".previous").attr("disabled", true);

@@ -1,4 +1,4 @@
-define(['text!./run.html', 'core/pluginapi', 'core/log'], function(template, api, log){
+define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], function(template, api, log){
 
 	var ko = api.ko;
 	var sbt = api.sbt;
@@ -171,7 +171,10 @@ define(['text!./run.html', 'core/pluginapi', 'core/log'], function(template, api
 		icon: "▶",
 		url: "#run",
 		routes: {
-			'run': function() { api.setActiveWidget(runConsole); }
+			'run': function(p) {
+				api.setActiveWidget(runConsole);
+				runConsole.tabs(p);
+			}
 		},
 		widgets: [runConsole]
 	});

@@ -58,6 +58,7 @@ require([
 ],function() {
 	require(['core/templates'], function() {
 	require([
+		'core/effects',
 		// Core
 		'core/utils',
 		'core/sbt'
