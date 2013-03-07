@@ -127,13 +127,9 @@ define(['./streams', './events'], function(streams, events) {
 		if(o.onmessage) {
 			var handler = o.onmessage;
 			// Update handler to have correct 'this' if necessary.
-			if(o.context) {
-				var tmp = o.onmessage;
-				var scope = o.context;
-				handler = function() {
-					tmp.call(scope, [].slice.call(arguments, 0))
-				}
-			}
+			if(o.context)
+				handler = o.onmessage.bind(o.context);
+
 			subscribeTask(request.taskId, handler);
 		}
 
