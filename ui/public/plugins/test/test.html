@@ -1,25 +1,36 @@
 <article class="test">
-    <header>
-        <h1>Tests!</h1>
-        <p class="subheader">
-            <button class="run-button" data-bind="click: runTests, disable: waiting">Run Tests</button>
-            <button class="select-button" data-bind="click: filterTests, text: filterTestsText"></button>
-        </p>
-    </header>
-    <section class="wrapper">
-        <table class="testResults" data-bind="if: hasResults">
-        	<thead>
-        		<tr>
-        			<th class="result">Result</th>
-                    <th class="name">Test</th>
-        		</tr>
-        	</thead>
-        	<tbody data-bind="foreach: displayedResults">
-        		<tr>
-                    <td data-bind="text: outcome, css: outcomeClass" class='result'></td>
-                    <td data-bind="text: name" class="name"></td>
-        		</tr>
-        	</tbody>
-        </table>
-    </section>
+	<header>
+		<nav>
+			<button class="start" data-bind="disable: haveActiveTask, click: startButtonClicked">Start</button>
+			<button class="stop" data-bind="enable: haveActiveTask, click: stopButtonClicked">Stop</button>
+			<button class="restart" data-bind="enable: haveActiveTask() && !restartPending(), click: restartButtonClicked">Restart</button>
+			<input type="checkbox" data-bind="checked: rerunOnBuild">Re-test on successful build</input>
+		</nav>
+		<h1>Tests!</h1>
+		<p class="subheader">
+			<strong data-bind="text: resultStats().passed"></strong> Passed, <strong data-bind="text: resultStats().failed"></strong> Failed
+		</p>
+	</header>
+	<section class="wrapper">
+		<div class="results">
+			<table class="testResults" data-bind="if: hasResults">
+				<thead>
+					<tr>
+						<th class="result">Result</th>
+						<th class="name">Test</th>
+					</tr>
+				</thead>
+				<tbody data-bind="foreach: displayedResults">
+					<tr>
+						<td data-bind="text: outcome, css: outcomeClass" class='result'></td>
+						<td data-bind="text: name" class="name"></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="logs">
+			<div data-bind="template: { name: logModel.view, data: logModel }">
+			</div>
+	</div>
+	</section>
 </article>

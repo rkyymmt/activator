@@ -3,7 +3,6 @@
 		<div class="menu">
 			<header>
 				<nav>
-					<a href="#" todo>Open in browser</a>
 					<dl class="dropdown" todo>
 						<dt>options</dt>
 						<dd>
@@ -12,22 +11,24 @@
 							<label todo><input type="checkbox">Reload on change</label>
 						</dd>
 					</dl>
-					<button class="start" data-bind="click: runButtonClicked">Start</button>
-					<button class="stop" todo>Stop</button>
+					<button class="start" data-bind="disable: haveActiveTask, click: startButtonClicked">Start</button>
+					<button class="stop" data-bind="enable: haveActiveTask, click: stopButtonClicked">Stop</button>
+					<button class="restart" data-bind="enable: haveActiveTask() && !restartPending(), click: restartButtonClicked">Restart</button>
 				</nav>
-				<h1><a href="#">Run</a> Application</h1>
+				<h1>Run</h1>
 				<p class="subheader">
-					<!--
-				   Run: <a href="#">MainClass (not implemented)</a> <input type="checkbox">Reload on change (not implemented)</a> <button class="start" data-bind="click: runButtonClicked">Start</button>
-				   <button class="stop">Stop (not implemented)</button>
-					-->
-					<a href="#run/output" data-bind="css:{active: tab() == 'output'}">Output</a>
-					<a href="#run/logs" data-bind="css:{active: tab() == 'logs'}">Logs</a>
+					Application is stopped
 				</p>
 			</header>
 		</div>
 
-		<div id="output" class="runapp" data-bind="visible: tab() == 'output'">
+		<div data-bind="template: { name: outputModel.view, data: outputModel }">
+		</div>
+		<header><h1>Logs</h1></header>
+		<div data-bind="template: { name: logModel.view, data: logModel }">
+		</div>
+
+		<div id="output" class="runapp">
 			<ul class="outputList">
 <li>Compiled in 138msSequences of whitespace will collapse into a single whitespace.
 Text will wrap when necessary. This is default	Play it »
@@ -38,7 +39,7 @@ nowrap	Sequences of whitespace will collapse into a single whitespace. Text will
 			</ul>
 		</div>
 
-		<div id="logs" class="runapp" data-bind="visible: tab() == 'logs'">
+		<div id="logs" class="runapp">
 			<!--<ul class="logsList" data-bind="foreach: logs">
 				<li data-bind="text: $data">
 					<h2></h2>

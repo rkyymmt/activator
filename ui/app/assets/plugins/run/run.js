@@ -171,10 +171,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 		icon: "▶",
 		url: "#run",
 		routes: {
-			'run': function(p) {
-				api.setActiveWidget(runConsole);
-				runConsole.tabs(p);
-			}
+			'run': function() { api.setActiveWidget(runConsole); }
 		},
 		widgets: [runConsole]
 	});
