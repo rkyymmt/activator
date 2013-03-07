@@ -157,6 +157,8 @@ case class TestResponse(outcome: TestOutcome) extends Response {
 // can be the response to anything
 case class ErrorResponse(error: String) extends Response
 
+// when we receive a request but before we process it, we send this
+case object RequestReceivedEvent extends Event
 case class LogEvent(entry: LogEntry) extends Event
 case class TestEvent(name: String, description: Option[String], outcome: TestOutcome, error: Option[String]) extends Event
 
@@ -187,7 +189,7 @@ object Message {
                 Map.empty[String, Any]
             }
           }
-        case Started | Stopped =>
+        case Started | Stopped | RequestReceivedEvent =>
           base
         case NameResponse(name) =>
           base ++ Map("name" -> name)
@@ -273,6 +275,8 @@ object Message {
               Started
             case "Stopped" =>
               Stopped
+            case "RequestReceivedEvent" =>
+              RequestReceivedEvent
             case "MysteryMessage" =>
               MysteryMessage(obj("something").asInstanceOf[String])
             case "LogEvent" =>

@@ -143,10 +143,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 				success: function(data) {
 					console.log("test result: ", data);
 
-					if (data.type == 'ErrorResponse') {
-						self.logModel.error(data.error);
-						self.testStatus('Testing failed: ' + data.error);
-					} else if (data.type == 'TestResponse') {
+					if (data.type == 'TestResponse') {
 						self.logModel.info('Testing complete.');
 						self.testStatus('Testing complete.');
 					} else {
@@ -155,9 +152,9 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 					}
 					self.doAfterTest();
 				},
-				failure: function(xhr, status, message) {
+				failure: function(status, message) {
 					console.log("test failed: ", status, message)
-					self.logModel.error("HTTP request failed: " + message);
+					self.logModel.error("Failed: " + status + ": " + message);
 					self.testStatus('Testing error: ' + message);
 					self.doAfterTest();
 				}
@@ -189,7 +186,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 					success: function(data) {
 						console.log("kill success: ", data)
 					},
-					failure: function(xhr, status, message) {
+					failure: function(status, message) {
 						console.log("kill failed: ", status, message)
 						self.logModel.error("HTTP request to kill task failed: " + message)
 					}

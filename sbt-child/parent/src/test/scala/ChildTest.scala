@@ -94,6 +94,7 @@ class ChildTest {
     } { results =>
       noLogs(results).sorted match {
         case Seq(Started,
+          RequestReceivedEvent,
           TestEvent("OneFailTest.testThatShouldFail",
             Some("this is not true"), TestFailed, Some("this is not true")),
           TestEvent("OnePassOneFailTest.testThatShouldFail",

@@ -185,6 +185,8 @@ object SetupSbtChild extends (State => State) {
       }
     }
 
+    client.replyJson(req.serial, protocol.RequestReceivedEvent)
+
     req match {
       case protocol.Envelope(serial, replyTo, protocol.NameRequest(_)) =>
         val result = extract(origState).get(name)

@@ -158,6 +158,8 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
           // this is a log event outside of the context of a particular request
           // (if they go with a request they just go to the requestor)
           emitEvent(e)
+        case protocol.RequestReceivedEvent =>
+          throw new RuntimeException("Not expecting a RequestReceivedEvent here")
         case e: protocol.TestEvent =>
           throw new RuntimeException("Not expecting a TestEvent here: " + e)
         case protocol.MysteryMessage(something) =>

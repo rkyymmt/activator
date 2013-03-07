@@ -29,34 +29,150 @@ object Sbt extends Controller {
 
   // The point of this actor is to separate the "event" replies
   // from the "response" reply and only reply with the "response"
-  // while forwarding the events to our socket
-  private class EventsForRequestActor(app: snap.App, taskId: String, taskActor: ActorRef) extends Actor with ActorLogging {
-    override def receive = awaitingRequest
+  // while forwarding the events to our socket.
+  // if (fireAndForget) then we send RequestReceivedEvent as the reply
+  // to the requestor, otherwise we send the Response as the reply.
+  private class RequestManagerActor(app: snap.App, taskId: String, taskActor: ActorRef, respondWhenReceived: Boolean) extends Actor with ActorLogging {
+    // so postStop can be sure one is sent
+    var needsReply: Option[ActorRef] = None
+    var completed = false
 
-    def awaitingRequest: Receive = {
-      case req: protocol.Request =>
-        taskActor ! req
-        context.become(awaitingResponse(sender))
+    context.watch(taskActor)
+
+    val handleTerminated: Receive = {
+      case Terminated(ref) if ref == taskActor =>
+        log.debug("taskActor died so killing RequestManagerActor")
+        self ! PoisonPill
     }
 
-    def awaitingResponse(requestor: ActorRef): Receive = {
-      case event: protocol.Event =>
-        log.debug("event: {}", event)
-        val json = scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(event))
-        app.actor ! NotifyWebSocket(JsObject(Seq("taskId" -> JsString(taskId), "event" -> json)))
-      case response: protocol.Response =>
+    override def receive = awaitingRequest
+
+    def awaitingRequest: Receive = handleTerminated orElse {
+      case req: protocol.Request =>
+        needsReply = Some(sender)
+        taskActor ! req
+        if (respondWhenReceived)
+          context.become(awaitingRequestReceivedOrError(sender))
+        else
+          context.become(awaitingActualResponse(sender))
+    }
+
+    private def sendTaskComplete(response: protocol.Response): Unit = {
+      if (!completed) {
+        completed = true
+
+        val responseJsonInEvent = if (respondWhenReceived) {
+          // since the actual response isn't sent to the requestor,
+          // it needs to go in the TaskComplete
+          scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(response))
+        } else {
+          // don't need to put data in TaskComplete event; it might be
+          // kind of large (for example a list of files), so just
+          // send it to one place, to the requestor.
+          JsObject(Nil)
+        }
+
         app.actor ! NotifyWebSocket(JsObject(Seq("taskId" -> JsString(taskId),
-          "event" -> JsObject(Seq("type" -> JsString("TaskComplete"))))))
-        requestor ! response
-        self ! PoisonPill
+          "event" -> JsObject(Seq(
+            "type" -> JsString("TaskComplete"),
+            "response" -> responseJsonInEvent)))))
+      }
+    }
+
+    private def handleFinalResponse(response: protocol.Response): Unit = {
+      sendTaskComplete(response)
+      context.become(gotResponse)
+      log.debug("killing self after receiving response")
+      self ! PoisonPill
+    }
+
+    // response can be ErrorResponse, an actual response, or RequestReceivedEvent
+    private def sendReply(requestor: ActorRef, response: protocol.Message): Unit = {
+      requestor ! response
+
+      needsReply = None
+    }
+
+    private def eventToSocket(event: protocol.Event): Unit = {
+      log.debug("event: {}", event)
+      val json = scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(event))
+      app.actor ! NotifyWebSocket(JsObject(Seq("taskId" -> JsString(taskId), "event" -> json)))
+    }
+
+    // send back only actual responses (not RequestReceivedEvent)
+    def awaitingActualResponse(requestor: ActorRef): Receive = handleTerminated orElse {
+      case event: protocol.Event =>
+        eventToSocket(event)
+
+      case response: protocol.Response =>
+        sendReply(requestor, response)
+        handleFinalResponse(response)
+    }
+
+    // we need to send back ErrorResponse or RequestReceivedEvent
+    def awaitingRequestReceivedOrError(requestor: ActorRef): Receive = handleTerminated orElse {
+      case event: protocol.Event =>
+        eventToSocket(event)
+        event match {
+          case protocol.RequestReceivedEvent =>
+            sendReply(requestor, protocol.RequestReceivedEvent)
+            context.become(awaitingFinalResponse)
+          case _ => // nothing
+        }
+
+      case response: protocol.Response =>
+        sendReply(requestor, response)
+        handleFinalResponse(response)
+    }
+
+    // state after we get RequestReceivedEvent but before we get the
+    // real response
+    def awaitingFinalResponse(): Receive = handleTerminated orElse {
+      case event: protocol.Event =>
+        eventToSocket(event)
+      case response: protocol.Response =>
+        handleFinalResponse(response)
+    }
+
+    def gotResponse: Receive = handleTerminated orElse {
+      case message: protocol.Message =>
+        log.warning("Got a message after request should have been finished {}", message)
+    }
+
+    // this makes us a little less generic (taskActor can't be used for multiple requests)
+    // but for now it's OK since we don't use taskActor for multiple requests.
+    override def postStop = {
+      val response = protocol.ErrorResponse("Failure prior to receiving response from sbt")
+      for (requestor <- needsReply) {
+        sendReply(requestor, response)
+      }
+      sendTaskComplete(response)
+
+      log.debug("killing taskActor in postStop")
+      taskActor ! PoisonPill
     }
   }
 
-  def sendRequestGettingEvents(factory: ActorRefFactory, app: snap.App, taskId: String, taskActor: ActorRef, request: protocol.Request): Future[protocol.Response] = {
-    val actor = factory.actorOf(Props(new EventsForRequestActor(app, taskId, taskActor)),
+  def sendRequestGettingEvents(factory: ActorRefFactory, app: snap.App, taskId: String, taskActor: ActorRef, request: protocol.Request, fireAndForget: Boolean): Future[protocol.Message] = {
+    val actor = factory.actorOf(Props(new RequestManagerActor(app, taskId, taskActor, fireAndForget)),
       name = "event-tee-" + URLEncoder.encode(taskId, "UTF-8"))
     (actor ? request) map {
+      case message: protocol.Message => message
+      case whatever => throw new RuntimeException("only expected messages here: " + whatever)
+    }
+  }
+
+  def sendRequestGettingEventsAndResponse(factory: ActorRefFactory, app: snap.App, taskId: String, taskActor: ActorRef, request: protocol.Request): Future[protocol.Response] = {
+    sendRequestGettingEvents(factory, app, taskId, taskActor, request, fireAndForget = false) map {
       case response: protocol.Response => response
+      case whatever => throw new RuntimeException("unexpected response: " + whatever)
+    }
+  }
+
+  def sendRequestGettingAckAndEvents(factory: ActorRefFactory, app: snap.App, taskId: String, taskActor: ActorRef, request: protocol.Request): Future[protocol.Message] = {
+    sendRequestGettingEvents(factory, app, taskId, taskActor, request, fireAndForget = true) map {
+      case protocol.RequestReceivedEvent => protocol.RequestReceivedEvent
+      case response: protocol.ErrorResponse => response
       case whatever => throw new RuntimeException("unexpected response: " + whatever)
     }
   }
@@ -65,7 +181,7 @@ object Sbt extends Controller {
   //  { "appId" : appid, "description" : human-readable,
   //    "taskId" : uuid,
   //    "task" : json-as-we-define-in-sbtchild.protocol }
-  // And the reply will be a message as defined in sbtchild.protocol
+  // And the reply will be RequestReceivedEvent or ErrorResponse
   def task() = jsonAction { json =>
     val appId = (json \ "appId").as[String]
     val taskId = (json \ "taskId").as[String]
@@ -79,15 +195,13 @@ object Sbt extends Controller {
 
     val resultFuture = AppManager.loadApp(appId) flatMap { app =>
       withTaskActor(taskId, taskDescription, app) { taskActor =>
-        val taskFuture = sendRequestGettingEvents(snap.Akka.system, app, taskId, taskActor, taskMessage) map {
-          case message: protocol.Message =>
-            Ok(scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(message)))
+        sendRequestGettingAckAndEvents(snap.Akka.system, app, taskId, taskActor, taskMessage) map {
+          case protocol.RequestReceivedEvent => protocol.RequestReceivedEvent
+          case error: protocol.ErrorResponse => error
+          case whatever => throw new RuntimeException("unexpected response: " + whatever)
+        } map { message =>
+          Ok(scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(message)))
         }
-        taskFuture.onComplete { value =>
-          Logger.debug(s"Killing task actor task future completed with ${value}")
-          taskActor ! PoisonPill
-        }
-        taskFuture
       }
     }
     Async(resultFuture)
@@ -117,7 +231,7 @@ object Sbt extends Controller {
 
     val resultFuture = AppManager.loadApp(appId) flatMap { app =>
       withTaskActor(taskId, "Finding sources to watch for changes", app) { taskActor =>
-        val taskFuture = sendRequestGettingEvents(snap.Akka.system, app, taskId, taskActor,
+        sendRequestGettingEventsAndResponse(snap.Akka.system, app, taskId, taskActor,
           protocol.WatchTransitiveSourcesRequest(sendEvents = true)) map {
             case protocol.WatchTransitiveSourcesResponse(files) =>
               val filesSet = files.toSet
@@ -128,11 +242,6 @@ object Sbt extends Controller {
             case message: protocol.Message =>
               Ok(scalaJsonToPlayJson(protocol.Message.JsonRepresentationOfMessage.toJson(message)))
           }
-        taskFuture.onComplete { value =>
-          Logger.debug(s"Killing task actor for watchSources completed with ${value}")
-          taskActor ! PoisonPill
-        }
-        taskFuture
       }
     }
     Async(resultFuture)

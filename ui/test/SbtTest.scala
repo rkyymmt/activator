@@ -120,7 +120,8 @@ class SbtTest {
   @Test
   def testRunChild(): Unit = {
     childTest(makeDummySbtProject, "runChild") { taskJson =>
-      assertEquals(JsString("RunResponse"), taskJson \ "type")
+      assertEquals(JsString("RequestReceivedEvent"), taskJson \ "type")
+      // TODO somehow we need to test that the websocket gets a RunReponse
     }
   }
 
@@ -135,8 +136,8 @@ class SbtTest {
   @Test
   def testRunChildMissingMain(): Unit = {
     childTest(makeDummySbtProjectWithNoMain, "runChildMissingMain") { taskJson =>
-      assertEquals(JsString("ErrorResponse"), taskJson \ "type")
-      assertEquals(JsString("exception during sbt task: Incomplete: null"), taskJson \ "error")
+      assertEquals(JsString("RequestReceivedEvent"), taskJson \ "type")
+      // TODO somehow we need to test that the websocket gets an ErrorResponse
     }
   }
 
