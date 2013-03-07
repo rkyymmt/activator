@@ -1,29 +1,32 @@
-define(['./streams', './events'], function(streams, events) {
+define(['./streams', './events', './utils'], function(streams, events, utils) {
 
 	// Internal list of subscribers for task events.
 	var taskSubscribers = [];
 
 	function taskMultiplexer(obj) {
-			if (obj.event.type == "TaskComplete") {
-				console.log("task " + obj.taskId + " complete, removing its subscribers");
-				// $.grep callback takes value,index while $.each takes index,value
-				// awesome?
-				taskSubscribers = $.grep(taskSubscribers, function(subscriber, index) {
-					// keep only tasks that are not complete
-					return subscriber.taskId != obj.taskId;
-				});
-			} else {
-				// Just forward everything on.
-				$.each(taskSubscribers, function(index, subscriber) {
-					if (subscriber.taskId == obj.taskId) {
-						try {
-							subscriber.handler(obj.event);
-						} catch(e) {
-							console.log("handler for " + subscriber.taskId + " failed", e);
-						}
-					}
-				});
+		var oldSubscribers = taskSubscribers;
+
+		if (obj.event.type == "TaskComplete") {
+			console.log("task " + obj.taskId + " complete, removing its subscribers");
+			// $.grep callback takes value,index while $.each takes index,value
+			// awesome?
+			taskSubscribers = $.grep(taskSubscribers, function(subscriber, index) {
+				// keep only tasks that are not complete
+				return subscriber.taskId != obj.taskId;
+			});
+		}
+
+		// Now forward everything on to the previous (pre-removal)
+		// subscriber list.
+		$.each(oldSubscribers, function(index, subscriber) {
+			if (subscriber.taskId == obj.taskId) {
+				try {
+					subscriber.handler(obj.event);
+				} catch(e) {
+					console.log("handler for " + subscriber.taskId + " failed", e);
+				}
 			}
+		});
 	}
 
 	function isSbtTaskEvent(obj) {
@@ -59,90 +62,203 @@ define(['./streams', './events'], function(streams, events) {
 		handler: onFilesChanged
 	});
 
-	function makeJsonRequest(o, url, request) {
-		var areq = {
-			url: url,
-			type: 'POST',
-			dataType: 'json', // return type
-			contentType: 'application/json; charset=utf-8',
-			data: JSON.stringify(request)
-		};
-		if(o.context) areq.context = o.context;
-		if(o.failure) areq.error = o.failure;
-		if(o.error) areq.error = o.error;
-		if(o.success) areq.success = o.success;
-		return $.ajax(areq);
+	function doNothing() {}
+	function functionOrNothing(f, context) {
+		if (typeof(f) == 'function') {
+			if (typeof(context) == 'object')
+				return f.bind(context);
+			else
+				return f;
+		} else {
+			return doNothing;
+		}
 	}
 
+	var AjaxPromise = utils.Class({
+		init: function(o, url, request) {
+			if (typeof(o) != 'object')
+				throw new Error("missing object parameter in AjaxPromise");
+			if (typeof(url) != 'string')
+				throw new Error("missing string parameter in AjaxPromise");
+			if (typeof(request) != 'object')
+				throw new Error("missing request body in AjaxPromise");
+
+			this.completed = false;
+			// deprecated usage
+			if ('error' in o)
+				throw new Error("name your error callback 'failure' not 'error' please");
+
+			this.onSuccess = functionOrNothing(o.success, o.context);
+			this.onFailure = functionOrNothing(o.failure, o.context);
+			this.url = url;
+			this.request = request;
+		},
+		fail: function(status, message) {
+			if (!this.completed) {
+				this.completed = true;
+				this.onFailure(status, message);
+			}
+		},
+		succeed: function(data) {
+			if (!this.completed) {
+				this.completed = true;
+				this.onSuccess(data);
+			}
+		},
+		_onAjaxSuccess: function(data) {
+			if ('type' in data && data.type == 'ErrorResponse') {
+				console.log("ajax ErrorResponse ", data);
+				this.fail('error', data.error);
+			} else {
+				console.log("ajax success ", data);
+				this.succeed(data);
+			}
+		},
+		_onAjaxError: function(xhr, status, message) {
+			console.log("ajax error ", status, message)
+			this.fail(status, message);
+		},
+		send: function() {
+			var areq = {
+				url: this.url,
+				type: 'POST',
+				dataType: 'json', // return type
+				contentType: 'application/json; charset=utf-8',
+				data: JSON.stringify(this.request)
+			};
+			areq.success = this._onAjaxSuccess.bind(this);
+			areq.error = this._onAjaxError.bind(this);
+
+			console.log("sending ajax request ", this.request)
+			return $.ajax(areq);
+		}
+	});
+
 	function randomShort() {
-		return Math.floor(Math.random() * 65536)
+		return Math.floor(Math.random() * 65536);
 	}
 
 	function genTaskId(prefix) {
 		return prefix + "-" + (new Date().getTime()) + "-" + randomShort() + "-" + randomShort() + "-" + randomShort();
 	}
 
-	/** Generates an SbtTaskRequest.  This attempts a series of input types into
-	 * the only acceptable JSON for the server.
-	 * @param o {String|Object}
-	 *          Either the task string to run, or an object with the
-	 *          following format:
-	 *             task - The task id to run
-	 *             description - The description for this task request.
-	 *             params - extra parameters for the task
-	 */
-	function SbtTaskRequest(o) {
-		var taskName = (typeof(o) == 'string') ? o : o.task;
-		var request = {
-			appId: serverAppModel.id,
-			taskId: genTaskId(serverAppModel.id),
-			description: (o.description  || (taskName + " " + serverAppModel.id)),
-			task: {
-				type: taskName
+	// TaskPromise can be completed by ajax failure, or by
+	// getting the TaskComplete event.
+	var TaskPromise = utils.Class({
+		init: function(o) {
+			this.completed = false;
+			this.requestJson = this.buildRequestJson(o.task);
+			this.onMessage = functionOrNothing(o.onmessage, o.context);
+			this.onSuccess = functionOrNothing(o.success, o.context);
+			this.onFailure = functionOrNothing(o.failure, o.context);
+
+			subscribeTask(this.requestJson.taskId, this.messageHandler.bind(this));
+
+			this.promise = new AjaxPromise({
+				success: this._onAjaxSuccess.bind(this),
+				failure: this._onAjaxError.bind(this)
+			}, '/api/sbt/task', this.requestJson)
+		},
+
+		/** Generates the json for our task request.
+		 * @param o {String|Object}
+		 *          Either the task string to run, or an object with the
+		 *          following format:
+		 *             task - The task id to run
+		 *             description - The description for this task request.
+		 *             params - extra parameters for the task
+		 */
+		buildRequestJson: function(o) {
+			var taskName = (typeof(o) == 'string') ? o : o.task;
+			if (typeof(taskName) != 'string')
+				throw new Error("No task name found");
+			var request = {
+				appId: serverAppModel.id,
+				taskId: genTaskId(serverAppModel.id),
+				description: (o.description  || (taskName + " " + serverAppModel.id)),
+				task: {
+					type: taskName
+				}
+			};
+			if (typeof(o.params) == 'object')
+				$.extend(request.task, o.params)
+			return request;
+		},
+		fail: function(status, message) {
+			if (!this.completed) {
+				this.completed = true;
+				this.onFailure(status, message);
 			}
-		};
-		if (typeof(o.params) == 'object')
-			$.extend(request.task, o.params)
-		return request;
-	};
+		},
+		succeed: function(data) {
+			if (!this.completed) {
+				this.completed = true;
+				this.onSuccess(data);
+			}
+		},
+		messageHandler: function(event) {
+			console.log("got event in TaskPromise ", event);
+			if (event.type == 'TaskComplete') {
+				if (event.response.type == 'ErrorResponse') {
+					this.fail('error', event.response.error);
+				} else {
+					this.succeed(event.response);
+				}
+			} else {
+				// drop all events if we're already
+				// completed (should not happen really)
+				if (this.completed) {
+					console.log("Task already completed so dropping event", event);
+				} else {
+					this.onMessage(event);
+				}
+			}
+		},
+		taskId: function() {
+			return this.requestJson.taskId;
+		},
+		_onAjaxSuccess: function(data) {
+			// The ajax request completes when the request is received
+			// by sbt, not when sbt finishes the request.
+			// Errors happen if there's a problem getting the request
+			// to sbt.
+			if (data.type == 'RequestReceivedEvent') {
+				// do nothing, this is expected; wait for TaskComplete event
+				// to fire the success callback.
+			} else {
+				console.log("Unexpected ajax call result ", data);
+			}
+		},
+		_onAjaxError: function(status, message) {
+			this.fail(status, message);
+		},
+		send: function() {
+			this.promise.send();
+		}
+	});
 
 	/**
 	 * Runs an SBT task, attaching listeners for in-progress information
 	 * updates, or general success/failure. Returns the task ID.
 	 *
 	 * @param o {Object}  An object havin the following format:
-	 *        - task -> The task request (anything acceptible to the SbtTaskRequest is
-	 *                  accepted here.
+	 *        - task -> The task request, either a string or object with fields task, description, params
 	 *        - onmessage (optional)  ->  A handle for SBT events.
 	 *        - success (optional) -> A handler for when the request is successfully delivered.
 	 *        - failure (optional) -> A handler for when the request fails to be delivered.
 	 *        - context (optional) -> A new 'this' object for the various callbacks.
 	 */
 	function runTask(o) {
-		var request = SbtTaskRequest(o.task);
-
-		// TODO - Ensure sane-ness of data...
-
-		// Register our listener appropriately.
-		if(o.onmessage) {
-			var handler = o.onmessage;
-			// Update handler to have correct 'this' if necessary.
-			if(o.context)
-				handler = o.onmessage.bind(o.context);
-
-			subscribeTask(request.taskId, handler);
-		}
-
-		makeJsonRequest(o, '/api/sbt/task', request);
-
-		return request.taskId;
+		var promise = new TaskPromise(o);
+		promise.send();
+		return promise.taskId();
 	}
 
 	/**
 	 * Kills a task by ID. Fire-and-forget (i.e. you won't know if the
 	 * task never existed)
 	 *
-	 * @param o {Object}  An object havin the following format:
+	 * @param o {Object}  An object having the following format:
 	 *        - taskId -> The task ID from runTask
 	 *        - success (optional) -> A handler for when the request is successfully delivered.
 	 *        - failure (optional) -> A handler for when the request fails to be delivered.
@@ -156,7 +272,8 @@ define(['./streams', './events'], function(streams, events) {
 			taskId: o.taskId
 		};
 
-		makeJsonRequest(o, '/api/sbt/killTask', request);
+		var promise = new AjaxPromise(o, '/api/sbt/killTask', request);
+		promise.send();
 	}
 
 	function watchSources(o) {
@@ -165,7 +282,12 @@ define(['./streams', './events'], function(streams, events) {
 			taskId: genTaskId(serverAppModel.id)
 		};
 
-		makeJsonRequest(o, '/api/sbt/watchSources', request);
+		if (typeof(o.onmessage) == 'function') {
+			subscribeTask(request.taskId, functionOrNothing(o.onmessage, o.context));
+		}
+
+		var promise = new AjaxPromise(o, '/api/sbt/watchSources', request);
+		promise.send();
 
 		return request.taskId;
 	}

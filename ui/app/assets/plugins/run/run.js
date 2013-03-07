@@ -60,7 +60,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/log'], function(template, api
 							self.currentMainClass(self.mainClasses()[0]);
 					}
 				},
-				failure: function(xhr, status, message) {
+				failure: function(status, message) {
 					console.log("getting main class failed", message);
 				}
 			});
@@ -117,18 +117,16 @@ define(['text!./run.html', 'core/pluginapi', 'core/log'], function(template, api
 				},
 				success: function(data) {
 					console.log("run result: ", data);
-					if (data.type == 'ErrorResponse') {
-						self.logModel.error(data.error);
-					} else if (data.type == 'RunResponse') {
+					if (data.type == 'RunResponse') {
 						self.logModel.info('Run complete.');
 					} else {
 						self.logModel.error('Unexpected reply: ' + JSON.stringify(data));
 					}
 					self.doAfterRun();
 				},
-				failure: function(xhr, status, message) {
+				failure: function(status, message) {
 					console.log("run failed: ", status, message)
-					self.logModel.error("HTTP request failed: " + message);
+					self.logModel.error("Failed: " + status + ": " + message);
 					self.doAfterRun();
 				}
 			});
@@ -142,7 +140,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/log'], function(template, api
 					success: function(data) {
 						console.log("kill success: ", data)
 					},
-					failure: function(xhr, status, message) {
+					failure: function(status, message) {
 						console.log("kill failed: ", status, message)
 						self.logModel.error("HTTP request to kill task failed: " + message)
 					}

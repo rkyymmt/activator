@@ -53,7 +53,7 @@ define(['text!./build.html', 'core/pluginapi', 'core/log'], function(template, a
 					if (typeof(after) === 'function')
 						after();
 				},
-				failure: function(xhr, status, message) {
+				failure: function(status, message) {
 					console.log("watching sources failed", message);
 					self.logModel.warn("Failed to reload source file list: " + message);
 					if (typeof(after) === 'function')
@@ -99,19 +99,17 @@ define(['text!./build.html', 'core/pluginapi', 'core/log'], function(template, a
 				success: function(data) {
 					console.log("compile result: ", data);
 					self.activeTask("");
-					if (data.type == 'ErrorResponse') {
-						self.logModel.error(data.error);
-					} else if (data.type == 'CompileResponse') {
+					if (data.type == 'CompileResponse') {
 						self.logModel.info('Compile complete.');
 					} else {
 						self.logModel.error('Unexpected reply: ' + JSON.stringify(data));
 					}
 					self.afterCompile(true); // true=success
 				},
-				failure: function(xhr, status, message) {
+				failure: function(status, message) {
 					console.log("compile failed: ", status, message)
 					self.activeTask("");
-					self.logModel.error("HTTP request failed: " + message);
+					self.logModel.error("Request failed: " + status + ": " + message);
 					self.afterCompile(false); // false=failed
 				}
 			});
@@ -124,9 +122,9 @@ define(['text!./build.html', 'core/pluginapi', 'core/log'], function(template, a
 					success: function(data) {
 						console.log("kill success: ", data)
 					},
-					failure: function(xhr, status, message) {
+					failure: function(status, message) {
 						console.log("kill failed: ", status, message)
-						self.logModel.error("HTTP request to kill task failed: " + message)
+						self.logModel.error("Killing task failed: " + status + ": " + message)
 					}
 				});
 			}
