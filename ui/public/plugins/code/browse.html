@@ -10,11 +10,9 @@
 		</dl>
 	</nav>
 	<h1 data-bind="text: name"></h1>
-	<div class="breadcrumb subheader" todo>
-		<p class="wrap">
-			<span class="slash">/</span><a href="#">home</a>
-			<span class="slash">/</span><a href="#">app</a>
-			<span class="slash">/</span><a href="#">assets</a>
+	<div class="breadcrumb subheader">
+		<p class="wrap" data-bind="foreach: parts">
+			<span class="slash">/</span><a href="#" data-bind="text: name, attr: { href: url }"></a>
 		</p>
 	</div>
 </header>
