@@ -47,6 +47,7 @@ define(['core/pluginapi'], function(api) {
 			self.isDirectory = ko.observable(config.isDirectory || false);
 			self.mimeType = ko.observable(config.mimeType);
 			self.type = ko.observable(config.type);
+			self.size = ko.observable(config.size);
 			self.children = ko.observableArray([]);
 			self.childLookup = ko.computed(function() {
 				var lookup = {};

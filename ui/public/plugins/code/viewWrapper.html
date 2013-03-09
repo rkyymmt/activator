@@ -13,8 +13,7 @@
 		<button class="save" data-bind="click: subView().save, enable: subView().isDirty">save</button>
 	</nav>
 	<h1 data-bind='text: title'></h1>
-	<p class="subheader">
-		 Plain text  /  4 lines  /  0.1 kb<span todo></span>
+	<p class="subheader" data-bind="text: fileStats"></span>
 	</p>
 </header>
 <footer>

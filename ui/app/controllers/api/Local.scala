@@ -81,7 +81,10 @@ object Local extends Controller {
         List("name" -> JsString(o.getName),
           "location" -> JsString(Platform.getClientFriendlyFilename(o)),
           "isDirectory" -> JsBoolean(o.isDirectory)) ++
-          (if (o.isDirectory) Nil else List("type" -> JsString(getFileType(o)))))
+          (if (o.isDirectory) Nil
+          else List(
+            "type" -> JsString(getFileType(o)),
+            "size" -> JsNumber(o.length))))
     //We don't need reads, really
     def reads(json: JsValue): JsResult[File] =
       JsError("Reading TemplateMetadata not supported!")
