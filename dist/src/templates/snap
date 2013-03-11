@@ -108,6 +108,12 @@ detect_terminal_for_ui() {
   [[ ! -t 0 ]] && [[ "${#residual_args}" == "0" ]] && {
     addResidual "ui"
   }
+  # SPECIAL TEST FOR MAC
+  [[ "$(uname)" == "Darwin" ]] && [[ "$HOME" == "$PWD" ]] && [[ "${#residual_args}" == "0" ]] && {
+    echo "Detected MAC OSX launched script...."
+    echo "Swapping to UI"
+    addResidual "ui"
+  }
 }
 
 # Processes incoming arguments and places them in appropriate global variables.  called by the run method.
