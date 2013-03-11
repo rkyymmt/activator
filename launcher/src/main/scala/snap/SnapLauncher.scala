@@ -11,6 +11,7 @@ class SnapLauncher extends AppMain {
     // TODO - Detect if we're running against a local project.
     try configuration.arguments match {
       case Array("ui") => RebootToUI(configuration)
+      case Array("new") => Exit(SnapCli(configuration))
       case Array("shell") => RebootToSbt(configuration, useArguments = false)
       case _ if Sbt.looksLikeAProject(new File(".")) => RebootToSbt(configuration, useArguments = true)
       case _ => displayHelp(configuration)
@@ -51,6 +52,7 @@ case class RebootToUI(configuration: AppConfiguration) extends xsbti.Reboot {
     version = SnapProperties.APP_VERSION,
     mainClass = "snap.UIMain")
 }
+
 // Wrapper to reboot into SBT.
 // TODO - Generate this via the SBT build code, so the hardcoded SBT version
 // lives in one spot.
