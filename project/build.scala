@@ -70,6 +70,7 @@ object TheSnapBuild extends Build {
       sbtLogging % "provided",
       sbtProcess % "provided"
     )
+    settings(requiredJars)
   )
 
   val verboseSbtTests = false
@@ -81,11 +82,11 @@ object TheSnapBuild extends Build {
     Keys.javaOptions in testKey <<= (
       SbtSupport.sbtLaunchJar,
       Keys.javaOptions in testKey,
-      Keys.classDirectory in Compile in sbtRemoteProbe,
+      requiredClasspath in sbtRemoteProbe,
       Keys.compile in Compile in sbtRemoteProbe) map {
       (launcher, oldOptions, probeCp, _) =>
         oldOptions ++ Seq("-Dsnap.sbt.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
-                          "-Dsnap.remote.probe.classpath=" + probeCp.getAbsoluteFile.getAbsolutePath) ++
+                          "-Dsnap.remote.probe.classpath=" + Path.makeString(probeCp.files)) ++
       (if (verboseSbtTests)
         Seq("-Dakka.loglevel=DEBUG",
             "-Dakka.actor.debug.autoreceive=on",
@@ -123,12 +124,12 @@ object TheSnapBuild extends Build {
       Keys.update <<= (
           SbtSupport.sbtLaunchJar,
           Keys.update,
-          Keys.classDirectory in Compile in sbtRemoteProbe,
+          requiredClasspath in sbtRemoteProbe,
           Keys.compile in Compile in sbtRemoteProbe) map {
         (launcher, update, probeCp, _) =>
           // We register the location after it's resolved so we have it for running play...
           sys.props("snap.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
-          sys.props("snap.remote.probe.classpath") = probeCp.getAbsoluteFile.getAbsolutePath
+          sys.props("snap.remote.probe.classpath") = Path.makeString(probeCp.files)
           System.err.println("Updating sbt launch jar: " + sys.props("snap.sbt.launch.jar"))
           System.err.println("Remote probe classpath = " + sys.props("snap.remote.probe.classpath"))
           update

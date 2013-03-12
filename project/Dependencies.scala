@@ -31,4 +31,17 @@ object SnapDependencies {
   class RemoteDepHelper(p: Project) {
     def dependsOnRemote(ms: ModuleID*): Project = p.settings(libraryDependencies ++= ms)
   }
+
+  // compile classpath and classes directory, with provided/optional or scala dependencies
+  // specifically for projects that need remote-probe dependencies
+  val requiredClasspath = TaskKey[Classpath]("required-classpath")
+
+  def requiredJars: Setting[_] = {
+    import xsbti.ArtifactInfo._
+    requiredClasspath <<= (update, classDirectory in Compile) map { (report, classesDir) =>
+      val jars = report.matching(configurationFilter(name = "compile") -- moduleFilter(organization = ScalaOrganization, name = ScalaLibraryID))
+      val classes = classesDir.getAbsoluteFile
+      (classes +: jars).classpath
+    }
+  }
 }
