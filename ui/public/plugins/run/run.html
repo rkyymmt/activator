@@ -22,59 +22,12 @@
 			</header>
 		</div>
 
-		<div data-bind="template: { name: outputModel.view, data: outputModel }">
+		<div data-bind="template: { name: outputModel.view, data: outputModel }" 
+		     id="output" class="runapp"'>
 		</div>
-		<header><h1>Logs</h1></header>
-		<div data-bind="template: { name: logModel.view, data: logModel }">
+		<!-- 
+		<div id="logs" class="runapp" data-bind="template: { name: logModel.view, data: logModel }">
 		</div>
-
-		<div id="output" class="runapp">
-			<ul class="outputList">
-<li>Compiled in 138msSequences of whitespace will collapse into a single whitespace.
-Text will wrap when necessary. This is default	Play it »
-nowrap	Sequences of whitespace will collapse into a single whitespace. Text will never wrap to the next line. The text continues on the same line</li>
-			</ul>
-			<ul class="outputList" data-bind="foreach: output">
-				<li data-bind="text: $data"></li>
-			</ul>
-		</div>
-
-		<div id="logs" class="runapp">
-			<!--<ul class="logsList" data-bind="foreach: logs">
-				<li data-bind="text: $data">
-					<h2></h2>
-					<pre></pre>
-				</li>
-			</ul>-->
-			<ul class="logsList">
-				<li class="success">
-					<h2><strong>Compilation success:</strong> explaination</h2>
-					<pre>
-Compiled in 138msSequences of whitespace will collapse into a single whitespace.
-Text will wrap when necessary. This is default	Play it »
-nowrap	Sequences of whitespace will collapse into a single whitespace. Text will never wrap to the next line. The text continues on the same line</pre>
-				</li>
-				<li class="error">
-					<h2><strong>Compilation error</strong></h2>
-					<pre>
-Compiled in 138ms</pre>
-				</li>
-				<li class="warning">
-					<h2><strong>Compilation warning</strong></h2>
-					<pre>
-Compiled in 138ms</pre>
-				</li>
-				<li class="info">
-					<h2><strong>Compilation information</strong></h2>
-					<pre>
-Compiled in 138ms</pre>
-				</li>
-				<li class="dead">
-					<h2>DEAD</h2>
-				</li>
-				<li class="reload">Reload</li>
-			</ul>
-		</div>
-
+		 -->
 	</div>
 </article>
