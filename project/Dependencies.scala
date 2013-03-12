@@ -5,6 +5,7 @@ import Keys._
 object SnapDependencies {
   val sbtVersion = "0.12.2"
   val scalaVersion = "2.10.0"
+  val sbtSnapshotVersion = "0.13.0-20130312-052157"
 
   val sbtLauncherInterface = "org.scala-sbt" % "launcher-interface" % sbtVersion
   val sbtMain              = "org.scala-sbt" % "main" % sbtVersion
@@ -12,6 +13,9 @@ object SnapDependencies {
   val sbtIo                = "org.scala-sbt" % "io" % sbtVersion
   val sbtLogging           = "org.scala-sbt" % "logging" % sbtVersion
   val sbtProcess           = "org.scala-sbt" % "process" % sbtVersion
+  
+  // TODO - Don't use a snapshot version for this...
+  val sbtCompletion           = "org.scala-sbt" % "completion" % sbtSnapshotVersion
   
   val akkaActor            = "com.typesafe.akka" % "akka-actor_2.10" % "2.1.0"
   

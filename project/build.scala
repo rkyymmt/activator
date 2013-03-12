@@ -151,7 +151,7 @@ object TheSnapBuild extends Build {
   
   lazy val launcher = (
     SnapProject("launcher")
-    dependsOnRemote(sbtLauncherInterface)
+    dependsOnRemote(sbtLauncherInterface, sbtCompletion)
     dependsOn(props, common, cache)
   )
 

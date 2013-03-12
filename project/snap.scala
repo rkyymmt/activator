@@ -30,6 +30,8 @@ object SnapBuild {
       crossPaths := false,
       resolvers += "typesafe-mvn-releases" at "http://repo.typesafe.com/typesafe/releases/",
       resolvers += Resolver.url("typesafe-ivy-releases", new URL("http://repo.typesafe.com/typesafe/releases/"))(Resolver.ivyStylePatterns),
+      // TODO - This won't be needed when SBT 0.13 is released...
+      resolvers += Resolver.url("typesafe-ivy-releases", new URL("http://private-repo.typesafe.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns),
       scalacOptions <<= (scalaVersion) map { sv =>
         Seq("-unchecked", "-deprecation") ++
           { if (sv.startsWith("2.9")) Seq.empty else Seq("-feature") }
