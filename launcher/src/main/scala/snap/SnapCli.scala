@@ -22,10 +22,9 @@ object SnapCli {
     // Check validity, and check for direct match first
     val template = (cache.metadata.find(_.name == templateName) orElse
       cache.metadata.find(_.name.toLowerCase contains templateName.toLowerCase))
-    // TODO - Use validation lib to clean this up and catch errors?
     template match {
       case Some(t) =>
-        System.out.println(s"""OK, application "$name" is created using the "${t.name}" blueprint.""")
+        System.out.println(s"""OK, application "$name" is being created using the "${t.name}" blueprint.""")
         System.out.println()
         cloneTemplate(cache, t.id, projectDir)
         printUsage(name, projectDir)
@@ -40,8 +39,7 @@ object SnapCli {
   }
 
   private def printUsage(name: String, dir: File): Unit = {
-    // TODO - i18nize these strings!
-    // TODO - Cross-platform-ize these strings!
+    // TODO - Cross-platform-ize these strings! Possibly keep script name in SnapProperties.
     System.out.println(s"""|To run "$name" from the command-line, run:
                            |${dir.getAbsolutePath}/Builder run
                            |
@@ -71,8 +69,7 @@ object SnapCli {
       token(any.* map { _ mkString "" }, "<template name>").examples(possible.toSet, false)
     }
 
-    System.out.println("Enter a blueprint name, or hit press tab to see the list")
-    // TODO - Autocomplete on tab!
+    System.out.println("Enter a blueprint name, or hit tab to see a list of possible blueprints")
     readLine(templateNameParser) filterNot (_.isEmpty) getOrElse sys.error("No template name specified.")
   }
 
