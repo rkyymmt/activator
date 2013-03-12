@@ -43,6 +43,35 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 			self.isFile = ko.computed(function() {
 				return !self.file().isDirectory();
 			});
+			self.footer = ko.computed(function() {
+				return self.file().location;
+			});
+			self.readableFileSize = ko.computed(function() {
+				var size = self.file().size();
+				if(size < 1024) {
+					return size.toFixed(2) + ' b';
+				}
+				size /= 1024.0;
+				if(size < 1024) {
+					return size.toFixed(2) + ' Kb';
+				}
+				size /= 1024.0;
+				if(size < 1024) {
+					return size.toFixed(2) + 'Mb';
+				}
+				size /= 1024.0;
+				return size.toFixed(2) + 'Gb';
+			});
+			self.fileKindName = ko.computed(function() {
+				if(self.file().type() == 'code') {
+					return self.subView().highlight;
+					// TODO - Add number of lines?
+				}
+				return self.file().type();
+			});
+			self.fileStats = ko.computed(function() {
+				return self.fileKindName() + ' / ' + self.readableFileSize();
+			});
 		}
 	});
 

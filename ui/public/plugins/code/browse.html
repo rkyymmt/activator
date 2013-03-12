@@ -1,12 +1,30 @@
-<h1 data-bind="text: name"></h1>
+<header>
+	<nav>
+		<dl class="dropdown" todo>
+			<dt>+</dt>
+			<dd>
+				<p>Add in current directory...</p>
+				<a href="#">New file</a>
+				<a href="#">New folder</a>
+			</dd>
+		</dl>
+	</nav>
+	<h1 data-bind="text: name"></h1>
+	<div class="breadcrumb subheader">
+		<p class="wrap" data-bind="foreach: parts">
+			<span class="slash">/</span><a href="#" data-bind="text: name, attr: { href: url }"></a>
+		</p>
+	</div>
+</header>
+<footer><p data-bind="text: status"></p></footer>
 <p style="display:none" data-bind="visible: isEmpty">Empty folder</p>
-<ul class="directory">
-  <li class="folder">
-    <h2><a data-bind="attr: {href: prevDirUrl}">..</a></h2>
-  </li>
-   <!-- ko foreach: files() -->
-  <li class="file" data-bind="css: {folder: isDirectory, file: !isDirectory()}">
-    <h2><a data-bind="text:name, click: select, attr: {href: '#'+url()}"></a></h2>
-  </li>
-  <!-- /ko -->
+<ul class="list directory">
+	<li class="folder">
+		<h2><a data-bind="attr: {href: prevDirUrl}">..</a></h2>
+	</li>
+	<!-- ko foreach: files() -->
+	<li class="file" data-bind="css: {folder: isDirectory, file: !isDirectory()}">
+		<h2><a data-bind="text:name, click: select, attr: {href: '#'+url()}"></a></h2>
+	</li>
+	<!-- /ko -->
 </ul>

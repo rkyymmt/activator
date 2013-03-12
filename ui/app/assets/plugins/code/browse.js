@@ -26,6 +26,15 @@ define(['text!./browse.html', 'core/pluginapi'], function(template, api, files) 
 			self.isEmpty = ko.computed(function() {
 				return self.files().length == 0;
 			});
+			self.parts = ko.computed(function() {
+				var parts = self.directory().relative().split('/');
+				return $.map(parts, function(name, idx) {
+					return {
+						name: name,
+						url: '#code/' + parts.slice(0, idx+1).join('/')
+					};
+				});
+			});
 			self.prevDirUrl = ko.computed(function() {
 				var parts = self.directory().relative().split('/');
 				return '#code/' + parts.slice(0, parts.length -1).join('/');

@@ -44,7 +44,7 @@ define(['css!./tutorial.css', 'core/pluginapi'], function(css, api){
 	function display(target){
 		tuts.find(".previous").attr("disabled", false);
 		tuts.find(".next").attr("disabled", false);
-		if (target >= tuts.find("ul li").length) {
+		if (target >= tuts.find("ul li").length - 1) {
 			tuts.find(".next").attr("disabled", true);
 		} else if (target <= 0) {
 			tuts.find(".previous").attr("disabled", true);
@@ -67,9 +67,8 @@ define(['css!./tutorial.css', 'core/pluginapi'], function(css, api){
 	tuts.find("h1").click(function(){
 		tuts.find("ul").toggleClass("open");
 	});
-	tuts.on("click","ul li", function(e){
+	tuts.on("click","ul, ul li", function(e){
 		tuts.find("ul").toggleClass("open");
-		console.log(e)
 		display( $(e.currentTarget).index() )
 	});
 	// BAAAAAAD
