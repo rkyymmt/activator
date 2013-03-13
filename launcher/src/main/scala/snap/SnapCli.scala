@@ -1,7 +1,7 @@
 package snap
 
 import xsbti.{ AppMain, AppConfiguration }
-import snap.properties.SnapProperties.SCRIPT_NAME
+import builder.properties.BuilderProperties.SCRIPT_NAME
 import snap.cache.TemplateCache
 import snap.cache.Actions.cloneTemplate
 import java.io.File

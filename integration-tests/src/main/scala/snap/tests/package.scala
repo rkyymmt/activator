@@ -1,6 +1,6 @@
 package snap
 
-import snap.properties.SnapProperties
+import builder.properties.BuilderProperties._
 
 // Helper methods for running tests.
 package object tests {
@@ -34,7 +34,7 @@ package object tests {
     val project = new java.io.File(dir, "project")
     snap.cache.IO.createDirectory(project)
     val props = new java.io.File(project, "build.properties")
-    createFile(props, "sbt.version=" + snap.properties.SnapProperties.SBT_VERSION)
+    createFile(props, "sbt.version=" + SBT_VERSION)
     val scalaSource = new java.io.File(dir, "src/main/scala")
     snap.cache.IO.createDirectory(scalaSource)
     val main = new java.io.File(scalaSource, "hello.scala")

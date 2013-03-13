@@ -3,7 +3,7 @@ package snap.cache
 import java.io._
 import org.junit.Assert._
 import org.junit._
-import snap.properties.SnapProperties._
+import builder.properties.BuilderProperties._
 
 class ActionsTest {
   @Test

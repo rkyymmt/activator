@@ -3,7 +3,7 @@ package com.typesafe.sbtchild
 import xsbti.AppConfiguration
 import xsbti.ApplicationID
 import java.io.File
-import snap.properties.SnapProperties
+import builder.properties.BuilderProperties._
 
 /**
  * A trait which can create the SBT child process
@@ -40,7 +40,7 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
   // This will resolve the probe artifact using our launcher and then
   // give us the classpath
   private lazy val probeClassPath: Seq[File] =
-    launcher.app(probeApp, SnapProperties.SBT_SCALA_VERSION).mainClasspath
+    launcher.app(probeApp, SBT_SCALA_VERSION).mainClasspath
 
   // TODO - Find the launcher.
 
@@ -56,13 +56,13 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
       "-XX:+CMSClassUnloadingEnabled")
     // TODO - handle spaces in strings and such...
     val sbtProps = Seq(
-      "-Dbuilder.home=" + SnapProperties.BUILDER_HOME,
+      "-Dbuilder.home=" + BUILDER_HOME,
       // TODO - better handling of missing sbt.boot.directory property!
       "-Dsbt.boot.directory=" + (sys.props get "sbt.boot.directory" getOrElse (sys.props("user.home") + "/.sbt")),
       // TODO - Don't allow user-global plugins?
       //"-Dsbt.global.base=/tmp/.sbtboot",
       portArg)
-    val launcher = new java.io.File(SnapProperties.BUILDER_LAUNCHER_JAR)
+    val launcher = new java.io.File(BUILDER_LAUNCHER_JAR)
     val jar = Seq("-jar", launcher.getAbsolutePath)
 
     // TODO - Is the cross-platform friendly?

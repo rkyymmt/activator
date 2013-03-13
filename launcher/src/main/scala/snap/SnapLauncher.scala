@@ -1,8 +1,7 @@
 package snap
 
 import xsbti.{ AppMain, AppConfiguration }
-import snap.properties.SnapProperties
-import SnapProperties.SCRIPT_NAME
+import builder.properties.BuilderProperties._
 import java.io.File
 
 /** Expose for SBT launcher support. */
@@ -46,12 +45,12 @@ class SnapLauncher extends AppMain {
 case class RebootToUI(configuration: AppConfiguration) extends xsbti.Reboot {
   val arguments = Array.empty[String]
   val baseDirectory = configuration.baseDirectory
-  val scalaVersion = SnapProperties.APP_SCALA_VERSION
+  val scalaVersion = APP_SCALA_VERSION
   val app = ApplicationID(
     groupID = configuration.provider.id.groupID,
     // TODO - Pull this string from somewhere else so it's only configured in the build?
     name = "builder-ui",
-    version = SnapProperties.APP_VERSION,
+    version = APP_VERSION,
     mainClass = "snap.UIMain")
 }
 
@@ -62,11 +61,11 @@ case class RebootToUI(configuration: AppConfiguration) extends xsbti.Reboot {
 case class RebootToSbt(configuration: AppConfiguration, useArguments: Boolean = false) extends xsbti.Reboot {
   val arguments = if (useArguments) configuration.arguments else Array.empty[String]
   val baseDirectory = configuration.baseDirectory
-  val scalaVersion = SnapProperties.SBT_SCALA_VERSION
+  val scalaVersion = SBT_SCALA_VERSION
   val app = ApplicationID(
     groupID = "org.scala-sbt",
     name = "sbt",
-    version = SnapProperties.SBT_VERSION,
+    version = SBT_VERSION,
     mainClass = "sbt.xMain",
     mainComponents = Array("xsbti", "extra"))
 }

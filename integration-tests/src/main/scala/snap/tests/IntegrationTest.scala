@@ -26,14 +26,14 @@ abstract class IntegrationTest extends DelayedInit with xsbti.AppMain {
     }
 
   /** Return a process builder that will run SNAP in a directory with the given args. */
-  final def run_snap(args: Seq[String], cwd: java.io.File): sys.process.ProcessBuilder = {
+  final def run_builder(args: Seq[String], cwd: java.io.File): sys.process.ProcessBuilder = {
     // TODO - pass on all props...
     val fullArgs = Seq(
       "java",
       "-Dsbt.boot.directory=" + sys.props("sbt.boot.directory"),
-      "-Dsnap.home=" + sys.props("snap.home"),
+      "-Dbuilder.home=" + sys.props("builder.home"),
       "-jar",
-      properties.SnapProperties.BUILDER_LAUNCHER_JAR) ++ args
+      builder.properties.BuilderProperties.BUILDER_LAUNCHER_JAR) ++ args
     sys.process.Process(fullArgs, cwd)
   }
 }

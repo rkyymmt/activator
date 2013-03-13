@@ -1,13 +1,13 @@
-package snap.properties;
+package builder.properties;
 
 import java.util.Properties;
 
 // This is a lame-o class that's kinda dirty.  maybe we can clean it up later, but we're using it across two scala versions right now.
-public class SnapProperties {
+public class BuilderProperties {
 
   private static Properties loadProperties() {
     Properties props = new Properties();
-    java.io.InputStream in = SnapProperties.class.getResourceAsStream("builder.properties");
+    java.io.InputStream in = BuilderProperties.class.getResourceAsStream("builder.properties");
     try {
       props.load(in);
     } catch(java.io.IOException e) { throw new RuntimeException(e); }
