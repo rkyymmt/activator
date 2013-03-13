@@ -22,13 +22,13 @@ class SnapLauncher extends AppMain {
   case class Exit(val code: Int) extends xsbti.Exit
 
   def displayHelp(configuration: AppConfiguration) = {
-    System.err.println("""| Warning:  Could not detect a local snap project.
+    System.err.println("""| Warning:  Could not detect a local builder project.
                           |
-                          | If you'd like to run snap in this directory, please:
+                          | If you'd like to run builder in this directory, please:
                           |
-                          | 1. Run the UI with `snap ui`
-                          | 2. Create a project with `snap create`
-                          | 3. Move into a snap project directory and re-run snap.
+                          | 1. Run the UI with `builder ui`
+                          | 2. Create a project with `builder new`
+                          | 3. Move into a builder project directory and re-run builder.
                           |""".stripMargin)
     Exit(1)
   }

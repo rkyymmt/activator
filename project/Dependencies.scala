@@ -5,7 +5,7 @@ import Keys._
 object SnapDependencies {
   val sbtVersion = "0.12.2"
   val scalaVersion = "2.10.0"
-  val sbtSnapshotVersion = "0.13.0-20130312-052157"
+  val sbtSnapshotVersion = "0.13.0-20130313-052159"
 
   val sbtLauncherInterface = "org.scala-sbt" % "launcher-interface" % sbtVersion
   val sbtMain              = "org.scala-sbt" % "main" % sbtVersion

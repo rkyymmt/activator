@@ -41,13 +41,13 @@ object SnapCli {
   private def printUsage(name: String, dir: File): Unit = {
     // TODO - Cross-platform-ize these strings! Possibly keep script name in SnapProperties.
     System.out.println(s"""|To run "$name" from the command-line, run:
-                           |${dir.getAbsolutePath}/Builder run
+                           |${dir.getAbsolutePath}/builder run
                            |
                            |To run the test for "$name" from the command-line, run:
-                           |${dir.getAbsolutePath}/Builder test
+                           |${dir.getAbsolutePath}/builder test
                            |
                            |To run the Builder UI for "$name" from the command-line, run:
-                           |${dir.getAbsolutePath}/Builder ui
+                           |${dir.getAbsolutePath}/builder ui
                            |""".stripMargin)
   }
 
