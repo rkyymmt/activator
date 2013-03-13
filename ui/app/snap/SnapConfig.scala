@@ -52,7 +52,7 @@ object RootConfig {
     RootConfig(applications)
   }
 
-  private def loadUser = ConfigFile(new File(SnapProperties.SNAP_USER_HOME(), "config.json"))
+  private def loadUser = ConfigFile(new File(SnapProperties.BUILDER_USER_HOME(), "config.json"))
 
   // volatile because we read it unsynchronized. we don't care
   // which one we get, just something sane.

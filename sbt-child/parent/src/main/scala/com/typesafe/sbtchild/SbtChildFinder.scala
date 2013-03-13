@@ -56,13 +56,13 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
       "-XX:+CMSClassUnloadingEnabled")
     // TODO - handle spaces in strings and such...
     val sbtProps = Seq(
-      "-Dbuilder.home=" + SnapProperties.SNAP_HOME,
+      "-Dbuilder.home=" + SnapProperties.BUILDER_HOME,
       // TODO - better handling of missing sbt.boot.directory property!
       "-Dsbt.boot.directory=" + (sys.props get "sbt.boot.directory" getOrElse (sys.props("user.home") + "/.sbt")),
       // TODO - Don't allow user-global plugins?
       //"-Dsbt.global.base=/tmp/.sbtboot",
       portArg)
-    val launcher = new java.io.File(SnapProperties.SNAP_LAUNCHER_JAR)
+    val launcher = new java.io.File(SnapProperties.BUILDER_LAUNCHER_JAR)
     val jar = Seq("-jar", launcher.getAbsolutePath)
 
     // TODO - Is the cross-platform friendly?

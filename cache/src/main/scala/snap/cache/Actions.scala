@@ -34,7 +34,7 @@ object Actions {
         updateProperties(propsFile,
           Map(
             SnapProperties.BLUEPRINT_UUID_PROPERTY_NAME -> id,
-            SnapProperties.SNAP_ABI_VERSION_PROPERTY_NAME -> SnapProperties.APP_ABI_VERSION))
+            SnapProperties.BUILDER_ABI_VERSION_PROPERTY_NAME -> SnapProperties.APP_ABI_VERSION))
       }
     } yield ()
 

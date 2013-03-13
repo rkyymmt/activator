@@ -33,7 +33,7 @@ abstract class IntegrationTest extends DelayedInit with xsbti.AppMain {
       "-Dsbt.boot.directory=" + sys.props("sbt.boot.directory"),
       "-Dsnap.home=" + sys.props("snap.home"),
       "-jar",
-      properties.SnapProperties.SNAP_LAUNCHER_JAR) ++ args
+      properties.SnapProperties.BUILDER_LAUNCHER_JAR) ++ args
     sys.process.Process(fullArgs, cwd)
   }
 }

@@ -28,7 +28,7 @@ package object tests {
     finally writer.close()
   }
 
-  /** Creates a dummy project we can run SNAP against. */
+  /** Creates a dummy project we can run Builder against. */
   def makeDummySbtProject(dir: java.io.File): java.io.File = {
     snap.cache.IO.createDirectory(dir)
     val project = new java.io.File(dir, "project")

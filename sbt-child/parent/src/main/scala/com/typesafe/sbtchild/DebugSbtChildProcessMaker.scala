@@ -37,7 +37,7 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
       "-XX:PermSize=512M",
       "-XX:+CMSClassUnloadingEnabled")
     val sbtProps = Seq(
-      "-Dbuilder.home=" + SnapProperties.SNAP_HOME,
+      "-Dbuilder.home=" + SnapProperties.BUILDER_HOME,
       // Looks like this one is unset...
       "-Dsbt.boot.directory=" + (sys.props get "sbt.boot.directory" getOrElse (sys.props("user.home") + "/.sbt")),
       // TODO - Don't allow user-global plugins?

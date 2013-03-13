@@ -38,7 +38,7 @@ public class SnapProperties {
   }
 
   public static String BLUEPRINT_UUID_PROPERTY_NAME = "blueprint.uuid";
-  public static String SNAP_ABI_VERSION_PROPERTY_NAME = "builder.abi.version";
+  public static String BUILDER_ABI_VERSION_PROPERTY_NAME = "builder.abi.version";
   public static String SCRIPT_NAME = "builder";
   
   
@@ -63,7 +63,7 @@ public class SnapProperties {
     return props.getProperty("sbt.scala.version");
   }
 
-  public static String SNAP_HOME() {
+  public static String BUILDER_HOME() {
     return getProperty("builder.home");
   }
 
@@ -71,24 +71,24 @@ public class SnapProperties {
     return getProperty("user.home");
   }
 
-  public static String SNAP_USER_HOME() {
+  public static String BUILDER_USER_HOME() {
     return lookupOr("builder.user.home", getProperty("user.home") + "/.builder/" + APP_ABI_VERSION());
   }
 
-  public static String SNAP_TEMPLATE_CACHE() {
-    return lookupOr("builder.template.cache", SNAP_USER_HOME() + "/templates");
+  public static String BUILDER_TEMPLATE_CACHE() {
+    return lookupOr("builder.template.cache", BUILDER_USER_HOME() + "/templates");
   }
 
-  public static String SNAP_TEMPLATE_LOCAL_REPO() {
-    String defaultValue = SNAP_HOME();
+  public static String BUILDER_TEMPLATE_LOCAL_REPO() {
+    String defaultValue = BUILDER_HOME();
     if(defaultValue != null) {
       defaultValue = defaultValue + "/templates";
     }
     return lookupOr("builder.template.localrepo", defaultValue);
   }
 
-  public static String SNAP_LAUNCHER_JAR() {
-    String value = SNAP_HOME();
+  public static String BUILDER_LAUNCHER_JAR() {
+    String value = BUILDER_HOME();
     String version = APP_VERSION();
     if(value != null && version != null) {
       // TODO - synch this with build in some better fashion!
@@ -97,15 +97,15 @@ public class SnapProperties {
     return value;
   }
 
-  public static String SNAP_LAUNCHER_BAT() {
-    String value = SNAP_HOME();
+  public static String BUILDER_LAUNCHER_BAT() {
+    String value = BUILDER_HOME();
     if(value != null) {
       value = value+"/"+SCRIPT_NAME+".bat";
     }
     return value;
   }
-  public static String SNAP_LAUNCHER_BASH() {
-    String value = SNAP_HOME();
+  public static String BUILDER_LAUNCHER_BASH() {
+    String value = BUILDER_HOME();
     if(value != null) {
       value = value+"/"+SCRIPT_NAME;
     }

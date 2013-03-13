@@ -44,7 +44,7 @@ object TemplateCache {
 class DemoTemplateCache() extends TemplateCache {
 
   private val cacheDir = (
-    Option(SnapProperties.SNAP_TEMPLATE_CACHE) map (new java.io.File(_)) getOrElse
+    Option(SnapProperties.BUILDER_TEMPLATE_CACHE) map (new java.io.File(_)) getOrElse
     sys.error("Could not instatiate template cache!  Does this user have a home directory?"))
 
   // First we copy our templates from the snap.home (if we have them there).
@@ -53,9 +53,9 @@ class DemoTemplateCache() extends TemplateCache {
   import java.io.File
   private def defaultTemplateFiles: Seq[(File, String)] = {
     def fileFor(loc: String, name: String): Option[(File, String)] = Option(loc) map (new File(_)) filter (_.exists) map (_ -> name)
-    val batFile = fileFor(SnapProperties.SNAP_LAUNCHER_BAT, "snap.bat")
-    val jarFile = fileFor(SnapProperties.SNAP_LAUNCHER_JAR, s"snap-launch-${SnapProperties.APP_VERSION}.jar")
-    val bashFile = fileFor(SnapProperties.SNAP_LAUNCHER_BASH, "snap")
+    val batFile = fileFor(SnapProperties.BUILDER_LAUNCHER_BAT, "builder.bat")
+    val jarFile = fileFor(SnapProperties.BUILDER_LAUNCHER_JAR, s"builder-launch-${SnapProperties.APP_VERSION}.jar")
+    val bashFile = fileFor(SnapProperties.BUILDER_LAUNCHER_BASH, "builder")
     Seq(batFile, jarFile, bashFile).flatten
   }
 
@@ -116,7 +116,7 @@ class DemoTemplateCache() extends TemplateCache {
     IO.createDirectory(cacheDir)
     // TODO - use SBT IO library when it's on scala 2.10
     import snap.properties.SnapProperties
-    for (templateRepo <- Option(SnapProperties.SNAP_TEMPLATE_LOCAL_REPO) map (new java.io.File(_)) filter (_.isDirectory)) {
+    for (templateRepo <- Option(SnapProperties.BUILDER_TEMPLATE_LOCAL_REPO) map (new java.io.File(_)) filter (_.isDirectory)) {
       // Now loop over all the files in this repo and copy them into the local cache.
       for {
         file <- IO allfiles templateRepo

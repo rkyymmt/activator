@@ -63,7 +63,7 @@ class ConfigTest {
 
   @Test
   def testRecoveringFromBrokenFile(): Unit = {
-    val file = new File(SnapProperties.SNAP_USER_HOME(), "config.json")
+    val file = new File(SnapProperties.BUILDER_USER_HOME(), "config.json")
     try {
       file.delete()
 
