@@ -90,7 +90,7 @@ define(['text!./build.html', 'core/pluginapi', 'core/log', 'css!./build.css'], f
 
 			self.logModel.clear();
 			self.logModel.info("Building...");
-			var task = { task: 'CompileRequest' };
+			var task = { task: 'compile' };
 			var taskId = sbt.runTask({
 				task: task,
 				onmessage: function(event) {
@@ -99,7 +99,7 @@ define(['text!./build.html', 'core/pluginapi', 'core/log', 'css!./build.css'], f
 				success: function(data) {
 					console.log("compile result: ", data);
 					self.activeTask("");
-					if (data.type == 'CompileResponse') {
+					if (data.type == 'GenericResponse') {
 						self.logModel.info('Compile complete.');
 					} else {
 						self.logModel.error('Unexpected reply: ' + JSON.stringify(data));

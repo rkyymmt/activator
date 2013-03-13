@@ -64,7 +64,9 @@ object LogEntry {
   }
 }
 
-// These are wire messages on the socket
+// This type needs to be completely/permanently split into
+// SpecificMessage and GenericMessage for better safety.
+// Will come in a future refactoring round.
 sealed trait Message {
   // this makes it prettier when writing json by hand e.g. in JavaScript
   private def removeDollar(s: String) = {
@@ -86,28 +88,121 @@ sealed trait Message {
   def jsonTypeString = removeDollar(lastChunk(getClass.getName))
 }
 
+sealed trait SpecificMessage extends Message {
+  def toGeneric: GenericMessage
+}
+
+// FOR NOW we always use this on the wire and always
+// use SpecificMessage elsewhere for type safety;
+// but later on we want to remove special-case handling
+// for SpecificMessage and then we would avoid converting
+// to generic.
+sealed trait GenericMessage extends Message {
+  def toSpecific: Option[SpecificMessage]
+}
+
 sealed trait Request extends Message {
   // whether to send events between request/response, in
   // addition to just the response.
   def sendEvents: Boolean
 }
+// we use GenericRequest on the wire and parse to SpecificRequest
+// when we want type safety
+sealed trait SpecificRequest extends Request with SpecificMessage {
+  override def toGeneric: GenericRequest
+}
 sealed trait Response extends Message
+// we use GenericResponse on the wire and parse to SpecificResponse
+// when we want type safety
+sealed trait SpecificResponse extends Response with SpecificMessage {
+  override def toGeneric: GenericResponse
+}
 sealed trait Event extends Message
+// we use GenericEvent on the wire and parse to SpecificEvent
+// when we want type safety
+sealed trait SpecificEvent extends Event with SpecificMessage {
+  override def toGeneric: GenericEvent
+}
 
-case class NameRequest(sendEvents: Boolean) extends Request
-case class NameResponse(name: String) extends Response
+object TaskNames {
+  val name = "name"
+  val discoveredMainClasses = "discovered-main-classes"
+  val watchTransitiveSources = "watch-transitive-sources"
+  val compile = "compile"
+  val run = "run"
+  val runMain = "run-main"
+  val test = "test"
+}
 
-case class DiscoveredMainClassesRequest(sendEvents: Boolean) extends Request
-case class DiscoveredMainClassesResponse(names: Seq[String]) extends Response
+case class GenericRequest(sendEvents: Boolean, name: String, params: Map[String, Any]) extends Request with GenericMessage {
+  override def toSpecific: Option[SpecificRequest] = {
+    Option(name match {
+      case TaskNames.name => NameRequest(sendEvents = sendEvents)
+      case TaskNames.discoveredMainClasses => DiscoveredMainClassesRequest(sendEvents = sendEvents)
+      case TaskNames.watchTransitiveSources => WatchTransitiveSourcesRequest(sendEvents = sendEvents)
+      case TaskNames.compile => CompileRequest(sendEvents = sendEvents)
+      case TaskNames.run => RunRequest(sendEvents = sendEvents, mainClass = None)
+      case TaskNames.runMain => RunRequest(sendEvents = sendEvents, mainClass = params.get("mainClass").map(_.asInstanceOf[String]))
+      case TaskNames.test => TestRequest(sendEvents = sendEvents)
+      case _ =>
+        null
+    })
+  }
+}
 
-case class WatchTransitiveSourcesRequest(sendEvents: Boolean) extends Request
-case class WatchTransitiveSourcesResponse(files: Seq[File]) extends Response
+case class GenericResponse(name: String, params: Map[String, Any]) extends Response with GenericMessage {
+  override def toSpecific: Option[SpecificResponse] = {
+    Option(name match {
+      case TaskNames.name => NameResponse(params("name").asInstanceOf[String])
+      case TaskNames.discoveredMainClasses => DiscoveredMainClassesResponse(params("names").asInstanceOf[Seq[String]])
+      case TaskNames.watchTransitiveSources => WatchTransitiveSourcesResponse(params("files").asInstanceOf[Seq[String]].map(new File(_)))
+      case TaskNames.compile => CompileResponse(params("success").asInstanceOf[Boolean])
+      case TaskNames.run => RunResponse(params("success").asInstanceOf[Boolean], TaskNames.run)
+      case TaskNames.runMain => RunResponse(params("success").asInstanceOf[Boolean], TaskNames.runMain)
+      case TaskNames.test => TestResponse(outcome = TestOutcome(params("outcome").asInstanceOf[String]))
+      case _ =>
+        null
+    })
+  }
+}
 
-case class CompileRequest(sendEvents: Boolean) extends Request
-case class CompileResponse(success: Boolean) extends Response
+case class NameRequest(sendEvents: Boolean) extends SpecificRequest {
+  override def toGeneric = GenericRequest(sendEvents = sendEvents,
+    name = TaskNames.name,
+    Map.empty)
+}
+case class NameResponse(name: String) extends SpecificResponse {
+  override def toGeneric = GenericResponse(TaskNames.name, Map("name" -> name))
+}
 
-case class RunRequest(sendEvents: Boolean, mainClass: Option[String]) extends Request
-case class RunResponse(success: Boolean) extends Response
+case class DiscoveredMainClassesRequest(sendEvents: Boolean) extends SpecificRequest {
+  override def toGeneric = GenericRequest(sendEvents = sendEvents, TaskNames.discoveredMainClasses, Map.empty)
+}
+case class DiscoveredMainClassesResponse(names: Seq[String]) extends SpecificResponse {
+  override def toGeneric = GenericResponse(TaskNames.discoveredMainClasses, Map("names" -> names.toList))
+}
+
+case class WatchTransitiveSourcesRequest(sendEvents: Boolean) extends SpecificRequest {
+  override def toGeneric = GenericRequest(sendEvents = sendEvents, TaskNames.watchTransitiveSources, Map.empty)
+}
+case class WatchTransitiveSourcesResponse(files: Seq[File]) extends SpecificResponse {
+  override def toGeneric = GenericResponse(TaskNames.watchTransitiveSources, Map("files" -> files.map(_.getPath).toList))
+}
+
+case class CompileRequest(sendEvents: Boolean) extends SpecificRequest {
+  override def toGeneric = GenericRequest(sendEvents = sendEvents, TaskNames.compile, Map.empty)
+}
+case class CompileResponse(success: Boolean) extends SpecificResponse {
+  override def toGeneric = GenericResponse(TaskNames.compile, Map("success" -> success))
+}
+
+case class RunRequest(sendEvents: Boolean, mainClass: Option[String]) extends SpecificRequest {
+  override def toGeneric = GenericRequest(sendEvents = sendEvents, mainClass.map(_ => TaskNames.runMain).getOrElse(TaskNames.run),
+    mainClass.map(mc => Map("mainClass" -> mc)).getOrElse(Map.empty))
+}
+case class RunResponse(success: Boolean, task: String) extends SpecificResponse {
+  override def toGeneric = GenericResponse(task, Map("success" -> success))
+}
 
 sealed trait TestOutcome {
   final def success: Boolean = {
@@ -149,9 +244,12 @@ case object TestSkipped extends TestOutcome {
   override def toString = "skipped"
 }
 
-case class TestRequest(sendEvents: Boolean) extends Request
-case class TestResponse(outcome: TestOutcome) extends Response {
+case class TestRequest(sendEvents: Boolean) extends SpecificRequest {
+  override def toGeneric = GenericRequest(sendEvents = sendEvents, TaskNames.test, Map.empty)
+}
+case class TestResponse(outcome: TestOutcome) extends SpecificResponse {
   def success: Boolean = outcome.success
+  override def toGeneric = GenericResponse(TaskNames.test, Map("outcome" -> outcome.toString))
 }
 
 // can be the response to anything
@@ -160,7 +258,6 @@ case class ErrorResponse(error: String) extends Response
 // when we receive a request but before we process it, we send this
 case object RequestReceivedEvent extends Event
 case class LogEvent(entry: LogEntry) extends Event
-case class TestEvent(name: String, description: Option[String], outcome: TestOutcome, error: Option[String]) extends Event
 
 // pseudo-wire-messages we synthesize locally
 case object Started extends Event
@@ -169,54 +266,120 @@ case object Stopped extends Event
 // should not happen, basically
 case class MysteryMessage(something: Any) extends Event
 
+case class GenericEvent(task: String, id: String, params: Map[String, Any]) extends Event with GenericMessage {
+  override def toSpecific: Option[SpecificEvent] = {
+    Option(task match {
+      case TaskNames.test => id match {
+        case "result" => TestEvent(params("name").asInstanceOf[String],
+          params.get("description").map(_.asInstanceOf[String]),
+          TestOutcome(params("outcome").asInstanceOf[String]),
+          params.get("error").map(_.asInstanceOf[String]))
+        case _ => null
+      }
+      case _ => null
+    })
+  }
+}
+
+case class TestEvent(name: String, description: Option[String], outcome: TestOutcome, error: Option[String]) extends SpecificEvent {
+  override def toGeneric = GenericEvent(task = TaskNames.test, id = "result",
+    Map("name" -> name, "outcome" -> outcome.toString) ++
+      description.map(desc => Map("description" -> desc)).getOrElse(Map.empty) ++
+      error.map(e => Map("error" -> e)).getOrElse(Map.empty))
+}
+
 object Message {
   implicit object JsonRepresentationOfMessage extends ipc.JsonRepresentation[Message] {
-    override def toJson(m: Message): JSONObject = {
-      // the particular JSON created here is
-      // probably bogus, and the use of scala's built-in
-      // json stuff is probably also bogus, but it
-      // will get us going until we better understand
-      // the non-bogus.
-      import scala.util.parsing.json._
-      val base = Map("type" -> m.jsonTypeString)
-      val obj: Map[String, Any] = m match {
-        case req: Request =>
-          base ++ Map("sendEvents" -> req.sendEvents) ++ {
-            req match {
-              case RunRequest(_, Some(mainClass)) =>
-                Map("mainClass" -> mainClass)
-              case _ =>
-                Map.empty[String, Any]
-            }
-          }
-        case Started | Stopped | RequestReceivedEvent =>
-          base
-        case NameResponse(name) =>
-          base ++ Map("name" -> name)
-        case DiscoveredMainClassesResponse(names) =>
-          base ++ Map("names" -> JSONArray(names.toList))
-        case WatchTransitiveSourcesResponse(files) =>
-          base ++ Map("files" -> JSONArray(files.map(_.getPath).toList))
-        case CompileResponse(success) =>
-          base ++ Map("success" -> success)
-        case RunResponse(success) =>
-          base ++ Map("success" -> success)
-        case TestResponse(outcome) =>
-          base ++ Map("outcome" -> outcome.toString)
-        case ErrorResponse(error) =>
-          base ++ Map("error" -> error)
-        case MysteryMessage(something) =>
-          base ++ Map("something" -> something.toString)
-        case LogEvent(entry) =>
-          base ++ Map("entry" -> implicitly[ipc.JsonWriter[LogEntry]].toJson(entry))
-        case TestEvent(name, descriptionOpt, outcome, errorOpt) =>
-          base ++ Map("name" -> name, "outcome" -> outcome.toString) ++
-            descriptionOpt.map(desc => Map("description" -> desc)).getOrElse(Map.empty) ++
-            errorOpt.map(e => Map("error" -> e)).getOrElse(Map.empty)
+    private def cleanJsonFromAny(value: Any): Any = value match {
+      // null is allowed in json
+      case null => null
+      // strip the scala JSON wrappers off, if present; this
+      // is basically due to not being sure when Scala's json stuff
+      // will use these.
+      case JSONObject(v) => cleanJsonFromAny(v)
+      case JSONArray(v) => cleanJsonFromAny(v)
+      // all sequences must be lists of sanitized values
+      case s: Seq[_] => s.map(cleanJsonFromAny(_)).toList
+      case m: Map[_, _] => m map {
+        case (key: String, value) =>
+          (key -> cleanJsonFromAny(value))
         case whatever =>
-          throw new Exception("Need to implement JSON serialization of: " + whatever)
+          throw new RuntimeException("Invalid map entry in params " + whatever)
       }
-      JSONObject(obj)
+      case s: String => s
+      case n: Number => n
+      case b: Boolean => b
+      case whatever => throw new RuntimeException("not allowed in params: " + whatever)
+    }
+
+    private def cleanJsonFromParams(params: Any): Map[String, Any] = {
+      cleanJsonFromAny(params).asInstanceOf[Map[String, Any]]
+    }
+
+    private def addJsonToAny(value: Any): Any = value match {
+      // null is allowed in json
+      case null => null
+      // keep wrappers but ensure we wrap any nested items
+      case JSONObject(v) => addJsonToAny(v)
+      case JSONArray(v) => addJsonToAny(v)
+      // add wrappers if missing
+      case s: Seq[_] => JSONArray(s.map(addJsonToAny(_)).toList)
+      case m: Map[_, _] => JSONObject(m map {
+        case (key: String, value) =>
+          (key -> addJsonToAny(value))
+        case whatever =>
+          throw new RuntimeException("Invalid map entry in params " + whatever)
+      })
+      case s: String => s
+      case n: Number => n
+      case b: Boolean => b
+      case whatever => throw new RuntimeException("not allowed in params: " + whatever)
+    }
+
+    private def addJsonToParams(params: Any): JSONObject = {
+      addJsonToAny(params).asInstanceOf[JSONObject]
+    }
+
+    private def fromParams(params: Map[String, Any]): JSONObject = {
+      addJsonToParams(params)
+    }
+
+    override def toJson(m: Message): JSONObject = {
+      import scala.util.parsing.json._
+
+      m match {
+        // always serialize as generic
+        case specific: SpecificMessage => toJson(specific.toGeneric)
+        case other => {
+          val base = Map("type" -> m.jsonTypeString)
+          val obj: Map[String, Any] = m match {
+            case req: Request =>
+              base ++ Map("sendEvents" -> req.sendEvents) ++ {
+                req match {
+                  case GenericRequest(_, name, params) =>
+                    Map("name" -> name, "params" -> fromParams(params))
+                  case _ =>
+                    Map.empty[String, Any]
+                }
+              }
+            case Started | Stopped | RequestReceivedEvent =>
+              base
+            case GenericResponse(name, params) =>
+              base ++ Map("name" -> name, "params" -> fromParams(params))
+            case GenericEvent(task, id, params) =>
+              base ++ Map("task" -> task, "id" -> id, "params" -> fromParams(params))
+            case ErrorResponse(error) =>
+              base ++ Map("error" -> error)
+            case MysteryMessage(something) =>
+              base ++ Map("something" -> something.toString)
+            case LogEvent(entry) =>
+              base ++ Map("entry" -> implicitly[ipc.JsonWriter[LogEntry]].toJson(entry))
+            case whatever =>
+              throw new Exception("Need to implement JSON serialization of: " + whatever)
+          }
+          JSONObject(obj)
+        }
+      }
     }
 
     private def parseLogList(obj: Map[String, Any], key: String): List[LogEntry] = {
@@ -238,37 +401,14 @@ object Message {
       json match {
         case JSONObject(obj) =>
           obj("type") match {
-            case "NameRequest" =>
-              NameRequest(sendEvents = getSendEvents(obj))
-            case "NameResponse" =>
-              NameResponse(obj("name").asInstanceOf[String])
-            case "DiscoveredMainClassesRequest" =>
-              DiscoveredMainClassesRequest(sendEvents = getSendEvents(obj))
-            case "DiscoveredMainClassesResponse" =>
-              DiscoveredMainClassesResponse(obj("names") match {
-                case list: Seq[_] => list.map(_.asInstanceOf[String])
-                case whatever => throw new RuntimeException("'names' field in DiscoveredMainClassesResponse has unexpected value: " + whatever)
-              })
-            case "WatchTransitiveSourcesRequest" =>
-              WatchTransitiveSourcesRequest(sendEvents = getSendEvents(obj))
-            case "WatchTransitiveSourcesResponse" =>
-              WatchTransitiveSourcesResponse(obj("files") match {
-                case list: Seq[_] => list.map(_.asInstanceOf[String]).map(new File(_))
-                case whatever => throw new RuntimeException("'files' field in WatchTransitiveSourcesResponse has unexpected value: " + whatever)
-              })
-            case "CompileRequest" =>
-              CompileRequest(sendEvents = getSendEvents(obj))
-            case "CompileResponse" =>
-              CompileResponse(obj("success").asInstanceOf[Boolean])
-            case "TestRequest" =>
-              TestRequest(sendEvents = getSendEvents(obj))
-            case "TestResponse" =>
-              TestResponse(outcome = TestOutcome(obj("outcome").asInstanceOf[String]))
-            case "RunRequest" =>
-              RunRequest(sendEvents = getSendEvents(obj),
-                mainClass = obj.get("mainClass").map(_.asInstanceOf[String]))
-            case "RunResponse" =>
-              RunResponse(obj("success").asInstanceOf[Boolean])
+            case "GenericRequest" =>
+              GenericRequest(sendEvents = getSendEvents(obj), name = obj("name").asInstanceOf[String],
+                params = cleanJsonFromParams(obj.get("params").getOrElse(Map.empty)))
+            case "GenericResponse" =>
+              GenericResponse(name = obj("name").asInstanceOf[String], params = cleanJsonFromParams(obj.get("params").getOrElse(Map.empty)))
+            case "GenericEvent" =>
+              GenericEvent(task = obj("task").asInstanceOf[String], id = obj("id").asInstanceOf[String],
+                params = cleanJsonFromParams(obj.get("params").getOrElse(Map.empty)))
             case "ErrorResponse" =>
               ErrorResponse(obj("error").asInstanceOf[String])
             case "Started" =>
@@ -281,11 +421,6 @@ object Message {
               MysteryMessage(obj("something").asInstanceOf[String])
             case "LogEvent" =>
               LogEvent(implicitly[JsonReader[LogEntry]].fromJson(JSONObject(obj("entry").asInstanceOf[Map[String, Any]])))
-            case "TestEvent" =>
-              TestEvent(obj("name").asInstanceOf[String],
-                obj.get("description").map(_.asInstanceOf[String]),
-                TestOutcome(obj("outcome").asInstanceOf[String]),
-                obj.get("error").map(_.asInstanceOf[String]))
             case whatever =>
               throw new Exception("unknown message type in json: " + whatever)
           }
@@ -310,6 +445,7 @@ object Envelope {
       implicitly[JsonReader[Message]].fromJson(json)
     } catch {
       case e: Exception =>
+        //System.err.println("**** " + e.getMessage)
         //System.err.println(e.getStackTraceString)
         // probably a JSON parse failure
         if (wire.replyTo != 0L)
@@ -317,6 +453,11 @@ object Envelope {
         else
           MysteryMessage(try wire.asString catch { case e: Exception => wire })
     }
-    Envelope(wire.serial, wire.replyTo, message)
+    // TODO converting to specific always is an intermediate refactoring step;
+    // some places will want generic later.
+    Envelope(wire.serial, wire.replyTo, message match {
+      case generic: GenericMessage => generic.toSpecific.getOrElse(throw new RuntimeException("generic message not specific-able"))
+      case other => other
+    })
   }
 }

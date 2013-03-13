@@ -177,11 +177,12 @@ define(['./streams', './events', './utils'], function(streams, events, utils) {
 				taskId: genTaskId(serverAppModel.id),
 				description: (o.description  || (taskName + " " + serverAppModel.id)),
 				task: {
-					type: taskName
+					type: 'GenericRequest',
+					name: taskName
 				}
 			};
 			if (typeof(o.params) == 'object')
-				$.extend(request.task, o.params)
+				request.task.params = o.params;
 			return request;
 		},
 		fail: function(status, message) {

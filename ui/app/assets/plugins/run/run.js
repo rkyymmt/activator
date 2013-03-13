@@ -39,14 +39,14 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 
 			// update our list of main classes
 			sbt.runTask({
-				task: 'DiscoveredMainClassesRequest',
+				task: 'discovered-main-classes',
 				onmessage: function(event) {
 					console.log("event getting main class", event);
 				},
 				success: function(data) {
 					console.log("main class result", data);
-					if (data.type == 'DiscoveredMainClassesResponse') {
-						self.mainClasses(data.names);
+					if (data.type == 'GenericResponse') {
+						self.mainClasses(data.params.names);
 					} else {
 						self.mainClasses([]);
 					}
@@ -92,9 +92,12 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 
 			self.restartPending(false);
 
-			var task = { task: 'RunRequest' };
-			if (self.haveMainClass())
-				task.params = { mainClass: self.currentMainClass() };
+			var task = null;
+			if (self.haveMainClass()) {
+				task = { task: 'run-main', params: { mainClass: self.currentMainClass() } };
+			} else {
+				task = { task: 'run' }
+			}
 			var taskId = sbt.runTask({
 				task: task,
 				onmessage: function(event) {
@@ -117,7 +120,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 				},
 				success: function(data) {
 					console.log("run result: ", data);
-					if (data.type == 'RunResponse') {
+					if (data.type == 'GenericResponse') {
 						self.logModel.info('Run complete.');
 					} else {
 						self.logModel.error('Unexpected reply: ' + JSON.stringify(data));

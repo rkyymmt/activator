@@ -36,7 +36,7 @@ class CanLaunchThroughSbtLauncher extends IntegrationTest {
       }
       println("compiled=" + compiled)
       val run = Await.result(child ? protocol.RunRequest(sendEvents = false, mainClass = None), timeout.duration) match {
-        case protocol.RunResponse(success) => {
+        case protocol.RunResponse(success, "run") => {
           success
         }
         case protocol.ErrorResponse(error) =>

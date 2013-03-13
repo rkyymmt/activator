@@ -217,7 +217,8 @@ object SetupSbtChild extends (State => State) {
           } getOrElse {
             runInputTask(run in Compile, origState, args = "")
           }
-          client.replyJson(serial, protocol.RunResponse(success = true))
+          client.replyJson(serial, protocol.RunResponse(success = true,
+            task = mainClass.map(_ => protocol.TaskNames.runMain).getOrElse(protocol.TaskNames.run)))
           s
         }
       case protocol.Envelope(serial, replyTo, protocol.TestRequest(_)) =>

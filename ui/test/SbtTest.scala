@@ -105,7 +105,7 @@ class SbtTest {
       val runJson = JsObject(Seq("appId" -> JsString(appId),
         "taskId" -> JsString("test-" + projectName + "-task-id"),
         "description" -> JsString(projectName + " Test"),
-        "task" -> JsObject(Seq("type" -> JsString("RunRequest")))))
+        "task" -> JsObject(Seq("type" -> JsString("GenericRequest"), "name" -> JsString("run")))))
 
       val runReq = FakeRequest(method = "POST", uri = "/api/sbt/task", body = AnyContentAsJson(runJson),
         headers = FakeHeaders(Seq(
@@ -129,7 +129,7 @@ class SbtTest {
   def testRunChildBrokenBuild(): Unit = {
     childTest(makeDummySbtProjectWithBrokenBuild, "runChildBrokenBuild") { taskJson =>
       assertEquals(JsString("ErrorResponse"), taskJson \ "type")
-      assertEquals(JsString("sbt process never got in touch, so unable to handle request RunRequest(true,None)"), taskJson \ "error")
+      assertEquals(JsString("sbt process never got in touch, so unable to handle request GenericRequest(true,run,Map())"), taskJson \ "error")
     }
   }
 
