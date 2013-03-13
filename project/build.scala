@@ -149,13 +149,11 @@ object TheSnapBuild extends Build {
       }
     )
   )
-
-  // TODO - SBT plugin, or just SBT integration?
-
+  
   lazy val launcher = (
     SnapProject("launcher")
-    dependsOnRemote(sbtLauncherInterface)
-    dependsOn(props, common)
+    dependsOnRemote(sbtLauncherInterface, sbtCompletion)
+    dependsOn(props, common, cache)
   )
 
   // A hack project just for convenient IvySBT when resolving artifacts into new local repositories.

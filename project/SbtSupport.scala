@@ -6,6 +6,7 @@ object SbtSupport {
   val sbtLaunchJarLocation = SettingKey[File]("sbt-launch-jar-location")  
   val sbtLaunchJar = TaskKey[File]("sbt-launch-jar", "Resolves SBT launch jar")
 
+  def snapshotDownloadUrl(v: String) = "http://private-repo.typesafe.com/typesafe/ivy-snapshots/org.scala-sbt/sbt-launch/"+v+"/sbt-launch.jar"
   def currentDownloadUrl(v: String) = "http://repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/"+v+"/sbt-launch.jar"
   def oldDownloadUrl(v: String) = "http://repo.typesafe.com/typesafe/ivy-releases/org.scala-tools.sbt/sbt-launch/"+v+"/sbt-launch.jar"
 
@@ -30,7 +31,9 @@ object SbtSupport {
 
   val buildSettings: Seq[Setting[_]] = Seq(
     // TODO - Configure different SBT version...
-    sbtLaunchJarUrl <<= sbtVersion apply downloadUrlForVersion,
+    //sbtLaunchJarUrl <<= sbtVersion apply downloadUrlForVersion,
+    // TODO - We use a snpashot launcher for now for the new jline...
+    sbtLaunchJarUrl := snapshotDownloadUrl(SnapDependencies.sbtSnapshotVersion),
     sbtLaunchJarLocation <<= baseDirectory (_ / "target" / "sbt" / "sbt-launch.jar"),
     sbtLaunchJar <<= (sbtLaunchJarUrl, sbtLaunchJarLocation) map downloadFile
   )
