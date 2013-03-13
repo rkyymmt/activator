@@ -176,7 +176,7 @@ object Packaging {
   org: com.typesafe.builder
   name: builder-launcher
   version: %s
-  class: snap.SnapLauncher
+  class: builder.BuilderLauncher
   cross-versioned: false
   components: xsbti
 

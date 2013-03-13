@@ -1,4 +1,4 @@
-package snap
+package builder
 
 import xsbti.{ AppMain, AppConfiguration }
 import builder.properties.BuilderProperties.SCRIPT_NAME
@@ -7,7 +7,7 @@ import snap.cache.Actions.cloneTemplate
 import java.io.File
 import sbt.complete.{ Parser, Parsers }
 
-object SnapCli {
+object BuilderCli {
   def apply(configuration: AppConfiguration): Int = try {
     System.out.println()
     val name = getApplicationName()

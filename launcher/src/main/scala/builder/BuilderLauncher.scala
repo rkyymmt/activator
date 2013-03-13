@@ -1,17 +1,17 @@
-package snap
+package builder
 
 import xsbti.{ AppMain, AppConfiguration }
 import builder.properties.BuilderProperties._
 import java.io.File
-
+import snap.Sbt
 /** Expose for SBT launcher support. */
-class SnapLauncher extends AppMain {
+class BuilderLauncher extends AppMain {
 
   def run(configuration: AppConfiguration) =
     // TODO - Detect if we're running against a local project.
     try configuration.arguments match {
       case Array("ui") => RebootToUI(configuration)
-      case Array("new") => Exit(SnapCli(configuration))
+      case Array("new") => Exit(BuilderCli(configuration))
       case Array("shell") => RebootToSbt(configuration, useArguments = false)
       case _ if Sbt.looksLikeAProject(new File(".")) => RebootToSbt(configuration, useArguments = true)
       case _ => displayHelp(configuration)
@@ -51,7 +51,7 @@ case class RebootToUI(configuration: AppConfiguration) extends xsbti.Reboot {
     // TODO - Pull this string from somewhere else so it's only configured in the build?
     name = "builder-ui",
     version = APP_VERSION,
-    mainClass = "snap.UIMain")
+    mainClass = "builder.UIMain")
 }
 
 // Wrapper to reboot into SBT.
