@@ -4,7 +4,7 @@ import Keys._
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 
-object SnapBuild {
+object BuilderBuild {
 
   def baseVersions: Seq[Setting[_]] = Seq(
     version := {
@@ -22,10 +22,10 @@ object SnapBuild {
       .setPreference(IndentSpaces, 2)
   }
 
-  def snapDefaults: Seq[Setting[_]] =
+  def builderDefaults: Seq[Setting[_]] =
     SbtScalariform.scalariformSettings ++
     Seq(
-      organization := "com.typesafe.snap",
+      organization := "com.typesafe.builder",
       version <<= version in ThisBuild,
       crossPaths := false,
       resolvers += "typesafe-mvn-releases" at "http://repo.typesafe.com/typesafe/releases/",
@@ -38,33 +38,33 @@ object SnapBuild {
       },
       javacOptions in Compile := Seq("-target", "1.6", "-source", "1.6"),
       javacOptions in (Compile, doc) := Seq("-source", "1.6"),
-      libraryDependencies += SnapDependencies.junitInterface % "test",
-      scalaVersion := SnapDependencies.scalaVersion,
+      libraryDependencies += Dependencies.junitInterface % "test",
+      scalaVersion := Dependencies.scalaVersion,
       scalaBinaryVersion := "2.10",
       ScalariformKeys.preferences in Compile := formatPrefs,
       ScalariformKeys.preferences in Test    := formatPrefs
     )
 
 
-  def SnapProject(name: String): Project = (
-    Project("snap-" + name, file(name))
-    settings(snapDefaults:_*)
+  def BuilderProject(name: String): Project = (
+    Project("builder-" + name, file(name))
+    settings(builderDefaults:_*)
   )
 
   
   def SbtChildProject(name: String): Project = (
     Project("sbt-child-" + name, file("sbt-child") / name)
-    settings(snapDefaults:_*)
+    settings(builderDefaults:_*)
   )
   
-  def SnapPlayProject(name: String): Project = (
-    play.Project("snap-" + name, path = file(name)) 
-    settings(snapDefaults:_*)
+  def BuilderPlayProject(name: String): Project = (
+    play.Project("builder-" + name, path = file(name)) 
+    settings(builderDefaults:_*)
   )
 
-  def SnapJavaProject(name: String): Project = (
-    Project("snap-" + name, file(name))
-    settings(snapDefaults:_*)
+  def BuilderJavaProject(name: String): Project = (
+    Project("builder-" + name, file(name))
+    settings(builderDefaults:_*)
     settings(
         autoScalaLibrary := false
     )

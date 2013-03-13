@@ -9,9 +9,10 @@ object Properties {
   def makePropertyClassSetting(sbtVersion: String, scalaVersion: String): Seq[Setting[_]] = Seq(
     resourceGenerators in Compile <+= makePropertiesSource,
     makePropertiesSource <<= (version, resourceManaged in Compile, compile in Compile) map { (v, dir, analysis) =>
+      // TODO - Refactor the props project to remove the "snap" here.
       val parent= dir / "snap" / "properties"
       IO createDirectory parent
-      val target = parent / "snap.properties"
+      val target = parent / "builder.properties"
       if(!target.exists || target.lastModified < lastCompilationTime(analysis)) {
         IO.write(target, makeJavaPropertiesString(v, sbtVersion, scalaVersion))
       }

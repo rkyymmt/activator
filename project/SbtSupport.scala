@@ -33,7 +33,7 @@ object SbtSupport {
     // TODO - Configure different SBT version...
     //sbtLaunchJarUrl <<= sbtVersion apply downloadUrlForVersion,
     // TODO - We use a snpashot launcher for now for the new jline...
-    sbtLaunchJarUrl := snapshotDownloadUrl(SnapDependencies.sbtSnapshotVersion),
+    sbtLaunchJarUrl := snapshotDownloadUrl(Dependencies.sbtSnapshotVersion),
     sbtLaunchJarLocation <<= baseDirectory (_ / "target" / "sbt" / "sbt-launch.jar"),
     sbtLaunchJar <<= (sbtLaunchJarUrl, sbtLaunchJarLocation) map downloadFile
   )

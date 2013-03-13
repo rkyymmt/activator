@@ -1,1 +1,1 @@
-name := "snap-build"
+name := "builder-build"

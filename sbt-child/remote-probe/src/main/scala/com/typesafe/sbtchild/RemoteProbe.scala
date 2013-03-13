@@ -53,7 +53,7 @@ object SetupSbtChild extends (State => State) {
   }
 
   private def getPort(): Int = {
-    val portString = System.getProperty("snap.sbt-child-port")
+    val portString = System.getProperty("builder.sbt-child-port")
     if (portString == null)
       throw new Exception("No port property set")
     val port = Integer.parseInt(portString)

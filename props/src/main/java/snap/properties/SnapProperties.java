@@ -7,7 +7,7 @@ public class SnapProperties {
 
   private static Properties loadProperties() {
     Properties props = new Properties();
-    java.io.InputStream in = SnapProperties.class.getResourceAsStream("snap.properties");
+    java.io.InputStream in = SnapProperties.class.getResourceAsStream("builder.properties");
     try {
       props.load(in);
     } catch(java.io.IOException e) { throw new RuntimeException(e); }
@@ -38,19 +38,20 @@ public class SnapProperties {
   }
 
   public static String BLUEPRINT_UUID_PROPERTY_NAME = "blueprint.uuid";
-  public static String SNAP_ABI_VERSION_PROPERTY_NAME = "snap.abi.version";
+  public static String SNAP_ABI_VERSION_PROPERTY_NAME = "builder.abi.version";
+  public static String SCRIPT_NAME = "builder";
+  
   
   public static String APP_VERSION() {
     return props.getProperty("app.version");
   }
 
   public static String APP_ABI_VERSION() {
-    // TODO - Encode ABI version in SNAP metadata...
+    // TODO - Encode ABI version in builder metadata...
     return APP_VERSION();
   }
 
   public static String APP_SCALA_VERSION() {
-    // TODO - Encode ABI version in SNAP metadata...
     return props.getProperty("app.scala.version");
   }
   
@@ -63,7 +64,7 @@ public class SnapProperties {
   }
 
   public static String SNAP_HOME() {
-    return getProperty("snap.home");
+    return getProperty("builder.home");
   }
 
   public static String GLOBAL_USER_HOME() {
@@ -71,11 +72,11 @@ public class SnapProperties {
   }
 
   public static String SNAP_USER_HOME() {
-    return lookupOr("snap.user.home", getProperty("user.home") + "/.snap/" + APP_ABI_VERSION());
+    return lookupOr("builder.user.home", getProperty("user.home") + "/.builder/" + APP_ABI_VERSION());
   }
 
   public static String SNAP_TEMPLATE_CACHE() {
-    return lookupOr("snap.template.cache", SNAP_USER_HOME() + "/templates");
+    return lookupOr("builder.template.cache", SNAP_USER_HOME() + "/templates");
   }
 
   public static String SNAP_TEMPLATE_LOCAL_REPO() {
@@ -83,7 +84,7 @@ public class SnapProperties {
     if(defaultValue != null) {
       defaultValue = defaultValue + "/templates";
     }
-    return lookupOr("snap.template.localrepo", defaultValue);
+    return lookupOr("builder.template.localrepo", defaultValue);
   }
 
   public static String SNAP_LAUNCHER_JAR() {
@@ -91,7 +92,7 @@ public class SnapProperties {
     String version = APP_VERSION();
     if(value != null && version != null) {
       // TODO - synch this with build in some better fashion!
-      value = value + "/snap-launch-"+version+".jar";
+      value = value+"/"+SCRIPT_NAME+"-launch-"+version+".jar";
     }
     return value;
   }
@@ -99,14 +100,14 @@ public class SnapProperties {
   public static String SNAP_LAUNCHER_BAT() {
     String value = SNAP_HOME();
     if(value != null) {
-      value = value + "/snap.bat";
+      value = value+"/"+SCRIPT_NAME+".bat";
     }
     return value;
   }
   public static String SNAP_LAUNCHER_BASH() {
     String value = SNAP_HOME();
     if(value != null) {
-      value = value + "/snap";
+      value = value+"/"+SCRIPT_NAME;
     }
     return value;
   }

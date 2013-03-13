@@ -28,7 +28,7 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
   // The Application for the child probe.  We can use this to get the classpath.
   private object probeApp extends ApplicationID {
     // TODO - Pull these constants from some build-generated properties or something.
-    def groupID = "com.typesafe.snap"
+    def groupID = "com.typesafe.builder"
     def name = "sbt-child-remote-probe"
     def version = configuration.provider.id.version // Cheaty way to get version
     def mainClass = "com.typesafe.sbtchild.SetupSbtChild" // TODO - What main class?
@@ -45,7 +45,7 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
   // TODO - Find the launcher.
 
   def arguments(port: Int): Seq[String] = {
-    val portArg = "-Dsnap.sbt-child-port=" + port.toString
+    val portArg = "-Dbuilder.sbt-child-port=" + port.toString
     // TODO - These need to be configurable *and* discoverable.
     // we have no idea if computers will be able to handle this amount of
     // memory....
@@ -56,7 +56,7 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
       "-XX:+CMSClassUnloadingEnabled")
     // TODO - handle spaces in strings and such...
     val sbtProps = Seq(
-      "-Dsnap.home=" + SnapProperties.SNAP_HOME,
+      "-Dbuilder.home=" + SnapProperties.SNAP_HOME,
       // TODO - better handling of missing sbt.boot.directory property!
       "-Dsbt.boot.directory=" + (sys.props get "sbt.boot.directory" getOrElse (sys.props("user.home") + "/.sbt")),
       // TODO - Don't allow user-global plugins?

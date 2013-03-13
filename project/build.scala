@@ -1,6 +1,6 @@
 import sbt._
-import SnapBuild._
-import SnapDependencies._
+import BuilderBuild._
+import Dependencies._
 import Packaging.localRepoArtifacts
 import com.typesafe.sbt.S3Plugin._
 import com.typesafe.sbt.SbtNativePackager.Universal
@@ -8,13 +8,13 @@ import com.typesafe.sbt.SbtNativePackager.Universal
 // As such try to avoid putting stuff in here so we can see how good build.sbt is without build.scala.
 
 
-object TheSnapBuild extends Build {
+object TheBuilderBuild extends Build {
 
   // ADD sbt launcher support here.
   override def settings = super.settings ++ SbtSupport.buildSettings ++ baseVersions ++ Seq(
     // This is a hack, so the play application will have the right view of the template directory.
     Keys.baseDirectory <<= Keys.baseDirectory apply { bd =>
-      sys.props("snap.home") = bd.getAbsoluteFile.getAbsolutePath
+      sys.props("builder.home") = bd.getAbsoluteFile.getAbsolutePath
       bd
     }
   ) ++ play.Project.intellijCommandSettings(play.Project.SCALA) // workaround for #24
@@ -29,24 +29,24 @@ object TheSnapBuild extends Build {
     )
   )
 
-  // Theser are the projects we want in the local SNAP repository
+  // These are the projects we want in the local Builder repository
   lazy val publishedProjects = Seq(common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver)
 
   // basic project that gives us properties to use in other projects.
   lazy val props = (
-    SnapJavaProject("props")
-    settings(Properties.makePropertyClassSetting(SnapDependencies.sbtVersion,SnapDependencies.scalaVersion):_*)
+    BuilderJavaProject("props")
+    settings(Properties.makePropertyClassSetting(Dependencies.sbtVersion, Dependencies.scalaVersion):_*)
   )
 
 
   lazy val common = (
-    SnapProject("common")
+    BuilderProject("common")
     dependsOnRemote(junitInterface % "test", specs2 % "test")
   )
 
 
   lazy val cache = (
-    SnapProject("cache")
+    BuilderProject("cache")
     dependsOn(props, common)
     dependsOnRemote(junitInterface % "test")
   )
@@ -85,8 +85,8 @@ object TheSnapBuild extends Build {
       requiredClasspath in sbtRemoteProbe,
       Keys.compile in Compile in sbtRemoteProbe) map {
       (launcher, oldOptions, probeCp, _) =>
-        oldOptions ++ Seq("-Dsnap.sbt.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
-                          "-Dsnap.remote.probe.classpath=" + Path.makeString(probeCp.files)) ++
+        oldOptions ++ Seq("-Dbuilder.sbt.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
+                          "-Dbuilder.remote.probe.classpath=" + Path.makeString(probeCp.files)) ++
       (if (verboseSbtTests)
         Seq("-Dakka.loglevel=DEBUG",
             "-Dakka.actor.debug.autoreceive=on",
@@ -108,7 +108,7 @@ object TheSnapBuild extends Build {
   )
 
   lazy val ui = (
-    SnapPlayProject("ui")
+    BuilderPlayProject("ui")
     dependsOnRemote(
       commonsIo, mimeUtil, slf4jLog4j,
       sbtLauncherInterface % "provided"
@@ -128,10 +128,10 @@ object TheSnapBuild extends Build {
           Keys.compile in Compile in sbtRemoteProbe) map {
         (launcher, update, probeCp, _) =>
           // We register the location after it's resolved so we have it for running play...
-          sys.props("snap.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
-          sys.props("snap.remote.probe.classpath") = Path.makeString(probeCp.files)
-          System.err.println("Updating sbt launch jar: " + sys.props("snap.sbt.launch.jar"))
-          System.err.println("Remote probe classpath = " + sys.props("snap.remote.probe.classpath"))
+          sys.props("builder.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
+          sys.props("builder.remote.probe.classpath") = Path.makeString(probeCp.files)
+          System.err.println("Updating sbt launch jar: " + sys.props("builder.sbt.launch.jar"))
+          System.err.println("Remote probe classpath = " + sys.props("builder.remote.probe.classpath"))
           update
       }
     )
@@ -151,21 +151,21 @@ object TheSnapBuild extends Build {
   )
   
   lazy val launcher = (
-    SnapProject("launcher")
+    BuilderProject("launcher")
     dependsOnRemote(sbtLauncherInterface, sbtCompletion)
     dependsOn(props, common, cache)
   )
 
   // A hack project just for convenient IvySBT when resolving artifacts into new local repositories.
   lazy val dontusemeresolvers = (
-    SnapProject("dontuseme")
+    BuilderProject("dontuseme")
     settings(
       // This hack removes the project resolver so we don't resolve stub artifacts.
       Keys.fullResolvers <<= (Keys.externalResolvers, Keys.sbtResolver) map (_ :+ _)
     )
   )
   lazy val it = (
-      SnapProject("integration-tests")
+      BuilderProject("integration-tests")
       settings(integration.settings:_*)
       dependsOnRemote(sbtLauncherInterface)
       dependsOn(sbtDriver, props, cache)
@@ -175,7 +175,7 @@ object TheSnapBuild extends Build {
   )
 
   lazy val dist = (
-    SnapProject("dist")
+    BuilderProject("dist")
     settings(Packaging.settings:_*)
     settings(s3Settings:_*)
     settings(
@@ -195,10 +195,10 @@ object TheSnapBuild extends Build {
         }
       }).join,
       localRepoArtifacts ++=
-        Seq("org.scala-sbt" % "sbt" % SnapDependencies.sbtVersion,
+        Seq("org.scala-sbt" % "sbt" % Dependencies.sbtVersion,
             // For some reason, these are not resolving transitively correctly!
             "org.scala-lang" % "scala-compiler" % "2.9.2",
-            "org.scala-lang" % "scala-compiler" % SnapDependencies.scalaVersion,
+            "org.scala-lang" % "scala-compiler" % Dependencies.scalaVersion,
             "net.java.dev.jna" % "jna" % "3.2.3",
             "commons-codec" % "commons-codec" % "1.3",
             "org.apache.httpcomponents" % "httpclient" % "4.0.1",

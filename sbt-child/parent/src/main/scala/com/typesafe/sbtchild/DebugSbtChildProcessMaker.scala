@@ -8,8 +8,8 @@ import java.io.File
  * inside the SBT UI so we can run sbt children.
  */
 object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
-  private val probeClassPathProp = "snap.remote.probe.classpath"
-  private val sbtLauncherJarProp = "snap.sbt.launch.jar"
+  private val probeClassPathProp = "builder.remote.probe.classpath"
+  private val sbtLauncherJarProp = "builder.sbt.launch.jar"
   private val allNeededProps = Seq(probeClassPathProp, sbtLauncherJarProp)
 
   // NOTE -> THIS HAS TO BE LAZY
@@ -27,7 +27,7 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
 
   def arguments(port: Int): Seq[String] = {
     assertPropsArentMissing()
-    val portArg = "-Dsnap.sbt-child-port=" + port.toString
+    val portArg = "-Dbuilder.sbt-child-port=" + port.toString
     // TODO - These need to be configurable *and* discoverable.
     // we have no idea if computers will be able to handle this amount of
     // memory....
@@ -37,7 +37,7 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
       "-XX:PermSize=512M",
       "-XX:+CMSClassUnloadingEnabled")
     val sbtProps = Seq(
-      "-Dsnap.home=" + SnapProperties.SNAP_HOME,
+      "-Dbuilder.home=" + SnapProperties.SNAP_HOME,
       // Looks like this one is unset...
       "-Dsbt.boot.directory=" + (sys.props get "sbt.boot.directory" getOrElse (sys.props("user.home") + "/.sbt")),
       // TODO - Don't allow user-global plugins?
