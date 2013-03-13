@@ -62,7 +62,8 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
       // TODO - Don't allow user-global plugins?
       //"-Dsbt.global.base=/tmp/.sbtboot",
       portArg)
-    val jar = Seq("-jar", SnapProperties.SNAP_LAUNCHER_JAR)
+    val launcher = new java.io.File(SnapProperties.SNAP_LAUNCHER_JAR)
+    val jar = Seq("-jar", launcher.getAbsolutePath)
 
     // TODO - Is the cross-platform friendly?
     val probeClasspathString = (probeClassPath map (_.getAbsolutePath)).distinct mkString File.pathSeparator
