@@ -1,7 +1,7 @@
 package snap
 package cache
 
-import properties.SnapProperties
+import _root_.builder.properties.BuilderProperties._
 import java.io.File
 /**
  * this class contains all template cache actions for both the UI and the console-based
@@ -33,8 +33,8 @@ object Actions {
         // TODO - Force sbt version?
         updateProperties(propsFile,
           Map(
-            SnapProperties.BLUEPRINT_UUID_PROPERTY_NAME -> id,
-            SnapProperties.SNAP_ABI_VERSION_PROPERTY_NAME -> SnapProperties.APP_ABI_VERSION))
+            BLUEPRINT_UUID_PROPERTY_NAME -> id,
+            BUILDER_ABI_VERSION_PROPERTY_NAME -> APP_ABI_VERSION))
       }
     } yield ()
 

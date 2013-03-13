@@ -7,7 +7,7 @@ import snap.AppConfig
 import java.io.File
 import scala.concurrent._
 import scala.concurrent.duration._
-import snap.properties.SnapProperties
+import builder.properties.BuilderProperties.BUILDER_USER_HOME
 import java.io.FileOutputStream
 
 class ConfigTest {
@@ -63,7 +63,7 @@ class ConfigTest {
 
   @Test
   def testRecoveringFromBrokenFile(): Unit = {
-    val file = new File(SnapProperties.SNAP_USER_HOME(), "config.json")
+    val file = new File(BUILDER_USER_HOME(), "config.json")
     try {
       file.delete()
 

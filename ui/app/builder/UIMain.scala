@@ -1,10 +1,13 @@
-package snap
+package builder
 
 import xsbti.{ AppMain, AppConfiguration }
 import java.awt._
 import java.awt.event._
 import javax.swing._
+import java.net.HttpURLConnection
+import java.net.URL
 import com.typesafe.sbtchild.SbtChildLauncher
+import snap._
 
 /** Expose for SBT launcher support. */
 class UIMain extends AppMain {

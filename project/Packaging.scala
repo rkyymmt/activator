@@ -12,7 +12,7 @@ object Packaging {
   import com.typesafe.sbt.packager.Keys._
   import com.typesafe.sbt.SbtNativePackager._
 
-  val repackagedLaunchJar = TaskKey[File]("repackaged-launch-jar", "The SNAP launch jar.")
+  val repackagedLaunchJar = TaskKey[File]("repackaged-launch-jar", "The Builder launch jar.")
   val repackagedLaunchMappings = TaskKey[Seq[(File, String)]]("repackaged-launch-mappings", "New files for sbt-launch-jar")
 
   val scriptTemplateDirectory = SettingKey[File]("script-template-directory")
@@ -39,9 +39,9 @@ object Packaging {
   def makeLocalRepoSettings(lrepoName: String): Seq[Setting[_]] = Seq(
     localRepo <<= target(_ / "local-repository"),
     localRepoArtifacts := Seq.empty,
-    resolvers in TheSnapBuild.dontusemeresolvers <+= localRepo apply { f => Resolver.file(lrepoName, f)(Resolver.ivyStylePatterns) },
-    localRepoProjectsPublished <<= (TheSnapBuild.publishedProjects map (publishLocal in _)).dependOn,
-    localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt in TheSnapBuild.dontusemeresolvers, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
+    resolvers in TheBuilderBuild.dontusemeresolvers <+= localRepo apply { f => Resolver.file(lrepoName, f)(Resolver.ivyStylePatterns) },
+    localRepoProjectsPublished <<= (TheBuilderBuild.publishedProjects map (publishLocal in _)).dependOn,
+    localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt in TheBuilderBuild.dontusemeresolvers, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
       // TODO - Hook to detect if we need to recreate the repository....
       // That way we don't have to clean all the time.
       IvyHelper.createLocalRepository(m, lrepoName, i, s.log)
@@ -50,24 +50,24 @@ object Packaging {
   )
   
   def settings: Seq[Setting[_]] = packagerSettings ++ useNativeZip ++ makeLocalRepoSettings(localRepoName) ++ Seq(
-    name <<= version apply ("snap-" + _),
+    name <<= version apply ("builder-" + _),
     wixConfig := <wix/>,
     maintainer := "Josh Suereth <joshua.suereth@typesafe.com>",
-    packageSummary := "Typesafe SNAP",
+    packageSummary := "Typesafe Builder",
     packageDescription := """A templating and project runner for Typesafe applications.""",
     stage <<= (target, mappings in Universal) map { (t, m) =>
       val to = t / "stage"
       val copies = m collect { case (f, p) => f -> (to / p) }
       IO.copy(copies)
       // Now set scripts to executable as a hack thanks to Java's lack of understanding of permissions
-      (to / "snap").setExecutable(true, true)
+      (to / "builder").setExecutable(true, true)
     },
     dist <<= packageBin in Universal,
     mappings in Universal <+= (repackagedLaunchJar, version) map { (jar, v) =>
-      jar -> ("snap-launch-%s.jar" format (v))
+      jar -> ("builder-launch-%s.jar" format (v))
     },
-    mappings in Universal <+= makeBashScript map (_ -> "snap"),
-    mappings in Universal <+= makeBatScript map (_ -> "snap.bat"),
+    mappings in Universal <+= makeBashScript map (_ -> "builder"),
+    mappings in Universal <+= makeBatScript map (_ -> "builder.bat"),
     mappings in Universal <++= localRepoCreated map { repo =>
       for {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
@@ -90,14 +90,14 @@ object Packaging {
     scriptTemplateDirectory <<= (sourceDirectory) apply (_ / "templates"),
     scriptTemplateOutputDirectory <<= (target in Compile) apply (_ / "templates"),
     makeBashScript <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
-      val template = from / "snap"
-      val script = to / "snap"
+      val template = from / "builder"
+      val script = to / "builder"
       copyBashTemplate(template, script, v)
       script
     },
     makeBatScript <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
-      val template = from / "snap.bat"
-      val script = to / "snap.bat"
+      val template = from / "builder.bat"
+      val script = to / "builder.bat"
       copyBatTemplate(template, script, v)
       script
     },
@@ -131,12 +131,12 @@ object Packaging {
     IO.copy(copys, overwrite=true, preserveLastModified=false)
 
     // Create new launcher jar    
-    val tmplauncher = tmp / "snap-launcher.jar"
+    val tmplauncher = tmp / "builder-launcher.jar"
     val files = (jardir.*** --- jardir) x relativeTo(jardir)
     IO.zip(files, tmplauncher)
     
     // Put new launcher jar in new location.
-    val nextlauncher = target / "snap-launcher.jar"
+    val nextlauncher = target / "builder-launcher.jar"
     if(nextlauncher.exists) IO.delete(nextlauncher)
     IO.move(tmplauncher, nextlauncher)
     nextlauncher
@@ -154,7 +154,7 @@ object Packaging {
   def copyBatTemplate(from: File, to: File, version: String): File = {
     val fileContents = IO read from
     val nextContents = fileContents.replaceAll("""\$\{\{template_declares\}\}""",
-                                               "set SNAP_VERSION=%s" format (version))
+                                               "set BUILDER_VERSION=%s" format (version))
     IO.write(to, nextContents)
     to setExecutable true
     to
@@ -173,15 +173,15 @@ object Packaging {
   version: %s
 
 [app]
-  org: com.typesafe.snap
-  name: snap-launcher
+  org: com.typesafe.builder
+  name: builder-launcher
   version: %s
-  class: snap.SnapLauncher
+  class: builder.BuilderLauncher
   cross-versioned: false
   components: xsbti
 
 [repositories]
-  snap-local: file://${snap.local.repository-${snap.home-${user.home}/.snap}/repository}, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
+  builder-local: file://${builder.local.repository-${builder.home-${user.home}/.builder}/repository}, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
   maven-central
   typesafe-releases: http://typesafe.artifactoryonline.com/typesafe/releases
   typesafe-ivy-releases: http://typesafe.artifactoryonline.com/typesafe/ivy-releases, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]

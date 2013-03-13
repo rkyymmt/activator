@@ -1,17 +1,17 @@
-package snap
+package builder
 
 import xsbti.{ AppMain, AppConfiguration }
-import snap.properties.SnapProperties
+import builder.properties.BuilderProperties._
 import java.io.File
-
+import snap.Sbt
 /** Expose for SBT launcher support. */
-class SnapLauncher extends AppMain {
+class BuilderLauncher extends AppMain {
 
   def run(configuration: AppConfiguration) =
     // TODO - Detect if we're running against a local project.
     try configuration.arguments match {
       case Array("ui") => RebootToUI(configuration)
-      case Array("new") => Exit(SnapCli(configuration))
+      case Array("new") => Exit(BuilderCli(configuration))
       case Array("shell") => RebootToSbt(configuration, useArguments = false)
       case _ if Sbt.looksLikeAProject(new File(".")) => RebootToSbt(configuration, useArguments = true)
       case _ => displayHelp(configuration)
@@ -22,13 +22,13 @@ class SnapLauncher extends AppMain {
   case class Exit(val code: Int) extends xsbti.Exit
 
   def displayHelp(configuration: AppConfiguration) = {
-    System.err.println("""| Warning:  Could not detect a local builder project.
+    System.err.println(s"""| Warning:  Could not detect a local ${SCRIPT_NAME} project.
                           |
-                          | If you'd like to run builder in this directory, please:
+                          | If you'd like to run ${SCRIPT_NAME} in this directory, please:
                           |
-                          | 1. Run the UI with `builder ui`
-                          | 2. Create a project with `builder new`
-                          | 3. Move into a builder project directory and re-run builder.
+                          | 1. Run the UI with `${SCRIPT_NAME} ui`
+                          | 2. Create a project with `${SCRIPT_NAME} new`
+                          | 3. Move into a ${SCRIPT_NAME} project directory and re-run ${SCRIPT_NAME}.
                           |""".stripMargin)
     Exit(1)
   }
@@ -45,12 +45,13 @@ class SnapLauncher extends AppMain {
 case class RebootToUI(configuration: AppConfiguration) extends xsbti.Reboot {
   val arguments = Array.empty[String]
   val baseDirectory = configuration.baseDirectory
-  val scalaVersion = SnapProperties.APP_SCALA_VERSION
+  val scalaVersion = APP_SCALA_VERSION
   val app = ApplicationID(
     groupID = configuration.provider.id.groupID,
-    name = "snap-ui",
-    version = SnapProperties.APP_VERSION,
-    mainClass = "snap.UIMain")
+    // TODO - Pull this string from somewhere else so it's only configured in the build?
+    name = "builder-ui",
+    version = APP_VERSION,
+    mainClass = "builder.UIMain")
 }
 
 // Wrapper to reboot into SBT.
@@ -60,11 +61,11 @@ case class RebootToUI(configuration: AppConfiguration) extends xsbti.Reboot {
 case class RebootToSbt(configuration: AppConfiguration, useArguments: Boolean = false) extends xsbti.Reboot {
   val arguments = if (useArguments) configuration.arguments else Array.empty[String]
   val baseDirectory = configuration.baseDirectory
-  val scalaVersion = SnapProperties.SBT_SCALA_VERSION
+  val scalaVersion = SBT_SCALA_VERSION
   val app = ApplicationID(
     groupID = "org.scala-sbt",
     name = "sbt",
-    version = SnapProperties.SBT_VERSION,
+    version = SBT_VERSION,
     mainClass = "sbt.xMain",
     mainComponents = Array("xsbti", "extra"))
 }

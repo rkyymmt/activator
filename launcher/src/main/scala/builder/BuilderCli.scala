@@ -1,12 +1,13 @@
-package snap
+package builder
 
 import xsbti.{ AppMain, AppConfiguration }
+import builder.properties.BuilderProperties.SCRIPT_NAME
 import snap.cache.TemplateCache
 import snap.cache.Actions.cloneTemplate
 import java.io.File
 import sbt.complete.{ Parser, Parsers }
 
-object SnapCli {
+object BuilderCli {
   def apply(configuration: AppConfiguration): Int = try {
     System.out.println()
     val name = getApplicationName()
@@ -24,7 +25,7 @@ object SnapCli {
       cache.metadata.find(_.name.toLowerCase contains templateName.toLowerCase))
     template match {
       case Some(t) =>
-        System.out.println(s"""OK, application "$name" is being created using the "${t.name}" blueprint.""")
+        System.out.println(s"""OK, application "$name" is being created using the "${t.name}" template.""")
         System.out.println()
         cloneTemplate(cache, t.id, projectDir)
         printUsage(name, projectDir)
@@ -41,13 +42,13 @@ object SnapCli {
   private def printUsage(name: String, dir: File): Unit = {
     // TODO - Cross-platform-ize these strings! Possibly keep script name in SnapProperties.
     System.out.println(s"""|To run "$name" from the command-line, run:
-                           |${dir.getAbsolutePath}/builder run
+                           |${dir.getAbsolutePath}/${SCRIPT_NAME} run
                            |
                            |To run the test for "$name" from the command-line, run:
-                           |${dir.getAbsolutePath}/builder test
+                           |${dir.getAbsolutePath}/${SCRIPT_NAME} test
                            |
                            |To run the Builder UI for "$name" from the command-line, run:
-                           |${dir.getAbsolutePath}/builder ui
+                           |${dir.getAbsolutePath}/${SCRIPT_NAME} ui
                            |""".stripMargin)
   }
 

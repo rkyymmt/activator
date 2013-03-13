@@ -1,24 +1,24 @@
-@REM snap launcher script
+@REM builder launcher script
 @REM 
 @REM Envioronment:
 @REM JAVA_HOME - location of a JDK home dir (optional if java on path)
 @REM SBT_OPTS  - JVM options (optional)
 @REM Configuration:
-@REM snapconfig.txt found in the SNAP_HOME.
+@REM builderconfig.txt found in the BUILDER_HOME.
 @setlocal enabledelayedexpansion
 
 @echo off
-if "%SNAP_HOME%"=="" set SNAP_HOME=%~dp0
+if "%BUILDER_HOME%"=="" set BUILDER_HOME=%~dp0
 set ERROR_CODE=0
 ${{template_declares}}
-set SNAP_LAUNCH_JAR=snap-launch-%SNAP_VERSION%.jar
+set BUILDER_LAUNCH_JAR=builder-launch-%BUILDER_VERSION%.jar
 
 rem Detect if we were double clicked, although theoretically A user could
 rem manually run cmd /c
 for %%x in (%cmdcmdline%) do if %%~x==/c set DOUBLECLICKED=1
 
 rem FIRST we load the config file of extra options.
-set CFG_FILE=%SNAP_HOME%snapconfig.txt
+set CFG_FILE=%BUILDER_HOME%builderconfig.txt
 set CFG_OPTS=
 if exist %CFG_FILE% (
   FOR /F "tokens=* eol=# usebackq delims=" %%i IN ("%CFG_FILE%") DO (
@@ -50,7 +50,7 @@ if not defined JAVAINSTALLED (
   echo %_JAVACMD%
   echo.
   echo Please go to http://www.java.com/getjava/ and download
-  echo a valid Java Runtime and install before running snap.
+  echo a valid Java Runtime and install before running builder.
   if defined DOUBLECLICKED pause
   exit /B 1
 )
@@ -70,9 +70,9 @@ if "%*"=="" (
 
 rem We add a / in front, so we get file:///C: instead of file://C:
 rem Java considers the later a UNC path.
-set JAVA_FRIENDLY_SNAP_HOME=/!SNAP_HOME:\=\\!
+set JAVA_FRIENDLY_BUILDER_HOME=/!BUILDER_HOME:\=\\!
 
-"%_JAVACMD%" %_JAVA_OPTS% -XX:PermSize=64M -XX:MaxPermSize=256M %SNAP_OPTS% "-Dsnap.home=%JAVA_FRIENDLY_SNAP_HOME%" -jar "%SNAP_HOME%\%SNAP_LAUNCH_JAR%" %CMDS%
+"%_JAVACMD%" %_JAVA_OPTS% -XX:PermSize=64M -XX:MaxPermSize=256M %BUILDER_OPTS% "-Dbuilder.home=%JAVA_FRIENDLY_BUILDER_HOME%" -jar "%BUILDER_HOME%\%BUILDER_LAUNCH_JAR%" %CMDS%
 if ERRORLEVEL 1 goto error
 goto end
 

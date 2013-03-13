@@ -8,7 +8,7 @@ import com.typesafe.sbtchild.SbtChildProcessMaker
 import play.api.libs.json.{ JsString, JsObject, JsArray, JsNumber, JsValue }
 import snap.{ RootConfig, AppConfig, AppManager, ProcessResult, Platform }
 import snap.cache.TemplateMetadata
-import snap.properties.SnapProperties
+import builder.properties.BuilderProperties
 import scala.util.control.NonFatal
 import scala.util.Try
 import play.Logger
@@ -99,7 +99,7 @@ object Application extends Controller {
   }
   /** Reloads the model for the home page. */
   private def homeModel = HomeModel(
-    userHome = SnapProperties.GLOBAL_USER_HOME,
+    userHome = BuilderProperties.GLOBAL_USER_HOME,
     templates = api.Templates.templateCache.metadata.toSeq,
     recentApps = RootConfig.user.applications)
 

@@ -1,6 +1,6 @@
-# Typesafe SNAP
+# Typesafe Builder
 
-This project aims to be the snappiest snaptastic snapster you've every snapping laid eyes on!
+This project aims to be the snappiest snaptastic snapster you've every snapping laid eyes on!  And by that, we mean it builds stuff.
 
 # How to build
 
@@ -9,12 +9,12 @@ This project uses [SBT 0.12](http://scala-sbt.org).   Make sure you have an SBT 
 
 ## Running the UI
 
-    sbt> project snap-ui
+    sbt> project builder-ui
     sbt> run
 
 or just
 
-    sbt "snap-ui/run"
+    sbt "builder-ui/run"
 
 
 ## Testing
@@ -45,7 +45,7 @@ To run all the integration tests, simply:
 
 ## Staging a distribution
 
-    sbt> snap-dist/stage
+    sbt> builder-dist/stage
 
 or just
 
@@ -57,15 +57,15 @@ Generates a distribution in the `dist/target/stage` directory.
 
 ## Building the Distribution
 
-    sbt> snap-dist/dist
+    sbt> builder-dist/dist
 
 or just
 
     sbt> dist
 
-*Note: just stage will also run `ui/dist`*
+*Note: just stage will also run `builder-ui/dist`*
 
-Generates the file `dist/target/universal/snap.zip`.
+Generates the file `dist/target/universal/builder.zip`.
 
 ## Publishing the Distribution
 
@@ -75,7 +75,7 @@ First, make sure your credentials are in an appropriate spot.  For me, that's in
 
 Then you can run simply:
 
-    sbt> snap-dist/s3-upload
+    sbt> builder-dist/s3-upload
 
 *OR*
 

@@ -2,7 +2,7 @@ import sbt._
 import PlayProject._
 import Keys._
 
-object SnapDependencies {
+object Dependencies {
   val sbtVersion = "0.12.2"
   val scalaVersion = "2.10.0"
   val sbtSnapshotVersion = "0.13.0-20130313-052159"

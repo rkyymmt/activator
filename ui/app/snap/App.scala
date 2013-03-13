@@ -3,7 +3,7 @@ package snap
 import akka.actor._
 import com.typesafe.sbtchild._
 import java.util.concurrent.atomic.AtomicInteger
-import snap.properties.SnapProperties
+import builder.properties.BuilderProperties
 import scala.util.control.NonFatal
 import java.net.URLEncoder
 
@@ -15,7 +15,7 @@ class App(val config: AppConfig, val system: ActorSystem, val sbtMaker: SbtChild
   val blueprintID: Option[String] =
     try {
       val props = snap.cache.IO loadProperties (new java.io.File(config.location, "project/build.properties"))
-      Option(props.getProperty(SnapProperties.BLUEPRINT_UUID_PROPERTY_NAME, null))
+      Option(props.getProperty(BuilderProperties.BLUEPRINT_UUID_PROPERTY_NAME, null))
     } catch {
       case e: java.io.IOException => None // TODO - Log?
     }
