@@ -118,7 +118,14 @@ class ServerActor(serverSocket: ServerSocket, childActor: ActorRef) extends Acto
             while (true) {
               val wire = server.receive()
               log.debug("  server received from child: {}", wire)
-              selfRef ! protocol.Envelope(wire)
+              val envelope = protocol.Envelope(wire) match {
+                // specific-ify the message for type-safety
+                case protocol.Envelope(serial, replyTo, generic: protocol.GenericMessage) =>
+                  generic.toSpecific.map(specific => protocol.Envelope(serial, replyTo, specific))
+                    .getOrElse(protocol.Envelope(serial, replyTo, generic))
+                case other => other
+              }
+              selfRef ! envelope
             }
           } finally {
             if (!server.isClosed)

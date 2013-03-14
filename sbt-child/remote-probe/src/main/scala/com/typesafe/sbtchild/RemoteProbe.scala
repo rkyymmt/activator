@@ -2,22 +2,24 @@ package com.typesafe.sbtchild
 
 import _root_.sbt._
 import Project.Initialize
-import Keys._
-import Defaults._
+import Keys.logManager
 import Scope.GlobalScope
 import com.typesafe.sbtchild._
 import sbt.Aggregation.KeyValue
 import sbt.complete.DefaultParsers
 import sbt.Load.BuildStructure
-import org.scalatools.testing.{ Logger => _, Result => TResult, _ }
 import java.net.SocketException
 import java.io.EOFException
 import java.io.IOException
 import java.io.PrintWriter
 import java.io.Writer
 import scala.util.matching.Regex
+import com.typesafe.sbt.ui
+import scala.util.parsing.json._
 
 object SetupSbtChild extends (State => State) {
+
+  import SbtUtil._
 
   private lazy val client = ipc.openClient(getPort())
 
@@ -52,125 +54,22 @@ object SetupSbtChild extends (State => State) {
     reloadWithAppended(state, settings)
   }
 
+  private def newUIContext(serial: Long, taskName: String) = new ui.Context() {
+    override def isCanceled = false // TODO
+    override def updateProgress(progress: ui.Progress, status: Option[String]) = {} // TODO
+    override def sendEvent(id: String, event: ui.Params) = {
+      client.replyJson(serial, protocol.GenericEvent(task = taskName, id = id, params = event.toMap))
+    }
+    override def take(): ui.Status = ui.NoUIPresent // TODO
+    override def peek(): Option[ui.Status] = None // TODO
+  }
+
   private def getPort(): Int = {
     val portString = System.getProperty("builder.sbt-child-port")
     if (portString == null)
       throw new Exception("No port property set")
     val port = Integer.parseInt(portString)
     port
-  }
-
-  private def extractWithRef(state: State): (Extracted, ProjectRef) = {
-    val ref = Project.extract(state).currentRef
-    (Extracted(Project.structure(state), Project.session(state), ref)(Project.showFullKey), ref)
-  }
-
-  private def extract(state: State): Extracted = {
-    extractWithRef(state)._1
-  }
-
-  private def runInputTask[T](key: ScopedKey[T], state: State, args: String): State = {
-    val extracted = extract(state)
-    implicit val display = Project.showContextKey(state)
-    val it = extracted.get(SettingKey(key.key) in key.scope)
-    val keyValues = KeyValue(key, it) :: Nil
-    val parser = Aggregation.evaluatingParser(state, extracted.structure, show = false)(keyValues)
-    // we put a space in front of the args because the parsers expect
-    // *everything* after the task name it seems
-    DefaultParsers.parse(" " + args, parser) match {
-      case Left(message) =>
-        throw new Exception("Failed to run task: " + display(key) + ": " + message)
-      case Right(f) =>
-        f()
-    }
-  }
-
-  private def makeAppendSettings(settings: Seq[Setting[_]], inProject: ProjectRef, extracted: Extracted) = {
-    // transforms This scopes in 'settings' to be the desired project
-    val appendSettings = Load.transformSettings(Load.projectScope(inProject), inProject.build, extracted.rootProject, settings)
-    appendSettings
-  }
-
-  private def reloadWithAppended(state: State, appendSettings: Seq[Setting[_]]): State = {
-    val session = Project.session(state)
-    val structure = Project.structure(state)
-    implicit val display = Project.showContextKey(state)
-
-    // reloads with appended settings
-    val newStructure = Load.reapply(session.original ++ appendSettings, structure)
-
-    // updates various aspects of State based on the new settings
-    // and returns the updated State
-    Project.setProject(session, newStructure, state)
-  }
-
-  private class OurTestListener(val serial: Long, val oldTask: Task[Seq[TestReportListener]]) extends TestReportListener {
-
-    override def startGroup(name: String): Unit = {}
-
-    var overallOutcome: protocol.TestOutcome = protocol.TestPassed
-
-    override def testEvent(event: TestEvent): Unit = {
-      // event.result is just all the detail results folded,
-      // we replicate that ourselves below
-      for (detail <- event.detail) {
-        val outcome = detail.result match {
-          case TResult.Success => protocol.TestPassed
-          case TResult.Error => protocol.TestError
-          case TResult.Failure => protocol.TestFailed
-          case TResult.Skipped => protocol.TestSkipped
-        }
-
-        // each test group is in its own thread so this has to be
-        // synchronized
-        synchronized {
-          overallOutcome = overallOutcome.combine(outcome)
-        }
-
-        client.replyJson(serial,
-          protocol.TestEvent(detail.testName,
-            Option(detail.description),
-            outcome,
-            Option(detail.error).map(_.getMessage)))
-      }
-    }
-
-    override def endGroup(name: String, t: Throwable): Unit = {}
-
-    override def endGroup(name: String, result: TestResult.Value): Unit = {}
-
-    override def contentLogger(test: TestDefinition): Option[ContentLogger] = None
-  }
-
-  private val listenersKey = testListeners in Test
-
-  private def addTestListener(state: State, serial: Long): State = {
-    val (extracted, ref) = extractWithRef(state)
-    val ourListener = new OurTestListener(serial, extracted.get(listenersKey))
-
-    val settings = makeAppendSettings(Seq(listenersKey <<= (listenersKey) map { listeners =>
-      listeners :+ ourListener
-    }), ref, extracted)
-
-    reloadWithAppended(state, settings)
-  }
-
-  private def removeTestListener(state: State, serial: Long): (State, protocol.TestOutcome) = {
-    val ref = Project.extract(state).currentRef
-    val extracted = Extracted(Project.structure(state), Project.session(state), ref)(Project.showFullKey)
-
-    val (s1, listeners) = extracted.runTask(listenersKey, state)
-
-    val ours = listeners.flatMap({
-      case l: OurTestListener if l.serial == serial => Seq(l)
-      case whatever => Seq.empty[OurTestListener]
-    }).headOption
-      .getOrElse(throw new RuntimeException("Our test listener wasn't installed!"))
-
-    // put back the original listener task
-    val settings = makeAppendSettings(Seq(Project.setting(listenersKey, Project.value(ours.oldTask))), ref, extracted)
-
-    (reloadWithAppended(s1, settings), ours.overallOutcome)
   }
 
   private def handleRequest(req: protocol.Envelope, origState: State): State = {
@@ -185,49 +84,21 @@ object SetupSbtChild extends (State => State) {
       }
     }
 
-    client.replyJson(req.serial, protocol.RequestReceivedEvent)
-
     req match {
-      case protocol.Envelope(serial, replyTo, protocol.NameRequest(_)) =>
-        val result = extract(origState).get(name)
-        client.replyJson(serial, protocol.NameResponse(result))
-        origState
-      case protocol.Envelope(serial, replyTo, protocol.DiscoveredMainClassesRequest(_)) =>
+      case protocol.Envelope(serial, replyTo, protocol.GenericRequest(sendEvents, taskName, paramsMap)) =>
         exceptionsToErrorResponse(serial) {
-          val (s, result) = extract(origState).runTask(discoveredMainClasses in Compile in run, origState)
-          client.replyJson(serial, protocol.DiscoveredMainClassesResponse(names = result))
-          s
-        }
-      case protocol.Envelope(serial, replyTo, protocol.WatchTransitiveSourcesRequest(_)) =>
-        exceptionsToErrorResponse(serial) {
-          val (s, result) = extract(origState).runTask(watchTransitiveSources, origState)
-          client.replyJson(serial, protocol.WatchTransitiveSourcesResponse(files = result))
-          s
-        }
-      case protocol.Envelope(serial, replyTo, protocol.CompileRequest(_)) =>
-        exceptionsToErrorResponse(serial) {
-          val (s, result) = extract(origState).runTask(compile in Compile, origState)
-          client.replyJson(serial, protocol.CompileResponse(success = true))
-          s
-        }
-      case protocol.Envelope(serial, replyTo, protocol.RunRequest(_, mainClass)) =>
-        exceptionsToErrorResponse(serial) {
-          val s = mainClass map { klass =>
-            runInputTask(runMain in Compile, origState, args = klass)
+          ui.findHandler(taskName) map { handler =>
+            client.replyJson(req.serial, protocol.RequestReceivedEvent)
+            val context = newUIContext(serial, taskName)
+            val params = ui.Params.fromMap(paramsMap)
+            val (newState, replyParams) = handler(origState, context, params)
+            client.replyJson(serial, protocol.GenericResponse(name = taskName,
+              params = replyParams.toMap))
+            newState
           } getOrElse {
-            runInputTask(run in Compile, origState, args = "")
+            client.replyJson(req.serial, protocol.ErrorResponse("No handler for: " + taskName))
+            origState
           }
-          client.replyJson(serial, protocol.RunResponse(success = true,
-            task = mainClass.map(_ => protocol.TaskNames.runMain).getOrElse(protocol.TaskNames.run)))
-          s
-        }
-      case protocol.Envelope(serial, replyTo, protocol.TestRequest(_)) =>
-        exceptionsToErrorResponse(serial) {
-          val s1 = addTestListener(origState, serial)
-          val (s2, result1) = extract(s1).runTask(test in Test, s1)
-          val (s3, outcome) = removeTestListener(s2, serial)
-          client.replyJson(serial, protocol.TestResponse(outcome))
-          s3
         }
       case _ => {
         client.replyJson(req.serial, protocol.ErrorResponse("Unknown request: " + req))

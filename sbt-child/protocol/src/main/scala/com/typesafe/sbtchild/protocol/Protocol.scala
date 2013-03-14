@@ -289,60 +289,73 @@ case class TestEvent(name: String, description: Option[String], outcome: TestOut
 }
 
 object Message {
+  private def cleanJsonFromAny(value: Any): Any = value match {
+    // null is allowed in json
+    case null => null
+    // strip the scala JSON wrappers off, if present; this
+    // is basically due to not being sure when Scala's json stuff
+    // will use these.
+    case JSONObject(v) => cleanJsonFromAny(v)
+    case JSONArray(v) => cleanJsonFromAny(v)
+    // all sequences must be lists of sanitized values
+    case s: Seq[_] => s.map(cleanJsonFromAny(_)).toList
+    case m: Map[_, _] => m map {
+      case (key: String, value) =>
+        (key -> cleanJsonFromAny(value))
+      case whatever =>
+        throw new RuntimeException("Invalid map entry in params " + whatever)
+    }
+    case s: String => s
+    case n: Number => n
+    case b: Boolean => b
+    case whatever => throw new RuntimeException("not allowed in params: " + whatever)
+  }
+
+  private def cleanJsonFromParams(params: Any): Map[String, Any] = {
+    cleanJsonFromAny(params).asInstanceOf[Map[String, Any]]
+  }
+
+  private def addJsonToAny(value: Any): Any = value match {
+    // null is allowed in json
+    case null => null
+    // keep wrappers but ensure we wrap any nested items
+    case JSONObject(v) => addJsonToAny(v)
+    case JSONArray(v) => addJsonToAny(v)
+    // add wrappers if missing
+    case s: Seq[_] => JSONArray(s.map(addJsonToAny(_)).toList)
+    case m: Map[_, _] => JSONObject(m map {
+      case (key: String, value) =>
+        (key -> addJsonToAny(value))
+      case whatever =>
+        throw new RuntimeException("Invalid map entry in params " + whatever)
+    })
+    case s: String => s
+    case n: Number => n
+    case b: Boolean => b
+    case whatever => throw new RuntimeException("not allowed in params: " + whatever)
+  }
+
+  private def addJsonToParams(params: Any): JSONObject = {
+    addJsonToAny(params).asInstanceOf[JSONObject]
+  }
+
+  private def fromParams(params: Map[String, Any]): JSONObject = {
+    addJsonToParams(params)
+  }
+
+  def paramsToJsonString(params: Map[String, Any]): String = {
+    fromParams(params).toString
+  }
+
+  def paramsFromJsonString(json: String): Map[String, Any] = {
+    JSON.parseFull(json) match {
+      case Some(obj: Map[_, _]) => cleanJsonFromParams(obj)
+      case whatever =>
+        throw new Exception("JSON parse failure on: " + json + " parsed: " + whatever)
+    }
+  }
+
   implicit object JsonRepresentationOfMessage extends ipc.JsonRepresentation[Message] {
-    private def cleanJsonFromAny(value: Any): Any = value match {
-      // null is allowed in json
-      case null => null
-      // strip the scala JSON wrappers off, if present; this
-      // is basically due to not being sure when Scala's json stuff
-      // will use these.
-      case JSONObject(v) => cleanJsonFromAny(v)
-      case JSONArray(v) => cleanJsonFromAny(v)
-      // all sequences must be lists of sanitized values
-      case s: Seq[_] => s.map(cleanJsonFromAny(_)).toList
-      case m: Map[_, _] => m map {
-        case (key: String, value) =>
-          (key -> cleanJsonFromAny(value))
-        case whatever =>
-          throw new RuntimeException("Invalid map entry in params " + whatever)
-      }
-      case s: String => s
-      case n: Number => n
-      case b: Boolean => b
-      case whatever => throw new RuntimeException("not allowed in params: " + whatever)
-    }
-
-    private def cleanJsonFromParams(params: Any): Map[String, Any] = {
-      cleanJsonFromAny(params).asInstanceOf[Map[String, Any]]
-    }
-
-    private def addJsonToAny(value: Any): Any = value match {
-      // null is allowed in json
-      case null => null
-      // keep wrappers but ensure we wrap any nested items
-      case JSONObject(v) => addJsonToAny(v)
-      case JSONArray(v) => addJsonToAny(v)
-      // add wrappers if missing
-      case s: Seq[_] => JSONArray(s.map(addJsonToAny(_)).toList)
-      case m: Map[_, _] => JSONObject(m map {
-        case (key: String, value) =>
-          (key -> addJsonToAny(value))
-        case whatever =>
-          throw new RuntimeException("Invalid map entry in params " + whatever)
-      })
-      case s: String => s
-      case n: Number => n
-      case b: Boolean => b
-      case whatever => throw new RuntimeException("not allowed in params: " + whatever)
-    }
-
-    private def addJsonToParams(params: Any): JSONObject = {
-      addJsonToAny(params).asInstanceOf[JSONObject]
-    }
-
-    private def fromParams(params: Map[String, Any]): JSONObject = {
-      addJsonToParams(params)
-    }
 
     override def toJson(m: Message): JSONObject = {
       import scala.util.parsing.json._
@@ -453,11 +466,7 @@ object Envelope {
         else
           MysteryMessage(try wire.asString catch { case e: Exception => wire })
     }
-    // TODO converting to specific always is an intermediate refactoring step;
-    // some places will want generic later.
-    Envelope(wire.serial, wire.replyTo, message match {
-      case generic: GenericMessage => generic.toSpecific.getOrElse(throw new RuntimeException("generic message not specific-able"))
-      case other => other
-    })
+
+    Envelope(wire.serial, wire.replyTo, message)
   }
 }
