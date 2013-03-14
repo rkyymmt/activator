@@ -28,6 +28,8 @@ object SetupSbtChild extends (State => State) {
   // this is the entry point invoked by sbt
   override def apply(s: State): State = {
     val betweenRequestsLogger = new EventLogger(client, 0L)
+    // Make sure the shims are installed we need for this build.
+    PlaySupport.ensureShim(s)
     addLogger(s, betweenRequestsLogger.toGlobalLogging) ++ Seq(listen)
   }
 

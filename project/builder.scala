@@ -45,6 +45,14 @@ object BuilderBuild {
       ScalariformKeys.preferences in Test    := formatPrefs
     )
 
+  def sbtShimPluginSettings: Seq[Setting[_]] =
+    builderDefaults ++
+    Seq(
+      scalaVersion := Dependencies.sbtPluginScalaVersion,
+      scalaBinaryVersion := Dependencies.sbtPluginScalaVersion,
+      sbtPlugin := true,
+      publishMavenStyle := false
+    )
 
   def BuilderProject(name: String): Project = (
     Project("builder-" + name, file(name))
@@ -55,6 +63,11 @@ object BuilderBuild {
   def SbtChildProject(name: String): Project = (
     Project("sbt-child-" + name, file("sbt-child") / name)
     settings(builderDefaults:_*)
+  )
+
+  def SbtShimPlugin(name: String): Project = (
+    Project("sbt-shim-" + name, file("sbt-shim") / name)
+    settings(sbtShimPluginSettings:_*)
   )
   
   def BuilderPlayProject(name: String): Project = (

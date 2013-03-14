@@ -30,7 +30,8 @@ object TheBuilderBuild extends Build {
   )
 
   // These are the projects we want in the local Builder repository
-  lazy val publishedProjects = Seq(common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver)
+  lazy val publishedProjects = Seq(common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver, playShimPlugin)
+  lazy val publishedSbtShimProjects = Set(playShimPlugin)
 
   // basic project that gives us properties to use in other projects.
   lazy val props = (
@@ -63,6 +64,7 @@ object TheBuilderBuild extends Build {
     SbtChildProject("remote-probe")
     settings(dependsOnSource("../protocol"): _*)
     settings(Keys.scalaVersion := "2.9.2", Keys.scalaBinaryVersion <<= Keys.scalaVersion)
+    dependsOn(props)
     dependsOnRemote(
       sbtMain % "provided",
       sbtTheSbt % "provided",
@@ -70,7 +72,13 @@ object TheBuilderBuild extends Build {
       sbtLogging % "provided",
       sbtProcess % "provided"
     )
-    settings(requiredJars)
+    settings(requiredJars(props))
+  )
+
+  // SBT Shims
+  lazy val playShimPlugin = (
+    SbtShimPlugin("play")
+    dependsOnRemote(playSbtPlugin)
   )
 
   val verboseSbtTests = false
@@ -125,8 +133,9 @@ object TheBuilderBuild extends Build {
           SbtSupport.sbtLaunchJar,
           Keys.update,
           requiredClasspath in sbtRemoteProbe,
-          Keys.compile in Compile in sbtRemoteProbe) map {
-        (launcher, update, probeCp, _) =>
+          Keys.compile in Compile in sbtRemoteProbe,
+          Keys.publishLocal in playShimPlugin) map {
+        (launcher, update, probeCp, _, _) =>
           // We register the location after it's resolved so we have it for running play...
           sys.props("builder.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
           sys.props("builder.remote.probe.classpath") = Path.makeString(probeCp.files)
@@ -187,11 +196,16 @@ object TheBuilderBuild extends Build {
       ),
       // TODO - Do this better - This is where we define what goes in the local repo cache.
 
-      localRepoArtifacts <++= (publishedProjects map { ref =>
+      localRepoArtifacts <++= (publishedProjects filterNot publishedSbtShimProjects map { ref =>
         // The annoyance caused by cross-versioning.
         (Keys.projectID in ref, Keys.scalaBinaryVersion in ref, Keys.scalaVersion in ref) apply {
           (id, sbv, sv) =>
             CrossVersion(sbv,sv)(id)
+        }
+      }).join,
+      localRepoArtifacts <++= (publishedSbtShimProjects.toSeq map { ref =>
+        (Keys.projectID in ref) apply { id =>
+            Defaults.sbtPluginExtra(id, sbtPluginVersion, sbtPluginScalaVersion)
         }
       }).join,
       localRepoArtifacts ++=
@@ -208,8 +222,8 @@ object TheBuilderBuild extends Build {
             "org.scalatest" % "scalatest_2.10" % "1.9.1"
         ),
       localRepoArtifacts ++= {
-        val sbt = "0.12"
-        val scala = "2.9.2"
+        val sbt = sbtPluginVersion
+        val scala = sbtPluginScalaVersion
         Seq(
           Defaults.sbtPluginExtra("com.typesafe.sbt" % "sbt-site" % "0.6.0", sbt, scala),
           Defaults.sbtPluginExtra("com.typesafe" % "sbt-native-packager" % "0.4.3", sbt, scala),

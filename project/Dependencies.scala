@@ -4,6 +4,8 @@ import Keys._
 
 object Dependencies {
   val sbtVersion = "0.12.2"
+  val sbtPluginVersion = "0.12"
+  val sbtPluginScalaVersion = "2.9.2"
   val scalaVersion = "2.10.0"
   val sbtSnapshotVersion = "0.13.0-20130313-052159"
 
@@ -28,6 +30,9 @@ object Dependencies {
   val junitInterface       = "com.novocode" % "junit-interface" % "0.7"
   val specs2               = "org.specs2" % "specs2_2.10" % "1.13"
 
+  // SBT plugins we have to shim
+  val playSbtPlugin        =  Defaults.sbtPluginExtra("play" % "sbt-plugin" % "2.1.0", sbtPluginVersion, sbtPluginScalaVersion)
+
 
   // Mini DSL
   // DSL for adding remote deps like local deps.
@@ -40,12 +45,12 @@ object Dependencies {
   // specifically for projects that need remote-probe dependencies
   val requiredClasspath = TaskKey[Classpath]("required-classpath")
 
-  def requiredJars: Setting[_] = {
+  def requiredJars(props: ProjectReference): Setting[_] = {
     import xsbti.ArtifactInfo._
-    requiredClasspath <<= (update, classDirectory in Compile) map { (report, classesDir) =>
+    requiredClasspath <<= (update, classDirectory in Compile, classDirectory in Compile in props) map { (report, classesDir, propsClassesDir) =>
       val jars = report.matching(configurationFilter(name = "compile") -- moduleFilter(organization = ScalaOrganization, name = ScalaLibraryID))
       val classes = classesDir.getAbsoluteFile
-      (classes +: jars).classpath
+      (classes +: propsClassesDir.getAbsoluteFile +: jars).classpath
     }
   }
 }
