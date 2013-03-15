@@ -165,6 +165,8 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
         case protocol.MysteryMessage(something) =>
           // let it crash
           throw new RuntimeException("Received unexpected item on socket from sbt child: " + something)
+        case e: protocol.GenericMessage =>
+          throw new RuntimeException("not expecting generic messages here yet: " + e)
       }
 
     // event from process actor

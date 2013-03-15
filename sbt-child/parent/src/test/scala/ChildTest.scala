@@ -166,7 +166,7 @@ class ChildTest {
 
       try {
         Await.result(child ? RunRequest(sendEvents = false, mainClass = None), timeout.duration) match {
-          case RunResponse(success) =>
+          case RunResponse(success, "run") =>
           case whatever => throw new AssertionError("did not get RunResponse got " + whatever)
         }
       } finally {
@@ -286,11 +286,11 @@ class ChildTest {
 
       try {
         Await.result(child ? RunRequest(sendEvents = false, mainClass = Some("Main2")), timeout.duration) match {
-          case RunResponse(success) =>
+          case RunResponse(success, "run-main") =>
           case whatever => throw new AssertionError("did not get RunResponse got " + whatever)
         }
         Await.result(child ? RunRequest(sendEvents = false, mainClass = Some("Main3")), timeout.duration) match {
-          case RunResponse(success) =>
+          case RunResponse(success, "run-main") =>
           case whatever => throw new AssertionError("did not get RunResponse got " + whatever)
         }
       } finally {

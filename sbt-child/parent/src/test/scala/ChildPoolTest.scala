@@ -169,13 +169,12 @@ class ChildPoolTest {
     implicit val timeout = Timeout(5, TimeUnit.SECONDS)
     Await.result(actor ? "test", timeout.duration) match {
       case recorded: Seq[_] =>
-        //println("recorded:\n  " + recorded.mkString("\n  "))
+        if (recorded.size != expectations.size)
+          throw new Exception("expectations size doesn't match recorded size, recorded: " + recorded.mkString("\n  "))
         (recorded zip expectations) map { re =>
           if (!re._2.isDefinedAt(re._1))
             throw new Exception("expectation failed for: " + re._1)
         }
-        if (recorded.size != expectations.size)
-          throw new Exception("expectations size doesn't match recorded size")
       case whatever =>
         throw new Exception("Did not expect: " + whatever)
     }

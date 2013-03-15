@@ -75,7 +75,7 @@ class ProtocolTest {
     testClientServer(
       { (client) =>
         protocol.Envelope(client.receive()) match {
-          case protocol.Envelope(serial, replyTo, protocol.NameRequest(_)) =>
+          case protocol.Envelope(serial, replyTo, protocol.GenericRequest(_, protocol.TaskNames.name, _)) =>
             client.replyJson(serial, protocol.LogEvent(protocol.LogMessage("info", "a message")))
             client.replyJson(serial, protocol.NameResponse("foobar"))
           case protocol.Envelope(serial, replyTo, other) =>
@@ -91,7 +91,7 @@ class ProtocolTest {
         }
         assertEquals("a message", logMessage)
         val name = protocol.Envelope(server.receive()) match {
-          case protocol.Envelope(serial, replyTo, r: protocol.NameResponse) => r.name
+          case protocol.Envelope(serial, replyTo, r: protocol.GenericResponse) => r.params("name").asInstanceOf[String]
           case protocol.Envelope(serial, replyTo, r) =>
             throw new AssertionError("unexpected response: " + r)
         }
@@ -104,7 +104,7 @@ class ProtocolTest {
     testClientServer(
       { (client) =>
         protocol.Envelope(client.receive()) match {
-          case protocol.Envelope(serial, replyTo, protocol.DiscoveredMainClassesRequest(_)) =>
+          case protocol.Envelope(serial, replyTo, protocol.GenericRequest(_, protocol.TaskNames.discoveredMainClasses, _)) =>
             client.replyJson(serial, protocol.DiscoveredMainClassesResponse(Nil))
           case protocol.Envelope(serial, replyTo, other) =>
             client.replyJson(serial, protocol.ErrorResponse("did not understand request: " + other))
@@ -113,7 +113,7 @@ class ProtocolTest {
       { (server) =>
         server.sendJson(protocol.DiscoveredMainClassesRequest(sendEvents = true))
         val names = protocol.Envelope(server.receive()) match {
-          case protocol.Envelope(serial, replyTo, r: protocol.DiscoveredMainClassesResponse) => r.names
+          case protocol.Envelope(serial, replyTo, r: protocol.GenericResponse) => r.params("names").asInstanceOf[Seq[String]]
           case protocol.Envelope(serial, replyTo, r) =>
             throw new AssertionError("unexpected response: " + r)
         }

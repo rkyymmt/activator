@@ -128,12 +128,14 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 			// or append?  Tests may disappear and we'd never know...
 
 			var taskId = sbt.runTask({
-				task: 'TestRequest',
+				task: 'test',
 				onmessage: function(event) {
 					if (self.logModel.event(event)) {
 						// nothing
-					} else if (event.type == 'TestEvent') {
-						self.updateTest(event);
+					} else if (event.type == 'GenericEvent' &&
+							event.task == 'test' &&
+							event.id == 'result') {
+						self.updateTest(event.params);
 					} else if (event.type == 'Started') {
 						// this is expected when we start a new sbt, but we don't do anything with it
 					} else {
@@ -143,7 +145,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 				success: function(data) {
 					console.log("test result: ", data);
 
-					if (data.type == 'TestResponse') {
+					if (data.type == 'GenericResponse') {
 						self.logModel.info('Testing complete.');
 						self.testStatus('Testing complete.');
 					} else {
@@ -161,15 +163,15 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 			});
 			self.activeTask(taskId);
 		},
-		updateTest: function(testEvent) {
+		updateTest: function(params) {
 			var match = ko.utils.arrayFirst(this.results(), function(item) {
-				return testEvent.name === item.name;
+				return params.name === item.name;
 			});
 			if(!match) {
-				var test = new TestResult(testEvent);
+				var test = new TestResult(params);
 				this.results.push(test);
 			} else {
-				match.update(testEvent);
+				match.update(params);
 			}
 		},
 		onCompileSucceeded: function(event) {

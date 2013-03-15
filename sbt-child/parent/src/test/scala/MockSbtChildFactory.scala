@@ -21,10 +21,12 @@ class MockSbtChildFactory extends SbtChildFactory {
             sender ! protocol.WatchTransitiveSourcesResponse(Nil)
           case protocol.CompileRequest(_) =>
             sender ! protocol.CompileResponse(success = true)
-          case protocol.RunRequest(_, _) =>
-            sender ! protocol.RunResponse(success = true)
+          case protocol.RunRequest(_, mainClass) =>
+            sender ! protocol.RunResponse(success = true, mainClass.map(_ => protocol.TaskNames.runMain).getOrElse(protocol.TaskNames.run))
           case protocol.TestRequest(_) =>
             sender ! protocol.TestResponse(outcome = protocol.TestPassed)
+          case req: protocol.GenericRequest =>
+            sender ! protocol.ErrorResponse("GenericRequest not supported here yet")
         }
     }
   }
