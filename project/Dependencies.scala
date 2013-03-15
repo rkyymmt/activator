@@ -45,12 +45,33 @@ object Dependencies {
   // specifically for projects that need remote-probe dependencies
   val requiredClasspath = TaskKey[Classpath]("required-classpath")
 
-  def requiredJars(props: ProjectReference): Setting[_] = {
+  def requiredJars(deps: ProjectReference*): Setting[_] = {
     import xsbti.ArtifactInfo._
-    requiredClasspath <<= (update, classDirectory in Compile, classDirectory in Compile in props) map { (report, classesDir, propsClassesDir) =>
+    import Project.Initialize
+    val dependentProjectClassPaths: Seq[Initialize[Task[Seq[File]]]] =
+      (deps map { proj => 
+        (classDirectory in Compile in proj) map { dir => Seq(dir) }
+      })
+    val ivyDeps: Initialize[Task[Seq[File]]] =  update map { report =>
       val jars = report.matching(configurationFilter(name = "compile") -- moduleFilter(organization = ScalaOrganization, name = ScalaLibraryID))
-      val classes = classesDir.getAbsoluteFile
-      (classes +: propsClassesDir.getAbsoluteFile +: jars).classpath
+      jars
+    }
+    val localClasses: Initialize[Task[Seq[File]]] = (classDirectory in Compile) map { dir =>
+      Seq(dir)
+    }
+    // JOin everyone
+    def joinCp(inits: Seq[Initialize[Task[Seq[File]]]]): Initialize[Task[Seq[File]]] =
+      inits reduce { (lhs, rhs) =>
+        (lhs zip rhs).flatMap { case (l,r) =>
+          l.flatMap[Seq[File]] { files =>
+            r.map[Seq[File]] { files2 =>
+              files ++ files2
+            }
+          }
+        }
+      }
+    requiredClasspath <<= joinCp(dependentProjectClassPaths ++ Seq(ivyDeps, localClasses)) map {
+      _.classpath
     }
   }
 }
