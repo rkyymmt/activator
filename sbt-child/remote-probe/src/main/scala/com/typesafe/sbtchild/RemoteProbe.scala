@@ -29,6 +29,7 @@ object SetupSbtChild extends (State => State) {
   override def apply(s: State): State = {
     val betweenRequestsLogger = new EventLogger(client, 0L)
     // Make sure the shims are installed we need for this build.
+    // TODO - Better place/way to do this?
     PlaySupport.ensureShim(s)
     addLogger(s, betweenRequestsLogger.toGlobalLogging) ++ Seq(listen)
   }
@@ -89,7 +90,7 @@ object SetupSbtChild extends (State => State) {
     req match {
       case protocol.Envelope(serial, replyTo, protocol.GenericRequest(sendEvents, taskName, paramsMap)) =>
         exceptionsToErrorResponse(serial) {
-          ui.findHandler(taskName) map { handler =>
+          ui.findHandler(taskName, origState) map { handler =>
             client.replyJson(req.serial, protocol.RequestReceivedEvent)
             val context = newUIContext(serial, taskName)
             val params = ui.Params.fromMap(paramsMap)

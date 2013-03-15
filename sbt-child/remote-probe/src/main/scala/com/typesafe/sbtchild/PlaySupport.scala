@@ -2,14 +2,36 @@ package com.typesafe.sbtchild
 
 import sbt._
 import builder.properties.BuilderProperties._
+import com.typesafe.sbtchild.protocol.TaskNames
+import com.typesafe.sbt.ui.{ Context => UIContext, Params, RequestHandler }
 
+/** This guy provides the support we need to run play projects... */
 object PlaySupport {
-  def run(state: State, client: ipc.Client, replyTo: Long, serial: Long): State = {
-    // TODO -Use our play plugin...
+
+  private val playRunHandler: RequestHandler = run _
+
+  // Note: we import default shim for default behaviors and override with our own as necessary.
+  import DefaultsShim._
+  val findHandler: PartialFunction[String, RequestHandler] = {
+    case TaskNames.name => nameHandler
+    case TaskNames.discoveredMainClasses => discoveredMainClassesHandler
+    case TaskNames.watchTransitiveSources => watchTransitiveSourcesHandler
+    case TaskNames.compile => compileHandler
+    case TaskNames.run => playRunHandler
+    case TaskNames.runMain => runMainHandler
+    case TaskNames.test => testHandler
+  }
+
+  // This is the shim'd run task we use instead of play's default.
+  private val playRunShimTask = InputKey[Unit]("play-shim-run")
+
+  def run(state: State, context: UIContext, params: Params): (State, Params) = {
+    // TODO - Lookup default port and ensure it's ready/running....
     System.err.println("HOLY S**** IT'S PLAY!")
-    // TODO - Should we install the shim here if needed?
-    SetupSbtChild.runInputTask(InputKey[Unit]("play-shim-run"), state, "")
-    state
+    val s = SbtUtil.runInputTask(playRunShimTask, state, args = "")
+    (s, makeResponseParams(protocol.RunResponse(success = true,
+      task = protocol.TaskNames.runMain)))
+    (state, params)
   }
 
   // TODO - Specify project too...

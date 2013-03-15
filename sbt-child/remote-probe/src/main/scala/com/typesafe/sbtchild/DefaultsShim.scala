@@ -17,7 +17,7 @@ object DefaultsShim {
     ui.sendEvent(id, Params.fromMap(paramsMap))
   }
 
-  private def makeResponseParams(specific: protocol.SpecificResponse): Params = {
+  private[sbtchild] def makeResponseParams(specific: protocol.SpecificResponse): Params = {
     Params.fromMap(specific.toGeneric.params)
   }
 
