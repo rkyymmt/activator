@@ -1,11 +1,19 @@
 package snap
 
+import akka.util.Timeout
+import scala.concurrent.duration._
+
 // This guy stores the Akka we use for eventing.
 object Akka {
   // TODO - use my thread context
   val system = withContextCl(akka.actor.ActorSystem())
 
   val events = system.actorOf(akka.actor.Props[EventActor]())
+
+  // it's basically a bug anytime a timeout needs to be this
+  // long, because in practice it won't expire before the user
+  // just kills the app.
+  val longTimeoutThatIsAProblem = Timeout(1200.seconds)
 
   private def withContextCl[A](f: => A): A = {
     val cl = Thread.currentThread.getContextClassLoader

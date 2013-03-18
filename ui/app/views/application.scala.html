@@ -18,9 +18,9 @@
       pluginIds:  [ @Html(model.plugins.mkString("\'", "\','","\'")) ],
       location: '@model.jsLocation',
       wsUrl: '@routes.Application.connectApp(model.id).webSocketURL()'
-      @for(id <- model.blueprint) {
-        ,blueprint: {
-      	  id: '@model.blueprint'
+      @for(id <- model.template) {
+        ,template: {
+      	  id: '@model.template'
         }
       }
     };

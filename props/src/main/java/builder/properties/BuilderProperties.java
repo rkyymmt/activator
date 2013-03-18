@@ -37,7 +37,7 @@ public class BuilderProperties {
     return value;
   }
 
-  public static String BLUEPRINT_UUID_PROPERTY_NAME = "blueprint.uuid";
+  public static String TEMPLATE_UUID_PROPERTY_NAME = "template.uuid";
   public static String BUILDER_ABI_VERSION_PROPERTY_NAME = "builder.abi.version";
   public static String SCRIPT_NAME = "builder";
   

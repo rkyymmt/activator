@@ -88,9 +88,16 @@ define(function() {
 
 	function onClose(event) {
 		console.log("WS closed: " + event.code + ": " + event.reason, event)
-		// TODO we might basically shut down the app here and give the user
-		// a reload button (we could auto-reload but might get in an infinite
-		// loop that way).
+
+		// TODO it would be nicer to do some kind of in-DOM lightbox dialog with
+		// two buttons like "Reload" and "Go away" (maybe it's useful to not reload
+		// if you need to cut-and-paste some logs for example).
+
+		// This is in a timeout so that when we navigate away from the page we
+		// don't flash the alert box briefly.
+		setTimeout(function() {
+			alert("Connection lost; you will need to reload the page or restart Builder");
+		}, 1000);
 	}
 
 	function onError(event) {

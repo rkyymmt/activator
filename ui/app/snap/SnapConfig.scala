@@ -66,7 +66,7 @@ object RootConfig {
   def user: RootConfig = try {
     // we use the evil Await because 99% of the time we expect
     // the Future to be completed already.
-    Await.result(userFuture.map(_.config), 5 seconds)
+    Await.result(userFuture.map(_.config), 8 seconds)
   } catch {
     case e: Exception =>
       // retry next time

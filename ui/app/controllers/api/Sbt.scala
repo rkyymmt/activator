@@ -25,7 +25,7 @@ import java.net.URLEncoder
 import snap.UpdateSourceFiles
 
 object Sbt extends Controller {
-  implicit val timeout = Timeout(300.seconds)
+  implicit val timeout = snap.Akka.longTimeoutThatIsAProblem
 
   // The point of this actor is to separate the "event" replies
   // from the "response" reply and only reply with the "response"

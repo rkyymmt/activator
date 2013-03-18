@@ -32,7 +32,7 @@ class AppCacheActor extends Actor with ActorLogging {
       case (id, futureApp) =>
         if (futureApp.isCompleted) {
           try {
-            val app = Await.result(futureApp, 1.second)
+            val app = Await.result(futureApp, 2.seconds)
             if (Some(app.actor) == deadRef) {
               log.debug("cleaning up terminated app actor {} {}", id, app.actor)
               false
@@ -117,7 +117,7 @@ object AppManager {
   // If it exists
   //    Return the app
   def loadApp(id: String): Future[snap.App] = {
-    implicit val timeout = Timeout(10.seconds)
+    implicit val timeout = Akka.longTimeoutThatIsAProblem
     (appCache ? GetApp(id)).map {
       case GotApp(app) => app
     }

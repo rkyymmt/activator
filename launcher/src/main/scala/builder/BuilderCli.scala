@@ -70,7 +70,7 @@ object BuilderCli {
       token(any.* map { _ mkString "" }, "<template name>").examples(possible.toSet, false)
     }
 
-    System.out.println("Enter a blueprint name, or hit tab to see a list of possible blueprints")
+    System.out.println("Enter a template name, or hit tab to see a list of possible templates")
     readLine(templateNameParser) filterNot (_.isEmpty) getOrElse sys.error("No template name specified.")
   }
 

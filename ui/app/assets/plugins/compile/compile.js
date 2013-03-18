@@ -1,21 +1,21 @@
-define(['text!./build.html', 'core/pluginapi', 'core/log', 'css!./build.css'], function(template, api, log){
+define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'], function(template, api, log){
 
 	var ko = api.ko;
 	var sbt = api.sbt;
 
-	var Build = api.Widget({
-		id: 'build-widget',
+	var Compile = api.Widget({
+		id: 'compile-widget',
 		template: template,
 		init: function(parameters){
 			var self = this
 
-			this.title = ko.observable("Build");
+			this.title = ko.observable("Compile");
 			this.activeTask = ko.observable(""); // empty string or taskId
 			this.haveActiveTask = ko.computed(function() {
 				return self.activeTask() != "";
 			}, this);
 			this.needCompile = ko.observable(false);
-			this.rebuildOnChange = ko.observable(true);
+			this.recompileOnChange = ko.observable(true);
 
 			this.logModel = new log.Log();
 
@@ -23,13 +23,13 @@ define(['text!./build.html', 'core/pluginapi', 'core/log', 'css!./build.css'], f
 				return event.type == 'FilesChanged';
 			},
 			function(event) {
-				if (self.rebuildOnChange()) {
-					console.log("files changed, doing a rebuild");
+				if (self.recompileOnChange()) {
+					console.log("files changed, doing a recompile");
 					// doCompile just marks a compile pending if one is already
 					// active.
 					self.doCompile();
 				} else {
-					console.log("rebuild on change unchecked, doing nothing");
+					console.log("recompile on change unchecked, doing nothing");
 				}
 			});
 
@@ -65,7 +65,7 @@ define(['text!./build.html', 'core/pluginapi', 'core/log', 'css!./build.css'], f
 			var self = this;
 
 			if (self.needCompile()) {
-				console.log("need to rebuild because something changed while we were compiling");
+				console.log("need to recompile because something changed while we were compiling");
 				self.needCompile(false);
 				self.doCompile();
 			} else if (succeeded) {
@@ -83,13 +83,13 @@ define(['text!./build.html', 'core/pluginapi', 'core/log', 'css!./build.css'], f
 			var self = this;
 
 			if (self.haveActiveTask()) {
-				console.log("Attempt to compile with a compile already active, will rebuild again when we finish");
+				console.log("Attempt to compile with a compile already active, will recompile again when we finish");
 				self.needCompile(true);
 				return;
 			}
 
 			self.logModel.clear();
-			self.logModel.info("Building...");
+			self.logModel.info("Compiling...");
 			var task = { task: 'compile' };
 			var taskId = sbt.runTask({
 				task: task,
@@ -130,21 +130,21 @@ define(['text!./build.html', 'core/pluginapi', 'core/log', 'css!./build.css'], f
 			}
 		},
 		startButtonClicked: function(self) {
-			console.log("Start build was clicked");
+			console.log("Start compile was clicked");
 			self.doCompile();
 		}
 	});
 
-	var buildConsole = new Build();
+	var compileConsole = new Compile();
 
 	return api.Plugin({
-		id: 'build',
-		name: "Build",
+		id: 'compile',
+		name: "Compile",
 		icon: "B",
-		url: "#build",
+		url: "#compile",
 		routes: {
-			'build': function() { api.setActiveWidget(buildConsole); }
+			'compile': function() { api.setActiveWidget(compileConsole); }
 		},
-		widgets: [buildConsole]
+		widgets: [compileConsole]
 	});
 });
