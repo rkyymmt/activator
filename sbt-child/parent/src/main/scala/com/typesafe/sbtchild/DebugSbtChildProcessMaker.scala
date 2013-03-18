@@ -22,8 +22,14 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
       throw new RuntimeException("DebugSbtChildProcessMaker requires system props: " + missing)
   }
 
-  private lazy val probeClassPath: Seq[File] = Seq(new File(sys.props(probeClassPathProp)))
+  private lazy val probeClassPath: Seq[File] = (sys.props(probeClassPathProp) split File.pathSeparator map (n => new File(n)))(collection.breakOut)
+  private lazy val commandClasspath: Seq[File] = probeClassPath //filterNot (_.getAbsolutePath contains "ui-interface")
+  //private lazy val uiClassDir: Seq[File] = probeClassPath filter (_.getAbsolutePath contains "ui-interface")
   private lazy val sbtLauncherJar: String = sys.props(sbtLauncherJarProp)
+
+  //private lazy val launchClasspath: Seq[File] = uiClassDir ++ Seq(new File(sbtLauncherJar))
+
+  def cp(files: Seq[File]): String = (files map (_.getAbsolutePath)).distinct mkString File.pathSeparator
 
   def arguments(port: Int): Seq[String] = {
     assertPropsArentMissing()
@@ -43,16 +49,22 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
       // TODO - Don't allow user-global plugins?
       //"-Dsbt.global.base=/tmp/.sbtboot",
       portArg)
+    // We need to get the ui interface classes *earlier* in the classpath...
+    // This is a hack specifically for running debug runs, so that the classpath is correct.
+    // In production, we do this via the launcher...
     val jar = Seq("-jar", sbtLauncherJar)
-    val probeClasspathString = (probeClassPath map (_.getAbsolutePath)).distinct mkString File.pathSeparator
+    //Seq("-classpath", cp(launchClasspath), "xsbt.boot.Boot")
     val sbtcommands = Seq(
-      "apply -cp " + probeClasspathString + " com.typesafe.sbtchild.SetupSbtChild",
+      "apply -cp " + cp(commandClasspath) + " com.typesafe.sbtchild.SetupSbtChild",
       "listen")
     val result = Seq("java") ++
       defaultJvmArgs ++
       sbtProps ++
       jar ++
       sbtcommands
+
+    System.out.println(result.mkString("Sbt Debug command:\n\t", "\n\t", ""))
+
     result
   }
 }

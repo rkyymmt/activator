@@ -1,24 +1,23 @@
 package com.typesafe.sbt.ui
 
+import scala.util.parsing.json.JSONObject
+import scala.util.parsing.json.Parser
+
 // API for gluing a UI to an sbt task, with generic invocation
 
 // contentType is as in the HTTP header, value as in HTTP body.
 // Typically application/json and a JSON string.
-case class Params(contentType: String, value: String) {
+case class Params(contentType: String, value: String)
 
-  // TODO we don't really want to depend on the "protocol" module from the UI interface.
-  def toMap: Map[String, Any] = {
-    if (contentType != "application/json")
-      Map.empty
-    else
-      com.typesafe.sbtchild.protocol.Message.paramsFromJsonString(value)
-  }
-}
+// TODO - Does this belong here?
+/** Helper class to make sending JSON objects simpler. */
+case class SimpleJsonMessage(json: JSONObject)
+object SimpleJsonMessage {
+  def apply(json: String): Params =
+    Params("application/json", json)
 
-object Params {
-  def fromMap(map: Map[String, Any]): Params = {
-    Params("application/json", com.typesafe.sbtchild.protocol.Message.paramsToJsonString(map))
-  }
+  implicit def toParams(msg: SimpleJsonMessage): Params =
+    Params("application/json", msg.json.toString)
 }
 
 sealed trait Status
@@ -67,5 +66,6 @@ object Context {
     override def sendEvent(id: String, event: Params) = {}
     override def take(): Status = NoUIPresent
     override def peek(): Option[Status] = None
+    override def toString: String = "NoopUiContext"
   }
 }

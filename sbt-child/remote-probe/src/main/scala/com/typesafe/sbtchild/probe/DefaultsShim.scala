@@ -1,12 +1,21 @@
 package com.typesafe.sbtchild
+package probe
 
-import com.typesafe.sbt.ui.{ Context => UIContext, Params, RequestHandler }
+import com.typesafe.sbt.ui.{ Context => UIContext, Params }
 import _root_.sbt._
-import Project.Initialize
-import Keys._
-import Defaults._
-import Scope.GlobalScope
-import org.scalatools.testing.{ Logger => _, Result => TResult, _ }
+import sbt.Keys._
+import sbt.Defaults._
+import org.scalatools.testing.{ Result => TResult, _ }
+import SbtUtil.extract
+import SbtUtil.extractWithRef
+import SbtUtil.makeAppendSettings
+import SbtUtil.reloadWithAppended
+import SbtUtil.runInputTask
+import protocol.TaskNames
+import sbt.ConfigKey.configurationToKey
+import sbt.Project.richInitializeTask
+import sbt.Scoped.inputScopedToKey
+import sbt.Scoped.taskScopedToKey
 
 object DefaultsShim {
 
@@ -14,11 +23,11 @@ object DefaultsShim {
   import protocol.TaskNames
 
   private def sendEvent(ui: UIContext, id: String, paramsMap: Map[String, Any]): Unit = {
-    ui.sendEvent(id, Params.fromMap(paramsMap))
+    ui.sendEvent(id, ParamsHelper.fromMap(paramsMap))
   }
 
   private[sbtchild] def makeResponseParams(specific: protocol.SpecificResponse): Params = {
-    Params.fromMap(specific.toGeneric.params)
+    ParamsHelper.fromMap(specific.toGeneric.params)
   }
 
   private class OurTestListener(val ui: UIContext, val oldTask: Task[Seq[TestReportListener]]) extends TestReportListener {
@@ -117,6 +126,7 @@ object DefaultsShim {
   }
 
   val runMainHandler: RequestHandler = { (origState, ui, params) =>
+    import ParamsHelper._
     val klass = params.toMap.get("mainClass")
       .map(_.asInstanceOf[String])
       .getOrElse(throw new RuntimeException("need to specify mainClass in params"))

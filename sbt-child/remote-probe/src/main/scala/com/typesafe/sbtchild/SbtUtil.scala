@@ -9,23 +9,36 @@ import com.typesafe.sbtchild._
 import sbt.Aggregation.KeyValue
 import sbt.complete.DefaultParsers
 import sbt.Load.BuildStructure
+import com.typesafe.sbt.ui.{ Context => UIContext }
+import com.typesafe.sbt.ui.SbtUiPlugin.uiContext
 
 object SbtUtil {
 
-  def extractWithRef(state: State): (Extracted, ProjectRef) = {
-    val ref = Project.extract(state).currentRef
-    (Extracted(Project.structure(state), Project.session(state), ref)(Project.showFullKey), ref)
+  def extractWithRef(state: State, context: Option[UIContext] = None): (Extracted, ProjectRef) = {
+    val state2: State = context match {
+      case Some(ui) => reloadWithAppended(state, Seq(uiContext in Global := ui))
+      case None => state
+    }
+    val extracted = Project.extract(state2)
+    val ref = Project.extract(state2).currentRef
+    // Append the ui context, if we have one.
+    val baseSettings = Project.session(state2)
+
+    val merged = baseSettings.mergeSettings
+
+    (Extracted(Project.structure(state2), baseSettings, ref)(Project.showFullKey), ref)
   }
 
-  def extract(state: State): Extracted = {
-    extractWithRef(state)._1
+  def extract(state: State, context: Option[UIContext] = None): Extracted = {
+    extractWithRef(state, context)._1
   }
 
-  def runInputTask[T](key: ScopedKey[T], state: State, args: String): State = {
-    val extracted = extract(state)
+  def runInputTask[T](key: ScopedKey[T], state: State, args: String, context: Option[UIContext] = None): State = {
+    val extracted = extract(state, context)
     implicit val display = Project.showContextKey(state)
     val it = extracted.get(SettingKey(key.key) in key.scope)
     val keyValues = KeyValue(key, it) :: Nil
+
     val parser = Aggregation.evaluatingParser(state, extracted.structure, show = false)(keyValues)
     // we put a space in front of the args because the parsers expect
     // *everything* after the task name it seems

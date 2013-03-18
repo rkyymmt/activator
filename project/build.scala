@@ -30,8 +30,8 @@ object TheBuilderBuild extends Build {
   )
 
   // These are the projects we want in the local Builder repository
-  lazy val publishedProjects = Seq(common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver, playShimPlugin)
-  lazy val publishedSbtShimProjects = Set(playShimPlugin)
+  lazy val publishedSbtShimProjects = Set(playShimPlugin, sbtUiInterface)
+  lazy val publishedProjects = Seq(common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects  
 
   // basic project that gives us properties to use in other projects.
   lazy val props = (
@@ -58,13 +58,30 @@ object TheBuilderBuild extends Build {
     Seq(unmanagedSourceDirectories in Compile <<= (unmanagedSourceDirectories in Compile, baseDirectory) { (srcDirs, base) => (base / dir / "src/main/scala") +: srcDirs },
         unmanagedSourceDirectories in Test <<= (unmanagedSourceDirectories in Test, baseDirectory) { (srcDirs, base) => (base / dir / "src/test/scala") +: srcDirs })
   }
+  
+  lazy val sbtUiInterface = (
+      SbtShimPlugin("ui-interface")
+      settings(
+          Keys.scalaVersion := "2.9.2", 
+          Keys.scalaBinaryVersion <<= Keys.scalaVersion,
+          Keys.crossVersion := CrossVersion.Disabled,
+          Keys.projectID <<=  Keys.projectID apply { id =>
+            id.copy(extraAttributes = Map.empty)
+          })
+      dependsOnRemote(
+          sbtMain % "provided",
+          sbtTheSbt % "provided",
+          sbtIo % "provided",
+          sbtLogging % "provided",
+          sbtProcess % "provided")
+  )
 
   // sbt-child process projects
   lazy val sbtRemoteProbe = (
     SbtChildProject("remote-probe")
     settings(dependsOnSource("../protocol"): _*)
     settings(Keys.scalaVersion := "2.9.2", Keys.scalaBinaryVersion <<= Keys.scalaVersion)
-    dependsOn(props)
+    dependsOn(props, sbtUiInterface % "provided")
     dependsOnRemote(
       sbtMain % "provided",
       sbtTheSbt % "provided",
@@ -72,12 +89,13 @@ object TheBuilderBuild extends Build {
       sbtLogging % "provided",
       sbtProcess % "provided"
     )
-    settings(requiredJars(props))
+    settings(requiredJars(props, sbtUiInterface))
   )
 
   // SBT Shims
   lazy val playShimPlugin = (
     SbtShimPlugin("play")
+    dependsOn(sbtUiInterface)
     dependsOnRemote(playSbtPlugin)
   )
 

@@ -16,6 +16,8 @@ import java.io.Writer
 import scala.util.matching.Regex
 import com.typesafe.sbt.ui
 import scala.util.parsing.json._
+import com.typesafe.sbtchild.probe.PlaySupport
+import com.typesafe.sbtchild.probe.ParamsHelper._
 
 object SetupSbtChild extends (State => State) {
 
@@ -65,6 +67,7 @@ object SetupSbtChild extends (State => State) {
     }
     override def take(): ui.Status = ui.NoUIPresent // TODO
     override def peek(): Option[ui.Status] = None // TODO
+    override def toString: String = "ProbedUiContext(serial=" + serial + ", taskName =" + taskName + ")"
   }
 
   private def getPort(): Int = {
@@ -90,10 +93,10 @@ object SetupSbtChild extends (State => State) {
     req match {
       case protocol.Envelope(serial, replyTo, protocol.GenericRequest(sendEvents, taskName, paramsMap)) =>
         exceptionsToErrorResponse(serial) {
-          ui.findHandler(taskName, origState) map { handler =>
+          probe.findHandler(taskName, origState) map { handler =>
             client.replyJson(req.serial, protocol.RequestReceivedEvent)
             val context = newUIContext(serial, taskName)
-            val params = ui.Params.fromMap(paramsMap)
+            val params = probe.ParamsHelper.fromMap(paramsMap)
             val (newState, replyParams) = handler(origState, context, params)
             client.replyJson(serial, protocol.GenericResponse(name = taskName,
               params = replyParams.toMap))

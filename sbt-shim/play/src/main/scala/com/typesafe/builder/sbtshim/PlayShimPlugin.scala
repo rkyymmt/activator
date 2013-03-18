@@ -8,11 +8,15 @@ import sbt.InputTask
 import collection.JavaConverters._
 import annotation.tailrec
 import play.core.SBTLink
+import com.typesafe.sbt.ui.{ Context => UIContext, SimpleJsonMessage }
+import scala.util.parsing.json.JSONObject
 
 object PlayShimKeys {
   val playShimInstalled = SettingKey[Boolean]("play-shim-installed")
 
   val playShimRun = InputKey[Unit]("play-shim-run")
+
+  val uiContext = com.typesafe.sbt.ui.SbtUiPlugin.uiContext
 }
 
 object PlayShimPlugin extends Plugin {
@@ -21,12 +25,12 @@ object PlayShimPlugin extends Plugin {
   override val settings: Seq[Setting[_]] = Seq(
     playShimInstalled := true,
     playShimRun <<= inputTask { (args: TaskKey[Seq[String]]) =>
-      (args, state) map run
+      (args, state, uiContext in Global) map run
     })
 
   @volatile var stopped = false
   private val consoleReader = new jline.ConsoleReader
-  def run(args: Seq[String], state: State): Unit = {
+  def run(args: Seq[String], state: State, ctx: UIContext): Unit = {
 
     val extracted = Project.extract(state)
 
@@ -112,6 +116,8 @@ object PlayShimPlugin extends Plugin {
 
       // Notify hooks
       extracted.get(playOnStarted).foreach(_(server.mainAddress))
+      println("Play shim is running with ui context = " + ctx)
+      ctx.sendEvent("playServerStarted", SimpleJsonMessage(JSONObject(Map("port" -> port))))
 
       println()
       println("(Server started, use Builder to stop....")
@@ -184,7 +190,7 @@ object PlayShimPlugin extends Plugin {
         case _ => {
           // run mode
           // TODO - Keep waiting for death?  What should we do here?
-          while (!stopped) {
+          while (!ctx.isCanceled) {
             Thread.sleep(1000L * 60)
           }
           state
