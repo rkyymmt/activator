@@ -41,8 +41,8 @@ class ActionsTest {
     assert(installedFile.exists)
     // TODO - Check contents of the file, after we make the file.
 
-    // Check that blueprint ID was successfully written out.
+    // Check that template ID was successfully written out.
     val props = IO loadProperties new File(installLocation, "project/build.properties")
-    assert(props.getProperty(BLUEPRINT_UUID_PROPERTY_NAME) == id)
+    assert(props.getProperty(TEMPLATE_UUID_PROPERTY_NAME) == id)
   }
 }

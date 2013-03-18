@@ -12,10 +12,10 @@ class App(val config: AppConfig, val system: ActorSystem, val sbtMaker: SbtChild
 
   // TODO - this method is dangerous, as it hits the file system.
   // Figure out when it should initialize/run.
-  val blueprintID: Option[String] =
+  val templateID: Option[String] =
     try {
       val props = snap.cache.IO loadProperties (new java.io.File(config.location, "project/build.properties"))
-      Option(props.getProperty(BuilderProperties.BLUEPRINT_UUID_PROPERTY_NAME, null))
+      Option(props.getProperty(BuilderProperties.TEMPLATE_UUID_PROPERTY_NAME, null))
     } catch {
       case e: java.io.IOException => None // TODO - Log?
     }

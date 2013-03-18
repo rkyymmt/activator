@@ -20,7 +20,7 @@ case class ApplicationModel(
   location: String,
   plugins: Seq[String],
   name: String,
-  blueprint: Option[String],
+  template: Option[String],
   recentApps: Seq[AppConfig]) {
 
   def jsLocation = location.replaceAll("'", "\\'")
@@ -35,7 +35,7 @@ case class HomeModel(
 case class NewAppForm(
   name: String,
   location: String,
-  blueprint: String)
+  template: String)
 
 case class FromLocationForm(location: String)
 
@@ -64,7 +64,7 @@ object Application extends Controller {
     mapping(
       "name" -> text,
       "location" -> text,
-      "blueprint" -> text)(NewAppForm.apply)(NewAppForm.unapply))
+      "template" -> text)(NewAppForm.apply)(NewAppForm.unapply))
 
   /**
    * Creates a new application and loads it, or redirects to
@@ -82,7 +82,7 @@ object Application extends Controller {
           // TODO - Store template cache somehwere better...
           snap.cache.Actions.cloneTemplate(
             api.Templates.templateCache,
-            model.blueprint,
+            model.template,
             location) map (_ => location)
         }
       // Now look up the app name and register this location
@@ -195,7 +195,7 @@ object Application extends Controller {
       Seq("plugins/code/code", "plugins/run/run", "plugins/test/test", "plugins/build/build"),
       app.config.cachedName getOrElse app.config.id,
       // TODO - something less lame than exception here...
-      app.blueprintID,
+      app.templateID,
       RootConfig.user.applications)
 
   /** The current working directory of the app. */

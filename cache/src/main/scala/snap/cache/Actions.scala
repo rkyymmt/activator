@@ -33,7 +33,7 @@ object Actions {
         // TODO - Force sbt version?
         updateProperties(propsFile,
           Map(
-            BLUEPRINT_UUID_PROPERTY_NAME -> id,
+            TEMPLATE_UUID_PROPERTY_NAME -> id,
             BUILDER_ABI_VERSION_PROPERTY_NAME -> APP_ABI_VERSION))
       }
     } yield ()

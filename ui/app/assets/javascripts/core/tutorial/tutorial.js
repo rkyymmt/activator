@@ -20,8 +20,8 @@ define(['css!./tutorial.css', 'core/pluginapi'], function(css, api){
 		self.select = function(item){
 			self.currentPage(item);
 		};
-		if (serverAppModel && serverAppModel.blueprint && serverAppModel.blueprint.id){
-			$.ajax("/api/templates/"+serverAppModel.blueprint.id+"/tutorial/index.html",{
+		if (serverAppModel && serverAppModel.template && serverAppModel.template.id){
+			$.ajax("/api/templates/"+serverAppModel.template.id+"/tutorial/index.html",{
 				success: function(data){
 					$(data).filter("div").each(function(i,el){
 						console.log("eL>", el)

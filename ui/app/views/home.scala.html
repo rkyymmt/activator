@@ -12,7 +12,7 @@
 
 		<article>
 			<h1>Build Amazing Apps!</h1>
-			<p>Create rich, high volume, and interactive applications in a snap.  Start with a new application Blueprint.  Then browse the code and run &amp; test the app from your browser.</p>
+			<p>Create rich, high volume, and interactive applications in a snap.  Start with a new application template.  Then browse the code and run &amp; test the app from your browser.</p>
 		</article>
 
 		<section id="new">
@@ -27,13 +27,13 @@
 					<input type="text" id="newappLocation" name="location" placeholder="@model.userHome" required>
 				</fieldset>
 				<fieldset>
-					<label for="newappBlueprint">Blueprint</label>
-					<input type="text" id="newAppBlueprintName" name="blueprint-name" placeholder="Choose a blueprint in the list below" disabled required>
+					<label for="newappTemplate">Template</label>
+					<input type="text" id="newAppTemplateName" name="template-name" placeholder="Choose a template in the list below" disabled required>
 				</fieldset>
 				<ul> 
 				@model.templates.map { template =>
 					<li>
-						<input type="radio" name="blueprint" value="@template.id">
+						<input type="radio" name="template" value="@template.id">
 						<h3>@template.name</h3>
 						<p>@template.description</p>
 					</li>	  
