@@ -143,8 +143,7 @@ private[snap] object ConfigFile {
       if (tmpFile.length() != bytesToWrite.length)
         throw new IOException("File does not have expected size: " + tmpFile.getCanonicalPath() + ": " + bytesToWrite.length)
       // then copy over
-      if (!tmpFile.renameTo(newConfig.file))
-        throw new IOException("Failed to rename " + tmpFile.getCanonicalPath() + " to " + newConfig.file.getCanonicalPath())
+      IO.move(tmpFile, newConfig.file)
 
       newConfig
     }
