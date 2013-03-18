@@ -54,8 +54,9 @@ class UIMain extends AppMain {
       } finally http.disconnect()
     }
     // Keep sleeping until we see the server respond.
-    // Default to waiting 30 seconds.
-    def checkAlive(remaining: Int = 60): Unit =
+    val secondsToWait = 60
+    // remaining = half-second ticks
+    def checkAlive(remaining: Int = secondsToWait * 2): Unit =
       if (!isAlive) remaining match {
         case 0 => sys error "Web server never started!"
         case _ =>
