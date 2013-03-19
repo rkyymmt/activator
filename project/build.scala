@@ -133,6 +133,7 @@ object TheBuilderBuild extends Build {
       sbtLauncherInterface % "provided"
     )
     dependsOn(props, cache, sbtDriver, common, sbtDriver % "test->test")
+    settings(play.Project.playDefaultPort := 8888)
     // set up debug props for forked tests
     settings(configureSbtTest(Keys.test): _*)
     settings(configureSbtTest(Keys.testOnly): _*)
