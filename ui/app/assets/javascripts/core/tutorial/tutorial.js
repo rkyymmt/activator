@@ -41,6 +41,9 @@ define(['css!./tutorial.css', 'core/pluginapi'], function(css, api){
 	// BAAAAAAD
 	// BAAAAAAD
 	var tuts = $("aside.tutorial");
+	tuts.on("click", "header .collapse", function(event) {
+		tuts.toggleClass("collapsed");
+	});
 	function display(target){
 		tuts.find(".previous").attr("disabled", false);
 		tuts.find(".next").attr("disabled", false);
