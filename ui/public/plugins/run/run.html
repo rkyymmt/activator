@@ -14,9 +14,7 @@
 			<button class="restart" data-bind="enable: haveActiveTask() && !restartPending(), click: restartButtonClicked">Restart</button>
 		</nav>
 		<h1>Run</h1>
-		<p class="subheader">
-			Application is stopped
-		</p>
+		<p class="subheader" data-bind="html: status"></p>
 	</header>
 	<section class="wrapper">
 		<div data-bind="template: { name: outputModel.view, data: outputModel }" 
