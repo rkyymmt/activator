@@ -51,13 +51,6 @@ object TheBuilderBuild extends Build {
     dependsOn(props, common)
     dependsOnRemote(junitInterface % "test")
   )
-
-  // add sources from the given dir
-  def dependsOnSource(dir: String): Seq[Setting[_]] = {
-    import Keys._
-    Seq(unmanagedSourceDirectories in Compile <<= (unmanagedSourceDirectories in Compile, baseDirectory) { (srcDirs, base) => (base / dir / "src/main/scala") +: srcDirs },
-        unmanagedSourceDirectories in Test <<= (unmanagedSourceDirectories in Test, baseDirectory) { (srcDirs, base) => (base / dir / "src/test/scala") +: srcDirs })
-  }
   
   lazy val sbtUiInterface = (
       SbtShimPlugin("ui-interface")
@@ -79,8 +72,8 @@ object TheBuilderBuild extends Build {
   // sbt-child process projects
   lazy val sbtRemoteProbe = (
     SbtChildProject("remote-probe")
-    settings(dependsOnSource("../protocol"): _*)
     settings(Keys.scalaVersion := "2.9.2", Keys.scalaBinaryVersion <<= Keys.scalaVersion)
+    dependsOnSource("../protocol")
     dependsOn(props, sbtUiInterface % "provided")
     dependsOnRemote(
       sbtMain % "provided",
@@ -125,7 +118,7 @@ object TheBuilderBuild extends Build {
   lazy val sbtDriver = (
     SbtChildProject("parent")
     settings(Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
-    settings(dependsOnSource("../protocol"): _*)
+    dependsOnSource("../protocol")
     dependsOn(props)
     dependsOnRemote(akkaActor,
                     sbtLauncherInterface)

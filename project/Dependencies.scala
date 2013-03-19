@@ -37,10 +37,21 @@ object Dependencies {
   // Mini DSL
   // DSL for adding remote deps like local deps.
   implicit def p2remote(p: Project): RemoteDepHelper = new RemoteDepHelper(p)
-  class RemoteDepHelper(p: Project) {
+  final class RemoteDepHelper(p: Project) {
     def dependsOnRemote(ms: ModuleID*): Project = p.settings(libraryDependencies ++= ms)
   }
-
+  // DSL for adding source dependencies ot projects.
+  def dependsOnSource(dir: String): Seq[Setting[_]] = {
+    import Keys._
+    Seq(unmanagedSourceDirectories in Compile <<= (unmanagedSourceDirectories in Compile, baseDirectory) { (srcDirs, base) => (base / dir / "src/main/scala") +: srcDirs },
+        unmanagedSourceDirectories in Test <<= (unmanagedSourceDirectories in Test, baseDirectory) { (srcDirs, base) => (base / dir / "src/test/scala") +: srcDirs })
+  }
+  implicit def p2source(p: Project): SourceDepHelper = new SourceDepHelper(p)
+  final class SourceDepHelper(p: Project) {
+    def dependsOnSource(dir: String): Project =
+      p.settings(Dependencies.dependsOnSource(dir):_*)
+  }
+  
   // compile classpath and classes directory, with provided/optional or scala dependencies
   // specifically for projects that need remote-probe dependencies
   val requiredClasspath = TaskKey[Classpath]("required-classpath")
