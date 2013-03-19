@@ -12,7 +12,10 @@ object BuilderBuild {
       val df = new java.text.SimpleDateFormat("yyyyMMdd'T'HHmmss")
       df setTimeZone java.util.TimeZone.getTimeZone("GMT")
       // TODO - Add git sha perhaps, because that might help with staleness...
-      "1.0-" + (df format (new java.util.Date))
+      val default = "1.0-" + (df format (new java.util.Date))
+      // TODO - Alternative way to release is desired....
+      // TODO - Should also track a binary ABI value...
+      Option(sys.props("builder.version")) getOrElse default
     }
   )
 
