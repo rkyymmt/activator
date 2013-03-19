@@ -116,7 +116,6 @@ object PlayShimPlugin extends Plugin {
 
       // Notify hooks
       extracted.get(playOnStarted).foreach(_(server.mainAddress))
-      println("Play shim is running with ui context = " + ctx)
       ctx.sendEvent("playServerStarted", SimpleJsonMessage(JSONObject(Map("port" -> port))))
 
       println()
