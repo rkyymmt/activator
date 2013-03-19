@@ -36,14 +36,19 @@ require([
 		// Register handlers on the UI.
 		$(function() {
 			// Register fancy radio button controlls.
-			$('#new li').click(function(event) {
+			$('#new').on('click', 'li', function(event) {
+				// ???
 				$('input:radio', this).prop('checked',true);
 				var name = $('h3', this).text();
 				$('#newAppTemplateName').val(name);
+			})
+			.on('click', '#browseAppLocation, #browseCancel', function(event) {
+				event.preventDefault();
+				$('#newAppForm, #newAppLocationBrowser').toggle();
 			});
 			// TODO - Register file selection widget...
 			// Register fancy click and open app buttons
-			$('#open li').click(function(event) {
+			$('#open').on('click', 'li', function(event) {
 				var url = $('a', this).attr('href');
 				// TODO - Better way to do this?
 				window.location.href = url;
