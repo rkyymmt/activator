@@ -1,19 +1,31 @@
 aside.tutorial {
 	background: #fff;
 	header {
-		height: 60px;
-		padding: 0 20px; 
-		background: #E4EAEF;
-		color: #6F7F89;
-		line-height: 60px;
-		font-family: "HelveticaNeue-CondensedBold", "Open Sans Condensed", "Helvetica", sans-serif;
-		font-weight: bold;
-		font-stretch: condensed;
-		letter-spacing: -0.03em;
-		font-weight: 700;
-		font-size: 19px;
-		text-transform: uppercase;
-		padding: 0 20px;
+        background: #E4EAEF;
+        height: 60px;
+        padding: 0 20px;
+        color: #6F7F89;
+        span {
+            line-height: 60px;
+            font-family: "HelveticaNeue-CondensedBold", "Open Sans Condensed", "Helvetica", sans-serif;
+            font-weight: bold;
+            font-stretch: condensed;
+            letter-spacing: -0.03em;
+            font-weight: 700;
+            font-size: 19px;
+            text-transform: uppercase;
+        }
+        .collapse {
+            font: 40px icons;
+            margin-right: -15px;
+            width: 30px;
+            height: 30px;
+            float: right;
+            cursor: pointer;
+            &:after {
+                content: "";
+            }
+        }
 	}
 	nav {
 		height: 40px;
@@ -160,4 +172,29 @@ aside.tutorial {
 			display: block;
 		}
 	}
+    &.collapsed {
+        background: #E4EAEF;
+        width: 50px;
+        header {
+            span {
+                position: absolute;
+                top: 70px;
+                left: -23px;
+                float: none;
+                display: inline-block;
+                -webkit-transform: rotate(90deg);
+                -moz-transform: rotate(90deg);
+                -ms-transform: rotate(90deg);
+                -o-transform: rotate(90deg);
+            }
+            .collapse {
+                &:after {
+                    content: "";
+                }
+            }
+        }
+        nav, a.button, article {
+            display: none;
+        }
+    }
 }
