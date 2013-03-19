@@ -145,6 +145,7 @@ object TheBuilderBuild extends Build {
           Keys.update,
           requiredClasspath in sbtRemoteProbe,
           Keys.compile in Compile in sbtRemoteProbe,
+          // Note: This one should generally push all shim plugins.
           Keys.publishLocal in playShimPlugin) map {
         (launcher, update, probeCp, _, _) =>
           // We register the location after it's resolved so we have it for running play...
