@@ -8,7 +8,7 @@ import sbt.InputTask
 import collection.JavaConverters._
 import annotation.tailrec
 import play.core.SBTLink
-import com.typesafe.sbt.ui.{ Context => UIContext, SimpleJsonMessage }
+import com.typesafe.sbt.ui.{ Context => UIContext, SimpleJsonMessage, Canceled => UI_CANCELED, NoUIPresent => NO_UI }
 import scala.util.parsing.json.JSONObject
 
 object PlayShimKeys {
@@ -189,7 +189,12 @@ object PlayShimPlugin extends Plugin {
         case _ => {
           // run mode
           // TODO - Keep waiting for death?  What should we do here?
-          while (!ctx.isCanceled) {
+          def checkStop: Boolean = {
+            val tmp = ctx.take // Note: this blocks
+            (tmp == UI_CANCELED) || (tmp == NO_UI)
+          }
+          while (checkStop) {
+            // TODO - Can we stop sleeping if we use "take"?
             Thread.sleep(1000L * 60)
           }
           state
