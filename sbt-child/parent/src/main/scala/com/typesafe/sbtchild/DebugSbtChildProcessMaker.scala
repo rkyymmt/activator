@@ -1,6 +1,6 @@
 package com.typesafe.sbtchild
 
-import builder.properties.BuilderProperties.BUILDER_HOME
+import builder.properties.BuilderProperties._
 import java.io.File
 
 /**
@@ -23,10 +23,48 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
   }
 
   private lazy val probeClassPath: Seq[File] = (sys.props(probeClassPathProp) split File.pathSeparator map (n => new File(n)))(collection.breakOut)
-  private lazy val commandClasspath: Seq[File] = probeClassPath //filterNot (_.getAbsolutePath contains "ui-interface")
-  //private lazy val uiClassDir: Seq[File] = probeClassPath filter (_.getAbsolutePath contains "ui-interface")
+  private lazy val commandClasspath: Seq[File] = probeClassPath filterNot (_.getAbsolutePath contains "ui-interface")
+  private lazy val uiClassDir: Seq[File] = probeClassPath filter (_.getAbsolutePath contains "ui-interface")
   private lazy val sbtLauncherJar: String = sys.props(sbtLauncherJarProp)
 
+  private lazy val propsFile = {
+    val tmp = File.createTempFile("builder", "properties")
+    val writer = new java.io.BufferedWriter(new java.io.FileWriter(tmp))
+    try {
+      writer.write(s"""
+[scala]
+  version: auto
+
+[app]
+  org: org.scala-sbt
+  name: sbt
+  version: ${SBT_VERSION}
+  class: sbt.xMain
+  components: xsbti,extra
+  cross-versioned: false
+  resources: ${uiClassDir map (_.getCanonicalPath) mkString ","}
+
+[repositories]
+  local
+  typesafe-ivy-releases: http://repo.typesafe.com/typesafe/ivy-releases/, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext], bootOnly
+  typesafe-ivy-snapshots: http://repo.typesafe.com/typesafe/ivy-snapshots/, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext], bootOnly
+  maven-central
+
+[boot]
+ directory: $${sbt.boot.directory-$${sbt.global.base-$${user.home}/.sbt}/boot/}
+
+[ivy]
+  ivy-home: $${sbt.ivy.home-$${user.home}/.ivy2/}
+  checksums: $${sbt.checksums-sha1,md5}
+  override-build-repos: $${sbt.override.build.repos-false}
+  repository-config: $${sbt.repository.config-$${sbt.global.base-$${user.home}/.sbt}/repositories}
+""")
+    } finally {
+      writer.close()
+    }
+    tmp.deleteOnExit()
+    tmp
+  }
   //private lazy val launchClasspath: Seq[File] = uiClassDir ++ Seq(new File(sbtLauncherJar))
 
   def cp(files: Seq[File]): String = (files map (_.getAbsolutePath)).distinct mkString File.pathSeparator
@@ -34,6 +72,10 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
   def arguments(port: Int): Seq[String] = {
     assertPropsArentMissing()
     val portArg = "-Dbuilder.sbt-child-port=" + port.toString
+    // TODO - We have to create a new sbt.boot.properties
+    // with the settings we need, like:
+    // resources=<path-to-ui-interface-jar>
+
     // TODO - These need to be configurable *and* discoverable.
     // we have no idea if computers will be able to handle this amount of
     // memory....
@@ -46,6 +88,7 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
       "-Dbuilder.home=" + BUILDER_HOME,
       // Looks like this one is unset...
       "-Dsbt.boot.directory=" + (sys.props get "sbt.boot.directory" getOrElse (sys.props("user.home") + "/.sbt")),
+      "-Dsbt.boot.properties=" + propsFile.getAbsolutePath,
       // TODO - Don't allow user-global plugins?
       //"-Dsbt.global.base=/tmp/.sbtboot",
       portArg)
@@ -53,7 +96,6 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
     // This is a hack specifically for running debug runs, so that the classpath is correct.
     // In production, we do this via the launcher...
     val jar = Seq("-jar", sbtLauncherJar)
-    //Seq("-classpath", cp(launchClasspath), "xsbt.boot.Boot")
     val sbtcommands = Seq(
       "apply -cp " + cp(commandClasspath) + " com.typesafe.sbtchild.SetupSbtChild",
       "listen")
@@ -62,8 +104,6 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
       sbtProps ++
       jar ++
       sbtcommands
-
-    System.out.println(result.mkString("Sbt Debug command:\n\t", "\n\t", ""))
 
     result
   }
