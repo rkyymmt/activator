@@ -10,6 +10,8 @@ import scala.util.parsing.json.Parser
 case class Params(contentType: String, value: String)
 
 // TODO - Does this belong here?
+// Maybe we can make a simpler API that is usable
+// from SBT plugins and doesn't require exposing a full JSON api.
 /** Helper class to make sending JSON objects simpler. */
 case class SimpleJsonMessage(json: JSONObject)
 object SimpleJsonMessage {

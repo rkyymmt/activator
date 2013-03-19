@@ -7,7 +7,7 @@ package com.typesafe.sbt.ui
  */
 object SbtUiPlugin extends sbt.Plugin {
 
-  val uiContext = sbt.SettingKey[Context]("sbt-ui-context", "The context used to communciate to a user interface running sbt.")
+  val uiContext = sbt.SettingKey[Context]("sbt-ui-context", "The context used to communicate to a user interface running sbt.")
 
   override val buildSettings: Seq[sbt.Setting[_]] = Seq(uiContext in sbt.Global <<= (uiContext in sbt.Global) ?? Context.noop)
 }
