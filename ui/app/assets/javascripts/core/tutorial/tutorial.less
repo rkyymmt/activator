@@ -125,13 +125,21 @@ aside.tutorial {
 			color: #E25758;
 		}
 		a.shortcut {
-			background: #E25758;
-			background: #E4EAEF;
-			color: #364550;
-			border-radius: 2px;
+            background: #E25758;
+            color: #FFFFFF;
+            letter-spacing: 0.12em;
+            border-radius: 2px;
 			padding: 0 4px;
 			margin: 0 3px;
 			white-space: nowrap;
+            &:before {
+                content: "\E75D";
+                font: 30px icons;
+                line-height: 0px;
+                display: inline-block;
+                padding-right: 5px;
+                height: 12px;
+            }
 		}
 		h1,h2 {
 			color: #364550;
