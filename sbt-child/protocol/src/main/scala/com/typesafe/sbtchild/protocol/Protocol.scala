@@ -124,6 +124,12 @@ sealed trait SpecificEvent extends Event with SpecificMessage {
   override def toGeneric: GenericEvent
 }
 
+case object CancelRequest extends Request {
+  override def sendEvents = false
+}
+
+case object CancelResponse extends Response
+
 object TaskNames {
   val name = "name"
   val discoveredMainClasses = "discovered-main-classes"
@@ -414,6 +420,10 @@ object Message {
       json match {
         case JSONObject(obj) =>
           obj("type") match {
+            case "CancelRequest" =>
+              CancelRequest
+            case "CancelResponse" =>
+              CancelResponse
             case "GenericRequest" =>
               GenericRequest(sendEvents = getSendEvents(obj), name = obj("name").asInstanceOf[String],
                 params = cleanJsonFromParams(obj.get("params").getOrElse(Map.empty)))

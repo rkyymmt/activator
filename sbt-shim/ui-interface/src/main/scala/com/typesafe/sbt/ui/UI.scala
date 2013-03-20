@@ -2,6 +2,7 @@ package com.typesafe.sbt.ui
 
 import scala.util.parsing.json.JSONObject
 import scala.util.parsing.json.Parser
+import sbt.State
 
 // API for gluing a UI to an sbt task, with generic invocation
 
@@ -23,7 +24,8 @@ object SimpleJsonMessage {
 }
 
 sealed trait Status
-case class Request(name: String, params: Params) extends Status
+// if you get this, you MUST call either handle or sendError, but not both.
+case class Request(name: String, handle: (State, (State, Context, Params) => (State, Params)) => State, sendError: String => Unit) extends Status
 // you get this if you block for a message and there's no UI to get them from
 case object NoUIPresent extends Status
 // cancellation was just requested for the current task
