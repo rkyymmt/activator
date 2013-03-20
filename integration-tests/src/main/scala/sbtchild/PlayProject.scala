@@ -51,8 +51,12 @@ class PlayProject extends IntegrationTest {
           throw new Exception("Failed to get project name: " + error)
       }
       println("Project is: " + name)
-      // TODO - Stop run after sending the command.
-      val run = Await.result(child ? protocol.RunRequest(sendEvents = false, mainClass = None), timeout.duration) match {
+      val runFuture = child ? protocol.RunRequest(sendEvents = false, mainClass = None)
+
+      // kill off the run
+      child ! protocol.CancelRequest
+
+      val run = Await.result(runFuture, timeout.duration) match {
         case protocol.RunResponse(success, "run") => {
           success
         }
