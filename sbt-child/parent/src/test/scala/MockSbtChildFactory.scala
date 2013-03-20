@@ -25,6 +25,8 @@ class MockSbtChildFactory extends SbtChildFactory {
             sender ! protocol.RunResponse(success = true, mainClass.map(_ => protocol.TaskNames.runMain).getOrElse(protocol.TaskNames.run))
           case protocol.TestRequest(_) =>
             sender ! protocol.TestResponse(outcome = protocol.TestPassed)
+          case protocol.CancelRequest =>
+            sender ! protocol.CancelResponse
           case req: protocol.GenericRequest =>
             sender ! protocol.ErrorResponse("GenericRequest not supported here yet")
         }
