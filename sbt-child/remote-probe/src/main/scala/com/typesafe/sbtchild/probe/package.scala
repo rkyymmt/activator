@@ -1,14 +1,18 @@
-package com.typesafe.sbt
+package com.typesafe.sbtchild
 
-import com.typesafe.sbtchild.DefaultsShim
 import sbt.State
+import com.typesafe.sbt.ui._
+import com.typesafe.sbtchild.probe.DefaultsShim
+import com.typesafe.sbtchild.probe.PlaySupport
 
-package object ui {
+package object probe {
 
   type RequestHandler = (State, Context, Params) => (State, Params)
 
-  def findHandler(name: String): Option[RequestHandler] = {
-    if (DefaultsShim.findHandler.isDefinedAt(name))
+  def findHandler(name: String, state: State): Option[RequestHandler] = {
+    if (PlaySupport.isPlayProject(state))
+      Some(PlaySupport.findHandler(name))
+    else if (DefaultsShim.findHandler.isDefinedAt(name))
       Some(DefaultsShim.findHandler.apply(name))
     else
       None

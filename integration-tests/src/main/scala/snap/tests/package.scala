@@ -42,6 +42,20 @@ package object tests {
     dir
   }
 
+  /** Creates a dummy project we can run Builder against. */
+  def makeDummyPlayProject(dir: java.io.File): java.io.File = {
+    makeDummySbtProject(dir)
+    val project = new java.io.File(dir, "project")
+    val playPlugin = new java.io.File(project, "play.sbt")
+    createFile(playPlugin, s"""addSbtPlugin("play" % "sbt-plugin" % "2.1.0")\n""")
+    val playBuild = new java.io.File(project, "build.scala")
+    createFile(playBuild, s"""|import sbt._
+                              |object MyBuild extends Build {
+                              |  val root = play.Project("default-play")
+                              |}""".stripMargin)
+    dir
+  }
+
   /** waits for a simple "GET" command */
   def waitForHttpServerStartup(uri: String): Boolean = {
     import java.net._

@@ -7,8 +7,31 @@ import com.typesafe.sbtchild._
 import java.util.concurrent.Executors
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import com.typesafe.sbtchild.protocol.SpecificMessage
+import com.typesafe.sbtchild.protocol.GenericMessage
 
 class ProtocolTest {
+
+  @Test
+  def testGenericSpecific(): Unit = {
+    val specifics = Seq(
+      protocol.RunResponse(success = true, task = protocol.TaskNames.run),
+      protocol.RunResponse(success = false, task = protocol.TaskNames.runMain))
+    for (s <- specifics) {
+      val roundtrippedOption = s.toGeneric.toSpecific
+      assertEquals(Some(s), roundtrippedOption)
+    }
+
+    // and through json
+    for (s <- specifics) {
+      val roundtrippedOption =
+        protocol.Message.JsonRepresentationOfMessage.fromJson(protocol.Message.JsonRepresentationOfMessage.toJson(s.toGeneric)) match {
+          case m: GenericMessage => m.toSpecific
+          case whatever => throw new AssertionError("got wrong json parse result: " + whatever)
+        }
+      assertEquals(Some(s), roundtrippedOption)
+    }
+  }
 
   private def testClientServer(clientBlock: (ipc.Client) => Unit,
     serverBlock: (ipc.Server) => Unit) = {
