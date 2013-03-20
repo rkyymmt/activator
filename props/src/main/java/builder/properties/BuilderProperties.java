@@ -111,4 +111,12 @@ public class BuilderProperties {
     }
     return value;
   }
+  
+  public static java.io.File BUILDER_LOCK_FILE() {
+    return new java.io.File(BUILDER_USER_HOME() + "/.lock");
+  }
+  
+  public static java.io.File BUILDER_PID_FILE() {
+    return new java.io.File(BUILDER_USER_HOME() + "/.currentpid");
+  }
 }
