@@ -33,7 +33,6 @@ object PidDetector {
   private def writeCurrentPid(lock: GlobalLock): Unit = {
     for (pid <- java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split('@').headOption) {
       lock onBuilder {
-        System.out.println("Updating pid file to: " + pid)
         snap.cache.IO.write(BUILDER_PID_FILE, pid, append = false)
       }
     }
