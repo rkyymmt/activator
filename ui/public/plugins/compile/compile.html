@@ -3,7 +3,7 @@
 		<nav>
 			<button class="start" data-bind="disable: haveActiveTask, click: startButtonClicked">Start</button>
 			<button class="stop" data-bind="enable: haveActiveTask, click: stopButtonClicked">Stop</button>
-			<input type="checkbox" data-bind="checked: recompileOnChange">Recompile on change</input>
+			<input type="checkbox" data-bind="checked: recompileOnChange" id="recompileOnChange" class="styled" /><label for="recompileOnChange"><span></span>Recompile on change</label>
 		</nav>
 		<h1>Compile</h1>
 		<p class="subheader"></p>
