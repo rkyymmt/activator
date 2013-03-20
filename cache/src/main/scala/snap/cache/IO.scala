@@ -191,6 +191,27 @@ object IO {
   val utf8 = Charset.forName("UTF-8")
   def defaultCharset = utf8
 
+  def slurp(file: File, charset: Charset = defaultCharset): String =
+    reader(file, charset) { in =>
+      val buf = new StringBuffer
+      def read(): Unit = in.readLine match {
+        case null => ()
+        case line =>
+          buf.append(line).append("\n")
+          read()
+      }
+      read()
+      buf.toString
+    }
+
+  def reader[T](file: File, charset: Charset)(f: BufferedReader => T): T = {
+    val in = new java.io.FileInputStream(file)
+    val reader = new java.io.InputStreamReader(in)
+    val buf = new java.io.BufferedReader(reader)
+    try f(buf)
+    finally buf.close()
+  }
+
   def write(file: File, content: String, charset: Charset = defaultCharset, append: Boolean = false): Unit =
     writer(file, content, charset, append) { _.write(content) }
 
