@@ -57,6 +57,13 @@ Generates a distribution in the `dist/target/stage` directory.
 
 ## Building the Distribution
 
+First, make sure to start SBT with a *release version* specified.  By default, builder will created a dated version.  Here's
+an example command line:
+
+    sbt -Dbuilder.version=1.0.1
+
+Now, simply run one of the command to create a distribution.
+
     sbt> builder-dist/dist
 
 or just

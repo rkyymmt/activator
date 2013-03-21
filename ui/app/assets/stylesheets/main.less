@@ -120,7 +120,8 @@ body > aside {
 	.label:before {
 		content: "";
 		color: #fff;
-		font: 40px icons;
+		font: 20px icons;
+        line-height: 40px;
 		display: inline-block;
 		width: 50px;
 		text-align: center;
@@ -183,6 +184,14 @@ body.right-open {
 	#wrapper {
 		right: 300px;
 	}
+    &.right-collapsed {
+        > aside {
+            width: 50px;
+        }
+        #wrapper {
+            right: 50px;
+        }
+    }
 }
 @media all and (max-width: 1500px) {
 	body.right-open {
@@ -215,7 +224,33 @@ a[href="#todo"], [todo] {
 	}
 }
 
-
+/* Styled checkbox */
+input[type="checkbox"].styled {
+    display:none;
+}
+input[type="checkbox"].styled + label span {
+    vertical-align: text-bottom;
+    margin-right: 5px;
+    border: 2px solid rgba(255, 255, 255, .5);
+    border-radius: 2px;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+input[type="checkbox"].styled:checked + label span:before {
+    content: "\2713";
+    color: #ffffff;
+    font: 18px icons;
+    line-height: 16px;
+    display: inline;
+}
+input[type="checkbox"].styled.dark + label span {
+    border-color: rgba(0, 0, 0, .25);
+}
+input[type="checkbox"].styled.dark:checked + label span:before {
+    color: #000000;
+}
 
 /* Let's get this party started */
 ::-webkit-scrollbar {

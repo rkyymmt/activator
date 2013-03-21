@@ -31,6 +31,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 
 			this.logModel = new log.Log();
 			this.outputModel = new log.Log();
+			this.status = ko.observable('Application is stopped.')
 		},
 		update: function(parameters){
 		},
@@ -84,9 +85,12 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 
 			if (triggeredByBuild) {
 				self.logModel.info("Build succeeded, running...");
+				self.status('Build succeeded, running...');
 			} else if (self.restartPending()) {
+				self.status('Restarting...');
 				self.logModel.info("Restarting...");
 			} else {
+				self.status('Running...');
 				self.logModel.info("Running...");
 			}
 
@@ -114,6 +118,11 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 						// we move "output" to "logs" because the output is probably
 						// just sbt startup messages that were not redirected.
 						self.logModel.moveFrom(self.outputModel);
+					} else if(event.id == 'playServerStarted') {
+						var port = event.params.port;
+						var url = 'http://localhost:' + port;
+						var link = '<a href="'+url+'" target="_blank">' + url + '</a>';
+						self.status(link + ' - Play application started.');
 					} else {
 						self.logModel.warn("unknown event: " + JSON.stringify(event))
 					}
@@ -122,6 +131,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 					console.log("run result: ", data);
 					if (data.type == 'GenericResponse') {
 						self.logModel.info('Run complete.');
+						self.status('Run complete');
 					} else {
 						self.logModel.error('Unexpected reply: ' + JSON.stringify(data));
 					}
@@ -129,6 +139,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 				},
 				failure: function(status, message) {
 					console.log("run failed: ", status, message)
+					self.status('Run failed');
 					self.logModel.error("Failed: " + status + ": " + message);
 					self.doAfterRun();
 				}
@@ -145,6 +156,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 					},
 					failure: function(status, message) {
 						console.log("kill failed: ", status, message)
+						self.status('Unable to stop');
 						self.logModel.error("HTTP request to kill task failed: " + message)
 					}
 				});

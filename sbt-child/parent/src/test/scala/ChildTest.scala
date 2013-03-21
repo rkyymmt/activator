@@ -101,7 +101,7 @@ class ChildTest {
             Some("this is not true"), TestFailed, Some("this is not true")),
           TestEvent("OnePassOneFailTest.testThatShouldPass", None, TestPassed, None),
           TestEvent("OnePassTest.testThatShouldPass", None, TestPassed, None),
-          ErrorResponse("exception during sbt task: Incomplete: null")) =>
+          ErrorResponse("exception during sbt task: test: Incomplete: null")) =>
         // yay!
         case whatever => throw new AssertionError("got wrong results: " + whatever)
       }
@@ -214,7 +214,7 @@ class ChildTest {
 
       try {
         Await.result(child ? RunRequest(sendEvents = false, mainClass = None), timeout.duration) match {
-          case ErrorResponse(message) if message.contains("during sbt task: Incomplete") =>
+          case ErrorResponse(message) if message.contains("during sbt task: run: Incomplete") =>
           case whatever => throw new AssertionError("unexpected result sending RunRequest to app with no main method: " + whatever)
         }
       } finally {
