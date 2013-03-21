@@ -97,7 +97,6 @@ ko.bindingHandlers.ace = {
 		}
 	};
 
-
 		// Here we add the ability to tail
 		ko.bindingHandlers.autoScroll = {
 			init: function(element, valueAccessor) {

@@ -1,5 +1,5 @@
 <ul class="logsList" data-bind="foreach: logs">
-  <li data-bind="css: level, text: message, autoScroll: true"></li>
+  <li data-bind="css: level, text: message, autoScroll: $parent.tail"></li>
 </ul>
 <!-- 
 <div class="log" data-bind="foreach: logs">
