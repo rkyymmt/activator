@@ -40,7 +40,12 @@ define(['text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widge
 			self.currentHighlight = ko.computed(function() {
 				return $.grep(self.currentFiles(), fileIsHighlighted)[0];
 			});
-			self.selectedFile = ko.observable();
+			self.hasCurrentHighlight = ko.computed(function() {
+				if(self.currentHighlight()) {
+					return true;
+				}
+				return false;
+			});
 			self.currentViewFiles = ko.computed(function() {
 				var showFiles = self.showFiles();
 				return $.grep(self.currentFiles(), function(file){
@@ -72,8 +77,9 @@ define(['text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widge
 		},
 		select: function() {
 			var currentFile = this.currentHighlight();
-			// TODO - Issue error if nothing selected.
-			this.onSelect(currentFile);
+			if(currentFile) {
+				this.onSelect(currentFile);
+			}
 		},
 		cancel: function() {
 			this.onCancel();
