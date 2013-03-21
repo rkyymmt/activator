@@ -97,6 +97,26 @@ ko.bindingHandlers.ace = {
 		}
 	};
 
+		// Here we add the ability to tail
+		ko.bindingHandlers.autoScroll = {
+			init: function(element, valueAccessor) {
+				var va = valueAccessor();
+				if(ko.utils.unwrapObservable(va)) {
+					if(element.scrollIntoView) {
+						element.scrollIntoView(true);
+					}
+				}
+			},
+			update: function(element, valueAccessor) {
+				var va = valueAccessor();
+				if(ko.utils.unwrapObservable(va)) {
+					if(element.scrollIntoView) {
+						element.scrollIntoView(true);
+					}
+				}
+			}
+		}
+
 	// Verifies that a new plugin configuration is acceptable for our application, or
 	// issues debugging log statements on what the issue is.
 	function Plugin(config) {
