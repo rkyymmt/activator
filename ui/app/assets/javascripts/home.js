@@ -32,9 +32,24 @@ require([
 	'vendors/chain',
 	'vendors/keymage.min'
 ],function(){
-	require([],function() {
+	require(['core/widgets/fileselection'], function(FileSelection) {
 		// Register handlers on the UI.
 		$(function() {
+			function toggleDirectoryBrowser() {
+				$('#newAppForm, #newAppLocationBrowser').toggle();
+			};
+			var fs = new FileSelection({
+				initialDir: '/home/jsuereth',
+				onSelect: function(file) {
+					$('#newappLocation').val(file.location);
+					toggleDirectoryBrowser();
+				},
+				onCancel: function() {
+					toggleDirectoryBrowser();
+				}
+			});
+			window.fileSelection = fs;
+			fs.renderTo('#newAppLocationBrowser');
 			// Register fancy radio button controlls.
 			$('#new').on('click', 'li', function(event) {
 				// ???
@@ -42,9 +57,9 @@ require([
 				var name = $('h3', this).text();
 				$('#newAppTemplateName').val(name);
 			})
-			.on('click', '#browseAppLocation, #browseCancel', function(event) {
+			.on('click', '#browseAppLocation', function(event) {
 				event.preventDefault();
-				$('#newAppForm, #newAppLocationBrowser').toggle();
+				toggleDirectoryBrowser();
 			});
 			// TODO - Register file selection widget...
 			// Register fancy click and open app buttons
