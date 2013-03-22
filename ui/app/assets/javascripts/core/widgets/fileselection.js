@@ -16,6 +16,7 @@ define(['text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widge
 		var self = this;
 		self.name = config.name;
 		self.location = config.location;
+		self.humanLocation = config.humanLocation;
 		self.isDirectory = config.isDirectory;
 		self.isFile = !config.isDirectory;
 		self.highlighted = ko.observable(false);
@@ -80,20 +81,16 @@ define(['text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widge
 				var fileConfigs = [{
 						name: '.',
 						isDirectory: values.isDirectory,
-						location: dir
+						location: values.location,
+						humanLocation: values.humanLocation
 				}];
 				// TODO - see if we need to add "back" directory.
-				var splits = dir.split('/');
-				if(splits.length > 1) {
-					var prevLocation = splits.slice(0, splits.length-1).join('/');
-					// TODO - Windows friendly...
-					if(prevLocation == '') {
-						prevLocation = '/'
-					}
+				if(values.parent && values.parent.isDirectory) {
 					fileConfigs.push({
 						name: '..',
 						isDirectory: true,
-						location: prevLocation
+						location: values.parent.location,
+						humanLocation: values.parent.humanLocation
 					})
 				}
 				fileConfigs.push.apply(fileConfigs, values.children || []);

@@ -80,6 +80,7 @@ object Local extends Controller {
       JsObject(
         List("name" -> JsString(o.getName),
           "location" -> JsString(Platform.getClientFriendlyFilename(o)),
+          "humanLocation" -> JsString(o.getAbsolutePath),
           "isDirectory" -> JsBoolean(o.isDirectory)) ++
           (if (o.isDirectory) Nil
           else List(
@@ -94,8 +95,12 @@ object Local extends Controller {
     def writes(o: InterestingFile): JsValue =
       if (o.file.isDirectory) JsObject(List(
         "name" -> JsString(o.file.getName),
+        "location" -> JsString(Platform.getClientFriendlyFilename(o.file)),
+        "humanLocation" -> JsString(o.file.getAbsolutePath),
         "isDirectory" -> JsBoolean(true),
         "type" -> JsString("directory"),
+        // TODO - Only if parent file exists!
+        "parent" -> Json.toJson(o.file.getParentFile),
         // TODO - Gitignore/file filters here.
         "children" -> Json.toJson(o.file.listFiles().filterNot(_.getName startsWith "."))))
       else FileProtocol.writes(o.file)

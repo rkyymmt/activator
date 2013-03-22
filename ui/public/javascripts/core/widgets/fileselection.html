@@ -2,7 +2,7 @@
 <ul data-bind="foreach: currentViewFiles" class="directories">
 	<li data-bind="css: {folder: isDirectory, file: isFile, highlight: highlighted }, click: function() { $parent.click($data); }">
 		<h3 data-bind="text:name"></h3>
-		<p class="path" data-bind="text: location"/>
+		<p class="path" data-bind="text: humanLocation"/>
 	</li>
 </ul>
 <div class="select">
