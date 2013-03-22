@@ -22,6 +22,7 @@ POST    /api/sbt/watchSources       controllers.api.Sbt.watchSources
 # Local system operations
 GET     /api/local/env              controllers.api.Local.getEnv
 GET     /api/local/browse           controllers.api.Local.browse(location)
+GET     /api/local/browseRoots      controllers.api.Local.browseRoots
 GET     /api/local/show             controllers.api.Local.show(location)
 PUT     /api/local/save             controllers.api.Local.save
 

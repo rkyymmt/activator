@@ -11,10 +11,18 @@ define(['text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widge
 		});
 	};
 
+	function browseRoots() {
+		return $.ajax({
+				url: '/api/local/browseRoots',
+				type: 'GET',
+				dataType: 'json'
+		});
+	};
+
 	// File model...
 	function File(config) {
 		var self = this;
-		self.name = config.name;
+		self.name = config.name || config.humanLocation;
 		self.location = config.location;
 		self.humanLocation = config.humanLocation;
 		self.isDirectory = config.isDirectory;
@@ -59,11 +67,18 @@ define(['text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widge
 			});
 			if(cfg.initialDir) {
 				this.load(cfg.initialDir);
+			} else {
+				this.loadRoots();
 			}
 		},
 		click: function(file) {
 			if(file == this.currentHighlight()) {
-				this.load(file.location);
+				if(file.location) {
+					this.load(file.location);
+				} else {
+					// TODO - Only on windows.
+					this.loadRoots();
+				}
 			} else {
 				this.highlight(file);
 			}
@@ -73,6 +88,16 @@ define(['text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widge
 				item.highlighted(false);
 			});
 			file.highlighted(true);
+		},
+		loadRoots: function(dir) {
+			var self = this;
+			browseRoots().done(function(values) {
+					self.currentFiles($.map(values, function(config) {
+							return new File(config);
+					}));
+			}).error(function() {
+				alert('Failed to load file system roots.');
+			});
 		},
 		load: function(dir) {
 			var self = this;
@@ -92,6 +117,14 @@ define(['text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widge
 						location: values.parent.location,
 						humanLocation: values.parent.humanLocation
 					})
+				} else if(values.isRoot) {
+					// TODO - Only on windows
+					// Add root marker...
+					fileConfigs.push({
+							name: '..',
+							isDirectory: true,
+							humanLocation: 'Show All Drives'
+					});
 				}
 				fileConfigs.push.apply(fileConfigs, values.children || []);
 				self.currentFiles($.map(fileConfigs, function(config) {
