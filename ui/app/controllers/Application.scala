@@ -66,18 +66,6 @@ object Application extends Controller {
       "location" -> text,
       "template" -> text)(NewAppForm.apply)(NewAppForm.unapply))
 
-  def loadFromLocation(location: String) = Action { implicit request =>
-    Async {
-      val loc = Platform.fromClientFriendlyFilename(location)
-      AppManager.loadAppIdFromLocation(loc) map {
-        case snap.ProcessSuccess(id) => Ok(id)
-        case snap.ProcessFailure(errors) =>
-          // TODO - Flash errors
-          BadRequest(views.html.home(homeModel, newAppForm))
-      }
-    }
-  }
-
   /**
    * Creates a new application and loads it, or redirects to
    * the home page.

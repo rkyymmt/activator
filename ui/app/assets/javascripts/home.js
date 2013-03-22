@@ -66,12 +66,12 @@ require([
 					$.ajax({
 						url: '/loadLocation',
 						type: 'GET',
-						dataType: 'text',
+						dataType: 'json',
 						data: {
 							location: file
 						}
-					}).done(function(id) {
-						window.location.href = window.location.href.replace('home', 'app/'+id);
+					}).done(function(data) {
+						window.location.href = window.location.href.replace('home', 'app/'+data.id);
 					}).error(function(failure) {
 						// TODO - Ungrey the app.
 						alert('Failed to load project at location: ' + file)
