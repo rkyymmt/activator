@@ -42,6 +42,7 @@ define(['css!./fileselection.css', 'text!./fileselection.html', 'vendors/knockou
 			var cfg = config || {};
 			var self = this;
 			// TODO - Allow context...
+			self.selectText = config.selectText || 'Select this File/Directory';
 			self.onSelect = config.onSelect || noop;
 			self.onCancel = config.onCancel || noop;
 			self.showFiles = ko.observable(cfg.showFiles || false);

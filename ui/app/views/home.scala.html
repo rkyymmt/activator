@@ -48,15 +48,19 @@
 		</section>
 
 		<section id="open">
-			<h2>Open existing app...</h2>
-			<ul>
-				@model.recentApps.map { app =>
-					<li>
-						<h3><a href="@routes.Application.app(app.id)">@app.cachedName.getOrElse(app.id)</a></h3>
-						<p class="path"><span>@app.location</span></p>
-					</li>
-				}
-			</ul>
+            <div id="openAppForm" class="subsection">
+			    <h2>Open existing app...</h2>
+                <ul>
+				    @model.recentApps.map { app =>
+					    <li class="recentApp">
+						    <h3><a href="@routes.Application.app(app.id)">@app.cachedName.getOrElse(app.id)</a></h3>
+						    <p class="path"><span>@app.location</span></p>
+					    </li>
+				    }
+			     </ul>
+                 <input type="submit" class="button" value="Find Existing" id="openButton">
+            </div>
+            <div id="openAppLocationBrowser" class="subsection hidden"></div>
 		</section>
 	</body>
 </html>
