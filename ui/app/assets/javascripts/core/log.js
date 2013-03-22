@@ -37,6 +37,7 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 		template: template,
 		init: function(parameters) {
 			this.logs = ko.observableArray();
+			this.tail = ko.observable(true);
 		},
 		log: function(level, message) {
 			this.logs.push({ level: level, message: message });
