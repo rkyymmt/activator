@@ -39,7 +39,7 @@ require([
 				$('#newAppForm, #newAppLocationBrowser').toggle();
 			};
 			var fs = new FileSelection({
-				initialDir: '/home/jsuereth',
+				initialDir: $('#newappLocation').attr('placeholder'),
 				onSelect: function(file) {
 					$('#newappLocation').val(file);
 					toggleDirectoryBrowser();
