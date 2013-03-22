@@ -9,8 +9,7 @@
 					<input type="checkbox" id="reloadOnChange" class="styled dark"><label for="reloadOnChange" todo><span></span>Reload on change</label>
 				</dd>
 			</dl>
-			<button class="start" data-bind="disable: haveActiveTask, click: startButtonClicked">Start</button>
-			<button class="stop" data-bind="enable: haveActiveTask, click: stopButtonClicked">Stop</button>
+			<button class="start" data-bind="text: startStopLabel, click: startStopButtonClicked"></button>
 			<button class="restart" data-bind="enable: haveActiveTask() && !restartPending(), click: restartButtonClicked">Restart</button>
 		</nav>
 		<h1>Run</h1>

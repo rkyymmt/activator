@@ -1,8 +1,7 @@
 <article class="compile">
 	<header>
 		<nav>
-			<button class="start" data-bind="disable: haveActiveTask, click: startButtonClicked">Start</button>
-			<button class="stop" data-bind="enable: haveActiveTask, click: stopButtonClicked">Stop</button>
+			<button class="start" data-bind="text: startStopLabel, click: startStopButtonClicked"></button>
 			<input type="checkbox" data-bind="checked: recompileOnChange" id="recompileOnChange" class="styled" /><label for="recompileOnChange"><span></span>Recompile on change</label>
 			<input type="checkbox" data-bind="checked: logModel.tail" id="tailLogs" class="styled" /><label for="tailLogs"><span></span>Tail Logs</label>
 		</nav>
