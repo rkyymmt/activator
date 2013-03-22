@@ -1,11 +1,12 @@
 <h2>Select location for new application</h2>
 <ul data-bind="foreach: currentViewFiles" class="directories">
-	<li data-bind="css: {folder: isDirectory, file: isFile, highlight: highlighted }, click: function() { $parent.highlight($data); }">
+	<li data-bind="css: {folder: isDirectory, file: isFile, highlight: highlighted }, click: function() { $parent.click($data); }">
 		<h3 data-bind="text:name"></h3>
 		<p class="path" data-bind="text: location"/>
 	</li>
 </ul>
 <div class="select">
-<input type="submit" class="button" value="Select this folder" id="browseSelect" data-bind="click: select, enable: hasCurrentHighlight"></input>
+<input type="submit" class="button" value="Select this folder" id="browseSelect" data-bind="click: select"></input>
 <input type="submit" class="button" value="Cancel" id="browseCancel" data-bind="click: cancel"></input>
+<p data-bind="text: shownDirectory"></p>
 </div>

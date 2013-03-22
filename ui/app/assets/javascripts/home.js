@@ -41,14 +41,13 @@ require([
 			var fs = new FileSelection({
 				initialDir: '/home/jsuereth',
 				onSelect: function(file) {
-					$('#newappLocation').val(file.location);
+					$('#newappLocation').val(file);
 					toggleDirectoryBrowser();
 				},
 				onCancel: function() {
 					toggleDirectoryBrowser();
 				}
 			});
-			window.fileSelection = fs;
 			fs.renderTo('#newAppLocationBrowser');
 			// Register fancy radio button controlls.
 			$('#new').on('click', 'li', function(event) {

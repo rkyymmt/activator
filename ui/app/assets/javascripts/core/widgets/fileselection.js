@@ -36,6 +36,7 @@ define(['text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widge
 			self.onSelect = config.onSelect || noop;
 			self.onCancel = config.onCancel || noop;
 			self.showFiles = ko.observable(cfg.showFiles || false);
+			self.shownDirectory = ko.observable(cfg.initialDir || '');
 			self.currentFiles = ko.observableArray([]);
 			self.currentHighlight = ko.computed(function() {
 				return $.grep(self.currentFiles(), fileIsHighlighted)[0];
@@ -59,6 +60,13 @@ define(['text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widge
 				this.load(cfg.initialDir);
 			}
 		},
+		click: function(file) {
+			if(file == this.currentHighlight()) {
+				this.load(file.location);
+			} else {
+				this.highlight(file);
+			}
+		},
 		highlight: function(file) {
 			$.each($.grep(this.currentFiles(), fileIsHighlighted), function(idx, item) {
 				item.highlighted(false);
@@ -68,7 +76,28 @@ define(['text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widge
 		load: function(dir) {
 			var self = this;
 			browse(dir).done(function(values) {
-				self.currentFiles($.map(values.children || [], function(config) {
+				self.shownDirectory(dir);
+				var fileConfigs = [{
+						name: '.',
+						isDirectory: values.isDirectory,
+						location: dir
+				}];
+				// TODO - see if we need to add "back" directory.
+				var splits = dir.split('/');
+				if(splits.length > 1) {
+					var prevLocation = splits.slice(0, splits.length-1).join('/');
+					// TODO - Windows friendly...
+					if(prevLocation == '') {
+						prevLocation = '/'
+					}
+					fileConfigs.push({
+						name: '..',
+						isDirectory: true,
+						location: prevLocation
+					})
+				}
+				fileConfigs.push.apply(fileConfigs, values.children || []);
+				self.currentFiles($.map(fileConfigs, function(config) {
 					return new File(config);
 				}));
 			}).error(function() {
@@ -78,7 +107,9 @@ define(['text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widge
 		select: function() {
 			var currentFile = this.currentHighlight();
 			if(currentFile) {
-				this.onSelect(currentFile);
+				this.onSelect(currentFile.location);
+			} else {
+				this.onSelect(this.shownDirectory());
 			}
 		},
 		cancel: function() {
