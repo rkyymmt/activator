@@ -50,7 +50,7 @@ require([
 			});
 			fs.renderTo('#newAppLocationBrowser');
 			// Register fancy radio button controlls.
-			$('#new').on('click', 'li', function(event) {
+			$('#new').on('click', 'li.template', function(event) {
 				// ???
 				$('input:radio', this).prop('checked',true);
 				var name = $('h3', this).text();

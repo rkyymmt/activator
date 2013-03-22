@@ -34,7 +34,7 @@
                     </fieldset>
                     <ul>
                     @model.templates.map { template =>
-                        <li>
+                        <li class="template">
                             <input type="radio" name="template" value="@template.id">
                             <h3>@template.name</h3>
                             <p>@template.description</p>
