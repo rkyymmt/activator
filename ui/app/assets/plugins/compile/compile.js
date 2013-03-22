@@ -14,6 +14,12 @@ define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'
 			this.haveActiveTask = ko.computed(function() {
 				return self.activeTask() != "";
 			}, this);
+			this.startStopLabel = ko.computed(function() {
+				if (self.haveActiveTask())
+					return "Stop";
+				else
+					return "Start";
+			}, this);
 			this.needCompile = ko.observable(false);
 			this.recompileOnChange = ko.observable(true);
 
@@ -115,7 +121,8 @@ define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'
 			});
 			self.activeTask(taskId);
 		},
-		stopButtonClicked: function(self) {
+		startStopButtonClicked: function(self) {
+			console.log("Start/stop compile was clicked");
 			if (self.haveActiveTask()) {
 				sbt.killTask({
 					taskId: self.activeTask(),
@@ -127,11 +134,9 @@ define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'
 						self.logModel.error("Killing task failed: " + status + ": " + message)
 					}
 				});
+			} else {
+				self.doCompile();
 			}
-		},
-		startButtonClicked: function(self) {
-			console.log("Start compile was clicked");
-			self.doCompile();
 		}
 	});
 

@@ -1,13 +1,17 @@
 <article class="test">
 	<header>
 		<nav>
-			<button class="start" data-bind="disable: haveActiveTask, click: startButtonClicked">Start</button>
-			<button class="stop" data-bind="enable: haveActiveTask, click: stopButtonClicked">Stop</button>
+            <dl class="dropdown">
+                <dt>options</dt>
+                <dd>
+                    <input type="checkbox" data-bind="checked: rerunOnBuild" id="retestOnSuccessfulBuild" class="styled dark" /><label for="retestOnSuccessfulBuild"><span></span>Re-test on successful build</label>
+                    <input type="checkbox" data-bind="checked: logModel.tail" id="tailLogs" class="styled dark" /><label for="tailLogs"><span></span>Tail Logs</label>
+                </dd>
+            </dl>
+			<button class="start" data-bind="text: startStopLabel, click: startStopButtonClicked"></button>
 			<button class="restart" data-bind="enable: haveActiveTask() && !restartPending(), click: restartButtonClicked">Restart</button>
-			<input type="checkbox" data-bind="checked: rerunOnBuild" id="retestOnSuccessfulBuild" class="styled" /><label for="retestOnSuccessfulBuild"><span></span>Re-test on successful build</label>
-			<input type="checkbox" data-bind="checked: logModel.tail" id="tailLogs" class="styled" /><label for="tailLogs"><span></span>Tail Logs</label>
 		</nav>
-		<h1>Tests!</h1>
+		<h1>Test</h1>
 		<p class="subheader">
 			<strong data-bind="text: resultStats().passed"></strong> Passed, <strong data-bind="text: resultStats().failed"></strong> Failed
 		</p>

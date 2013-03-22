@@ -1,16 +1,16 @@
 <article class="run">
 	<header>
 		<nav>
-			<dl class="dropdown" todo>
+			<dl class="dropdown">
 				<dt>options</dt>
 				<dd>
-					<p>Run options...</p>
-					<a href="#todo">MainClass</a>
-					<input type="checkbox" id="reloadOnChange" class="styled dark"><label for="reloadOnChange" todo><span></span>Reload on change</label>
+					<input type="checkbox" id="reloadOnChange" class="styled dark" data-bind="checked: rerunOnBuild"><label for="reloadOnChange"><span></span>Re-run on successful build</label>
+					<input type="checkbox" data-bind="checked: logModel.tail" id="tailLogs" class="styled dark" /><label for="tailLogs"><span></span>Tail Logs</label>
 				</dd>
 			</dl>
-			<button class="start" data-bind="disable: haveActiveTask, click: startButtonClicked">Start</button>
-			<button class="stop" data-bind="enable: haveActiveTask, click: stopButtonClicked">Stop</button>
+			<button class="start" data-bind="text: startStopLabel, click: startStopButtonClicked"></button>
+			<span data-bind="visible: !haveMainClass()">(no main class)</span>
+			<span data-bind="visible: haveMainClass">Main class: <select data-bind="options: mainClasses, value: currentMainClass"></select></span>
 			<button class="restart" data-bind="enable: haveActiveTask() && !restartPending(), click: restartButtonClicked">Restart</button>
 		</nav>
 		<h1>Run</h1>

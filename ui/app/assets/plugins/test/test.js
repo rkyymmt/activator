@@ -83,6 +83,12 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 			this.haveActiveTask = ko.computed(function() {
 				return self.activeTask() != "";
 			}, this);
+			this.startStopLabel = ko.computed(function() {
+				if (self.haveActiveTask())
+					return "Stop";
+				else
+					return "Start";
+			}, this);
 			this.rerunOnBuild = ko.observable(false);
 			this.restartPending = ko.observable(false);
 
@@ -195,19 +201,19 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 				});
 			}
 		},
-		startButtonClicked: function(self) {
-			console.log("Start was clicked");
-			self.doTest(false); // false=!triggeredByBuild
+		startStopButtonClicked: function(self) {
+			console.log("Start/Stop was clicked");
+			if (self.haveActiveTask()) {
+				self.restartPending(false);
+				self.doStop();
+			} else {
+				self.doTest(false); // false=!triggeredByBuild
+			}
 		},
 		restartButtonClicked: function(self) {
 			console.log("Restart was clicked");
 			self.doStop();
 			self.restartPending(true);
-		},
-		stopButtonClicked: function(self) {
-			console.log("Stop was clicked");
-			self.restartPending(false);
-			self.doStop();
 		}
 	});
 

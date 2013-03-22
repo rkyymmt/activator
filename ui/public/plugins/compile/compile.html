@@ -1,10 +1,14 @@
 <article class="compile">
 	<header>
 		<nav>
-			<button class="start" data-bind="disable: haveActiveTask, click: startButtonClicked">Start</button>
-			<button class="stop" data-bind="enable: haveActiveTask, click: stopButtonClicked">Stop</button>
-			<input type="checkbox" data-bind="checked: recompileOnChange" id="recompileOnChange" class="styled" /><label for="recompileOnChange"><span></span>Recompile on change</label>
-			<input type="checkbox" data-bind="checked: logModel.tail" id="tailLogs" class="styled" /><label for="tailLogs"><span></span>Tail Logs</label>
+            <dl class="dropdown">
+                <dt>options</dt>
+                <dd>
+                    <input type="checkbox" data-bind="checked: recompileOnChange" id="recompileOnChange" class="styled dark" /><label for="recompileOnChange"><span></span>Recompile on file changes</label>
+                    <input type="checkbox" data-bind="checked: logModel.tail" id="tailLogs" class="styled dark" /><label for="tailLogs"><span></span>Tail Logs</label>
+                </dd>
+            </dl>
+			<button class="start" data-bind="text: startStopLabel, click: startStopButtonClicked"></button>
 		</nav>
 		<h1>Compile</h1>
 		<p class="subheader"></p>
