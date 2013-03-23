@@ -1,4 +1,4 @@
-define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], function(template, api, log){
+define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], function(template, api, log, css){
 
 	var ko = api.ko;
 	var sbt = api.sbt;
@@ -37,6 +37,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 
 			this.logModel = new log.Log();
 			this.outputModel = new log.Log();
+			this.outputModel.tail(true); // always tail output for now; there's a checkbox for the logs
 			this.status = ko.observable('Application is stopped.')
 		},
 		update: function(parameters){

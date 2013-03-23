@@ -17,12 +17,14 @@
 		<p class="subheader" data-bind="html: status"></p>
 	</header>
 	<section class="wrapper">
-		<div data-bind="template: { name: outputModel.view, data: outputModel }" 
-		     id="output" class="runapp"'>
+	    <div class="output">
+		    <div data-bind="template: { name: outputModel.view, data: outputModel }"
+		     class="runapp"'>
+		    </div>
 		</div>
-		<!-- 
-		<div id="logs" class="runapp" data-bind="template: { name: logModel.view, data: logModel }">
+		<div class="logs">
+		    <div class="runapp" data-bind="template: { name: logModel.view, data: logModel }">
+		    </div>
 		</div>
-		 -->
 	</section>
 </article>
