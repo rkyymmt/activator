@@ -9,7 +9,7 @@ object ApplicationBuild extends Build {
 
   val appDependencies = Seq(
     // Select Play modules
-    //jdbc,      // The JDBC connection pool and the play.api.db API.
+    //jdbc,      // The JDBC connection pool and the play.api.db API
     //anorm,     // Scala RDBMS Library
     //javaJdbc,  // Java database API
     //javaEbean, // Java Ebean plugin

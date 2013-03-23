@@ -232,7 +232,9 @@ object TheBuilderBuild extends Build {
             "com.google.guava" % "guava" % "11.0.2",
             "xml-apis" % "xml-apis" % "1.0.b2",
             // USED BY templates. TODO - autofind these
-            "org.scalatest" % "scalatest_2.10" % "1.9.1"
+            "org.scalatest" % "scalatest_2.10" % "1.9.1",
+            "org.webjars" % "webjars-play" % "2.1.0",
+            "org.webjars" % "bootstrap" % "2.3.1"
         ),
       localRepoArtifacts ++= {
         val sbt = sbtPluginVersion
