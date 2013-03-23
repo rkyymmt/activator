@@ -70,10 +70,10 @@ class DemoTemplateCache() extends TemplateCache {
         tags = Seq("scala", "starter")),
       TemplateMetadata(
         id = "c63e1fe7748dcebdc0fc0243685e5ae6d1ec4072",
-        name = "Hello Play Framework (Java)",
+        name = "Play Framework Intro",
         version = "1.0",
-        description = """Play Framework is the High Velocity Web Framework for Java and Scala.  Play is based on a lightweight, stateless, web-friendly architecture.  Built on Akka, Play provides predictable and minimal resource comsumption (CPU, memory, threads) for highly-scalable applications.  This app uses Play Framework 2.1 and Java.""",
-        tags = Seq("play", "java", "starter")))
+        description = """Play Framework is the High Velocity Web Framework for Java and Scala.  Play is based on a lightweight, stateless, web-friendly architecture.  Built on Akka, Play provides predictable and minimal resource comsumption (CPU, memory, threads) for highly-scalable applications.  This app will teach you how to start building Play 2.1 apps with Java and Scala.""",
+        tags = Seq("play", "java", "scala", "starter")))
 
   private val index: Map[String, TemplateMetadata] = (metadata map (m => m.id -> m)).toMap
   override def template(id: String): Option[Template] =
