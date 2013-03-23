@@ -43,9 +43,6 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 			self.isFile = ko.computed(function() {
 				return !self.file().isDirectory();
 			});
-			self.footer = ko.computed(function() {
-				return self.file().location;
-			});
 			self.readableFileSize = ko.computed(function() {
 				var size = self.file().size();
 				if(size < 1024) {
