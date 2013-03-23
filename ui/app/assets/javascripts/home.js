@@ -32,18 +32,37 @@ require([
 	'vendors/chain',
 	'vendors/keymage.min'
 ],function(){
-	require([],function() {
+	require(['core/widgets/fileselection'], function(FileSelection) {
 		// Register handlers on the UI.
 		$(function() {
+			function toggleDirectoryBrowser() {
+				$('#newAppForm, #newAppLocationBrowser').toggle();
+			};
+			var fs = new FileSelection({
+				initialDir: $('#newappLocation').attr('placeholder'),
+				onSelect: function(file) {
+					$('#newappLocation').val(file);
+					toggleDirectoryBrowser();
+				},
+				onCancel: function() {
+					toggleDirectoryBrowser();
+				}
+			});
+			fs.renderTo('#newAppLocationBrowser');
 			// Register fancy radio button controlls.
-			$('#new li').click(function(event) {
+			$('#new').on('click', 'li.template', function(event) {
+				// ???
 				$('input:radio', this).prop('checked',true);
 				var name = $('h3', this).text();
 				$('#newAppTemplateName').val(name);
+			})
+			.on('click', '#browseAppLocation', function(event) {
+				event.preventDefault();
+				toggleDirectoryBrowser();
 			});
 			// TODO - Register file selection widget...
 			// Register fancy click and open app buttons
-			$('#open li').click(function(event) {
+			$('#open').on('click', 'li', function(event) {
 				var url = $('a', this).attr('href');
 				// TODO - Better way to do this?
 				window.location.href = url;

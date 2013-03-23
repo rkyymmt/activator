@@ -80,6 +80,8 @@ object Local extends Controller {
       JsObject(
         List("name" -> JsString(o.getName),
           "location" -> JsString(Platform.getClientFriendlyFilename(o)),
+          "humanLocation" -> JsString(o.getAbsolutePath),
+          "isRoot" -> JsBoolean(File.listRoots.exists(f => o.getCanonicalPath == f.getCanonicalPath)),
           "isDirectory" -> JsBoolean(o.isDirectory)) ++
           (if (o.isDirectory) Nil
           else List(
@@ -94,10 +96,15 @@ object Local extends Controller {
     def writes(o: InterestingFile): JsValue =
       if (o.file.isDirectory) JsObject(List(
         "name" -> JsString(o.file.getName),
+        "location" -> JsString(Platform.getClientFriendlyFilename(o.file)),
+        "humanLocation" -> JsString(o.file.getAbsolutePath),
         "isDirectory" -> JsBoolean(true),
         "type" -> JsString("directory"),
+        // TODO - Only if parent file exists!
+        "isRoot" -> JsBoolean(File.listRoots.exists(f => o.file.getCanonicalPath == f.getCanonicalPath)),
         // TODO - Gitignore/file filters here.
-        "children" -> Json.toJson(o.file.listFiles().filterNot(_.getName startsWith "."))))
+        "children" -> Json.toJson(o.file.listFiles().filterNot(_.getName startsWith "."))) ++
+        Option(o.file.getParentFile).map(f => "parent" -> Json.toJson(f)).toList)
       else FileProtocol.writes(o.file)
     //We don't need reads, really
     def reads(json: JsValue): JsResult[InterestingFile] =
@@ -108,6 +115,11 @@ object Local extends Controller {
     val loc = Platform.fromClientFriendlyFilename(location)
     if (!loc.exists) NotAcceptable(s"${location} is not a file!")
     else Ok(Json toJson InterestingFile(loc))
+  }
+
+  def browseRoots = Action { request =>
+    val roots = File.listRoots.toList
+    Ok(Json toJson roots)
   }
 
   def show(location: String) = Action { request =>

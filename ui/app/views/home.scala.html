@@ -16,31 +16,35 @@
 		</article>
 
 		<section id="new">
-			<h2>New application</h2>
-			@helper.form(action = routes.Application.newApplication, 'id -> "newApp") {
-				<fieldset>
-					<label for="newappName">Name</label>
-					<input type="text" id="newappName" name="name" required>
-				</fieldset>
-				<fieldset>
-					<label for="newappLocation">Location</label>
-					<input type="text" id="newappLocation" name="location" placeholder="@model.userHome" required>
-				</fieldset>
-				<fieldset>
-					<label for="newappTemplate">Template</label>
-					<input type="text" id="newAppTemplateName" name="template-name" placeholder="Choose a template in the list below" disabled required>
-				</fieldset>
-				<ul> 
-				@model.templates.map { template =>
-					<li>
-						<input type="radio" name="template" value="@template.id">
-						<h3>@template.name</h3>
-						<p>@template.description</p>
-					</li>	  
-				}
-				</ul>
-				<input type="submit" class="button" value="Create" id="newButton">
-			}
+            <div id="newAppForm" class="subsection">
+                <h2>New application</h2>
+                @helper.form(action = routes.Application.newApplication, 'id -> "newApp") {
+                    <fieldset>
+                        <label for="newappName">Name</label>
+                        <input type="text" id="newappName" name="name" required>
+                    </fieldset>
+                    <fieldset>
+                        <label for="newappLocation">Location</label>
+                        <a href="#" id="browseAppLocation"></a>
+                        <input type="text" id="newappLocation" name="location" placeholder="@model.userHome" required>
+                    </fieldset>
+                    <fieldset>
+                        <label for="newappTemplate">Template</label>
+                        <input type="text" id="newAppTemplateName" name="template-name" placeholder="Choose a template in the list below" disabled required>
+                    </fieldset>
+                    <ul>
+                    @model.templates.map { template =>
+                        <li class="template">
+                            <input type="radio" name="template" value="@template.id">
+                            <h3>@template.name</h3>
+                            <p>@template.description</p>
+                        </li>
+                    }
+                    </ul>
+                    <input type="submit" class="button" value="Create" id="newButton">
+                }
+            </div>
+            <div id="newAppLocationBrowser" class="subsection hidden"></div>
 		</section>
 
 		<section id="open">
