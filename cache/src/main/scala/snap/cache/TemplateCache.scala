@@ -70,7 +70,7 @@ class DemoTemplateCache() extends TemplateCache {
         tags = Seq("scala", "starter")),
       TemplateMetadata(
         id = "c63e1fe7748dcebdc0fc0243685e5ae6d1ec4072",
-        name = "Play Framework Intro",
+        name = "Hello Play Framework!",
         version = "1.0",
         description = """Play Framework is the High Velocity Web Framework for Java and Scala.  Play is based on a lightweight, stateless, web-friendly architecture.  Built on Akka, Play provides predictable and minimal resource comsumption (CPU, memory, threads) for highly-scalable applications.  This app will teach you how to start building Play 2.1 apps with Java and Scala.""",
         tags = Seq("play", "java", "scala", "starter")))
