@@ -1,4 +1,4 @@
-define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], function(template, api, log){
+define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], function(template, api, log, css){
 
 	var ko = api.ko;
 	var sbt = api.sbt;
@@ -37,6 +37,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 
 			this.logModel = new log.Log();
 			this.outputModel = new log.Log();
+			this.outputModel.tail(true); // always tail output for now; there's a checkbox for the logs
 			this.status = ko.observable('Application is stopped.')
 		},
 		update: function(parameters){
@@ -124,13 +125,13 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 						// we move "output" to "logs" because the output is probably
 						// just sbt startup messages that were not redirected.
 						self.logModel.moveFrom(self.outputModel);
-					} else if(event.id == 'playServerStarted') {
+					} else if (event.id == 'playServerStarted') {
 						var port = event.params.port;
 						var url = 'http://localhost:' + port;
 						var link = '<a href="'+url+'" target="_blank">' + url + '</a>';
 						self.status(link + ' - Play application started.');
 					} else {
-						self.logModel.warn("unknown event: " + JSON.stringify(event))
+						self.logModel.leftoverEvent(event);
 					}
 				},
 				success: function(data) {
