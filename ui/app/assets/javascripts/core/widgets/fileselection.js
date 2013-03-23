@@ -1,4 +1,4 @@
-define(['text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widget'], function(template, ko, Widget) {
+define(['css!./fileselection.css', 'text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widget'], function(css, template, ko, Widget) {
 
 	function browse(location) {
 		return $.ajax({
@@ -65,6 +65,7 @@ define(['text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widge
 					return false;
 				});
 			});
+			self.title = ko.observable(cfg.title || "Select a file")
 			if(cfg.initialDir) {
 				this.load(cfg.initialDir);
 			} else {

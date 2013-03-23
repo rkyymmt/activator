@@ -39,6 +39,7 @@ require([
 				$('#newAppForm, #newAppLocationBrowser').toggle();
 			};
 			var fs = new FileSelection({
+				title: "Select location for new application",
 				initialDir: $('#newappLocation').attr('placeholder'),
 				onSelect: function(file) {
 					$('#newappLocation').val(file);

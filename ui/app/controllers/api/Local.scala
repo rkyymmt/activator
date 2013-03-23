@@ -7,6 +7,7 @@ import java.io.File
 import snap.Platform
 import play.api.data._
 import play.api.data.Forms._
+import play.api.Logger
 
 object Local extends Controller {
 
@@ -59,7 +60,7 @@ object Local extends Controller {
 
   def detectTypeFromMime(f: File): String = {
     val mime = getMimeType(f)
-    System.err.println(s"Checking mime type for $f, found: $mime");
+    Logger.debug(s"Checking mime type for $f, found: $mime");
     if (mime startsWith "text") "code"
     else if (mime startsWith "image") "image"
     else if (mime contains "x-shellscript") "code" // TODO - highlighting is still borked for this guy
