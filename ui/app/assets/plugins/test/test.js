@@ -145,7 +145,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 					} else if (event.type == 'Started') {
 						// this is expected when we start a new sbt, but we don't do anything with it
 					} else {
-						self.logModel.warn("unknown event: " + JSON.stringify(event))
+						self.logModel.leftoverEvent(event);
 					}
 				},
 				success: function(data) {

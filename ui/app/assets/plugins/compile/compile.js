@@ -100,7 +100,11 @@ define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'
 			var taskId = sbt.runTask({
 				task: task,
 				onmessage: function(event) {
-					self.logModel.event(event);
+					if (self.logModel.event(event)) {
+						// logged already
+					} else {
+						self.logModel.leftoverEvent(event);
+					}
 				},
 				success: function(data) {
 					console.log("compile result: ", data);

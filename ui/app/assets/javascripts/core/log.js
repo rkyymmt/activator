@@ -91,6 +91,13 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 			} else {
 				return false;
 			}
+		},
+		leftoverEvent: function(event) {
+			if (event.type == 'RequestReceivedEvent' || event.type == 'Started') {
+				// not interesting
+			} else {
+				this.warn("ignored event: " + JSON.stringify(event));
+			}
 		}
 	});
 
