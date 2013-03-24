@@ -90,6 +90,11 @@ ko.bindingHandlers.ace = {
 			}
 		}
 
+
+		var STATUS_DEFAULT = 'default';
+		var STATUS_BUSY = 'busy';
+		var STATUS_ERROR = 'error;'
+
 	// Verifies that a new plugin configuration is acceptable for our application, or
 	// issues debugging log statements on what the issue is.
 	function Plugin(config) {
@@ -99,6 +104,25 @@ ko.bindingHandlers.ace = {
 		if(!config.icon) console.log('Error, plugin has no icon: ', config);
 		if(!config.url) console.log('Error, plugin has no url (default link): ', config)
 		if(!config.widgets) config.widgets = [];
+		if(!config.status) {
+			console.log('Plugin has no status attribute');
+			config.status = ko.observable(STATUS_DEFAULT);
+		}
+
+		config.statusIcon = ko.computed(function() {
+			var status = this.status();
+			if (status == STATUS_BUSY)
+				return "/public/images/busy_spinner_16x16.gif";
+			else if (status == STATUS_ERROR)
+				return "/public/images/error_14x14.png";
+			else if (status == STATUS_DEFAULT)
+				return "";
+			else {
+				console.log("Unknown plugin status: '" + status + "'");
+				return "";
+			}
+		}, config);
+
 		return config;
 	}
 
@@ -121,6 +145,9 @@ ko.bindingHandlers.ace = {
 		// TODO - should this be non-public?
 		activeWidget: activeWidget,
 		setActiveWidget: setActiveWidget,
-		events: events
+		events: events,
+		STATUS_DEFAULT: STATUS_DEFAULT,
+		STATUS_BUSY: STATUS_BUSY,
+		STATUS_ERROR: STATUS_ERROR
 	};
 });

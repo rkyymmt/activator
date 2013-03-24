@@ -25,6 +25,8 @@ define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'
 
 			this.logModel = new log.Log();
 
+			this.status = ko.observable(api.STATUS_DEFAULT);
+
 			api.events.subscribe(function(event) {
 				return event.type == 'FilesChanged';
 			},
@@ -70,6 +72,11 @@ define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'
 		afterCompile: function(succeeded) {
 			var self = this;
 
+			if (succeeded)
+				self.status(api.STATUS_DEFAULT);
+			else
+				self.status(api.STATUS_ERROR);
+
 			if (self.needCompile()) {
 				console.log("need to recompile because something changed while we were compiling");
 				self.needCompile(false);
@@ -94,6 +101,7 @@ define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'
 				return;
 			}
 
+			self.status(api.STATUS_BUSY);
 			self.logModel.clear();
 			self.logModel.info("Compiling...");
 			var task = { task: 'compile' };
@@ -154,6 +162,7 @@ define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'
 		routes: {
 			'compile': function() { api.setActiveWidget(compileConsole); }
 		},
-		widgets: [compileConsole]
+		widgets: [compileConsole],
+		status: compileConsole.status
 	});
 });
