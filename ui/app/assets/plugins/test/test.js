@@ -91,6 +91,16 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 			}, this);
 			this.rerunOnBuild = ko.observable(false);
 			this.restartPending = ko.observable(false);
+			this.status = ko.computed(function() {
+				var anyFailures = this.resultStats().failed > 0;
+
+				if (this.haveActiveTask())
+					return api.STATUS_BUSY;
+				else if (anyFailures)
+					return api.STATUS_ERROR;
+				else
+					return api.STATUS_DEFAULT;
+			}, this);
 
 			api.events.subscribe(function(event) {
 				return event.type == 'CompileSucceeded';
@@ -227,6 +237,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 		routes: {
 			'test': function() { api.setActiveWidget(testConsole); }
 		},
-		widgets: [testConsole]
+		widgets: [testConsole],
+		status: testConsole.status
 	});
 });

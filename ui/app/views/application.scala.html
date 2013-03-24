@@ -35,6 +35,7 @@
 				<ul class="rockets">
 					<li class="app" data-bind="foreach: plugins.list">
 						<a data-bind="text: name, attr: { 'data-icon': icon, href: url }"></a>
+						<img width="16" height="16" data-bind="attr: { 'src': statusIcon }"/>
 					</li>
 				</ul>
 			</nav>
