@@ -38,9 +38,14 @@ require([
 			function toggleDirectoryBrowser() {
 				$('#newAppForm, #newAppLocationBrowser').toggle();
 			};
+			function toggleAppBrowser() {
+				$('#openAppForm, #openAppLocationBrowser').toggle();
+			};
+			var homeDir = $('#newappLocation').attr('placeholder');
 			var fs = new FileSelection({
 				title: "Select location for new application",
-				initialDir: $('#newappLocation').attr('placeholder'),
+				initialDir: homeDir,
+				selectText: 'Select this Folder',
 				onSelect: function(file) {
 					$('#newappLocation').val(file);
 					toggleDirectoryBrowser();
@@ -50,6 +55,31 @@ require([
 				}
 			});
 			fs.renderTo('#newAppLocationBrowser');
+			var openFs = new FileSelection({
+				selectText: 'Open this Project',
+				listingText: 'Open as project:',
+				initialDir: homeDir,
+				onCancel: function() {
+					toggleAppBrowser();
+				},
+				onSelect: function(file) {
+					// TODO - Grey out the app while we wait for response.
+					$.ajax({
+						url: '/loadLocation',
+						type: 'GET',
+						dataType: 'json',
+						data: {
+							location: file
+						}
+					}).done(function(data) {
+						window.location.href = window.location.href.replace('home', 'app/'+data.id);
+					}).error(function(failure) {
+						// TODO - Ungrey the app.
+						alert('Failed to load project at location: ' + file)
+					});
+				}
+			});
+			openFs.renderTo('#openAppLocationBrowser');
 			// Register fancy radio button controlls.
 			$('#new').on('click', 'li.template', function(event) {
 				// ???
@@ -61,9 +91,13 @@ require([
 				event.preventDefault();
 				toggleDirectoryBrowser();
 			});
+			$('#open').on('click', '#openButton', function(event) {
+				event.preventDefault();
+				toggleAppBrowser();
+			});
 			// TODO - Register file selection widget...
 			// Register fancy click and open app buttons
-			$('#open').on('click', 'li', function(event) {
+			$('#open').on('click', 'li.recentApp', function(event) {
 				var url = $('a', this).attr('href');
 				// TODO - Better way to do this?
 				window.location.href = url;

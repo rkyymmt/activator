@@ -1,6 +1,6 @@
 <div class="fileselection">
 	<h2 data-bind="text: title"></h2>
-	<p>Listing <span data-bind="text: shownDirectory"></span></p>
+	<p><span data-bind="text: listingText"></span> <span data-bind="text: shownDirectory"></span></p>
 	<div class="listing">
 		<ul data-bind="foreach: currentViewFiles" class="directories">
 			<li data-bind="css: {folder: isDirectory, file: isFile, highlight: highlighted }, click: function() { $parent.click($data); }">
@@ -10,7 +10,6 @@
 		</ul>
 	</div>
 	<div class="select">
-		<input type="submit" class="button" value="Select this folder" id="browseSelect" data-bind="click: select"></input>
-		<input type="submit" class="button" value="Cancel" id="browseCancel" data-bind="click: cancel"></input>
+		<button class="button" id="browseSelect" data-bind="click: select, text: selectText"></button>
+		<button class="button" value="Cancel" id="browseCancel" data-bind="click: cancel">Cancel</input>
 	</div>
-</div>
