@@ -57,6 +57,7 @@ require([
 			fs.renderTo('#newAppLocationBrowser');
 			var openFs = new FileSelection({
 				selectText: 'Open this Project',
+				listingText: 'Open as project:',
 				initialDir: homeDir,
 				onCancel: function() {
 					toggleAppBrowser();

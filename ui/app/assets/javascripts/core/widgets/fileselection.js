@@ -28,6 +28,7 @@ define(['css!./fileselection.css', 'text!./fileselection.html', 'vendors/knockou
 		self.isDirectory = config.isDirectory;
 		self.isFile = !config.isDirectory;
 		self.highlighted = ko.observable(false);
+		self.cancelable = config.cancelable || false;
 	};
 	// Function for filtering...
 	function fileIsHighlighted(file) {
@@ -47,6 +48,7 @@ define(['css!./fileselection.css', 'text!./fileselection.html', 'vendors/knockou
 			self.onCancel = config.onCancel || noop;
 			self.showFiles = ko.observable(cfg.showFiles || false);
 			self.shownDirectory = ko.observable(cfg.initialDir || '');
+			self.listingText = config.listingText || 'Listing';
 			self.currentFiles = ko.observableArray([]);
 			self.currentHighlight = ko.computed(function() {
 				return $.grep(self.currentFiles(), fileIsHighlighted)[0];
