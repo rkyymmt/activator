@@ -35,19 +35,36 @@ require([
 	require(['core/widgets/fileselection'], function(FileSelection) {
 		// Register handlers on the UI.
 		$(function() {
+			var appNameInput = $('#newappName');
+			var appLocationInput = $('#newappLocation');
+			var homeDir = appLocationInput.attr('placeholder');
+			var evilLocationStore = homeDir;
+			function updateAppLocation(location) {
+				if(location) {
+					evilLocationStore = location;
+					appLocationInput.val('');
+				}
+				var currentAppName = appNameInput.val() || '';
+				appLocationInput.attr('placeholder', evilLocationStore + '/' + currentAppName);
+			}
+			appNameInput.on('keyup', function() { updateAppLocation(); });
+			$('#newButton').on('click', function(){
+				if(!appLocationInput.val())
+					appLocationInput.val(appLocationInput.attr('placeholder'));
+			});
 			function toggleDirectoryBrowser() {
 				$('#newAppForm, #newAppLocationBrowser').toggle();
 			};
 			function toggleAppBrowser() {
 				$('#openAppForm, #openAppLocationBrowser').toggle();
 			};
-			var homeDir = $('#newappLocation').attr('placeholder');
 			var fs = new FileSelection({
 				title: "Select location for new application",
 				initialDir: homeDir,
 				selectText: 'Select this Folder',
 				onSelect: function(file) {
-					$('#newappLocation').val(file);
+					// Update our store...
+					updateAppLocation(file);
 					toggleDirectoryBrowser();
 				},
 				onCancel: function() {
