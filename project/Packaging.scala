@@ -8,6 +8,9 @@ package sbt {
   }
 }
 
+
+case class LocalRepoReport(location: File, licenses: Seq[License])
+
 object Packaging {
   import com.typesafe.sbt.packager.Keys._
   import com.typesafe.sbt.SbtNativePackager._
@@ -29,6 +32,8 @@ object Packaging {
   val localRepoArtifacts = SettingKey[Seq[ModuleID]]("local-repository-artifacts", "Artifacts included in the local repository.")
   val localRepoName = "install-to-local-repository"
   val localRepo = SettingKey[File]("local-repository", "The location to install a local repository.")
+  val localRepoCreation = TaskKey[LocalRepoReport]("local-repository-creation", "Creates a local repository in the specified location.")
+  val localRepoLicenses = TaskKey[Unit]("local-repository-licenses", "Prints all the licenses used by software in the local repo.")
   val localRepoCreated = TaskKey[File]("local-repository-created", "Creates a local repository in the specified location.")
   
   // This is dirty, but play has stolen our keys, and we must mimc them here.
@@ -41,11 +46,20 @@ object Packaging {
     localRepoArtifacts := Seq.empty,
     resolvers in TheBuilderBuild.dontusemeresolvers <+= localRepo apply { f => Resolver.file(lrepoName, f)(Resolver.ivyStylePatterns) },
     localRepoProjectsPublished <<= (TheBuilderBuild.publishedProjects map (publishLocal in _)).dependOn,
-    localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt in TheBuilderBuild.dontusemeresolvers, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
-      // TODO - Hook to detect if we need to recreate the repository....
-      // That way we don't have to clean all the time.
-      IvyHelper.createLocalRepository(m, lrepoName, i, s.log)
-      r
+    localRepoCreation <<= (localRepo, localRepoArtifacts, ivySbt in TheBuilderBuild.dontusemeresolvers, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
+      val licenses = IvyHelper.createLocalRepository(m, lrepoName, i, s.log)
+      LocalRepoReport(r, licenses)
+    },
+    localRepoCreated <<= localRepoCreation map (_.location),
+    localRepoLicenses <<= (localRepoCreation, streams) map { (config, s) =>
+      // Stylize the licenses we used and give an inline report...
+      s.log.info("--- Licenses ---")
+      val badList = Set("and", "the", "license", "revised")
+      def makeSortString(in: String): String =
+        in split ("\\s+") map (_.toLowerCase) filterNot badList mkString ""
+      for(license <- config.licenses sortBy (l => makeSortString(l.name))) {
+        s.log.info(" * " + license.name + " @ " + license.url)
+      }
     }
   )
   
