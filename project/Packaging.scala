@@ -61,6 +61,7 @@ object Packaging {
         in split ("\\s+") map (_.toLowerCase) filterNot badList mkString ""
       for(license <- config.licenses sortBy (l => makeSortString(l.name))) {
         s.log.info(" * " + license.name + " @ " + license.url)
+         s.log.info("    - " + license.deps.mkString(", "))
       }
     }
   )
