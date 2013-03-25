@@ -35,6 +35,26 @@ require([
 	require(['core/widgets/fileselection'], function(FileSelection) {
 		// Register handlers on the UI.
 		$(function() {
+			var evilLocationStore = '';
+			var appNameInput = $('#newappName');
+			var appLocationInput = $('#newappLocation');
+			function updateAppLocation(location) {
+				var currentAppName = appNameInput.val() || '';
+				var currentAppLocation = appLocationInput.val();
+				// Any customization turns off auto-fill of location, or
+				// selecting a new location.
+				var newLocation = typeof(location) == 'string';
+				var autoFill =
+					(newLocation ||
+							currentAppLocation ||
+							currentAppLocation == (evilLocationStore + '/' + currentAppName));
+				if(newLocation)
+					evilLocationStore = location;
+				if(autoFill) {
+					appLocationInput.val(evilLocationStore + '/' + currentAppName);
+				}
+			}
+			appNameInput.on('keyup', updateAppLocation);
 			function toggleDirectoryBrowser() {
 				$('#newAppForm, #newAppLocationBrowser').toggle();
 			};
@@ -47,7 +67,8 @@ require([
 				initialDir: homeDir,
 				selectText: 'Select this Folder',
 				onSelect: function(file) {
-					$('#newappLocation').val(file);
+					// Update our store...
+					updateAppLocation(file);
 					toggleDirectoryBrowser();
 				},
 				onCancel: function() {
