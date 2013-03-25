@@ -89,7 +89,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 				else
 					return "Start";
 			}, this);
-			this.rerunOnBuild = ko.observable(false);
+			this.rerunOnBuild = ko.observable(true);
 			this.restartPending = ko.observable(false);
 			this.status = ko.computed(function() {
 				var anyFailures = this.resultStats().failed > 0;
