@@ -8,6 +8,9 @@ package sbt {
   }
 }
 
+
+case class LocalRepoReport(location: File, licenses: Seq[License])
+
 object Packaging {
   import com.typesafe.sbt.packager.Keys._
   import com.typesafe.sbt.SbtNativePackager._
@@ -15,11 +18,13 @@ object Packaging {
   val repackagedLaunchJar = TaskKey[File]("repackaged-launch-jar", "The Builder launch jar.")
   val repackagedLaunchMappings = TaskKey[Seq[(File, String)]]("repackaged-launch-mappings", "New files for sbt-launch-jar")
 
+  // TODO - rename this to just template directory...
   val scriptTemplateDirectory = SettingKey[File]("script-template-directory")
   val scriptTemplateOutputDirectory = SettingKey[File]("script-template-output-directory")
   val makeBashScript = TaskKey[File]("make-bash-script")
   val makeBatScript = TaskKey[File]("make-bat-script")
 
+  val makeReadmeHtml = TaskKey[File]("make-readme-html")
 
   val localTemplateSourceDirectory = SettingKey[File]("local-template-source-directory")
   val localTemplateCache = SettingKey[File]("local-template-cache")
@@ -29,6 +34,8 @@ object Packaging {
   val localRepoArtifacts = SettingKey[Seq[ModuleID]]("local-repository-artifacts", "Artifacts included in the local repository.")
   val localRepoName = "install-to-local-repository"
   val localRepo = SettingKey[File]("local-repository", "The location to install a local repository.")
+  val localRepoCreation = TaskKey[LocalRepoReport]("local-repository-creation", "Creates a local repository in the specified location.")
+  val localRepoLicenses = TaskKey[Unit]("local-repository-licenses", "Prints all the licenses used by software in the local repo.")
   val localRepoCreated = TaskKey[File]("local-repository-created", "Creates a local repository in the specified location.")
   
   // This is dirty, but play has stolen our keys, and we must mimc them here.
@@ -41,11 +48,20 @@ object Packaging {
     localRepoArtifacts := Seq.empty,
     resolvers in TheBuilderBuild.dontusemeresolvers <+= localRepo apply { f => Resolver.file(lrepoName, f)(Resolver.ivyStylePatterns) },
     localRepoProjectsPublished <<= (TheBuilderBuild.publishedProjects map (publishLocal in _)).dependOn,
-    localRepoCreated <<= (localRepo, localRepoArtifacts, ivySbt in TheBuilderBuild.dontusemeresolvers, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
-      // TODO - Hook to detect if we need to recreate the repository....
-      // That way we don't have to clean all the time.
-      IvyHelper.createLocalRepository(m, lrepoName, i, s.log)
-      r
+    localRepoCreation <<= (localRepo, localRepoArtifacts, ivySbt in TheBuilderBuild.dontusemeresolvers, streams, localRepoProjectsPublished) map { (r, m, i, s, _) =>
+      val licenses = IvyHelper.createLocalRepository(m, lrepoName, i, s.log)
+      LocalRepoReport(r, licenses)
+    },
+    localRepoCreated <<= localRepoCreation map (_.location),
+    localRepoLicenses <<= (localRepoCreation, streams) map { (config, s) =>
+      // Stylize the licenses we used and give an inline report...
+      s.log.info("--- Licenses ---")
+      val badList = Set("and", "the", "license", "revised")
+      def makeSortString(in: String): String =
+        in split ("\\s+") map (_.toLowerCase) filterNot badList mkString ""
+      for(license <- config.licenses sortBy (l => makeSortString(l.name))) {
+        s.log.info(" * " + license.name + " @ " + license.url)
+      }
     }
   )
   
@@ -68,6 +84,7 @@ object Packaging {
     },
     mappings in Universal <+= makeBashScript map (_ -> "builder"),
     mappings in Universal <+= makeBatScript map (_ -> "builder.bat"),
+    mappings in Universal <+= makeReadmeHtml map (_ -> "README.html"),
     mappings in Universal <++= localRepoCreated map { repo =>
       for {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
@@ -101,7 +118,12 @@ object Packaging {
       copyBatTemplate(template, script, v)
       script
     },
-
+    makeReadmeHtml <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
+      val template = from / "README.md"
+      val output = to / "README.html"
+      Markdown.makeHtml(template, output, title="Typesafe Builder")
+      output
+    },
     localTemplateSourceDirectory <<= (baseDirectory in ThisBuild) apply (_ / "templates"),
     localTemplateCache <<= target(_ / "template-cache"),
     localTemplateCacheCreated <<= (localTemplateSourceDirectory, localTemplateCache) map makeTemplateCache
