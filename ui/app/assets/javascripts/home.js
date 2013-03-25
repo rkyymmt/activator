@@ -35,33 +35,29 @@ require([
 	require(['core/widgets/fileselection'], function(FileSelection) {
 		// Register handlers on the UI.
 		$(function() {
-			var evilLocationStore = '';
 			var appNameInput = $('#newappName');
 			var appLocationInput = $('#newappLocation');
+			var homeDir = appLocationInput.attr('placeholder');
+			var evilLocationStore = homeDir;
 			function updateAppLocation(location) {
-				var currentAppName = appNameInput.val() || '';
-				var currentAppLocation = appLocationInput.val();
-				// Any customization turns off auto-fill of location, or
-				// selecting a new location.
-				var newLocation = typeof(location) == 'string';
-				var autoFill =
-					(newLocation ||
-							currentAppLocation ||
-							currentAppLocation == (evilLocationStore + '/' + currentAppName));
-				if(newLocation)
+				if(location) {
 					evilLocationStore = location;
-				if(autoFill) {
-					appLocationInput.val(evilLocationStore + '/' + currentAppName);
+					appLocationInput.val('');
 				}
+				var currentAppName = appNameInput.val() || '';
+				appLocationInput.attr('placeholder', evilLocationStore + '/' + currentAppName);
 			}
-			appNameInput.on('keyup', updateAppLocation);
+			appNameInput.on('keyup', function() { updateAppLocation(); });
+			$('#newButton').on('click', function(){
+				if(!appLocationInput.val())
+					appLocationInput.val(appLocationInput.attr('placeholder'));
+			});
 			function toggleDirectoryBrowser() {
 				$('#newAppForm, #newAppLocationBrowser').toggle();
 			};
 			function toggleAppBrowser() {
 				$('#openAppForm, #openAppLocationBrowser').toggle();
 			};
-			var homeDir = $('#newappLocation').attr('placeholder');
 			var fs = new FileSelection({
 				title: "Select location for new application",
 				initialDir: homeDir,
