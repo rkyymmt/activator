@@ -25,7 +25,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 				else
 					return "Start";
 			}, this);
-			this.rerunOnBuild = ko.observable(false);
+			this.rerunOnBuild = ko.observable(true);
 			this.restartPending = ko.observable(false);
 
 			api.events.subscribe(function(event) {
