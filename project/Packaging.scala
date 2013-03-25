@@ -18,11 +18,13 @@ object Packaging {
   val repackagedLaunchJar = TaskKey[File]("repackaged-launch-jar", "The Builder launch jar.")
   val repackagedLaunchMappings = TaskKey[Seq[(File, String)]]("repackaged-launch-mappings", "New files for sbt-launch-jar")
 
+  // TODO - rename this to just template directory...
   val scriptTemplateDirectory = SettingKey[File]("script-template-directory")
   val scriptTemplateOutputDirectory = SettingKey[File]("script-template-output-directory")
   val makeBashScript = TaskKey[File]("make-bash-script")
   val makeBatScript = TaskKey[File]("make-bat-script")
 
+  val makeReadmeHtml = TaskKey[File]("make-readme-html")
 
   val localTemplateSourceDirectory = SettingKey[File]("local-template-source-directory")
   val localTemplateCache = SettingKey[File]("local-template-cache")
@@ -82,6 +84,7 @@ object Packaging {
     },
     mappings in Universal <+= makeBashScript map (_ -> "builder"),
     mappings in Universal <+= makeBatScript map (_ -> "builder.bat"),
+    mappings in Universal <+= makeReadmeHtml map (_ -> "README.html"),
     mappings in Universal <++= localRepoCreated map { repo =>
       for {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
@@ -115,7 +118,12 @@ object Packaging {
       copyBatTemplate(template, script, v)
       script
     },
-
+    makeReadmeHtml <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
+      val template = from / "README.md"
+      val output = to / "README.html"
+      Markdown.makeHtml(template, output, title="Typesafe Builder")
+      output
+    },
     localTemplateSourceDirectory <<= (baseDirectory in ThisBuild) apply (_ / "templates"),
     localTemplateCache <<= target(_ / "template-cache"),
     localTemplateCacheCreated <<= (localTemplateSourceDirectory, localTemplateCache) map makeTemplateCache
