@@ -93,6 +93,8 @@ define(function() {
 		// two buttons like "Reload" and "Go away" (maybe it's useful to not reload
 		// if you need to cut-and-paste some logs for example).
 
+		// TODO - We need to *NOT* have this display on the home page...
+
 		// This is in a timeout so that when we navigate away from the page we
 		// don't flash the alert box briefly.
 		setTimeout(function() {

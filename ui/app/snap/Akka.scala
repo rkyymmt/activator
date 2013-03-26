@@ -3,12 +3,18 @@ package snap
 import akka.util.Timeout
 import scala.concurrent.duration._
 
+import akka.actor.{ Actor, ActorRef, Props }
+import play.api.libs.json.JsValue
+
 // This guy stores the Akka we use for eventing.
 object Akka {
   // TODO - use my thread context
   val system = withContextCl(akka.actor.ActorSystem())
 
   val events = system.actorOf(akka.actor.Props[EventActor]())
+
+  // TODO - Implement
+  val homeStream: akka.actor.ActorRef = system.actorOf(akka.actor.Props[HomePageActor])
 
   // it's basically a bug anytime a timeout needs to be this
   // long, because in practice it won't expire before the user
@@ -24,8 +30,6 @@ object Akka {
     }
   }
 }
-
-import akka.actor.{ Actor, ActorRef, Props }
 
 // TODO - Cleanup and thread stuff.
 class EventActor extends Actor {

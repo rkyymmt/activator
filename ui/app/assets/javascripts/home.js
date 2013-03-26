@@ -32,9 +32,29 @@ require([
 	'vendors/chain',
 	'vendors/keymage.min'
 ],function(){
-	require(['core/widgets/fileselection'], function(FileSelection) {
+	require(['core/streams', 'core/widgets/fileselection'], function(streams, FileSelection) {
 		// Register handlers on the UI.
 		$(function() {
+			function toggleWorking() {
+				$('#homePage, #workingPage').toggle();
+			}
+			// TODO - Remove debugging...
+			window.streams = streams;
+			window.toggleWorking = toggleWorking;
+			streams.subscribe(function(event) {
+				// Handle all the remote events here...
+				switch(event.response) {
+					case 'BadRequest':
+						alert('Unable to perform request: ' + event.errors.join(' \n'));
+						toggleWorking();
+						break;
+					case 'RedirectToApplication':
+						window.location.href = window.location.href.replace('home', 'app/'+event.appId);
+						break;
+					default:
+						console.log('Unknown event: ', event);
+				}
+			});
 			var appNameInput = $('#newappName');
 			var appLocationInput = $('#newappLocation');
 			var homeDir = appLocationInput.attr('placeholder');
@@ -81,19 +101,11 @@ require([
 				},
 				onSelect: function(file) {
 					// TODO - Grey out the app while we wait for response.
-					$.ajax({
-						url: '/loadLocation',
-						type: 'GET',
-						dataType: 'json',
-						data: {
-							location: file
-						}
-					}).done(function(data) {
-						window.location.href = window.location.href.replace('home', 'app/'+data.id);
-					}).error(function(failure) {
-						// TODO - Ungrey the app.
-						alert('Failed to load project at location: ' + file)
+					streams.send({
+						request: 'OpenExistingApplication',
+						location: file
 					});
+					toggleWorking();
 				}
 			});
 			openFs.renderTo('#openAppLocationBrowser');

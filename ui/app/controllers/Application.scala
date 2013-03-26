@@ -104,7 +104,7 @@ object Application extends Controller {
     recentApps = RootConfig.user.applications)
 
   /** Loads the homepage, with a blank new-app form. */
-  def forceHome = Action { request =>
+  def forceHome = Action { implicit request =>
     // TODO - make sure template cache lives in one and only one place!
     Ok(views.html.home(homeModel, newAppForm))
   }
@@ -120,32 +120,6 @@ object Application extends Controller {
           // display it on home screen
           Logger.error("Failed to load app id " + id + ": " + e.getMessage(), e)
           Redirect(routes.Application.forceHome)
-      }
-    }
-  }
-
-  val fromLocationForm = Form(
-    mapping(
-      "location" -> text)(FromLocationForm.apply)(FromLocationForm.unapply))
-
-  /**
-   * Registers a location as an application, returning JSON with the app ID.
-   * Basically this is "import existing directory"
-   */
-  def appFromLocation() = Action { implicit request =>
-    val form = fromLocationForm.bindFromRequest.get
-
-    val file = snap.Validating(new File(form.location)).validate(
-      snap.Validation.fileExists,
-      snap.Validation.isDirectory)
-    import concurrent.ExecutionContext.Implicits.global
-    val id = file flatMapNested AppManager.loadAppIdFromLocation
-
-    Async {
-      id map {
-        case snap.ProcessSuccess(id) => Ok(JsObject(Seq("id" -> JsString(id))))
-        // TODO - Return with form and flash errors?
-        case snap.ProcessFailure(errors) => BadRequest(errors map (_.msg) mkString "\n")
       }
     }
   }
@@ -198,6 +172,21 @@ object Application extends Controller {
       // TODO - something less lame than exception here...
       app.templateID,
       RootConfig.user.applications)
+
+  /** Opens a stream for home events. */
+  def homeStream = WebSocket.using[JsValue] { request =>
+    val out = {
+      Concurrent.unicast[JsValue](
+        onStart = session => snap.Akka.homeStream ! snap.AddSocket(session),
+        // TODO - Close these guys...
+        onComplete = (),
+        onError = (_, _) => ())
+    }
+    val in = Iteratee.foreach[JsValue] { json =>
+      snap.Akka.homeStream ! json
+    }
+    (in, out)
+  }
 
   /** The current working directory of the app. */
   val cwd = (new java.io.File(".").getAbsoluteFile.getParentFile)
