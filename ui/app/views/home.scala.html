@@ -28,7 +28,7 @@
 			<section id="new">
 	            <div id="newAppForm" class="subsection">
 	                <h2>New application</h2>
-	                @helper.form(action = routes.Application.newApplication, 'id -> "newApp") {
+	                @helper.form(action = routes.Application.forceHome, 'id -> "newApp") {
 	                    <fieldset>
 	                        <label for="newappName">Name</label>
 	                        <input type="text" id="newappName" name="name" required>

@@ -66,37 +66,6 @@ object Application extends Controller {
       "location" -> text,
       "template" -> text)(NewAppForm.apply)(NewAppForm.unapply))
 
-  /**
-   * Creates a new application and loads it, or redirects to
-   * the home page.
-   */
-  def newApplication = Action { implicit request =>
-    Async {
-      val form = newAppForm.bindFromRequest
-      // Attempt to create the new location and return a Try, so we have
-      // a chance of knowing what the error is.
-      val location: Future[ProcessResult[File]] =
-        Future {
-          val model = form.get
-          val location = new File(model.location)
-          // TODO - Store template cache somehwere better...
-          snap.cache.Actions.cloneTemplate(
-            api.Templates.templateCache,
-            model.template,
-            location) map (_ => location)
-        }
-      // Now look up the app name and register this location
-      // with recently loaded apps.
-      import concurrent.ExecutionContext.Implicits.global
-      val id = location flatMapNested AppManager.loadAppIdFromLocation
-      id map {
-        case snap.ProcessSuccess(id) => Redirect(routes.Application.app(id))
-        case snap.ProcessFailure(errrors) =>
-          // TODO - flash the errors we now have...
-          BadRequest(views.html.home(homeModel, form))
-      }
-    }
-  }
   /** Reloads the model for the home page. */
   private def homeModel = HomeModel(
     userHome = BuilderProperties.GLOBAL_USER_HOME,

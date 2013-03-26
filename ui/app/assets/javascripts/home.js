@@ -45,6 +45,7 @@ require([
 				// Handle all the remote events here...
 				switch(event.response) {
 					case 'BadRequest':
+						// TODO - Do better than an alert!
 						alert('Unable to perform request: ' + event.errors.join(' \n'));
 						toggleWorking();
 						break;
@@ -55,9 +56,11 @@ require([
 						console.log('Unknown event: ', event);
 				}
 			});
+			// Save these lookups so we don't have to do them repeatedly.
 			var appNameInput = $('#newappName');
 			var appLocationInput = $('#newappLocation');
 			var homeDir = appLocationInput.attr('placeholder');
+			var appTemplateName = $('#newAppTemplateName');
 			var evilLocationStore = homeDir;
 			function updateAppLocation(location) {
 				if(location) {
@@ -71,6 +74,31 @@ require([
 			$('#newButton').on('click', function(){
 				if(!appLocationInput.val())
 					appLocationInput.val(appLocationInput.attr('placeholder'));
+			});
+			// Helper method to rip out form values appropraitely...
+			function formToJson(form) {
+				var data = $(form).serializeArray();
+				var o = {}
+				$.each(data, function() {
+					if (o[this.name] !== undefined) {
+						if (!o[this.name].push) {
+							o[this.name] = [o[this.name]];
+						}
+						o[this.name].push(this.value || '');
+					} else {
+						o[this.name] = this.value || '';
+					}
+				});
+				return o;
+			};
+			// Hook Submissions to send to the websocket.
+			$('form#newApp').on('submit', function(event) {
+				event.preventDefault();
+				var msg = formToJson(event.currentTarget);
+				msg.request = 'CreateNewApplication';
+				debugger;
+				streams.send(msg);
+				toggleWorking();
 			});
 			function toggleDirectoryBrowser() {
 				$('#newAppForm, #newAppLocationBrowser').toggle();
@@ -114,7 +142,7 @@ require([
 				// ???
 				$('input:radio', this).prop('checked',true);
 				var name = $('h3', this).text();
-				$('#newAppTemplateName').val(name);
+				appTemplateName.val(name);
 			})
 			.on('click', '#browseAppLocation', function(event) {
 				event.preventDefault();
