@@ -1,8 +1,18 @@
 .fileselection {
+    .currentDirectory {
+        margin: 5px;
+        direction: rtl;
+        text-align: left;
+        overflow: hidden;
+    }
     .listing {
         height: 180px;
         overflow: auto;
         ul {
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
             position: relative;
             top: 0px;
         }
