@@ -6,7 +6,7 @@ object Dependencies {
   val sbtVersion = "0.12.2"
   val sbtPluginVersion = "0.12"
   val sbtPluginScalaVersion = "2.9.2"
-  val scalaVersion = "2.10.0"
+  val scalaVersion = "2.10.1"
   val sbtSnapshotVersion = "0.13.0-20130313-052159"
 
   val sbtLauncherInterface = "org.scala-sbt" % "launcher-interface" % sbtVersion
