@@ -12,8 +12,9 @@ import builder.properties.BuilderProperties
 import scala.util.control.NonFatal
 import scala.util.Try
 import play.Logger
-import play.api.libs.iteratee.{ Iteratee, Enumerator, Concurrent }
+import play.api.libs.iteratee.{ Iteratee, Enumerator, Concurrent, Input }
 import akka.pattern._
+import snap.CloseWebSocket
 
 case class ApplicationModel(
   id: String,
@@ -145,11 +146,37 @@ object Application extends Controller {
   /** Opens a stream for home events. */
   def homeStream = WebSocket.using[JsValue] { request =>
     val out = {
-      Concurrent.unicast[JsValue](
-        onStart = session => snap.Akka.homeStream ! snap.AddSocket(session),
-        // TODO - Close these guys...
-        onComplete = (),
-        onError = (_, _) => ())
+      // THERE HAS TO BE A BETTER WAY TO DO THIS!
+      // We create a local object to close over the session, so
+      // play's hacking "Conncurrent.unicast" guy with callbacks can
+      // actually retain state.
+      object CheatingClosureBecausePlayisAnnoying {
+        var session: Concurrent.Channel[JsValue] = null
+        val homePageActor = snap.Akka.homeStream
+        val output = Concurrent.unicast[JsValue](
+          onStart = openMe,
+          onComplete = closeMe,
+          onError = errorMe)
+
+        def openMe(session: Concurrent.Channel[JsValue]): Unit = {
+          snap.Akka.homeStream ! snap.AddHomePageSocket(session)
+          this.session = session;
+        }
+
+        def errorMe(error: String, value: Input[JsValue]): Unit = {
+          if (session != null) {
+            homePageActor ! snap.RemoveHomePageSocket(session)
+            session = null;
+          }
+        }
+        def closeMe(): Unit = {
+          if (session != null) {
+            homePageActor ! snap.RemoveHomePageSocket(session)
+            session.eofAndEnd()
+          }
+        }
+      }
+      CheatingClosureBecausePlayisAnnoying.output
     }
     val in = Iteratee.foreach[JsValue] { json =>
       snap.Akka.homeStream ! json

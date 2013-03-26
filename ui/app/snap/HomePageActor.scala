@@ -6,6 +6,7 @@ import play.api.libs.iteratee.Concurrent
 import java.io.File
 import akka.pattern.pipe
 
+// THE API for the HomePage actor.
 case class OpenExistingApplication(location: String)
 object OpenExistingApplication {
   def unapply(in: JsValue): Option[OpenExistingApplication] =
@@ -34,8 +35,8 @@ object BadRequest {
       "response" -> JsString("BadRequest"),
       "errors" -> JsArray(errors map JsString.apply)))
 }
-case class AddSocket(channel: Concurrent.Channel[JsValue])
-case class RemoveSocket(channel: Concurrent.Channel[JsValue])
+case class AddHomePageSocket(channel: Concurrent.Channel[JsValue])
+case class RemoveHomePageSocket(channel: Concurrent.Channel[JsValue])
 case class Respond(json: JsValue)
 
 // This actor controls home page actions and ensures we can survive past timeouts...
@@ -52,8 +53,8 @@ class HomePageActor extends Actor with ActorLogging {
         // TODO - Send error...
         log.error(s"HomeActor: received unknown msg: " + in)
     }
-    case AddSocket(channel) => sockets append channel
-    case RemoveSocket(channel) => sockets remove (sockets indexOf channel)
+    case AddHomePageSocket(channel) => sockets append channel
+    case RemoveHomePageSocket(channel) => sockets remove (sockets indexOf channel)
   }
 
   // Goes off and tries to create/load an application.
