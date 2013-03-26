@@ -25,17 +25,13 @@ object PlaySupport {
 
   private val shimInstaller = new ShimInstaller("play")
 
-  // Note: we import default shim for default behaviors and override with our own as necessary.
-  import DefaultsShim._
-  val findHandler: PartialFunction[String, RequestHandler] = {
-    case TaskNames.name => nameHandler
-    case TaskNames.discoveredMainClasses => discoveredMainClassesHandler
-    case TaskNames.watchTransitiveSources => watchTransitiveSourcesHandler
-    case TaskNames.compile => compileHandler
+  private val findPlayHandler: PartialFunction[String, RequestHandler] = {
     case TaskNames.run => playRunHandler(TaskNames.run)
     case TaskNames.runMain => playRunHandler(TaskNames.runMain)
-    case TaskNames.test => testHandler
   }
+
+  val findHandler: PartialFunction[String, RequestHandler] =
+    findPlayHandler orElse DefaultsShim.findHandler
 
   // This is the shim'd run task we use instead of play's default.
   private val playRunShimTask = InputKey[Unit]("play-shim-run")

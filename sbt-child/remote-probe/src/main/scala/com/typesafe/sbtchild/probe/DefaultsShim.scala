@@ -99,33 +99,33 @@ object DefaultsShim {
     (reloadWithAppended(s1, settings), ours.overallOutcome)
   }
 
-  val nameHandler: RequestHandler = { (origState, ui, params) =>
+  private val nameHandler: RequestHandler = { (origState, ui, params) =>
     val result = extract(origState).get(name)
     (origState, makeResponseParams(protocol.NameResponse(result)))
   }
 
-  val discoveredMainClassesHandler: RequestHandler = { (origState, ui, params) =>
+  private val discoveredMainClassesHandler: RequestHandler = { (origState, ui, params) =>
     val (s, result) = extract(origState).runTask(discoveredMainClasses in Compile in run, origState)
     (s, makeResponseParams(protocol.DiscoveredMainClassesResponse(names = result)))
   }
 
-  val watchTransitiveSourcesHandler: RequestHandler = { (origState, ui, params) =>
+  private val watchTransitiveSourcesHandler: RequestHandler = { (origState, ui, params) =>
     val (s, result) = extract(origState).runTask(watchTransitiveSources, origState)
     (s, makeResponseParams(protocol.WatchTransitiveSourcesResponse(files = result)))
   }
 
-  val compileHandler: RequestHandler = { (origState, ui, params) =>
+  private val compileHandler: RequestHandler = { (origState, ui, params) =>
     val (s, result) = extract(origState).runTask(compile in Compile, origState)
     (s, makeResponseParams(protocol.CompileResponse(success = true)))
   }
 
-  val runHandler: RequestHandler = { (origState, ui, params) =>
+  private val runHandler: RequestHandler = { (origState, ui, params) =>
     val s = runInputTask(run in Compile, origState, args = "")
     (s, makeResponseParams(protocol.RunResponse(success = true,
       task = protocol.TaskNames.run)))
   }
 
-  val runMainHandler: RequestHandler = { (origState, ui, params) =>
+  private val runMainHandler: RequestHandler = { (origState, ui, params) =>
     import ParamsHelper._
     val klass = params.toMap.get("mainClass")
       .map(_.asInstanceOf[String])
@@ -135,7 +135,7 @@ object DefaultsShim {
       task = protocol.TaskNames.runMain)))
   }
 
-  val testHandler: RequestHandler = { (origState, ui, params) =>
+  private val testHandler: RequestHandler = { (origState, ui, params) =>
     val s1 = addTestListener(origState, ui)
     val (s2, result1) = extract(s1).runTask(test in Test, s1)
     val (s3, outcome) = removeTestListener(s2, ui)
