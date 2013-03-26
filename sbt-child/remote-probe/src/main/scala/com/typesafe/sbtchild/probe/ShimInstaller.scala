@@ -46,15 +46,15 @@ addSbtPlugin("com.typesafe.builder" % "sbt-shim-""" + name + """" % """" + APP_V
     IO.copyFile(pluginSbtFile, shimPluginFile, false)
   }
 
-  def ensure(state: State): Unit = {
+  // true if the shim was freshly installed
+  def ensure(state: State): Boolean = {
     // TODO - Detect SHA of shim file, and ensure we're up-to-date.
     if (!isShimInstalled(state)) {
       doShim(state)
-      val message = "Installed shim for " + name + ", need to reboot SBT."
-      System.err.println(message)
-      // By Erroring out (and doing so before responding to protocol method),
-      // We force the Sbt process to reload and try again...
-      sys.error(message)
+      System.err.println("Installed shim for " + name + ", need to reboot SBT.")
+      true
+    } else {
+      false
     }
   }
 

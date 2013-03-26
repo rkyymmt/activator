@@ -33,7 +33,11 @@ object SetupSbtChild extends (State => State) {
     val betweenRequestsLogger = new EventLogger(client, 0L)
     // Make sure the shims are installed we need for this build.
     // TODO - Better place/way to do this?
-    PlaySupport.ensureShim(s)
+    if (PlaySupport.ensureShim(s)) {
+      // By Erroring out (and doing so before responding to protocol method),
+      // We force the Sbt process to reload and try again...
+      sys.error("Need to reboot SBT")
+    }
     addLogger(s, betweenRequestsLogger.toGlobalLogging) ++ Seq(listen)
   }
 
