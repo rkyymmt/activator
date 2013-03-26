@@ -145,41 +145,17 @@ object Application extends Controller {
 
   /** Opens a stream for home events. */
   def homeStream = WebSocket.using[JsValue] { request =>
-    val out = {
-      // THERE HAS TO BE A BETTER WAY TO DO THIS!
-      // We create a local object to close over the session, so
-      // play's hacking "Conncurrent.unicast" guy with callbacks can
-      // actually retain state.
-      object CheatingClosureBecausePlayisAnnoying {
-        var session: Concurrent.Channel[JsValue] = null
-        val homePageActor = snap.Akka.homeStream
-        val output = Concurrent.unicast[JsValue](
-          onStart = openMe,
-          onComplete = closeMe,
-          onError = errorMe)
-
-        def openMe(session: Concurrent.Channel[JsValue]): Unit = {
-          snap.Akka.homeStream ! snap.AddHomePageSocket(session)
-          this.session = session;
-        }
-
-        def errorMe(error: String, value: Input[JsValue]): Unit = {
-          if (session != null) {
-            homePageActor ! snap.RemoveHomePageSocket(session)
-            session = null;
-          }
-        }
-        def closeMe(): Unit = {
-          if (session != null) {
-            homePageActor ! snap.RemoveHomePageSocket(session)
-            session.eofAndEnd()
-          }
-        }
-      }
-      CheatingClosureBecausePlayisAnnoying.output
-    }
+    // Create a new handler for this websocket.
+    // Note: We create a new one per request so events aren't confused amongst
+    // sessions!
+    val handler = snap.Akka.system.actorOf(akka.actor.Props[snap.HomePageActor])
+    import akka.actor.PoisonPill
+    val out = Concurrent.unicast[JsValue](
+      onStart = session => handler ! snap.AddHomePageSocket(session),
+      onComplete = handler ! PoisonPill,
+      onError = (_, _) => handler ! PoisonPill)
     val in = Iteratee.foreach[JsValue] { json =>
-      snap.Akka.homeStream ! json
+      handler ! json
     }
     (in, out)
   }

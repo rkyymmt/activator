@@ -13,9 +13,6 @@ object Akka {
 
   val events = system.actorOf(akka.actor.Props[EventActor]())
 
-  // TODO - Implement
-  val homeStream: akka.actor.ActorRef = system.actorOf(akka.actor.Props[HomePageActor])
-
   // it's basically a bug anytime a timeout needs to be this
   // long, because in practice it won't expire before the user
   // just kills the app.

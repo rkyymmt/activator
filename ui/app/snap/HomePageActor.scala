@@ -10,18 +10,24 @@ import akka.pattern.pipe
 case class OpenExistingApplication(location: String)
 object OpenExistingApplication {
   def unapply(in: JsValue): Option[OpenExistingApplication] =
-    if ((in \ "request").as[String] == "OpenExistingApplication")
+    try if ((in \ "request").as[String] == "OpenExistingApplication")
       Some(OpenExistingApplication((in \ "location").as[String]))
     else None
+    catch {
+      case e: JsResultException => None
+    }
 }
 case class CreateNewApplication(location: String, templateId: String)
 object CreateNewApplication {
   def unapply(in: JsValue): Option[CreateNewApplication] =
-    if ((in \ "request").as[String] == "CreateNewApplication")
+    try if ((in \ "request").as[String] == "CreateNewApplication")
       Some(CreateNewApplication(
         (in \ "location").as[String],
-        (in \ "template").as[String]))
+        (in \ "template").asOpt[String] getOrElse ""))
     else None
+    catch {
+      case e: JsResultException => None
+    }
 }
 object RedirectToApplication {
   def apply(id: String): JsValue =
@@ -36,14 +42,13 @@ object BadRequest {
       "errors" -> JsArray(errors map JsString.apply)))
 }
 case class AddHomePageSocket(channel: Concurrent.Channel[JsValue])
-case class RemoveHomePageSocket(channel: Concurrent.Channel[JsValue])
 case class Respond(json: JsValue)
 
 // This actor controls home page actions and ensures we can survive past timeouts...
 // TODO - Split this between something that handles the websockets
 // and another actor that does the actions and is testable.
 class HomePageActor extends Actor with ActorLogging {
-  val sockets = collection.mutable.ArrayBuffer.empty[Concurrent.Channel[JsValue]]
+  var socket: Option[Concurrent.Channel[JsValue]] = None
   def receive: Receive = {
     case Respond(json) => notifyListeners(json)
     case in: JsValue => in match {
@@ -53,8 +58,7 @@ class HomePageActor extends Actor with ActorLogging {
         // TODO - Send error...
         log.error(s"HomeActor: received unknown msg: " + in)
     }
-    case AddHomePageSocket(channel) => sockets append channel
-    case RemoveHomePageSocket(channel) => sockets remove (sockets indexOf channel)
+    case AddHomePageSocket(channel) => socket = Some(channel)
   }
 
   // Goes off and tries to create/load an application.
@@ -101,13 +105,12 @@ class HomePageActor extends Actor with ActorLogging {
   }
 
   def notifyListeners(msg: JsValue): Unit = {
-    log.debug(s"HomeActor: Telling all sockets: $msg")
-    sockets foreach (_ push msg)
+    log.debug(s"HomeActor: Telling socket: $msg")
+    socket foreach (_ push msg)
   }
 
   override def postStop(): Unit = {
     log.debug("Stopping homeActor.")
-    sockets foreach (_.eofAndEnd)
-    sockets.clear()
+    socket foreach (_.eofAndEnd)
   }
 }
