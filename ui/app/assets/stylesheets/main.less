@@ -172,8 +172,8 @@ body > aside {
 		display: none;
 		position: fixed;
 		top: 50px;
-		right: 100px;
-		width: 200px;
+		right: 52px;
+		width: 248px;
 		height: 300px;
 		background: #fff;
 		z-index: 9999;
@@ -185,13 +185,32 @@ body > aside {
 		display: block;
 	}
 
-	li {
-		border-bottom: 1px solid #eee;
-		padding: 10px;
-		a {
-			display: block;
-		}
-	}
+
+    ul {
+        a {
+            color: #384046;
+            li {
+                padding: 10px;
+                border-bottom: 1px solid #eee;
+                &:hover {
+                    background-color: #eee;
+                }
+            }
+            &.newApp {
+                li {
+                    font-weight: bold;
+                    &:before {
+                        content: "\229E";
+                        color: #e25758;
+                        font: 20px icons;
+                        line-height: 16px;
+                        display: inline-block;
+                        float: right;
+                    }
+                }
+            }
+        }
+    }
 }
 
 #wrapper {
