@@ -7,19 +7,20 @@ import java.io.File
 import akka.pattern.pipe
 
 // THE API for the HomePage actor.
-case class OpenExistingApplication(location: String)
-object OpenExistingApplication {
-  def unapply(in: JsValue): Option[OpenExistingApplication] =
-    try if ((in \ "request").as[String] == "OpenExistingApplication")
-      Some(OpenExistingApplication((in \ "location").as[String]))
-    else None
-    catch {
-      case e: JsResultException => None
-    }
-}
-case class CreateNewApplication(location: String, templateId: String)
-object CreateNewApplication {
-  def unapply(in: JsValue): Option[CreateNewApplication] =
+object HomePageActor {
+  case class OpenExistingApplication(location: String)
+  object OpenExistingApplication {
+    def unapply(in: JsValue): Option[OpenExistingApplication] =
+      try if ((in \ "request").as[String] == "OpenExistingApplication")
+        Some(OpenExistingApplication((in \ "location").as[String]))
+      else None
+      catch {
+        case e: JsResultException => None
+      }
+  }
+  case class CreateNewApplication(location: String, templateId: String)
+  object CreateNewApplication {
+    def unapply(in: JsValue): Option[CreateNewApplication] =
     try if ((in \ "request").as[String] == "CreateNewApplication")
       Some(CreateNewApplication(
         (in \ "location").as[String],
@@ -28,37 +29,33 @@ object CreateNewApplication {
     catch {
       case e: JsResultException => None
     }
+  }
+  object RedirectToApplication {
+    def apply(id: String): JsValue =
+      JsObject(Seq(
+        "response" -> JsString("RedirectToApplication"),
+        "appId" -> JsString(id)))
+  }
+  object BadRequest {
+    def apply(request: String, errors: Seq[String]): JsValue =
+      JsObject(Seq(
+        "response" -> JsString("BadRequest"),
+        "errors" -> JsArray(errors map JsString.apply)))
+  }
+  case class Respond(json: JsValue)
 }
-object RedirectToApplication {
-  def apply(id: String): JsValue =
-    JsObject(Seq(
-      "response" -> JsString("RedirectToApplication"),
-      "appId" -> JsString(id)))
-}
-object BadRequest {
-  def apply(request: String, errors: Seq[String]): JsValue =
-    JsObject(Seq(
-      "response" -> JsString("BadRequest"),
-      "errors" -> JsArray(errors map JsString.apply)))
-}
-case class AddHomePageSocket(channel: Concurrent.Channel[JsValue])
-case class Respond(json: JsValue)
+class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
+  import HomePageActor._
+  override def onMessage(json: JsValue): Unit = json match {
+    case OpenExistingApplication(msg) => openExistingApplication(msg.location)
+    case CreateNewApplication(msg) => createNewApplication(msg.location, msg.templateId)
+    case _ =>
+      // TODO - Send error...
+      log.error(s"HomeActor: received unknown msg: $json")
+  }
 
-// This actor controls home page actions and ensures we can survive past timeouts...
-// TODO - Split this between something that handles the websockets
-// and another actor that does the actions and is testable.
-class HomePageActor extends Actor with ActorLogging {
-  var socket: Option[Concurrent.Channel[JsValue]] = None
-  def receive: Receive = {
-    case Respond(json) => notifyListeners(json)
-    case in: JsValue => in match {
-      case OpenExistingApplication(msg) => openExistingApplication(msg.location)
-      case CreateNewApplication(msg) => createNewApplication(msg.location, msg.templateId)
-      case _ =>
-        // TODO - Send error...
-        log.error(s"HomeActor: received unknown msg: " + in)
-    }
-    case AddHomePageSocket(channel) => socket = Some(channel)
+  override def subReceive: Receive = {
+    case Respond(json) => produce(json)
   }
 
   // Goes off and tries to create/load an application.
@@ -102,15 +99,5 @@ class HomePageActor extends Actor with ActorLogging {
         BadRequest("OpenExistingApplication", errors map (_.msg))
     } map Respond.apply
     pipe(response) to self
-  }
-
-  def notifyListeners(msg: JsValue): Unit = {
-    log.debug(s"HomeActor: Telling socket: $msg")
-    socket foreach (_ push msg)
-  }
-
-  override def postStop(): Unit = {
-    log.debug("Stopping homeActor.")
-    socket foreach (_.eofAndEnd)
   }
 }

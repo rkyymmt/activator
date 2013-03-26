@@ -14,7 +14,7 @@ import play.api.mvc.WebSocket.FrameFormatter
 
 private case object Ack
 
-private case object GetWebSocket
+case object GetWebSocket
 
 private case object CloseWebSocket
 
