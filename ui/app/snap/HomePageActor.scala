@@ -21,14 +21,14 @@ object HomePageActor {
   case class CreateNewApplication(location: String, templateId: String)
   object CreateNewApplication {
     def unapply(in: JsValue): Option[CreateNewApplication] =
-    try if ((in \ "request").as[String] == "CreateNewApplication")
-      Some(CreateNewApplication(
-        (in \ "location").as[String],
-        (in \ "template").asOpt[String] getOrElse ""))
-    else None
-    catch {
-      case e: JsResultException => None
-    }
+      try if ((in \ "request").as[String] == "CreateNewApplication")
+        Some(CreateNewApplication(
+          (in \ "location").as[String],
+          (in \ "template").asOpt[String] getOrElse ""))
+      else None
+      catch {
+        case e: JsResultException => None
+      }
   }
   object RedirectToApplication {
     def apply(id: String): JsValue =

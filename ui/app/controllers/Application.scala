@@ -144,33 +144,8 @@ object Application extends Controller {
       RootConfig.user.applications)
 
   /** Opens a stream for home events. */
-  def homeStream = WebSocket.async[JsValue] { request =>
-    val homePageActor = snap.Akka.system.actorOf(akka.actor.Props[snap.HomePageActor])
-    import snap.WebSocketActor.timeout
-    (homePageActor ? snap.GetWebSocket).map {
-      case snap.WebSocketAlreadyUsed =>
-        throw new RuntimeException("can only open apps in one tab at a time")
-      case whatever => whatever
-    }.mapTo[(Iteratee[JsValue, _], Enumerator[JsValue])].map { streams =>
-      Logger.info("WebSocket streams created")
-      streams
-    }
-    /*
-    // Create a new handler for this websocket.
-    // Note: We create a new one per request so events aren't confused amongst
-    // sessions!
-    val handler = snap.Akka.system.actorOf(akka.actor.Props[snap.HomePageActor])
-    import akka.actor.PoisonPill
-    val out = Concurrent.unicast[JsValue](
-      onStart = session => handler ! snap.AddHomePageSocket(session),
-      onComplete = handler ! PoisonPill,
-      onError = (_, _) => handler ! PoisonPill)
-    val in = Iteratee.foreach[JsValue] { json =>
-      handler ! json
-    }
-    (in, out)
-    */
-  }
+  def homeStream =
+    snap.WebSocketActor.create(snap.Akka.system, new snap.HomePageActor)
 
   /** The current working directory of the app. */
   val cwd = (new java.io.File(".").getAbsoluteFile.getParentFile)
