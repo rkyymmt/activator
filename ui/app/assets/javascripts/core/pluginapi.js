@@ -112,9 +112,9 @@ ko.bindingHandlers.ace = {
 		config.statusIcon = ko.computed(function() {
 			var status = this.status();
 			if (status == STATUS_BUSY)
-				return "/public/images/busy_spinner_16x16.gif";
+				return "busy";
 			else if (status == STATUS_ERROR)
-				return "/public/images/error_14x14.png";
+				return "error";
 			else if (status == STATUS_DEFAULT)
 				return "";
 			else {
