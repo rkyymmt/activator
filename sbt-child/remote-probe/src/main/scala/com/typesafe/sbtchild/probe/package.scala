@@ -10,10 +10,14 @@ package object probe {
   type RequestHandler = (State, Context, Params) => (State, Params)
 
   def findHandler(name: String, state: State): Option[RequestHandler] = {
-    if (PlaySupport.isPlayProject(state))
-      Some(PlaySupport.findHandler(name))
-    else if (DefaultsShim.findHandler.isDefinedAt(name))
-      Some(DefaultsShim.findHandler.apply(name))
+    val finder =
+      if (PlaySupport.isPlayProject(state))
+        PlaySupport.findHandler
+      else
+        DefaultsShim.findHandler
+
+    if (finder.isDefinedAt(name))
+      Some(finder(name))
     else
       None
 
