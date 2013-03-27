@@ -129,6 +129,18 @@ object Local extends Controller {
     else (Ok sendFile loc)
   }
 
+  // Open with a local file browser
+  def open(location: String) = Action { request =>
+    val loc = Platform.fromClientFriendlyFilename(location)
+    val desktop = java.awt.Desktop.getDesktop
+    if (!loc.exists) NotAcceptable(s"${location} is not a file or directory!")
+    else if (!desktop.isSupported(java.awt.Desktop.Action.OPEN)) NotAcceptable("Opening a file browser is unsupported on your machine.")
+    else {
+      desktop open loc
+      Ok("")
+    }
+  }
+
   val saveFileForm = Form(tuple("location" -> text, "content" -> text))
   def save = Action { implicit request =>
     // TODO - use Validation here.

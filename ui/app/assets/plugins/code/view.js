@@ -3,6 +3,16 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 	var ko = api.ko,
 		key = api.key;
 
+	function open(location) {
+		return $.ajax({
+			url: '/api/local/open',
+			type: 'GET',
+			data: {
+				location: location
+			}
+		});
+	}
+
 	// Default view for when we don't know which other to use.
 	var DefaultView = api.Widget({
 		id: 'code-default-view',
@@ -15,7 +25,7 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 			});
 		},
 		afterRender: function(a,b,c){
-			console.log('abc', a,b,c)
+			//console.log('abc', a,b,c)
 		}
 	});
 
@@ -68,6 +78,14 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 			});
 			self.fileStats = ko.computed(function() {
 				return self.fileKindName() + ' / ' + self.readableFileSize();
+			});
+		},
+		openInSystemEditor: function() {
+			var self = this;
+			var loc =self.file().location;
+			open(loc).sucess(function() {}).error(function(err) {
+				console.log('Failed to open file in browser: ', err)
+				alert('Failed to open file.  This may be unsupported by your system.');
 			});
 		}
 	});

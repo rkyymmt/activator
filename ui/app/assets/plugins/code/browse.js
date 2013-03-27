@@ -5,6 +5,16 @@ define(['text!./browse.html', 'core/pluginapi'], function(template, api, files) 
 		Widget = api.Widget,
 		Class = api.Class;
 
+	// TODO - Don't duplicate this in both view.js + browse.js...
+	function open(location) {
+		return $.ajax({
+			url: '/api/local/open',
+			type: 'GET',
+			data: {
+				location: location
+			}
+		});
+	}
 
 	var Browser = Widget({
 		id: 'code-browser-view',
@@ -38,6 +48,14 @@ define(['text!./browse.html', 'core/pluginapi'], function(template, api, files) 
 			self.prevDirUrl = ko.computed(function() {
 				var parts = self.directory().relative().split('/');
 				return '#code/' + parts.slice(0, parts.length -1).join('/');
+			});
+		},
+		openInFileBrowser: function() {
+			var self = this;
+			var loc = self.directory().location;
+			open(loc).sucess(function() {}).error(function(err) {
+				console.log('Failed to open directory in browser: ', err)
+				alert('Failed to open directory.  This may be unsupported by your system.');
 			});
 		}
 	});
