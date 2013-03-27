@@ -1,5 +1,4 @@
-package com.typesafe.sbtchild
-package probe
+package snap
 
 import java.io.File
 

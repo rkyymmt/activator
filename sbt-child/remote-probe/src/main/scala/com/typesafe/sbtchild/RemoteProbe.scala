@@ -39,9 +39,7 @@ object SetupSbtChild extends (State => State) {
     // tests or production.
     if (System.getProperty("builder.sbt.no-shims", "false") != "true") {
       // Make sure the shims are installed we need for this build.
-      // TODO - Better place/way to do this?
-      val shimEnsurers = Seq[State => Boolean](PlaySupport.ensureShim, EclipseSupport.ensureShim)
-      val anyShimAdded = shimEnsurers.foldLeft(false) { (sofar, f) => f(loggedState) || sofar } // note, DO NOT short-circuit
+      val anyShimAdded = probe.installShims(loggedState)
 
       if (anyShimAdded) {
         client.sendJson(protocol.NeedRebootEvent)

@@ -1,4 +1,4 @@
-package snap.cache
+package snap
 
 import java.io._
 import java.nio.channels._
@@ -16,8 +16,8 @@ object IO {
     else sys.error(failBase)
   }
   def copyFile(from: File, to: File): Unit = {
-    require(from.exists, s"Source file '${from.getAbsolutePath}' does not exist.")
-    require(!from.isDirectory, s"Source file '${from.getAbsolutePath}' is a directory.")
+    require(from.exists, "Source file '" + from.getAbsolutePath + "' does not exist.")
+    require(!from.isDirectory, "Source file '" + from.getAbsolutePath + "' is a directory.")
     fileInputChannel(from) { in =>
       fileOutputChannel(to) { out =>
         // maximum bytes per transfer according to  from http://dzone.com/snippets/java-filecopy-using-nio
@@ -28,7 +28,7 @@ object IO {
           else offset
         val copied = loop(0)
         if (copied != in.size)
-          sys.error(s"Could not copy '$from' to '$to' ($copied/${in.size} bytes copied)")
+          sys.error("Could not copy '" + from + "' to '" + to + "' (" + copied + "/" + in.size + " bytes copied)")
       }
     }
   }
@@ -73,7 +73,7 @@ object IO {
         walk(basedir)
       }
     }
-    files.toVector
+    files.toSeq
   }
   /**
    * Creates a file in the default temporary directory, calls `action` with the file, deletes the file, and returns the result of calling `action`.

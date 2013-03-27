@@ -6,7 +6,6 @@ import language.higherKinds
 import language.postfixOps
 
 import play.api.libs.json._
-import snap.cache.IO
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import java.io._

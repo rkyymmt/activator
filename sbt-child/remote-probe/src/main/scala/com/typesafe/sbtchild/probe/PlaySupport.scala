@@ -23,8 +23,6 @@ object PlaySupport {
     run(taskName, state, context, params)
   }
 
-  private val shimInstaller = new ShimInstaller("play")
-
   private val findPlayHandler: PartialFunction[String, RequestHandler] = {
     case TaskNames.run => playRunHandler(TaskNames.run)
     case TaskNames.runMain => playRunHandler(TaskNames.runMain)
@@ -48,14 +46,4 @@ object PlaySupport {
     val extracted = Project.extract(state)
     extracted.getOpt(SettingKey[Boolean]("play-plugin")).isDefined
   }
-
-  // true if the shim was freshly installed
-  def ensureShim(state: State): Boolean = {
-    // TODO - Detect SHA of shim file, and ensure we're up-to-date.
-    if (isPlayProject(state))
-      shimInstaller.ensure(state)
-    else
-      false
-  }
-
 }

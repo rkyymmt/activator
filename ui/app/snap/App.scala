@@ -14,7 +14,7 @@ class App(val config: AppConfig, val system: ActorSystem, val sbtMaker: SbtChild
   // Figure out when it should initialize/run.
   val templateID: Option[String] =
     try {
-      val props = snap.cache.IO loadProperties (new java.io.File(config.location, "project/build.properties"))
+      val props = snap.IO loadProperties (new java.io.File(config.location, "project/build.properties"))
       Option(props.getProperty(BuilderProperties.TEMPLATE_UUID_PROPERTY_NAME, null))
     } catch {
       case e: java.io.IOException => None // TODO - Log?

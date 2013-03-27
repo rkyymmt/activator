@@ -2,6 +2,7 @@ package com.typesafe.sbtchild
 
 import akka.actor._
 import java.io.File
+import builder.properties.BuilderProperties
 
 // the "id" can be anything as long as you ensure it's unique
 // for the pool; use a uuid if in doubt. taskName is a human-readable
@@ -33,10 +34,22 @@ case class SbtReservationsChanged(reservations: Set[SbtReservation]) extends Chi
 
 // this is to allow test mocks
 trait SbtChildFactory {
+  def init(log: akka.event.LoggingAdapter): Unit = {}
   def newChild(actorFactory: ActorRefFactory): ActorRef
 }
 
 class DefaultSbtChildFactory(val workingDir: File, val sbtChildMaker: SbtChildProcessMaker) extends SbtChildFactory {
+  override def init(log: akka.event.LoggingAdapter): Unit = {
+    for (shim <- snap.ShimWriter.knownShims) {
+      val writer = new snap.ShimWriter(shim, BuilderProperties.APP_VERSION)
+      // we update shim plugin files ONLY if they exist, because when they
+      // are missing it may be because they aren't applicable. Only the
+      // remote probe can decide to ADD a shim file.
+      if (writer.updateIfExists(workingDir))
+        log.info(s"Updated shim plugin for ${shim}")
+    }
+  }
+
   override def newChild(actorFactory: ActorRefFactory): ActorRef = SbtChild(actorFactory, workingDir, sbtChildMaker)
 }
 
@@ -185,6 +198,11 @@ class ChildPool(val childFactory: SbtChildFactory, val minChildren: Int = 1, val
     if (available contains ref) {
       available = available - ref
     }
+  }
+
+  override def preStart() = {
+    log.debug("preStart")
+    childFactory.init(log)
   }
 
   override def postStop() = {

@@ -31,7 +31,7 @@ object TheBuilderBuild extends Build {
 
   // These are the projects we want in the local Builder repository
   lazy val publishedSbtShimProjects = Set(playShimPlugin, eclipseShimPlugin, sbtUiInterface)
-  lazy val publishedProjects = Seq(common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects  
+  lazy val publishedProjects = Seq(io, common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects
 
   // basic project that gives us properties to use in other projects.
   lazy val props = (
@@ -39,12 +39,16 @@ object TheBuilderBuild extends Build {
     settings(Properties.makePropertyClassSetting(Dependencies.sbtVersion, Dependencies.scalaVersion):_*)
   )
 
+  lazy val io = (
+    BuilderProject("io")
+    dependsOnRemote(junitInterface % "test", specs2 % "test")
+  )
 
   lazy val common = (
     BuilderProject("common")
     dependsOnRemote(junitInterface % "test", specs2 % "test")
+    dependsOn(io)
   )
-
 
   lazy val cache = (
     BuilderProject("cache")
@@ -74,6 +78,7 @@ object TheBuilderBuild extends Build {
     SbtChildProject("remote-probe")
     settings(Keys.scalaVersion := "2.9.2", Keys.scalaBinaryVersion <<= Keys.scalaVersion)
     dependsOnSource("../protocol")
+    dependsOnSource("../../io")
     dependsOn(props, sbtUiInterface % "provided")
     dependsOnRemote(
       sbtMain % "provided",
@@ -127,6 +132,7 @@ object TheBuilderBuild extends Build {
     settings(Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
     dependsOnSource("../protocol")
     dependsOn(props)
+    dependsOn(common)
     dependsOnRemote(akkaActor,
                     sbtLauncherInterface)
     settings(configureSbtTest(Keys.test): _*)
