@@ -32,12 +32,46 @@ require([
 	'vendors/chain',
 	'vendors/keymage.min'
 ],function(){
-	require(['core/widgets/fileselection'], function(FileSelection) {
+	require(['core/streams', 'core/widgets/fileselection'], function(streams, FileSelection) {
 		// Register handlers on the UI.
 		$(function() {
+			// Register webSocket error handler
+			streams.subscribe({
+				handler: function(event) {
+					// TODO - Can we try to reconnect X times before failing?
+					alert("Connection lost; you will need to reload the page or restart Builder");
+				},
+				filter: function(event) {
+					return event.type == streams.WEB_SOCKET_CLOSED;
+				}
+			});
+
+			function toggleWorking() {
+				$('#homePage, #workingPage').toggle();
+			}
+			// TODO - Remove debugging...
+			window.streams = streams;
+			window.toggleWorking = toggleWorking;
+			streams.subscribe(function(event) {
+				// Handle all the remote events here...
+				switch(event.response) {
+					case 'BadRequest':
+						// TODO - Do better than an alert!
+						alert('Unable to perform request: ' + event.errors.join(' \n'));
+						toggleWorking();
+						break;
+					case 'RedirectToApplication':
+						window.location.href = window.location.href.replace('home', 'app/'+event.appId);
+						break;
+					default:
+						console.log('Unknown event: ', event);
+				}
+			});
+			// Save these lookups so we don't have to do them repeatedly.
 			var appNameInput = $('#newappName');
 			var appLocationInput = $('#newappLocation');
 			var homeDir = appLocationInput.attr('placeholder');
+			var appTemplateName = $('#newAppTemplateName');
 			var evilLocationStore = homeDir;
 			function updateAppLocation(location) {
 				if(location) {
@@ -51,6 +85,32 @@ require([
 			$('#newButton').on('click', function(){
 				if(!appLocationInput.val())
 					appLocationInput.val(appLocationInput.attr('placeholder'));
+			});
+			// Helper method to rip out form values appropriately...
+			// TODO - This probably belongs in util.
+			function formToJson(form) {
+				var data = $(form).serializeArray();
+				var o = {}
+				$.each(data, function() {
+					if (o[this.name] !== undefined) {
+						if (!o[this.name].push) {
+							o[this.name] = [o[this.name]];
+						}
+						o[this.name].push(this.value || '');
+					} else {
+						o[this.name] = this.value || '';
+					}
+				});
+				return o;
+			};
+			// Hook Submissions to send to the websocket.
+			$('form#newApp').on('submit', function(event) {
+				event.preventDefault();
+				var msg = formToJson(event.currentTarget);
+				msg.request = 'CreateNewApplication';
+				debugger;
+				streams.send(msg);
+				toggleWorking();
 			});
 			function toggleDirectoryBrowser() {
 				$('#newAppForm, #newAppLocationBrowser').toggle();
@@ -81,19 +141,11 @@ require([
 				},
 				onSelect: function(file) {
 					// TODO - Grey out the app while we wait for response.
-					$.ajax({
-						url: '/loadLocation',
-						type: 'GET',
-						dataType: 'json',
-						data: {
-							location: file
-						}
-					}).done(function(data) {
-						window.location.href = window.location.href.replace('home', 'app/'+data.id);
-					}).error(function(failure) {
-						// TODO - Ungrey the app.
-						alert('Failed to load project at location: ' + file)
+					streams.send({
+						request: 'OpenExistingApplication',
+						location: file
 					});
+					toggleWorking();
 				}
 			});
 			openFs.renderTo('#openAppLocationBrowser');
@@ -102,7 +154,7 @@ require([
 				// ???
 				$('input:radio', this).prop('checked',true);
 				var name = $('h3', this).text();
-				$('#newAppTemplateName').val(name);
+				appTemplateName.val(name);
 			})
 			.on('click', '#browseAppLocation', function(event) {
 				event.preventDefault();
