@@ -12,7 +12,6 @@ GET     /api/templates/:id/tutorial/*location	controllers.api.Templates.tutorial
 # TODO: Should these take the app location as a request parameter?
 GET     /api/app/history            controllers.Application.getHistory
 GET     /api/app/connect/*id        controllers.Application.connectApp(id)
-POST    /api/app/fromLocation       controllers.Application.appFromLocation
 
 # sbt things
 POST    /api/sbt/task               controllers.api.Sbt.task
@@ -35,8 +34,7 @@ GET     /api/event/kill             controllers.api.Events.kill
 GET     /                            controllers.Application.index
 GET     /home                        controllers.Application.forceHome
 GET     /app/*id                     controllers.Application.app(id)
-GET     /loadLocation                controllers.Application.appFromLocation
-POST    /newApplication              controllers.Application.newApplication
+GET     /home/stream                 controllers.Application.homeStream
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /public/*file               controllers.Assets.at(path="/public", file)

@@ -1,67 +1,75 @@
-@(model: HomeModel, newApp: Form[NewAppForm])
+@(model: HomeModel, newApp: Form[NewAppForm])(implicit request: RequestHeader)
 <!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="utf-8" />
 		<title>Typesafe Builder</title>
+		<!-- Initialize global Javascript values... -->
+		<script type="text/javascript">
+			window.wsUrl = '@routes.Application.homeStream.webSocketURL()';
+		</script>
 		<script data-main="/public/javascripts/home.js" type="text/javascript" src="/public/javascripts/vendors/require.min.js"></script>
 		<link rel="stylesheet" media="screen" href="/public/stylesheets/home.css">
 		<link rel="shortcut icon" type="image/png" href="/public/images/favicon.png">
 	</head>
 	<body class="">
-
-		<article>
-			<h1>Typesafe Builder</h1>
-			<p>Build apps in a snap!  Typesafe Builder is a local-running web application.  Create new apps from templates.  Browse &amp; edit code.  Run apps and tests.</p>
-			<p style="font-style: italic">Community created templates &amp; plugins are coming soon!</p>
-		</article>
-
-		<section id="new">
-            <div id="newAppForm" class="subsection">
-                <h2>New application</h2>
-                @helper.form(action = routes.Application.newApplication, 'id -> "newApp") {
-                    <fieldset>
-                        <label for="newappName">Name</label>
-                        <input type="text" id="newappName" name="name" required>
-                    </fieldset>
-                    <fieldset>
-                        <label for="newappLocation">Location</label>
-                        <a href="#" id="browseAppLocation"></a>
-                        <input type="text" id="newappLocation" name="location" placeholder="@model.userHome" required>
-                    </fieldset>
-                    <fieldset>
-                        <label for="newappTemplate">Template</label>
-                        <input type="text" id="newAppTemplateName" name="template-name" placeholder="Choose a template in the list below" disabled required>
-                    </fieldset>
-                    <ul>
-                    @model.templates.map { template =>
-                        <li class="template">
-                            <input type="radio" name="template" value="@template.id">
-                            <h3>@template.name</h3>
-                            <p>@template.description</p>
-                        </li>
-                    }
-                    </ul>
-                    <input type="submit" class="button" value="Create" id="newButton">
-                }
-            </div>
-            <div id="newAppLocationBrowser" class="subsection hidden"></div>
-		</section>
-
-		<section id="open">
-            <div id="openAppForm" class="subsection">
-			    <h2>Open existing app...</h2>
-                <ul>
-				    @model.recentApps.map { app =>
-					    <li class="recentApp">
-						    <h3><a href="@routes.Application.app(app.id)">@app.cachedName.getOrElse(app.id)</a></h3>
-						    <p class="path"><span>@app.location</span></p>
-					    </li>
-				    }
-			     </ul>
-                 <input type="submit" class="button" value="Find Existing" id="openButton">
-            </div>
-            <div id="openAppLocationBrowser" class="subsection hidden"></div>
-		</section>
+		<div id="workingPage" class="hidden">
+			<h1>Loading...</h1>
+		</div>
+		<div id="homePage">
+			<article>
+				<h1>Typesafe Builder</h1>
+				<p>Build apps in a snap!  Typesafe Builder is a local-running web application.  Create new apps from templates.  Browse &amp; edit code.  Run apps and tests.</p>
+				<p style="font-style: italic">Community created templates &amp; plugins are coming soon!</p>
+			</article>
+	
+			<section id="new">
+	            <div id="newAppForm" class="subsection">
+	                <h2>New application</h2>
+	                @helper.form(action = routes.Application.forceHome, 'id -> "newApp") {
+	                    <fieldset>
+	                        <label for="newappName">Name</label>
+	                        <input type="text" id="newappName" name="name" required>
+	                    </fieldset>
+	                    <fieldset>
+	                        <label for="newappLocation">Location</label>
+	                        <a href="#" id="browseAppLocation"></a>
+	                        <input type="text" id="newappLocation" name="location" placeholder="@model.userHome" required>
+	                    </fieldset>
+	                    <fieldset>
+	                        <label for="newappTemplate">Template</label>
+	                        <input type="text" id="newAppTemplateName" name="template-name" placeholder="Choose a template in the list below" disabled required>
+	                    </fieldset>
+	                    <ul>
+	                    @model.templates.map { template =>
+	                        <li class="template">
+	                            <input type="radio" name="template" value="@template.id">
+	                            <h3>@template.name</h3>
+	                            <p>@template.description</p>
+	                        </li>
+	                    }
+	                    </ul>
+	                    <input type="submit" class="button" value="Create" id="newButton">
+	                }
+	            </div>
+	            <div id="newAppLocationBrowser" class="subsection hidden"></div>
+			</section>
+	
+			<section id="open">
+	            <div id="openAppForm" class="subsection">
+				    <h2>Open existing app...</h2>
+	                <ul>
+					    @model.recentApps.map { app =>
+						    <li class="recentApp">
+							    <h3><a href="@routes.Application.app(app.id)">@app.cachedName.getOrElse(app.id)</a></h3>
+							    <p class="path"><span>@app.location</span></p>
+						    </li>
+					    }
+				     </ul>
+	                 <input type="submit" class="button" value="Find Existing" id="openButton">
+	            </div>
+	            <div id="openAppLocationBrowser" class="subsection hidden"></div>
+			</section>
+		</div>
 	</body>
 </html>

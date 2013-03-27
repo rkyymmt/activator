@@ -1,10 +1,11 @@
 define(function() {
-	var id = window.serverAppModel.wsUrl;
+	var WEB_SOCKET_CLOSED = 'WebSocketClosed';
+	var id = window.wsUrl;
 	// We can probably just connect immediately.
 	var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket;
 
-	console.log("WS opening: " + window.serverAppModel.wsUrl);
-	var socket = new WS(window.serverAppModel.wsUrl);
+	console.log("WS opening: " + id);
+	var socket = new WS(id);
 
 	var subscribers = []
 
@@ -66,20 +67,23 @@ define(function() {
 		});
 
 	}
-
-	// Internal method to handle receiving websocket events.
-	function receiveEvent(event) {
-		console.log("WS Event: ", event.data, event);
-		var obj = JSON.parse(event.data);
+	// Internal method that just sends events to subscribers.
+	function sendEvent(event) {
 		$.each(subscribers, function(idx, subscriber) {
-			if(subscriber.filter(obj)) {
+			if(subscriber.filter(event)) {
 				try {
-					subscriber.handler(obj);
+					subscriber.handler(event);
 				} catch(e) {
 					console.log('Handler ', subscriber, ' failed on message ', obj, ' with error ', e);
 				}
 			}
 		});
+	}
+	// Internal method to handle receiving websocket events.
+	function receiveEvent(event) {
+		console.log("WS Event: ", event.data, event);
+		var obj = JSON.parse(event.data);
+		sendEvent(obj);
 	}
 
 	function onOpen(event) {
@@ -93,10 +97,15 @@ define(function() {
 		// two buttons like "Reload" and "Go away" (maybe it's useful to not reload
 		// if you need to cut-and-paste some logs for example).
 
+		// We send out a message on failure for anyone using us to handle.
+
 		// This is in a timeout so that when we navigate away from the page we
 		// don't flash the alert box briefly.
 		setTimeout(function() {
-			alert("Connection lost; you will need to reload the page or restart Builder");
+			sendEvent({
+				type: WEB_SOCKET_CLOSED,
+				id: id
+			});
 		}, 1000);
 	}
 
@@ -116,6 +125,7 @@ define(function() {
 		// TODO - we need more public API then just "send message".
 		send: sendMessage,
 		subscribe: subscribe,
-		unsubscribe: unsubscribe
+		unsubscribe: unsubscribe,
+		WEB_SOCKET_CLOSED: WEB_SOCKET_CLOSED
 	};
 });
