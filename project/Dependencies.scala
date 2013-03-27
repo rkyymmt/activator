@@ -32,7 +32,7 @@ object Dependencies {
 
   // SBT plugins we have to shim
   val playSbtPlugin        =  Defaults.sbtPluginExtra("play" % "sbt-plugin" % "2.1.0", sbtPluginVersion, sbtPluginScalaVersion)
-
+  val eclipseSbtPlugin     =  Defaults.sbtPluginExtra("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.2", sbtPluginVersion, sbtPluginScalaVersion)
 
   // Mini DSL
   // DSL for adding remote deps like local deps.

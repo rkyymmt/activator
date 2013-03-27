@@ -17,6 +17,7 @@ import scala.util.matching.Regex
 import com.typesafe.sbt.ui
 import scala.util.parsing.json._
 import com.typesafe.sbtchild.probe.PlaySupport
+import com.typesafe.sbtchild.probe.EclipseSupport
 import com.typesafe.sbtchild.probe.ParamsHelper._
 import scala.annotation.tailrec
 
@@ -39,7 +40,7 @@ object SetupSbtChild extends (State => State) {
     if (System.getProperty("builder.sbt.no-shims", "false") != "true") {
       // Make sure the shims are installed we need for this build.
       // TODO - Better place/way to do this?
-      val shimEnsurers = Seq[State => Boolean](PlaySupport.ensureShim)
+      val shimEnsurers = Seq[State => Boolean](PlaySupport.ensureShim, EclipseSupport.ensureShim)
       val anyShimAdded = shimEnsurers.foldLeft(false) { (sofar, f) => f(loggedState) || sofar } // note, DO NOT short-circuit
 
       if (anyShimAdded) {
