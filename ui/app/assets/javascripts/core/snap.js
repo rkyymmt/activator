@@ -1,8 +1,18 @@
 // Sort of MVC (Module, Grid, Router)
-define(['./plugin', './grid', './router', './pluginapi', './navigation', './tutorial/tutorial'], function(plugins, Grid, router, api, navigation, tutorial) {
+define(['./plugin', './grid', './router', './pluginapi', './navigation', './tutorial/tutorial', './streams'], function(plugins, Grid, router, api, navigation, tutorial, streams) {
 
 	var ko = api.ko,
 		key = api.key;
+
+	// Register webSocket error handler
+	streams.subscribe({
+		handler: function(event) {
+			alert("Connection lost; you will need to reload the page or restart Builder");
+		},
+		filter: function(event) {
+			return event.type == streams.WEB_SOCKET_CLOSED;
+		}
+	});
 
 	// Model for the whole app view
 	var model = {

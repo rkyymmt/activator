@@ -12,8 +12,9 @@ import builder.properties.BuilderProperties
 import scala.util.control.NonFatal
 import scala.util.Try
 import play.Logger
-import play.api.libs.iteratee.{ Iteratee, Enumerator, Concurrent }
+import play.api.libs.iteratee.{ Iteratee, Enumerator, Concurrent, Input }
 import akka.pattern._
+import snap.CloseWebSocket
 
 case class ApplicationModel(
   id: String,
@@ -66,37 +67,6 @@ object Application extends Controller {
       "location" -> text,
       "template" -> text)(NewAppForm.apply)(NewAppForm.unapply))
 
-  /**
-   * Creates a new application and loads it, or redirects to
-   * the home page.
-   */
-  def newApplication = Action { implicit request =>
-    Async {
-      val form = newAppForm.bindFromRequest
-      // Attempt to create the new location and return a Try, so we have
-      // a chance of knowing what the error is.
-      val location: Future[ProcessResult[File]] =
-        Future {
-          val model = form.get
-          val location = new File(model.location)
-          // TODO - Store template cache somehwere better...
-          snap.cache.Actions.cloneTemplate(
-            api.Templates.templateCache,
-            model.template,
-            location) map (_ => location)
-        }
-      // Now look up the app name and register this location
-      // with recently loaded apps.
-      import concurrent.ExecutionContext.Implicits.global
-      val id = location flatMapNested AppManager.loadAppIdFromLocation
-      id map {
-        case snap.ProcessSuccess(id) => Redirect(routes.Application.app(id))
-        case snap.ProcessFailure(errrors) =>
-          // TODO - flash the errors we now have...
-          BadRequest(views.html.home(homeModel, form))
-      }
-    }
-  }
   /** Reloads the model for the home page. */
   private def homeModel = HomeModel(
     userHome = BuilderProperties.GLOBAL_USER_HOME,
@@ -104,7 +74,7 @@ object Application extends Controller {
     recentApps = RootConfig.user.applications)
 
   /** Loads the homepage, with a blank new-app form. */
-  def forceHome = Action { request =>
+  def forceHome = Action { implicit request =>
     // TODO - make sure template cache lives in one and only one place!
     Ok(views.html.home(homeModel, newAppForm))
   }
@@ -120,32 +90,6 @@ object Application extends Controller {
           // display it on home screen
           Logger.error("Failed to load app id " + id + ": " + e.getMessage(), e)
           Redirect(routes.Application.forceHome)
-      }
-    }
-  }
-
-  val fromLocationForm = Form(
-    mapping(
-      "location" -> text)(FromLocationForm.apply)(FromLocationForm.unapply))
-
-  /**
-   * Registers a location as an application, returning JSON with the app ID.
-   * Basically this is "import existing directory"
-   */
-  def appFromLocation() = Action { implicit request =>
-    val form = fromLocationForm.bindFromRequest.get
-
-    val file = snap.Validating(new File(form.location)).validate(
-      snap.Validation.fileExists,
-      snap.Validation.isDirectory)
-    import concurrent.ExecutionContext.Implicits.global
-    val id = file flatMapNested AppManager.loadAppIdFromLocation
-
-    Async {
-      id map {
-        case snap.ProcessSuccess(id) => Ok(JsObject(Seq("id" -> JsString(id))))
-        // TODO - Return with form and flash errors?
-        case snap.ProcessFailure(errors) => BadRequest(errors map (_.msg) mkString "\n")
       }
     }
   }
@@ -198,6 +142,10 @@ object Application extends Controller {
       // TODO - something less lame than exception here...
       app.templateID,
       RootConfig.user.applications)
+
+  /** Opens a stream for home events. */
+  def homeStream =
+    snap.WebSocketActor.create(snap.Akka.system, new snap.HomePageActor)
 
   /** The current working directory of the app. */
   val cwd = (new java.io.File(".").getAbsoluteFile.getParentFile)

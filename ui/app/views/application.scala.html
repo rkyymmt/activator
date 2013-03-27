@@ -14,12 +14,12 @@
 		<meta charset="utf-8" />
 		<title>Typesafe Builder</title>
 		<script type="text/javascript">
+		window.wsUrl = '@routes.Application.connectApp(model.id).webSocketURL()';
 		window.serverAppModel = {
       name: '@model.name',
       id: '@model.id',
       pluginIds:  [ @Html(model.plugins.mkString("\'", "\','","\'")) ],
-      location: '@model.jsLocation',
-      wsUrl: '@routes.Application.connectApp(model.id).webSocketURL()'
+      location: '@model.jsLocation'
       @for(id <- model.template) {
         ,template: {
       	  id: '@model.template'

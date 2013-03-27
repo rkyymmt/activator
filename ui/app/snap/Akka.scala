@@ -3,6 +3,9 @@ package snap
 import akka.util.Timeout
 import scala.concurrent.duration._
 
+import akka.actor.{ Actor, ActorRef, Props }
+import play.api.libs.json.JsValue
+
 // This guy stores the Akka we use for eventing.
 object Akka {
   // TODO - use my thread context
@@ -24,8 +27,6 @@ object Akka {
     }
   }
 }
-
-import akka.actor.{ Actor, ActorRef, Props }
 
 // TODO - Cleanup and thread stuff.
 class EventActor extends Actor {

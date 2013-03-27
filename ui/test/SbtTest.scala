@@ -18,6 +18,11 @@ import scala.concurrent.Await
 import akka.util.Timeout
 import java.util.concurrent.TimeUnit
 import play.api.libs.iteratee._
+import snap.AppManager
+import snap.ProcessResult
+import snap.ProcessSuccess
+import snap.ProcessFailure
+import snap.ProcessSuccess
 
 class SbtTest {
 
@@ -31,6 +36,11 @@ class SbtTest {
       deAsync(Await.result(p, timeout.duration))
     }
     case whatever => whatever
+  }
+
+  private def loadAppIdFromLocation(location: File): ProcessResult[String] = {
+    implicit val timeout = Timeout(120, TimeUnit.SECONDS)
+    Await.result(AppManager.loadAppIdFromLocation(location), timeout.duration)
   }
 
   // the "body" and "Writeable" args are a workaround for
@@ -71,16 +81,13 @@ class SbtTest {
   @Test
   def testHandleEmptyDirectory(): Unit = {
     val dummy = makeDummyEmptyDirectory("notAnSbtProject")
-
     running(FakeApplication()) {
-      val uri = (new URI("/api/app/fromLocation")).addQueryParameter("location", dummy.getPath)
-
-      val message =
-        routeExpectingAnError(FakeRequest(method = "POST", uri = uri.getRawPath + "?" + uri.getRawQuery,
-          headers = FakeHeaders(Seq.empty), body = ""), "")
-
-      if (!message.contains("Directory does not contain an sbt build"))
-        throw new AssertionError(s"Got wrong error message: '$message'")
+      val result = loadAppIdFromLocation(dummy)
+      result match {
+        case ProcessFailure(errors) if errors exists (_.msg contains "Directory does not contain an sbt build") =>
+        case x: ProcessFailure => throw new AssertionError(s"Got wrong error msgs: $x")
+        case _: ProcessSuccess[_] => throw new AssertionError("Should not have found an sbt project.")
+      }
     }
   }
 
@@ -88,17 +95,8 @@ class SbtTest {
     val dummy = projectMaker(projectName)
 
     running(FakeApplication()) {
-      val uri = (new URI("/api/app/fromLocation")).addQueryParameter("location", dummy.getPath)
-
-      val createJson =
-        routeThrowingIfNotJson(FakeRequest(method = "POST", uri = uri.getRawPath + "?" + uri.getRawQuery,
-          headers = FakeHeaders(Seq.empty), body = ""), "")
-
-      val appId = createJson match {
-        case o: JsObject => o \ "id" match {
-          case JsString(s) => s
-          case whatever => throw new RuntimeException("id not found, found: " + whatever)
-        }
+      val appId = loadAppIdFromLocation(dummy) match {
+        case ProcessSuccess(id) => id
         case whatever => throw new RuntimeException("bad result, got: " + whatever)
       }
 
