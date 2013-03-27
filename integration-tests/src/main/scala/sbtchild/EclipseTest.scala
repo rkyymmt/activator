@@ -10,15 +10,16 @@ import concurrent.Await
 import akka.util.Timeout
 import snap.tests._
 
-class PlayProject extends IntegrationTest {
-  val system = ActorSystem("PlayProjectTest")
+class EclipseTest extends IntegrationTest {
+  val system = ActorSystem("EclipseTest")
 
   def newSbtChild(dir: File) = SbtChild(system, dir, new SbtChildLauncher(configuration))
 
   try {
     // TODO - Create project here, rather than rely on it created by test harness....
-    val dir = new File("play-dummy")
-    makeDummyPlayProject(dir)
+    val dir = new File("eclipse-dummy")
+    makeDummySbtProject(dir)
+
     val child = newSbtChild(dir)
     try {
       implicit val timeout = Timeout(120.seconds)
@@ -30,22 +31,20 @@ class PlayProject extends IntegrationTest {
           throw new Exception("Failed to get project name: " + error)
       }
       println("Project is: " + name)
-      val runFuture = child ? protocol.RunRequest(sendEvents = false, mainClass = None)
+      val eclipseFuture = child ? protocol.GenericRequest(sendEvents = false, name = "eclipse", params = Map.empty)
 
-      // kill off the run
-      child ! protocol.CancelRequest
-
-      val run = Await.result(runFuture, timeout.duration) match {
-        case protocol.RunResponse(success, "run") => {
-          success
-        }
+      Await.result(eclipseFuture, timeout.duration) match {
+        case protocol.GenericResponse("eclipse", _) =>
         case protocol.ErrorResponse(error) =>
-          throw new Exception("Failed to run: " + error)
+          throw new Exception("Failed to generate eclipse stuff: " + error)
       }
-      println("run=" + run)
     } finally {
       system.stop(child)
     }
+    if (!(new File(dir, ".project")).exists)
+      throw new AssertionError("No .project file created")
+    if (!(new File(dir, ".classpath")).exists)
+      throw new AssertionError("No .classpath file created")
   } finally {
     system.shutdown()
   }

@@ -32,25 +32,59 @@ class ServerActor(serverSocket: ServerSocket, childActor: ActorRef) extends Acto
 
   var disconnected = false
 
-  override def receive = {
-    case req: ServerActorRequest => req match {
-      case SubscribeServer(ref) =>
-        subscribers = subscribers + ref
-        context.watch(ref)
-      case UnsubscribeServer(ref) =>
-        subscribers = subscribers - ref
-        context.unwatch(ref)
-      case StartServer =>
-        start()
-      case ServerAccepted(server) =>
-        serverOption = Some(server)
-    }
+  private def commonBehavior: Receive = {
+    case SubscribeServer(ref) =>
+      subscribers = subscribers + ref
+      context.watch(ref)
+    case UnsubscribeServer(ref) =>
+      subscribers = subscribers - ref
+      context.unwatch(ref)
+    case Terminated(ref) =>
+      subscribers = subscribers - ref
+    case protocol.Envelope(_, _, protocol.Stopped) =>
+      log.debug("Got a Stopped message (server thread must have quit)")
+      disconnected = true
+      for (s <- subscribers) {
+        s ! protocol.Stopped
+      }
+  }
 
+  override def receive = awaitingStart
+
+  private def awaitingStart: Receive = commonBehavior orElse {
+    case StartServer =>
+      start()
+      context.become(awaitingAccept)
+  }
+
+  private def awaitingAccept: Receive = commonBehavior orElse {
+    case ServerAccepted(server) =>
+      serverOption = Some(server)
+      context.become(awaitingBoot)
+  }
+
+  private def awaitingBoot: Receive = commonBehavior orElse {
+    case protocol.Envelope(_, _, e: protocol.BootEvent) => e match {
+      case protocol.NowListeningEvent =>
+        // we are ready
+        context.become(booted)
+        // synthesize Started
+        self ! protocol.Envelope(0L, 0L, protocol.Started)
+      case protocol.NeedRebootEvent =>
+        for (s <- subscribers) {
+          s ! protocol.NeedRebootEvent
+        }
+        // self-destruct
+        throw new RuntimeException("Need to reboot sbt")
+    }
+  }
+
+  private def booted: Receive = commonBehavior orElse {
     case req: protocol.Request => {
       if (disconnected) {
         sender ! protocol.ErrorResponse("sbt socket is disconnected")
       } else {
-        val server = serverOption.getOrElse(throw new Exception("Made request before server accept"))
+        val server = serverOption.getOrElse(throw new Exception("Impossible, in booted state before server accept?"))
         try {
           val requestSerial = server.sendJson(req)
           val pair = (requestSerial -> Requestor(sender, req.sendEvents))
@@ -63,9 +97,6 @@ class ServerActor(serverSocket: ServerSocket, childActor: ActorRef) extends Acto
         }
       }
     }
-
-    case Terminated(ref) =>
-      subscribers = subscribers - ref
 
     case e: protocol.Envelope =>
       if (e.replyTo != 0L) {
@@ -93,12 +124,6 @@ class ServerActor(serverSocket: ServerSocket, childActor: ActorRef) extends Acto
         for (s <- subscribers) {
           s ! e.content
         }
-        e.content match {
-          case protocol.Stopped =>
-            log.debug("  marking disconnected due to protocol.Stopped")
-            disconnected = true
-          case _ =>
-        }
       }
   }
 
@@ -112,7 +137,6 @@ class ServerActor(serverSocket: ServerSocket, childActor: ActorRef) extends Acto
             if (!serverSocket.isClosed())
               serverSocket.close() // we only want one connection
             selfRef ! ServerAccepted(server)
-            selfRef ! protocol.Envelope(0L, 0L, protocol.Started)
 
             // loop is broken by EOFException or SocketException
             while (true) {

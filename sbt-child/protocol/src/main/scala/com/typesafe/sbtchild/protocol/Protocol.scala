@@ -261,6 +261,13 @@ case class TestResponse(outcome: TestOutcome) extends SpecificResponse {
 // can be the response to anything
 case class ErrorResponse(error: String) extends Response
 
+// exactly one of the boot events is sent on startup
+sealed trait BootEvent extends Event
+// we need to restart sbt in an orderly fashion
+case object NeedRebootEvent extends BootEvent
+// we successfully booted up
+case object NowListeningEvent extends BootEvent
+
 // when we receive a request but before we process it, we send this
 case object RequestReceivedEvent extends Event
 case class LogEvent(entry: LogEntry) extends Event
@@ -381,7 +388,7 @@ object Message {
                     Map.empty[String, Any]
                 }
               }
-            case Started | Stopped | RequestReceivedEvent =>
+            case Started | Stopped | RequestReceivedEvent | NeedRebootEvent | NowListeningEvent =>
               base
             case GenericResponse(name, params) =>
               base ++ Map("name" -> name, "params" -> fromParams(params))
@@ -438,6 +445,10 @@ object Message {
               Started
             case "Stopped" =>
               Stopped
+            case "NeedRebootEvent" =>
+              NeedRebootEvent
+            case "NowListeningEvent" =>
+              NowListeningEvent
             case "RequestReceivedEvent" =>
               RequestReceivedEvent
             case "MysteryMessage" =>
