@@ -6,9 +6,7 @@
 		<title>Typesafe Builder</title>
 		<!-- Initialize global Javascript values... -->
 		<script type="text/javascript">
-			window.serverAppModel = {
-               wsUrl: '@routes.Application.homeStream.webSocketURL()'
-            };
+			window.wsUrl = '@routes.Application.homeStream.webSocketURL()';
 		</script>
 		<script data-main="/public/javascripts/home.js" type="text/javascript" src="/public/javascripts/vendors/require.min.js"></script>
 		<link rel="stylesheet" media="screen" href="/public/stylesheets/home.css">

@@ -35,6 +35,17 @@ require([
 	require(['core/streams', 'core/widgets/fileselection'], function(streams, FileSelection) {
 		// Register handlers on the UI.
 		$(function() {
+			// Register webSocket error handler
+			streams.subscribe({
+				handler: function(event) {
+					// TODO - Can we try to reconnect X times before failing?
+					alert("Connection lost; you will need to reload the page or restart Builder");
+				},
+				filter: function(event) {
+					return event.type == streams.WEB_SOCKET_CLOSED;
+				}
+			});
+
 			function toggleWorking() {
 				$('#homePage, #workingPage').toggle();
 			}
@@ -75,7 +86,8 @@ require([
 				if(!appLocationInput.val())
 					appLocationInput.val(appLocationInput.attr('placeholder'));
 			});
-			// Helper method to rip out form values appropraitely...
+			// Helper method to rip out form values appropriately...
+			// TODO - This probably belongs in util.
 			function formToJson(form) {
 				var data = $(form).serializeArray();
 				var o = {}
