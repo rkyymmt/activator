@@ -11,13 +11,13 @@ import akka.util.Timeout
 import snap.tests._
 
 class PlayProject extends IntegrationTest {
-  val system = ActorSystem("ManualTest")
+  val system = ActorSystem("PlayProjectTest")
 
   def newSbtChild(dir: File) = SbtChild(system, dir, new SbtChildLauncher(configuration))
 
   try {
     // TODO - Create project here, rather than rely on it created by test harness....
-    val dir = new File("dummy")
+    val dir = new File("play-dummy")
     makeDummyPlayProject(dir)
     val child = newSbtChild(dir)
     try {
