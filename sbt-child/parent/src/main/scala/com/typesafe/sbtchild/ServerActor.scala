@@ -60,7 +60,23 @@ class ServerActor(serverSocket: ServerSocket, childActor: ActorRef) extends Acto
   private def awaitingAccept: Receive = commonBehavior orElse {
     case ServerAccepted(server) =>
       serverOption = Some(server)
-      context.become(booted)
+      context.become(awaitingBoot)
+  }
+
+  private def awaitingBoot: Receive = commonBehavior orElse {
+    case protocol.Envelope(_, _, e: protocol.BootEvent) => e match {
+      case protocol.NowListeningEvent =>
+        // we are ready
+        context.become(booted)
+        // synthesize Started
+        self ! protocol.Envelope(0L, 0L, protocol.Started)
+      case protocol.NeedRebootEvent =>
+        for (s <- subscribers) {
+          s ! protocol.NeedRebootEvent
+        }
+        // self-destruct
+        throw new RuntimeException("Need to reboot sbt")
+    }
   }
 
   private def booted: Receive = commonBehavior orElse {
@@ -121,7 +137,6 @@ class ServerActor(serverSocket: ServerSocket, childActor: ActorRef) extends Acto
             if (!serverSocket.isClosed())
               serverSocket.close() // we only want one connection
             selfRef ! ServerAccepted(server)
-            selfRef ! protocol.Envelope(0L, 0L, protocol.Started)
 
             // loop is broken by EOFException or SocketException
             while (true) {

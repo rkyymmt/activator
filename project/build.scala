@@ -104,7 +104,8 @@ object TheBuilderBuild extends Build {
       requiredClasspath in sbtRemoteProbe,
       Keys.compile in Compile in sbtRemoteProbe) map {
       (launcher, oldOptions, probeCp, _) =>
-        oldOptions ++ Seq("-Dbuilder.sbt.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
+        oldOptions ++ Seq("-Dbuilder.sbt.no-shims=true",
+                          "-Dbuilder.sbt.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
                           "-Dbuilder.remote.probe.classpath=" + Path.makeString(probeCp.files)) ++
       (if (verboseSbtTests)
         Seq("-Dakka.loglevel=DEBUG",

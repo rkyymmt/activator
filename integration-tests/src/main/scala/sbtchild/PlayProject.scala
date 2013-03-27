@@ -15,31 +15,10 @@ class PlayProject extends IntegrationTest {
 
   def newSbtChild(dir: File) = SbtChild(system, dir, new SbtChildLauncher(configuration))
 
-  def startup(dir: File): Unit = {
-    val child = newSbtChild(dir)
-    try {
-      implicit val timeout = Timeout(120.seconds)
-      val startupReboot = Await.result(child ? protocol.NameRequest(sendEvents = false), timeout.duration) match {
-        case protocol.NameResponse(n) => {
-          throw new Exception("We expect the first run of the sbt project to fail, while we load the plugin.")
-        }
-        case protocol.ErrorResponse(error) =>
-          true
-      }
-      println("Project has rebooted with new plugin.")
-    } catch {
-      case e: Exception => // Ignore
-    } finally {
-      system.stop(child)
-    }
-  }
-
   try {
     // TODO - Create project here, rather than rely on it created by test harness....
     val dir = new File("dummy")
     makeDummyPlayProject(dir)
-    startup(dir)
-    // TODO - We know the child will die and need to be restarted, let's figure out how to make sure it happens
     val child = newSbtChild(dir)
     try {
       implicit val timeout = Timeout(120.seconds)

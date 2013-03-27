@@ -16,10 +16,9 @@ case object KillSbtProcess extends SbtChildRequest
 case class SubscribeOutput(ref: ActorRef) extends SbtChildRequest
 case class UnsubscribeOutput(ref: ActorRef) extends SbtChildRequest
 
-// You are supposed to send this thing requests from protocol.Request,
-// to get back protocol.Reply. It also handles subscribe/unsubscribe from
-// output events
-class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) extends EventSourceActor with ActorLogging {
+private class NeedRebootException extends Exception("Need to reboot")
+
+class SbtChildUnderlyingActor(supervisor: ActorRef, workingDir: File, sbtChildMaker: SbtChildProcessMaker) extends SafeWatchActor with ActorLogging {
 
   private val serverSocket = ipc.openServerSocket()
   private val port = serverSocket.getLocalPort()
@@ -27,14 +26,13 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
   private val outDecoder = new ByteStringDecoder
   private val errDecoder = new ByteStringDecoder
 
-  private var protocolStarted = false
   private var protocolStartedAndStopped = false
   // it appears that ActorRef.isTerminated is not guaranteed
   // to be true when we get the Terminated event, which means
   // we have to track these by hand.
   private var serverTerminated = false
   private var processTerminated = false
-  private var preStartBuffer = Vector.empty[(protocol.Request, ActorRef)]
+  private var needsToReboot = false
 
   override val supervisorStrategy = SupervisorStrategy.stoppingStrategy
 
@@ -43,7 +41,7 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
   private val process = context.actorOf(Props(new ProcessActor(sbtChildMaker.arguments(port),
     workingDir, textMode = true)), "sbt-process")
 
-  private val server = context.actorOf(Props(new ServerActor(serverSocket, self)), "sbt-server")
+  private val server = context.actorOf(Props(new ServerActor(serverSocket, supervisor)), "sbt-server")
 
   watch(server)
   watch(process)
@@ -56,8 +54,14 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
   private def considerSuicide(): Unit = {
     if (processTerminated) {
       if (serverTerminated) {
-        log.debug("both server actor and process actor terminated, sending suicide pill")
-        self ! PoisonPill
+        log.debug("both server actor and process actor terminated, sbt child actor going away")
+        if (needsToReboot) {
+          // to be restarted by supervisor (discarding mailbox)
+          throw new NeedRebootException
+        } else {
+          // graceful shutdown with no restart (and empty our mailbox first)
+          self ! PoisonPill
+        }
       } else if (protocolStartedAndStopped) {
         log.debug("stopped message received from socket to child and child process is dead, killing socket")
         server ! PoisonPill
@@ -81,26 +85,19 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
     } else if (ref == server) {
       serverTerminated = true
       considerSuicide()
-    } else {
-      // probably death of a subscriber
     }
   }
 
   private def forwardRequest(requestor: ActorRef, req: protocol.Request): Unit = {
-    if (protocolStarted) {
-      // checking isTerminated here is a race, but when the race fails the sender
-      // should still time out. We're just trying to short-circuit the timeout if
-      // we know it will time out.
-      if (serverTerminated || processTerminated || protocolStartedAndStopped) {
-        log.debug("Got request {} on already-shut-down ServerActor", req)
-        requestor ! protocol.ErrorResponse("sbt has already shut down")
-      } else {
-        // otherwise forward the request
-        server.tell(req, requestor)
-      }
+    // checking isTerminated here is a race, but when the race fails the sender
+    // should still time out. We're just trying to short-circuit the timeout if
+    // we know it will time out.
+    if (serverTerminated || processTerminated || protocolStartedAndStopped) {
+      log.debug("Got request {} on already-shut-down ServerActor", req)
+      requestor ! protocol.ErrorResponse("sbt has already shut down")
     } else {
-      log.debug("storing request for when server gets a connection {}", req)
-      preStartBuffer = preStartBuffer :+ (req, sender)
+      // otherwise forward the request
+      server.tell(req, requestor)
     }
   }
 
@@ -109,11 +106,11 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
       onTerminated(ref)
 
     case req: SbtChildRequest => req match {
-      case SubscribeOutput(ref) => subscribe(ref)
-      case UnsubscribeOutput(ref) => unsubscribe(ref)
+      case SubscribeOutput(ref) => throw new RuntimeException("supervisor should have handled subscribe")
+      case UnsubscribeOutput(ref) => throw new RuntimeException("supervisor should have handled unsubscribe")
       case KillSbtProcess => {
         // synthesize a nice message for the logs
-        emitEvent(protocol.LogEvent(protocol.LogMessage(protocol.LogMessage.INFO, "Attempting to stop SBT process")))
+        supervisor ! protocol.LogEvent(protocol.LogMessage(protocol.LogMessage.INFO, "Attempting to stop SBT process"))
         // now try to kill it
         process ! KillProcess
       }
@@ -121,35 +118,18 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
 
     // request for the server actor
     case req: protocol.Request =>
-      // auto-subscribe to stdout/stderr; ServerActor is then responsible
-      // for sending an Unsubscribe back to us when it sends the Response.
-      // Kind of hacky. If ServerActor never starts up, we will stop ourselves
-      // and so we don't need to unsubscribe our listeners. We want to subscribe
-      // right away, not just when the server starts, because we want sbt's startup
-      // messages.
-      if (req.sendEvents)
-        subscribe(sender)
-
-      // now send the request on
       forwardRequest(sender, req)
 
     // message from server actor other than a response
     case event: protocol.Event =>
       event match {
+        case protocol.NeedRebootEvent =>
+          needsToReboot = true
+          considerSuicide()
+        case protocol.NowListeningEvent =>
+          throw new RuntimeException("NowListeningEvent isn't supposed to be forwarded from ServerActor")
         case protocol.Started =>
-          protocolStarted = true
-          preStartBuffer foreach { m =>
-            // We want the requestor to know the boundary between sbt
-            // startup and it connecting to us, so it can probabilistically
-            // ignore startup messages for example.
-            // We do NOT send this event if the request arrives after sbt
-            // has already started up, only if the request's lifetime
-            // includes an sbt startup.
-            if (isSubscribed(m._2))
-              m._2.forward(event)
-            forwardRequest(m._2, m._1)
-          }
-          preStartBuffer = Vector.empty
+          supervisor ! protocol.Started
         case protocol.Stopped =>
           log.debug("server actor says it's all done, killing it")
           protocolStartedAndStopped = true
@@ -157,7 +137,7 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
         case e: protocol.LogEvent =>
           // this is a log event outside of the context of a particular request
           // (if they go with a request they just go to the requestor)
-          emitEvent(e)
+          supervisor ! e
         case protocol.RequestReceivedEvent =>
           throw new RuntimeException("Not expecting a RequestReceivedEvent here")
         case e: protocol.TestEvent =>
@@ -178,7 +158,7 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
         if (s.length > 0) {
           s.split("\n") foreach { line =>
             log.debug("sbt {}: {}", label, line)
-            emitEvent(protocol.LogEvent(entryMaker(line)))
+            supervisor ! protocol.LogEvent(entryMaker(line))
           }
         }
       }
@@ -198,20 +178,118 @@ class SbtChildActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) exten
   override def postStop() = {
     log.debug("postStop")
 
-    preStartBuffer foreach { m =>
-      log.debug("On destroy, sending queued request that never made it to the socket {}", m._1)
-      m._2 ! protocol.ErrorResponse("sbt process never got in touch, so unable to handle request " + m._1)
-    }
-    preStartBuffer = Vector.empty
-
     if (!serverSocket.isClosed())
       serverSocket.close()
   }
 }
 
+// we track the pre-start buffer and event subscriptions, since
+// those are supposed to persist across restart
+class SbtChildSupervisorActor(workingDir: File, sbtChildMaker: SbtChildProcessMaker) extends EventSourceActor with ActorLogging {
+  private var protocolStarted = false
+  private var preStartBuffer = Vector.empty[(protocol.Request, ActorRef)]
+  private val underlying = context.actorOf(Props(new SbtChildUnderlyingActor(self, workingDir, sbtChildMaker)),
+    name = "underlying")
+
+  watch(underlying)
+
+  // restart only on NeedRebootException
+  import akka.actor.SupervisorStrategy
+  override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 1, withinTimeRange = Duration(60, TimeUnit.SECONDS)) {
+    case e: NeedRebootException =>
+      if (protocolStarted) {
+        log.error("Should be impossible to get protocol.Started if SBT had to reboot")
+        SupervisorStrategy.Stop
+      } else {
+        log.debug(s"Restarting SBT actor due to ${e.getClass.getName}")
+        SupervisorStrategy.Restart
+      }
+    case e =>
+      log.warning(s"Fatal error to underlying SBT actor ${e.getClass.getName}: ${e.getMessage}")
+      SupervisorStrategy.Stop
+  }
+
+  override def onTerminated(ref: ActorRef): Unit = {
+    super.onTerminated(ref)
+    // if underlying dies for good (vs. is restarted) we do this
+    if (ref == underlying) {
+      log.debug("underlying actor terminated, sending PoisonPill to self")
+      self ! PoisonPill
+    }
+  }
+
+  private def forwardRequest(requestor: ActorRef, req: protocol.Request): Unit = {
+    if (protocolStarted) {
+      underlying.tell(req, requestor)
+    } else {
+      log.debug("storing request for when server gets a connection {}", req)
+      preStartBuffer = preStartBuffer :+ (req, sender)
+    }
+  }
+
+  override def receive = {
+    case Terminated(ref) =>
+      onTerminated(ref)
+
+    case req: SbtChildRequest => req match {
+      case SubscribeOutput(ref) => subscribe(ref)
+      case UnsubscribeOutput(ref) => unsubscribe(ref)
+      case KillSbtProcess => underlying.forward(req)
+    }
+
+    // request for the server actor
+    case req: protocol.Request =>
+      // auto-subscribe to stdout/stderr; ServerActor is then responsible
+      // for sending an Unsubscribe back to us when it sends the Response.
+      // Kind of hacky. If ServerActor never starts up, we will stop ourselves
+      // and so we don't need to unsubscribe our listeners. We want to subscribe
+      // right away, not just when the server starts, because we want sbt's startup
+      // messages.
+      if (req.sendEvents)
+        subscribe(sender)
+
+      // now send the request on (or buffer it)
+      forwardRequest(sender, req)
+
+    // here we get events that didn't have a reply serial
+    // (weren't part of a specific request) and forward them
+    case event: protocol.Event =>
+      event match {
+        case protocol.Started =>
+          protocolStarted = true
+          preStartBuffer foreach { m =>
+            // We want the requestor to know the boundary between sbt
+            // startup and it connecting to us, so it can probabilistically
+            // ignore startup messages for example.
+            // We do NOT send this event if the request arrives after sbt
+            // has already started up, only if the request's lifetime
+            // includes an sbt startup.
+            if (isSubscribed(m._2))
+              m._2.forward(event)
+            forwardRequest(m._2, m._1)
+          }
+          preStartBuffer = Vector.empty
+        case event: protocol.LogEvent =>
+          emitEvent(event)
+        case other =>
+          log.error("Not expecting event here {}", other)
+      }
+  }
+
+  override def postStop() = {
+    log.debug("postStop")
+
+    preStartBuffer foreach { m =>
+      log.debug("On destroy, sending queued request that never made it to the socket {}", m._1)
+      m._2 ! protocol.ErrorResponse("sbt process never got in touch, so unable to handle request " + m._1)
+    }
+    preStartBuffer = Vector.empty
+  }
+}
+
 object SbtChild {
   def apply(factory: ActorRefFactory, workingDir: File, sbtChildMaker: SbtChildProcessMaker): ActorRef =
-    factory.actorOf(Props(new SbtChildActor(workingDir, sbtChildMaker)),
+    factory.actorOf(Props(new SbtChildSupervisorActor(workingDir, sbtChildMaker)),
       "sbt-child-" + SbtChild.nextSerial.getAndIncrement())
 
   private val nextSerial = new AtomicInteger(1)
