@@ -83,7 +83,7 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 		openInSystemEditor: function() {
 			var self = this;
 			var loc =self.file().location;
-			open(loc).sucess(function() {}).error(function(err) {
+			open(loc).success(function() {}).error(function(err) {
 				console.log('Failed to open file in browser: ', err)
 				alert('Failed to open file.  This may be unsupported by your system.');
 			});

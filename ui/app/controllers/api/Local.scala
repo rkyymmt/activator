@@ -135,9 +135,12 @@ object Local extends Controller {
     val desktop = java.awt.Desktop.getDesktop
     if (!loc.exists) NotAcceptable(s"${location} is not a file or directory!")
     else if (!desktop.isSupported(java.awt.Desktop.Action.OPEN)) NotAcceptable("Opening a file browser is unsupported on your machine.")
-    else {
+    else try {
       desktop open loc
       Ok("")
+    } catch {
+      case ex: java.io.IOException =>
+        NotAcceptable(s"Failed to open: ${location}.  Is there a program associated with the extension?")
     }
   }
 

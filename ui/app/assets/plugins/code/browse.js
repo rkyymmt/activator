@@ -53,7 +53,7 @@ define(['text!./browse.html', 'core/pluginapi'], function(template, api, files) 
 		openInFileBrowser: function() {
 			var self = this;
 			var loc = self.directory().location;
-			open(loc).sucess(function() {}).error(function(err) {
+			open(loc).success(function() {}).error(function(err) {
 				console.log('Failed to open directory in browser: ', err)
 				alert('Failed to open directory.  This may be unsupported by your system.');
 			});
