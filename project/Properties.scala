@@ -6,15 +6,22 @@ object Properties {
 
   val makePropertiesSource = TaskKey[Seq[File]]("make-properties-source")
 
+  def writeIfChanged(file: java.io.File, content: String): Unit = {
+    val oldContent = IO.read(file)
+    if (oldContent != content) {
+      IO.write(file, content)
+    }
+  }
+
   def makePropertyClassSetting(sbtVersion: String, scalaVersion: String): Seq[Setting[_]] = Seq(
     resourceGenerators in Compile <+= makePropertiesSource,
     makePropertiesSource <<= (version, resourceManaged in Compile, compile in Compile) map { (v, dir, analysis) =>
       val parent= dir / "builder" / "properties"
       IO createDirectory parent
       val target = parent / "builder.properties"
-      // For now, we must always write to ensure up-to-date!
-      IO.write(target, makeJavaPropertiesString(v, sbtVersion, scalaVersion))
-      
+
+      writeIfChanged(target, makeJavaPropertiesString(v, sbtVersion, scalaVersion))
+
       Seq(target)
     }
   )
