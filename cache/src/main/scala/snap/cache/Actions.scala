@@ -1,6 +1,7 @@
 package snap
 package cache
 
+import snap.IO
 import _root_.builder.properties.BuilderProperties._
 import java.io.File
 /**
@@ -20,9 +21,9 @@ object Actions {
         for {
           (file, path) <- template.files
           to = new java.io.File(location, path)
-        } if (file.isDirectory) snap.cache.IO.createDirectory(to)
+        } if (file.isDirectory) IO.createDirectory(to)
         else {
-          snap.cache.IO.copyFile(file, to)
+          IO.copyFile(file, to)
           if (file.canExecute) to.setExecutable(true)
         }
       }

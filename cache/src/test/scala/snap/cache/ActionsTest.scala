@@ -1,5 +1,6 @@
 package snap.cache
 
+import snap.IO
 import java.io._
 import org.junit.Assert._
 import org.junit._

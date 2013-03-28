@@ -150,7 +150,7 @@ object Local extends Controller {
     val (location, content) = saveFileForm.bindFromRequest.get
     val loc = Platform.fromClientFriendlyFilename(location)
     // We should probably just save any file...
-    import snap.cache.IO
+    import snap.IO
     IO.withTemporaryFile("builder", "save-file") { file =>
       IO.write(file, content)
       IO.move(file, loc)

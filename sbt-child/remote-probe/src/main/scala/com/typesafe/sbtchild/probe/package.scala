@@ -35,4 +35,19 @@ package object probe {
     // That way, you just pull in one "contextual notifier thingy" and you can update both a UI and a console log.
     // (however this doesn't address how we go from input string to task inputs, and task result to output string)
   }
+
+  // make adjustments to ShimWriter.knownShims based on State
+  private val shimFilters = Map[String, State => Boolean]("play" -> PlaySupport.isPlayProject)
+
+  // returns true if we need to reboot (any changes were made)
+  def installShims(state: State): Boolean = {
+    snap.ShimWriter.knownShims.foldLeft(false) { (sofar, name) =>
+      val installer = new ShimInstaller(name)
+      val shouldInstall = shimFilters.get(name).getOrElse { state: State => true }
+      if (shouldInstall(state))
+        installer.ensure(state) || sofar // note, DO NOT short-circuit
+      else
+        sofar
+    }
+  }
 }

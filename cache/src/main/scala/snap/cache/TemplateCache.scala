@@ -1,5 +1,6 @@
 package snap.cache
 
+import snap.IO
 import builder.properties.BuilderProperties
 
 // TODO - This whole thing should use an abstraction file files, like "Source" or some such.

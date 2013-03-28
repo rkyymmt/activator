@@ -26,14 +26,14 @@ object PidDetector {
   private def previousPid(lock: GlobalLock): Option[String] =
     lock onBuilder {
       if (BUILDER_PID_FILE.exists)
-        Option(snap.cache.IO.slurp(BUILDER_PID_FILE).trim) filterNot (_.isEmpty)
+        Option(snap.IO.slurp(BUILDER_PID_FILE).trim) filterNot (_.isEmpty)
       else None
     }
 
   private def writeCurrentPid(lock: GlobalLock): Unit = {
     for (pid <- java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split('@').headOption) {
       lock onBuilder {
-        snap.cache.IO.write(BUILDER_PID_FILE, pid, append = false)
+        snap.IO.write(BUILDER_PID_FILE, pid, append = false)
       }
     }
   }
