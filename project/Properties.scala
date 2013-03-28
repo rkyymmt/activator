@@ -12,9 +12,9 @@ object Properties {
       val parent= dir / "builder" / "properties"
       IO createDirectory parent
       val target = parent / "builder.properties"
-      if(!target.exists || target.lastModified < lastCompilationTime(analysis)) {
-        IO.write(target, makeJavaPropertiesString(v, sbtVersion, scalaVersion))
-      }
+      // For now, we must always write to ensure up-to-date!
+      IO.write(target, makeJavaPropertiesString(v, sbtVersion, scalaVersion))
+      
       Seq(target)
     }
   )
