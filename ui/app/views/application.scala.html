@@ -47,13 +47,13 @@
 				<span class="label" data-bind="text: snap.appName"></span>
 				<div>
 					<ul>
-                        <a href="@routes.Application.forceHome" class="newApp">
-					        <li>New Application</li>
-                        </a>
+                        <li class="newApp">
+                            <a href="@routes.Application.forceHome">New Application</a>
+                        </li>
                         @model.recentApps.zipWithIndex.map { case (app, idx) =>
-                        <a href="@routes.Application.app(app.id)" class="@className(app)">
-                            <li>@name(app)<br><span class="counter">@(idx+1)</span></li>
-                        </a>
+                        <li>
+                            <a href="@routes.Application.app(app.id)" class="@className(app)">@name(app)<br><span class="counter">@(idx+1)</span></a>
+                        </li>
                         }
 					</ul>
 				</div>
