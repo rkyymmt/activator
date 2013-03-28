@@ -1,5 +1,6 @@
 @import 'commons/_reset.less';
 @import 'commons/_commons.less';
+@import 'commons/_animations.less';
 
 .noAnim * {
 	-webkit-transition: none !important;
@@ -56,10 +57,40 @@ body > header {
 			height: 50px;
 			line-height: 50px;
 			display: inline-block;
-			padding: 0 15px;
+			padding: 0 40px 0 15px;
 			color: #758590;
 			font-size: 1em;
 			font-weight: 600;
+            .text {
+                display: inline-block;
+            }
+            .icon:after {
+                color: #758590;
+                font: 18px icons;
+                line-height: 50px;
+                padding: 0 5px;
+                width: 16px;
+                height: 100%;
+                display: inline;
+            }
+            &.error, &.busy {
+                padding-right: 10px;
+            }
+            &.error .icon:after {
+                content: "\26A0";
+                color: #e25758;
+            }
+            &.busy .icon {
+                -moz-animation: spin2 1s infinite linear;
+                -o-animation: spin2 1s infinite linear;
+                -webkit-animation: spin2 1s infinite linear;
+                animation: spin2 1s infinite linear;
+                display: inline-block;
+                height: 98%;
+                &:after {
+                    content: "\1F504";
+                }
+            }
 		}
 	}
 
