@@ -74,7 +74,7 @@ define(function() {
 				try {
 					subscriber.handler(event);
 				} catch(e) {
-					console.log('Handler ', subscriber, ' failed on message ', obj, ' with error ', e);
+					console.log('Handler ', subscriber, ' failed on message ', event, ' with error ', e);
 				}
 			}
 		});
