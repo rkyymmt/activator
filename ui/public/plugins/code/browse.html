@@ -5,11 +5,11 @@
 			<dd>
 			    <a class="todo">Open project in Eclipse</a>
                 <a class="todo">Open project in IntelliJ IDEA</a>
-                <a data-bind="click: openInFileBrowser">Open project in File Browser</a>
+                <a data-bind="click: openProjectInFileBrowser">Open project in File Browser</a>
             </dd>
 		</dl>
 	</nav>
-	<h1><a href="#" data-bind="click: openInFileBrowser, text: fullPath"></a></h1>
+	<h1><a href="#" data-bind="click: openProjectInFileBrowser, text: rootAppPath"></a></h1>
 	<div class="breadcrumb subheader">
 		<a href="#code/" class="home">⌂</a>
 		<p class="wrap" data-bind="foreach: parts">
