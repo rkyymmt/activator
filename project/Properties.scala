@@ -7,7 +7,7 @@ object Properties {
   val makePropertiesSource = TaskKey[Seq[File]]("make-properties-source")
 
   def writeIfChanged(file: java.io.File, content: String): Unit = {
-    val oldContent = IO.read(file)
+    val oldContent = if (file.exists) IO.read(file) else ""
     if (oldContent != content) {
       IO.write(file, content)
     }
