@@ -1,4 +1,5 @@
-define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', 'css!./code.css'], function(api, template, files, Browser, Viewer){
+define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', './openInEclipse', 'css!./code.css'],
+		function(api, template, files, Browser, Viewer, OpenInEclipse, css) {
 
 	var ko = api.ko;
 
@@ -41,12 +42,14 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 				return file;
 			});
 			self.status = ko.observable('');
+			self.openInEclipse = new OpenInEclipse();
 			self.browser = new Browser({
-				directory: self.currentDirectory
+				directory: self.currentDirectory,
+				openInEclipse: self.openInEclipse
 			});
 			self.viewer = new Viewer({
 				file: self.currentFile
-			})
+			});
 		}
 	});
 
