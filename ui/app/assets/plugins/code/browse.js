@@ -29,6 +29,10 @@ define(['text!./browse.html', 'core/pluginapi'], function(template, api, files) 
 				var dir = self.directory();
 				return dir.children();
 			});
+			self.fullPath = ko.computed(function() {
+				console.log(self.directory())
+				return self.directory().location;
+			});
 			self.name = ko.computed(function() {
 				// TODO - Trim the name in a nicer way
 				return './' + self.directory().name();
