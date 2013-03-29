@@ -1,11 +1,11 @@
 <div>
     <div class="start">
         <div data-bind="visible: haveProjectFiles">
-            Your project already has Eclipse project files. You can <a data-bind="click: generate">regenerate them</a> or
-            just see how to <a data-bind="click: instructions">import the project into Eclipse</a>.
+            Your app already has Eclipse project files. You can <a data-bind="click: generate">regenerate them</a> or
+            just see how to <a data-bind="click: instructions">import the app into Eclipse</a>.
         </div>
         <div data-bind="visible: !haveProjectFiles()">
-            Your project has no Eclipse project files. <a data-bind="click: generate">Generate them now</a>.
+            Your app has no Eclipse project files. <a data-bind="click: generate">Generate them now</a>.
         </div>
     </div>
     <div class="generate hidden">
@@ -20,7 +20,7 @@
         <ol>
             <li>Launch Eclipse and select <strong>Import...</strong> from the <strong>File</strong> menu.</li>
             <li>In the import dialog, choose <strong>Existing Projects Into Workspace</strong> and click <strong>Next</strong>.</li>
-            <li>In the import dialog, browse to <strong><span data-bind="text: projectDirectory"></span></strong>. You should see your project there.</li>
+            <li>In the import dialog, browse to <strong><span data-bind="text: projectDirectory"></span></strong>. You should see your app's project(s) there.</li>
             <li>Select your project and click <strong>Finish</strong>.
         </ol>
         <p>If you need to (re)generate your project files, <a data-bind="click: start">start over</a>.
