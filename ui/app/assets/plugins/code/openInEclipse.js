@@ -86,7 +86,7 @@ function(template, contentTemplate, api, Overlay, log, templates){
 			this._switchTo(this.generateNode);
 			if (self.activeTask() == "") {
 				self.workingStatus("Generating Eclipse project files...");
-				//self.log.clear();
+				self.log.clear();
 				var taskId = sbt.runTask({
 					task: 'eclipse',
 					onmessage: function(event) {
