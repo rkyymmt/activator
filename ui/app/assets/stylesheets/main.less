@@ -66,6 +66,21 @@ body > header {
 			color: #758590;
 			font-size: 1em;
 			font-weight: 600;
+			&.active {
+				position: relative;
+				color: white;
+				&:after {
+					content: " ";
+					position: absolute;
+					bottom: 0;
+					left: 13px;
+					width: 0;
+					height: 0;
+					border-left: 8px solid transparent;
+					border-right: 8px solid transparent;
+					border-bottom: 8px solid #53cdec;
+				}
+			}
             .text {
                 display: inline-block;
             }
