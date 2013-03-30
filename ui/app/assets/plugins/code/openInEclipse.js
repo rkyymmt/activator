@@ -22,7 +22,12 @@ function(template, contentTemplate, api, Overlay, log, templates){
 		template: template,
 		init: function(parameters) {
 			var self = this;
-			self.overlay = new Overlay({ contentView: contentView, contentModel: self });
+			self.overlay = new Overlay({
+				contentView: contentView,
+				contentModel: self,
+				css: 'open-in-eclipse',
+				contentRender: self.onRender.bind(self)
+			});
 			self.log = new log.Log();
 			self.haveProjectFiles = ko.observable(false);
 			self.workingStatus = ko.observable("");
@@ -45,14 +50,20 @@ function(template, contentTemplate, api, Overlay, log, templates){
 			self.startNode = self.node.find('.start');
 			self.generateNode = self.node.find('.generate');
 			self.instructionsNode = self.node.find('.instructions');
+
+			// Start the tutorial
+			self.node.show()
+			self._switchTo(null); // show nothing until start() does
+			self.start();
 		},
 		open: function() {
-			if (this.node === null)
-				throw new Error("haven't been rendered yet");
-			this._switchTo(null); // show nothing until start() does
-			this.node.show();
 			this.overlay.open();
-			this.start();
+			// If this isn't the first time opened...
+			/*if (this.node !== null) {
+				this.node.show();
+				this._switchTo(null); // show nothing until start() does
+				this.start();
+			}*/
 		},
 		close: function() {
 			this.overlay.close();

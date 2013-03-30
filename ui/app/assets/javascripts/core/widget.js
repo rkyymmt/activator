@@ -29,7 +29,7 @@ var Widget = function(o) {
 			// Here we're binding ourselves directly to an element, not using
 			// the normal knockout "bind everything" magic...
 			var element = $(el);
-			element.attr('data-bind', 'template: { name: \''+this.view+'\', data: $data, afterRender: onRender }');
+			element.attr('data-bind', 'snapView: $data');
 			ko.applyBindings(this, element.get()[0]);
 		}
 	});
