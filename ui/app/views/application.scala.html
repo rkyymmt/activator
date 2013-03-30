@@ -91,7 +91,7 @@
           </div>
         </div>
         <div id="wrapper" data-bind="foreach: { data: widgets }, visible: snap.activeWidget() != undefined">
-          <div class="widget" data-bind="template: { name: view, data: $data, afterRender: onRender }, visible: id == $parent.snap.activeWidget()"></div>
+          <div class="widget" data-bind="snapView: $data, visible: id == $parent.snap.activeWidget()"></div>
         </div>
 	</body>
 </html>

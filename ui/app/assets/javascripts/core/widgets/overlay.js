@@ -4,9 +4,9 @@ define(['css!./overlay.css', 'text!./overlay.html', 'vendors/knockout-2.2.1.debu
 		id: 'overlay-widget',
 		template: template,
 		init: function(parameters) {
-			this.contentView = parameters.contentView;
-			this.contentModel = parameters.contentModel;
+			this.contents = parameters.contents;
 			this.node = null; // filled in on render
+			this.css = parameters.css || '';
 		},
 		onRender: function(childElements) {
 			if (this.id != 'overlay-widget')
@@ -19,8 +19,13 @@ define(['css!./overlay.css', 'text!./overlay.html', 'vendors/knockout-2.2.1.debu
 				throw new Error("didn't get the overlay node");
 		},
 		_checkNode: function() {
-			if (this.node === null)
-				console.error("right now to use overlay you need boilerplate to set up onRender")
+			if (this.node === null) {
+				// Create a generic node for us to render to...
+				var node = $('<div class="' + this.css + ' hidden"></div>').get()[0];
+				$(document.body).append(node);
+				this.renderTo(node);
+				this.node = $(node);
+			}
 		},
 		close: function() {
 			this._checkNode();

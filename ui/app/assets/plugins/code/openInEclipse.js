@@ -1,10 +1,8 @@
-define(['text!./openInEclipse.html',  'text!./openInEclipseContent.html', 'core/pluginapi', 'core/widgets/overlay', 'core/log', 'core/templates'],
-function(template, contentTemplate, api, Overlay, log, templates){
+define(['text!./openInEclipseContent.html', 'core/pluginapi', 'core/widgets/overlay', 'core/log'],
+function(template, api, Overlay, log){
 
 	var ko = api.ko;
 	var sbt = api.sbt;
-
-	var contentView = templates.registerTemplate('open-in-eclipse-content', contentTemplate);
 
 	function browse(location) {
 		return $.ajax({
@@ -22,7 +20,10 @@ function(template, contentTemplate, api, Overlay, log, templates){
 		template: template,
 		init: function(parameters) {
 			var self = this;
-			self.overlay = new Overlay({ contentView: contentView, contentModel: self });
+			self.overlay = new Overlay({
+				contents: this,
+				css: 'open-in-eclipse'
+			});
 			self.log = new log.Log();
 			self.haveProjectFiles = ko.observable(false);
 			self.workingStatus = ko.observable("");
@@ -45,14 +46,14 @@ function(template, contentTemplate, api, Overlay, log, templates){
 			self.startNode = self.node.find('.start');
 			self.generateNode = self.node.find('.generate');
 			self.instructionsNode = self.node.find('.instructions');
+
+			// Start the tutorial
+			self.node.show()
+			self._switchTo(null); // show nothing until start() does
+			self.start();
 		},
 		open: function() {
-			if (this.node === null)
-				throw new Error("haven't been rendered yet");
-			this._switchTo(null); // show nothing until start() does
-			this.node.show();
 			this.overlay.open();
-			this.start();
 		},
 		close: function() {
 			this.overlay.close();
