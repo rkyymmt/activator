@@ -42,7 +42,7 @@
 			<nav>
 				<ul class="rockets">
 					<li class="app" data-bind="foreach: plugins.list">
-						<a data-bind="attr: { 'data-icon': icon, href: url }, css: statusIcon">
+						<a data-bind="attr: { 'data-icon': icon, href: url }, css: {active: active, busy: statusBusy, error: statusError}">
                             <span class="text" data-bind="text: name"></span>
                             <span class="icon"></span>
 						</a>
