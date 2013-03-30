@@ -139,6 +139,24 @@ body > aside {
 
 }
 
+.rockets > li > a {
+  &.active {
+    position: relative;
+    color: white;
+    &:after {
+      content: " ";
+      position: absolute;
+      bottom: 0;
+      left: 11px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 8px solid #53cdec;
+    }
+  }
+}
+
 #switch {
 	position: absolute;
 	top: 0;

@@ -36,7 +36,7 @@
 			<nav>
 				<ul class="rockets">
 					<li class="app" data-bind="foreach: plugins.list">
-						<a data-bind="attr: { 'data-icon': icon, href: url }, css: statusIcon">
+						<a data-bind="attr: { 'data-icon': icon, href: url }, css: {active: $parent.snap.activeWidget() == $data.widgets[0].id, busy: statusIcon() == 'busy', error: statusIcon() == 'error'}">
                             <span class="text" data-bind="text: name"></span>
                             <span class="icon"></span>
 						</a>
