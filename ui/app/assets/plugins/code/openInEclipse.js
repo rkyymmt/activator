@@ -1,10 +1,8 @@
-define(['text!./openInEclipse.html',  'text!./openInEclipseContent.html', 'core/pluginapi', 'core/widgets/overlay', 'core/log', 'core/templates'],
-function(template, contentTemplate, api, Overlay, log, templates){
+define(['text!./openInEclipseContent.html', 'core/pluginapi', 'core/widgets/overlay', 'core/log'],
+function(template, api, Overlay, log){
 
 	var ko = api.ko;
 	var sbt = api.sbt;
-
-	var contentView = templates.registerTemplate('open-in-eclipse-content', contentTemplate);
 
 	function browse(location) {
 		return $.ajax({
@@ -23,10 +21,8 @@ function(template, contentTemplate, api, Overlay, log, templates){
 		init: function(parameters) {
 			var self = this;
 			self.overlay = new Overlay({
-				contentView: contentView,
-				contentModel: self,
-				css: 'open-in-eclipse',
-				contentRender: self.onRender.bind(self)
+				contents: this,
+				css: 'open-in-eclipse'
 			});
 			self.log = new log.Log();
 			self.haveProjectFiles = ko.observable(false);
@@ -58,12 +54,6 @@ function(template, contentTemplate, api, Overlay, log, templates){
 		},
 		open: function() {
 			this.overlay.open();
-			// If this isn't the first time opened...
-			/*if (this.node !== null) {
-				this.node.show();
-				this._switchTo(null); // show nothing until start() does
-				this.start();
-			}*/
 		},
 		close: function() {
 			this.overlay.close();

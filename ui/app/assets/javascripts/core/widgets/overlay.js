@@ -4,11 +4,9 @@ define(['css!./overlay.css', 'text!./overlay.html', 'vendors/knockout-2.2.1.debu
 		id: 'overlay-widget',
 		template: template,
 		init: function(parameters) {
-			this.contentView = parameters.contentView;
-			this.contentModel = parameters.contentModel;
+			this.contents = parameters.contents;
 			this.node = null; // filled in on render
 			this.css = parameters.css || '';
-			this.contentRender = parameters.contentRender || function() {};
 		},
 		onRender: function(childElements) {
 			if (this.id != 'overlay-widget')
