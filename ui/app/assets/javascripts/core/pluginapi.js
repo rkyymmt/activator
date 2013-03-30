@@ -109,18 +109,16 @@ ko.bindingHandlers.ace = {
 			config.status = ko.observable(STATUS_DEFAULT);
 		}
 
-		config.statusIcon = ko.computed(function() {
-			var status = this.status();
-			if (status == STATUS_BUSY)
-				return "busy";
-			else if (status == STATUS_ERROR)
-				return "error";
-			else if (status == STATUS_DEFAULT)
-				return "";
-			else {
-				console.log("Unknown plugin status: '" + status + "'");
-				return "";
-			}
+		config.statusBusy = ko.computed(function() {
+			return this.status() == STATUS_BUSY
+		}, config);
+
+		config.statusError = ko.computed(function() {
+			return this.status() == STATUS_ERROR
+		}, config);
+
+		config.active = ko.computed(function() {
+			return activeWidget() == config.widgets[0].id
 		}, config);
 
 		return config;
