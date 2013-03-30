@@ -50,6 +50,8 @@ define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'
 			var self = this;
 
 			self.logModel.info("Refreshing list of source files to watch for changes...");
+			// Are we busy when watching sources? I think so...
+			self.status(api.STATUS_BUSY);
 			sbt.watchSources({
 				onmessage: function(event) {
 					console.log("event watching sources", event);
@@ -57,6 +59,7 @@ define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'
 				},
 				success: function(data) {
 					console.log("watching sources result", data);
+					self.status(api.STATUS_DEFAULT);
 					self.logModel.info("Will watch " + data.count + " source files.");
 					if (typeof(after) === 'function')
 						after();
@@ -64,6 +67,8 @@ define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'
 				failure: function(status, message) {
 					console.log("watching sources failed", message);
 					self.logModel.warn("Failed to reload source file list: " + message);
+					// WE should modify our status here!
+					self.status(api.STATUS_ERROR);
 					if (typeof(after) === 'function')
 						after();
 				}
@@ -94,7 +99,6 @@ define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'
 		},
 		doCompile: function() {
 			var self = this;
-
 			if (self.haveActiveTask()) {
 				console.log("Attempt to compile with a compile already active, will recompile again when we finish");
 				self.needCompile(true);
