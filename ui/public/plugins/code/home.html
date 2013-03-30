@@ -3,5 +3,6 @@
 		<div class="browser" data-bind="snapView: browser"></div>
 
 		<div class="editor" data-bind="snapView: viewer"></div>
+		<div class="open-in-eclipse hidden" data-bind="template: { name: openInEclipse.view, data: openInEclipse, afterRender: openInEclipse.onRender.bind(openInEclipse) }"></div>
 	</div>
 </article>
