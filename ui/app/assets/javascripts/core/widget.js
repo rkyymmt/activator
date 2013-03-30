@@ -36,5 +36,38 @@ var Widget = function(o) {
 	return WidgetClass;
 };
 
+// Copied from knockout source..
+var REPLACE_CHILDREN_TEMPLATE_MODE = 'replaceChildren';
+var REPLACE_ELEMENT_TEMPLATE_MODE = 'replaceNode;'
+
+// This little beauty gives us the ability to not have to specify all the knockout render
+// template parameters.
+ko.bindingHandlers.snapView = {
+		update: function(element, valueAccessor) {
+			// TODO - figure out if we need to unwrap, rather than trust we don't
+			var widget = valueAccessor();
+			// TODO - Find a way to load in replace children vs. replace element mode, and
+			// get rid of snapViewReplace binding.
+			var opts = {
+					data: widget,
+					afterRender: widget.onRender.bind(widget)
+			}
+			ko.renderTemplate(widget.view, widget, opts, element, REPLACE_CHILDREN_TEMPLATE_MODE);
+		}
+};
+
+// This guy has the template replace the element, rather than embedd inside the children.
+ko.bindingHandlers.snapViewReplace = {
+		update: function(element, valueAccessor) {
+			// TODO - figure out if we need to unwrap...
+			var widget = valueAccessor();
+			var opts = {
+					data: widget,
+					afterRender: widget.onRender.bind(widget)
+			}
+			ko.renderTemplate(widget.view, widget, opts, element, REPLACE_ELEMENT_TEMPLATE_MODE);
+		}
+}
+
 return Widget;
 });
