@@ -21,7 +21,7 @@ var Widget = function(o) {
 		// Now call user's init method.
 		if(oldinit) { oldinit.call(this, args); }
 		}*/
-	var WidgetClass = utils.Class(o)
+	var WidgetClass = utils.Class(o);
 	WidgetClass.extend({
 		// Default onRender that does nothing.
 		onRender: function(elements) {},
@@ -43,13 +43,15 @@ var REPLACE_ELEMENT_TEMPLATE_MODE = 'replaceNode;'
 // This little beauty gives us the ability to not have to specify all the knockout render
 // template parameters.
 ko.bindingHandlers.snapView = {
+		init: function(element, valueAccessor) {
+			return { 'controlsDescendantBindings': true };
+		},
 		update: function(element, valueAccessor) {
 			// TODO - figure out if we need to unwrap, rather than trust we don't
 			var widget = valueAccessor();
 			// TODO - Find a way to load in replace children vs. replace element mode, and
 			// get rid of snapViewReplace binding.
 			var opts = {
-					data: widget,
 					afterRender: widget.onRender.bind(widget)
 			}
 			ko.renderTemplate(widget.view, widget, opts, element, REPLACE_CHILDREN_TEMPLATE_MODE);
@@ -58,6 +60,9 @@ ko.bindingHandlers.snapView = {
 
 // This guy has the template replace the element, rather than embedd inside the children.
 ko.bindingHandlers.snapViewReplace = {
+		init: function(element, valueAccessor) {
+			return { 'controlsDescendantBindings': true };
+		},
 		update: function(element, valueAccessor) {
 			// TODO - figure out if we need to unwrap...
 			var widget = valueAccessor();
