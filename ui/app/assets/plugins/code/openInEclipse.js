@@ -1,4 +1,4 @@
-define(['text!./openInEclipseContent.html', 'core/pluginapi', 'core/widgets/overlay', 'core/log'],
+define(['text!./openInEclipse.html', 'core/pluginapi', 'core/widgets/overlay', 'core/log'],
 function(template, api, Overlay, log){
 
 	var ko = api.ko;
@@ -28,27 +28,18 @@ function(template, api, Overlay, log){
 			self.haveProjectFiles = ko.observable(false);
 			self.workingStatus = ko.observable("");
 			self.projectDirectory = ko.observable(serverAppModel.location);
-			self.node = null;
 			self.activeTask = ko.observable(""); // empty string or taskId
 		},
 		onRender: function(childElements) {
 			var self = this;
 
-			if (self.id != 'open-in-eclipse-widget')
-				throw new Error("wrong this in onRender " + self);
-			if (self.node !== null)
-				throw new Error("rendering OpenInEclipse twice");
+			var node = $(childElements[0]).parent();
 
-			self.node = $(childElements[0]).parent();
-			if (!self.node)
-				throw new Error("didn't get the eclipse node");
-
-			self.startNode = self.node.find('.start');
-			self.generateNode = self.node.find('.generate');
-			self.instructionsNode = self.node.find('.instructions');
+			self.startNode = node.find('.start');
+			self.generateNode = node.find('.generate');
+			self.instructionsNode = node.find('.instructions');
 
 			// Start the tutorial
-			self.node.show()
 			self._switchTo(null); // show nothing until start() does
 			self.start();
 		},
