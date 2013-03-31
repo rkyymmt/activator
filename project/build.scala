@@ -30,7 +30,7 @@ object TheBuilderBuild extends Build {
   )
 
   // These are the projects we want in the local Builder repository
-  lazy val publishedSbtShimProjects = Set(playShimPlugin, eclipseShimPlugin, sbtUiInterface)
+  lazy val publishedSbtShimProjects = Set(playShimPlugin, eclipseShimPlugin, ideaShimPlugin, sbtUiInterface)
   lazy val publishedProjects = Seq(io, common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects
 
   // basic project that gives us properties to use in other projects.
@@ -101,6 +101,12 @@ object TheBuilderBuild extends Build {
     SbtShimPlugin("eclipse")
     dependsOn(sbtUiInterface)
     dependsOnRemote(eclipseSbtPlugin)
+  )
+
+  lazy val ideaShimPlugin = (
+    SbtShimPlugin("idea")
+    dependsOn(sbtUiInterface)
+    dependsOnRemote(ideaSbtPlugin)
   )
 
   val verboseSbtTests = false

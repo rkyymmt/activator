@@ -46,5 +46,5 @@ addSbtPlugin("com.typesafe.builder" % "sbt-shim-""" + name + """" % """" + versi
 }
 
 object ShimWriter {
-  val knownShims = Set("eclipse", "play")
+  val knownShims = Set("eclipse", "idea", "play")
 }
