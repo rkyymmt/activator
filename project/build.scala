@@ -172,7 +172,7 @@ object TheBuilderBuild extends Build {
     )
     settings(
       Keys.compile in Compile <<= (Keys.compile in Compile, Keys.baseDirectory, Keys.streams) map { (oldCompile, baseDir, streams) =>
-        val jsErrors = JsChecker.checkAll(baseDir)
+        val jsErrors = JsChecker.fixAndCheckAll(baseDir, streams.log)
         for (error <- jsErrors) {
           streams.log.error(error)
         }
@@ -184,7 +184,7 @@ object TheBuilderBuild extends Build {
       }
     )
   )
-  
+
   lazy val launcher = (
     BuilderProject("launcher")
     dependsOnRemote(sbtLauncherInterface, sbtCompletion)
