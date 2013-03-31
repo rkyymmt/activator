@@ -1,5 +1,5 @@
 define(['text!./openInEclipse.html', 'core/pluginapi', 'core/widgets/overlay', 'core/log'],
-function(template, api, Overlay, log){
+function(eclipseTemplate, api, Overlay, log){
 
 	var ko = api.ko;
 	var sbt = api.sbt;
@@ -15,14 +15,12 @@ function(template, api, Overlay, log){
 		});
 	}
 
-	var OpenInEclipse = api.Widget({
-		id: 'open-in-eclipse-widget',
-		template: template,
+	var shared = {
 		init: function(parameters) {
 			var self = this;
 			self.overlay = new Overlay({
 				contents: this,
-				css: 'open-in-eclipse'
+				css: this.overlayClass
 			});
 			self.log = new log.Log();
 			self.haveProjectFiles = ko.observable(false);
@@ -51,7 +49,7 @@ function(template, api, Overlay, log){
 		},
 		_updateHaveProjectFiles: function() {
 			var self = this;
-			browse(serverAppModel.location + "/.project").done(function(data) {
+			browse(serverAppModel.location + "/" + self.projectFilename).done(function(data) {
 				self.haveProjectFiles(true);
 			}).error(function() {
 				self.haveProjectFiles(false);
@@ -77,23 +75,23 @@ function(template, api, Overlay, log){
 			var self = this;
 			this._switchTo(this.generateNode);
 			if (self.activeTask() == "") {
-				self.workingStatus("Generating Eclipse project files...");
+				self.workingStatus("Generating " + self.ideName + " project files...");
 				self.log.clear();
 				var taskId = sbt.runTask({
-					task: 'eclipse',
+					task: self.taskName,
 					onmessage: function(event) {
-						console.log("event while generating eclipse ", event);
+						console.log("event while generating " + self.ideName + " files ", event);
 						self.log.event(event);
 					},
 					success: function(data) {
-						console.log("eclipse result", data);
-						self.workingStatus("Successfully created Eclipse project files.");
+						console.log(self.ideName + " result", data);
+						self.workingStatus("Successfully created " + self.ideName + " project files.");
 						self._updateHaveProjectFiles();
 						self.activeTask("");
 					},
 					failure: function(status, message) {
-						console.log("eclipse fail", message);
-						self.workingStatus("Failed to generate Eclipse project files.");
+						console.log(self.ideName + " fail", message);
+						self.workingStatus("Failed to generate " + self.ideName + " project files.");
 						self._updateHaveProjectFiles();
 						self.activeTask("");
 					}
@@ -104,7 +102,18 @@ function(template, api, Overlay, log){
 		instructions: function() {
 			this._switchTo(this.instructionsNode);
 		}
-	});
+	};
 
-	return OpenInEclipse;
+	var eclipse = {
+		id: 'open-in-eclipse-widget',
+		template: eclipseTemplate,
+		overlayClass: 'open-in-eclipse',
+		projectFilename: '.project',
+		taskName: 'eclipse',
+		ideName: 'Eclipse'
+	};
+
+	var OpenInEclipse = api.Widget($.extend({}, shared, eclipse));
+
+	return { OpenInEclipse : OpenInEclipse };
 });
