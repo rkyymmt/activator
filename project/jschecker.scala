@@ -44,9 +44,9 @@ object JsChecker {
   // it requires too much judgment as to what
   // was intended.
   private val fixer = (fixWindowsLineBreaks _)
-    .compose(fixNoNewlineAtEnd)
-    .compose(fixTrailingWhitespace)
-    .compose(fixMultipleNewlinesAtEnd)
+    .andThen(fixNoNewlineAtEnd)
+    .andThen(fixTrailingWhitespace)
+    .andThen(fixMultipleNewlinesAtEnd)
 
   def fix(f: File, log: Logger): File = {
     val content = IO.read(f)
