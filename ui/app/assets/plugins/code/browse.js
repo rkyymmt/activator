@@ -21,7 +21,8 @@ define(['text!./browse.html', 'core/pluginapi', 'core/widgets/overlay'], functio
 		template: template,
 		init: function(config) {
 			var self = this;
-			self.openInEclipseWidget = config.openInEclipse;
+			self.openInEclipse = config.openInEclipse;
+			self.openInIdea = config.openInIdea;
 			self.directory = config.directory;
 			self.pageType = ko.computed(function(o) {
 				return "browser"
@@ -67,10 +68,6 @@ define(['text!./browse.html', 'core/pluginapi', 'core/widgets/overlay'], functio
 				console.log('Failed to open directory in browser: ', err)
 				alert('Failed to open directory.  This may be unsupported by your system.');
 			});
-		},
-		openInEclipse: function() {
-			var self = this;
-			self.openInEclipseWidget.open();
 		}
 	});
 	return Browser;

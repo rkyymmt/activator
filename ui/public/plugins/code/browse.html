@@ -1,12 +1,12 @@
 <header>
 	<nav>
-		<dl class="dropdown" todo>
-			<dt>Open</dt>
-			<dd>
-        <a class="todo">Open project in IntelliJ IDEA</a>
-		    <a data-bind="click: openInEclipse">Open project in Eclipse</a>
-        <a data-bind="click: openProjectInFileBrowser">Open project in File Browser</a>
-      </dd>
+		<dl class="dropdown">
+            <dt>Open</dt>
+            <dd>
+                <a data-bind="click: openInIdea">Open project in IntelliJ IDEA</a>
+                <a data-bind="click: openInEclipse">Open project in Eclipse</a>
+                <a data-bind="click: openProjectInFileBrowser">Open project in File Browser</a>
+            </dd>
 		</dl>
 	</nav>
 	<h1><a href="#" data-bind="click: openInFileBrowser, text: rootAppPath"></a></h1>

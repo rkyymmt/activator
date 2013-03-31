@@ -1,5 +1,5 @@
-define(['text!./openInEclipse.html', 'core/pluginapi', 'core/widgets/overlay', 'core/log'],
-function(eclipseTemplate, api, Overlay, log){
+define(['text!./openInEclipse.html', 'text!./openInIdea.html', 'core/pluginapi', 'core/widgets/overlay', 'core/log'],
+function(eclipseTemplate, ideaTemplate, api, Overlay, log){
 
 	var ko = api.ko;
 	var sbt = api.sbt;
@@ -113,7 +113,20 @@ function(eclipseTemplate, api, Overlay, log){
 		ideName: 'Eclipse'
 	};
 
-	var OpenInEclipse = api.Widget($.extend({}, shared, eclipse));
+	var idea = {
+		id: 'open-in-idea-widget',
+		template: ideaTemplate,
+		overlayClass: 'open-in-idea',
+		projectFilename: '.idea',
+		taskName: 'gen-idea',
+		ideName: 'IntelliJ IDEA'
+	};
 
-	return { OpenInEclipse : OpenInEclipse };
+	var OpenInEclipse = api.Widget($.extend({}, shared, eclipse));
+	var OpenInIdea = api.Widget($.extend({}, shared, idea));
+
+	return {
+		OpenInEclipse : OpenInEclipse,
+		OpenInIdea : OpenInIdea
+	};
 });
