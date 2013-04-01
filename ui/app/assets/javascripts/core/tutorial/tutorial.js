@@ -1,4 +1,4 @@
-define(['css!./tutorial.css', 'core/pluginapi'], function(css, api){
+define(['css!./tutorial', 'core/pluginapi'], function(css, api){
 
 	var ko = api.ko,
 		key = api.key;

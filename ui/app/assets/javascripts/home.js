@@ -10,7 +10,7 @@ require.config({
 	map: {
 		'*': {
 			'text':	'vendors/text',
-			'css':	'vendors/css.min'
+			'css':	'vendors/css'
 		}
 	}
 })
@@ -26,7 +26,7 @@ window.req = require
 require([
 	// Vendors
 	'vendors/text',
-	'vendors/css.min',
+	'vendors/css',
 	'vendors/jquery-2.0.0b1',
 	'vendors/knockout-2.2.0',
 	'vendors/chain',
