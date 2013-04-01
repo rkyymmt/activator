@@ -11,11 +11,10 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/plug
 			this.index = parameters.index;
 			this.content = parameters.content.innerHTML;
 			this.title = $(parameters.content).find("h1,h2").text();
-			this.link = "<span class=\"step\">" + this.index + "</span> " + this.title;
 			this.tutorial = parameters.tutorial;
 			this.active = ko.computed(function() {
 				var result = self === self.tutorial.currentPage();
-				console.info("page " + self.index + " active=" + result);
+				console.log("page " + self.index + " active=" + result);
 				return result;
 			}, this);
 		},
@@ -83,19 +82,19 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/plug
 							self.pages.push(new Page({ index: i+1, content: el, tutorial: self }));
 						});
 						if (self.havePages())
-							self.currentPage(self.pages()[0]);
+							self.select(self.pages()[0]);
 						else
-							self.currentPage(null);
+							self.select(null);
 					}
 				});
 			}
 		},
 		select: function(item) {
 			if (item) {
-				console.info("selecting page " + item.index + ": " + item.title);
+				console.log("selecting page " + item.index + ": " + item.title);
 				this.currentPage(item);
 			} else if (item === null) {
-				console.info("unselecting all pages");
+				console.log("unselecting all pages");
 				this.currentPage(null);
 			} else {
 				console.error("Invalid page to select: ", item);

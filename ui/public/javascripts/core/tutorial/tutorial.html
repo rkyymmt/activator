@@ -8,7 +8,7 @@
         <a class="next" data-bind="css: nextClass, click: selectNext">→</a>
         <h1 data-bind="text: currentTitle, click: toggleIndexMenu"></h1>
         <ul data-bind="visible: showingIndex, css: indexMenuClass, foreach: pages">
-            <li class="step" data-bind="html: link, click: activate"></li>
+            <li class="step" data-bind="click: activate"><span class="step" data-bind="text: index"></span> <span data-bind="text: title"></span></li>
         </ul>
     </nav>
     <article data-bind="foreach: pages">
