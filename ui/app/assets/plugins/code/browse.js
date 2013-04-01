@@ -30,6 +30,7 @@ define(['text!./browse.html', 'core/pluginapi', 'core/widgets/overlay'], functio
 				var dir = self.directory();
 				return dir.children();
 			});
+			self.rootAppPath = config.rootAppPath || config.directory().location;
 			self.name = ko.computed(function() {
 				// TODO - Trim the name in a nicer way
 				return './' + self.directory().name();
@@ -54,6 +55,14 @@ define(['text!./browse.html', 'core/pluginapi', 'core/widgets/overlay'], functio
 		openInFileBrowser: function() {
 			var self = this;
 			var loc = self.directory().location;
+			open(loc).success(function() {}).error(function(err) {
+				console.log('Failed to open directory in browser: ', err)
+				alert('Failed to open directory.  This may be unsupported by your system.');
+			});
+		},
+		openProjectInFileBrowser: function() {
+			var self = this;
+			var loc = self.rootAppPath;
 			open(loc).success(function() {}).error(function(err) {
 				console.log('Failed to open directory in browser: ', err)
 				alert('Failed to open directory.  This may be unsupported by your system.');

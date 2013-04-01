@@ -1,24 +1,29 @@
 <header>
 	<nav>
 		<dl class="dropdown" todo>
-			<dt>+</dt>
+			<dt>Open</dt>
 			<dd>
-			    <p>Open current directory in...</p>
-			    <a data-bind="click: openInFileBrowser">File Browser</a>
-			    <p>Open project in...</p>
-			    <a data-bind="click: openInEclipse">Eclipse</a>
-				<p>Add in current directory...</p>
-				<a href="#" class="todo">New file</a>
-				<a href="#" class="todo">New folder</a>
-			</dd>
+        <a class="todo">Open project in IntelliJ IDEA</a>
+		    <a data-bind="click: openInEclipse">Open project in Eclipse</a>
+        <a data-bind="click: openProjectInFileBrowser">Open project in File Browser</a>
+      </dd>
 		</dl>
 	</nav>
-	<h1 data-bind="text: name"></h1>
+	<h1><a href="#" data-bind="click: openInFileBrowser, text: rootAppPath"></a></h1>
 	<div class="breadcrumb subheader">
 		<a href="#code/" class="home">⌂</a>
 		<p class="wrap" data-bind="foreach: parts">
 			<span class="slash">/</span><a href="#" data-bind="text: name, attr: { href: url }"></a>
 		</p>
+        <!--
+        <dl class="dropdown" todo>
+            <dt>+</dt>
+            <dd>
+                <a href="#">New file</a>
+                <a href="#">New folder</a>
+            </dd>
+        </dl>
+        -->
 	</div>
 </header>
 <p style="display:none" data-bind="visible: isEmpty">Empty folder</p>

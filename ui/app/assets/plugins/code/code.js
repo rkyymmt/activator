@@ -45,7 +45,8 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 			self.openInEclipse = new OpenInEclipse();
 			self.browser = new Browser({
 				directory: self.currentDirectory,
-				openInEclipse: self.openInEclipse
+				openInEclipse: self.openInEclipse,
+				rootAppPath: serverAppModel.location
 			});
 			self.viewer = new Viewer({
 				file: self.currentFile
