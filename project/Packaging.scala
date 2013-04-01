@@ -87,7 +87,7 @@ object Packaging {
     mappings in Universal <+= makeBashScript map (_ -> "builder"),
     mappings in Universal <+= makeBatScript map (_ -> "builder.bat"),
     mappings in Universal <+= makeReadmeHtml map (_ -> "README.html"),
-    mappings in Universal <+= makeReadmeHtml map (_ -> "LICENSE.html"),
+    mappings in Universal <+= makeLicensesHtml map (_ -> "LICENSE.html"),
     mappings in Universal <++= localRepoCreated map { repo =>
       for {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
