@@ -4,21 +4,30 @@
 </head>
 <body>
 <div>
-    <p><!-- todo: intro --></p>
+    Akka is a toolkit and runtime for building highly concurrent, distributed, and fault tolerant event-driven applications on the JVM.  Akka can be used with both Java and Scala.  One of the most powerful features of Akka is it's Actor model of concurrency.
 
     <h2> Explore the Code</h2>
 
-    <p><!-- todo --></p>
+    <p>
+        The <a href="#code/app" class="shortcut">app</a> directory contains the application's Java and Scala source code.  A few example Actor-based applications are provided.  The <a href="#code/app/HelloAkkaJava.java" class="shortcut">HelloAkkaJava.java</a> and <a href="#code/app/HelloAkkaScala.scala" class="shortcut">HelloAkkaScala.scala</a> files send a message to an Actor every 5 seconds.  This message is then printed to the console.
+        <br/>
+        The <a href="#code/PiJava.java" class="shortcut">PiJava.java</a> and <a href="#code/PiScala.scala" class="shortcut">PiScala.scala</a> files provide Actor-based examples for computing Pi.
+    </p>
 </div>
 <div>
     <h2> Run the App</h2>
 
-    <p><!-- todo --></p>
+    <p>
+        In <a href="#run" class="shortcut">Run</a>, select the application to run from the down-down list, and select <strong>Start</strong>.  The Pi examples will do their computation and then exit.  The Hello examples will continue running until stopped.
+    </p>
 </div>
 <div>
     <h2> Test the App</h2>
 
-    <p><!-- todo --></p>
+    <p>
+        The Pi Java and Scala examples each have unit tests in the <a href="#code/test" class="shortcut">test</a> directory.  The <a href="#code/test/PiTest.java" class="shortcut">Java tests</a> use JUnit, while the <a href="#code/test/PiSpec.scala" class="shortcut">Scala tests</a> use ScalaTest.  Making changes to the application's source or the test source will cause the tests to be automatically re-run.
+    </p>
 </div>
+<!-- todo: application.conf -->
 </body>
 </html>
