@@ -196,7 +196,8 @@ object TheBuilderBuild extends Build {
     BuilderProject("dontuseme")
     settings(
       // This hack removes the project resolver so we don't resolve stub artifacts.
-      Keys.fullResolvers <<= (Keys.externalResolvers, Keys.sbtResolver) map (_ :+ _)
+      Keys.fullResolvers <<= (Keys.externalResolvers, Keys.sbtResolver) map (_ :+ _),
+      Keys.resolvers += Resolver.url("sbt-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
     )
   )
   lazy val it = (
