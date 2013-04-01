@@ -1,0 +1,17 @@
+<div>
+    <header>
+        <a class="collapse"></a>
+        <span>Tutorial</span>
+    </header>
+    <nav>
+        <a class="previous" data-bind="css: previousClass, click: selectPrevious">←</a>
+        <a class="next" data-bind="css: nextClass, click: selectNext">→</a>
+        <h1 data-bind="text: currentTitle, click: toggleIndexMenu"></h1>
+        <ul data-bind="visible: showingIndex, css: indexMenuClass, foreach: pages">
+            <li class="step" data-bind="html: link, click: activate"></li>
+        </ul>
+    </nav>
+    <article data-bind="foreach: pages">
+        <div data-bind="snapView: $data, visible: active"></div>
+    </article>
+</div>
