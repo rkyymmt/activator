@@ -1,4 +1,4 @@
-define(['text!./browse.html', 'core/pluginapi'], function(template, api, files) {
+define(['text!./browse.html', 'core/pluginapi', 'core/widgets/overlay'], function(template, api, files, Overlay) {
 
 	var ko = api.ko,
 		key = api.key,
@@ -21,6 +21,7 @@ define(['text!./browse.html', 'core/pluginapi'], function(template, api, files) 
 		template: template,
 		init: function(config) {
 			var self = this;
+			self.openInEclipseWidget = config.openInEclipse;
 			self.directory = config.directory;
 			self.pageType = ko.computed(function(o) {
 				return "browser"
@@ -29,7 +30,7 @@ define(['text!./browse.html', 'core/pluginapi'], function(template, api, files) 
 				var dir = self.directory();
 				return dir.children();
 			});
-			self.rootAppPath = self.directory().location
+			self.rootAppPath = config.rootAppPath || config.directory().location;
 			self.name = ko.computed(function() {
 				// TODO - Trim the name in a nicer way
 				return './' + self.directory().name();
@@ -66,6 +67,10 @@ define(['text!./browse.html', 'core/pluginapi'], function(template, api, files) 
 				console.log('Failed to open directory in browser: ', err)
 				alert('Failed to open directory.  This may be unsupported by your system.');
 			});
+		},
+		openInEclipse: function() {
+			var self = this;
+			self.openInEclipseWidget.open();
 		}
 	});
 	return Browser;

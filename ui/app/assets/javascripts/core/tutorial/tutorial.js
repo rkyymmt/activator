@@ -23,14 +23,18 @@ define(['css!./tutorial.css', 'core/pluginapi'], function(css, api){
 		if (serverAppModel && serverAppModel.template && serverAppModel.template.id){
 			$.ajax("/api/templates/"+serverAppModel.template.id+"/tutorial/index.html",{
 				success: function(data){
-					$(data).filter("div").each(function(i,el){
-						console.log("eL>", el)
+					// parseHTML dumps the <html> <head> and <body> tags it looks like
+					// so we'll get back a list with <title> and some <div> and some
+					// text nodes.
+					var htmlNodes = $.parseHTML(data);
+					$(htmlNodes).filter("div").each(function(i,el){
 						self.pages.push(new Page(i+1,el));
 					});
+					if (self.pages().length > 0)
+						self.currentPage(self.pages()[0]);
 					setTimeout(function(){
 						$("aside.tutorial nav a.previous").trigger("click");
 					},100);
-					//self.currentPage( pages()[0] );
 				}
 			});
 		}

@@ -2,6 +2,11 @@
 @import 'commons/_commons.less';
 @import 'commons/_animations.less';
 
+
+.hidden {
+    display: none;
+}
+
 .noAnim * {
 	-webkit-transition: none !important;
 	-moz-transition: none !important;
@@ -132,6 +137,24 @@ body > aside {
 	-moz-transition: all 200ms linear;
 	transition: all 200ms linear;
 
+}
+
+.rockets > li > a {
+  &.active {
+    position: relative;
+    color: white;
+    &:after {
+      content: " ";
+      position: absolute;
+      bottom: 0;
+      left: 11px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 8px solid #53cdec;
+    }
+  }
 }
 
 #switch {

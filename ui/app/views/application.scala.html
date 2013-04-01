@@ -30,13 +30,19 @@
 		<script data-main="/public/javascripts/main.js" type="text/javascript" src="/public/javascripts/vendors/require.min.js"></script>
 		<link rel="stylesheet" media="screen" href="/public/stylesheets/main.css">
 		<link rel="shortcut icon" type="image/png" href="/public/images/favicon.png">
+
+        <!-- ZenDesk Integration -->
+        <script type="text/javascript" src="//assets.zendesk.com/external/zenbox/v2.6/zenbox.js"></script>
+        <style type="text/css" media="screen, projection">
+            @@import url(//assets.zendesk.com/external/zenbox/v2.6/zenbox.css);
+        </style>
 	</head>
 	<body class="noAnim right-open">
 		<header>
 			<nav>
 				<ul class="rockets">
 					<li class="app" data-bind="foreach: plugins.list">
-						<a data-bind="attr: { 'data-icon': icon, href: url }, class: statusIcon">
+						<a data-bind="attr: { 'data-icon': icon, href: url }, css: {active: active, busy: statusBusy, error: statusError}">
                             <span class="text" data-bind="text: name"></span>
                             <span class="icon"></span>
 						</a>
@@ -85,13 +91,26 @@
             <p>
                 Use <a href="#code" class="shortcut">Code</a> <a href="#compile" class="shortcut">Compile</a> <a href="#run" class="shortcut">Run</a> and <a href="#test" class="shortcut">Test</a> above to interact with the application.
             </p>
-            <p class="version-info"">
-                Typesafe Builder v@BuilderProperties.APP_VERSION (<a href="#todo">Send Feedback</a>)
+            <p class="version-info">
+                Typesafe Builder v@BuilderProperties.APP_VERSION (<a href="http://myaccount.zendesk.com/account/dropboxes/20150671" onClick="script: Zenbox.show(); return false;">Send Feedback</a>)
             </p>
           </div>
         </div>
         <div id="wrapper" data-bind="foreach: { data: widgets }, visible: snap.activeWidget() != undefined">
-          <div class="widget" data-bind="template: { name: view, data: $data, afterRender: onRender }, visible: id == $parent.snap.activeWidget()"></div>
+          <div class="widget" data-bind="snapView: $data, visible: id == $parent.snap.activeWidget()"></div>
         </div>
+        <script type="text/javascript">
+            if (typeof(Zenbox) !== "undefined") {
+                Zenbox.init({
+                    dropboxID:   "20150671",
+                    url:         "https://typesafe.zendesk.com",
+                    tabID:       "feedback",
+                    tabText:     "Feedback",
+                    tabColor:    "black",
+                    tabPosition: "Right",
+                    hide_tab:    "true"
+                });
+            }
+        </script>
 	</body>
 </html>

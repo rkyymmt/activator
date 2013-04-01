@@ -21,7 +21,7 @@ var Widget = function(o) {
 		// Now call user's init method.
 		if(oldinit) { oldinit.call(this, args); }
 		}*/
-	var WidgetClass = utils.Class(o)
+	var WidgetClass = utils.Class(o);
 	WidgetClass.extend({
 		// Default onRender that does nothing.
 		onRender: function(elements) {},
@@ -29,12 +29,50 @@ var Widget = function(o) {
 			// Here we're binding ourselves directly to an element, not using
 			// the normal knockout "bind everything" magic...
 			var element = $(el);
-			element.attr('data-bind', 'template: { name: \''+this.view+'\', data: $data, afterRender: onRender }');
+			element.attr('data-bind', 'snapView: $data');
 			ko.applyBindings(this, element.get()[0]);
 		}
 	});
 	return WidgetClass;
 };
+
+// Copied from knockout source..
+var REPLACE_CHILDREN_TEMPLATE_MODE = 'replaceChildren';
+var REPLACE_ELEMENT_TEMPLATE_MODE = 'replaceNode;'
+
+// This little beauty gives us the ability to not have to specify all the knockout render
+// template parameters.
+ko.bindingHandlers.snapView = {
+		init: function(element, valueAccessor) {
+			return { 'controlsDescendantBindings': true };
+		},
+		update: function(element, valueAccessor) {
+			// TODO - figure out if we need to unwrap, rather than trust we don't
+			var widget = valueAccessor();
+			// TODO - Find a way to load in replace children vs. replace element mode, and
+			// get rid of snapViewReplace binding.
+			var opts = {
+					afterRender: widget.onRender.bind(widget)
+			}
+			ko.renderTemplate(widget.view, widget, opts, element, REPLACE_CHILDREN_TEMPLATE_MODE);
+		}
+};
+
+// This guy has the template replace the element, rather than embedd inside the children.
+ko.bindingHandlers.snapViewReplace = {
+		init: function(element, valueAccessor) {
+			return { 'controlsDescendantBindings': true };
+		},
+		update: function(element, valueAccessor) {
+			// TODO - figure out if we need to unwrap...
+			var widget = valueAccessor();
+			var opts = {
+					data: widget,
+					afterRender: widget.onRender.bind(widget)
+			}
+			ko.renderTemplate(widget.view, widget, opts, element, REPLACE_ELEMENT_TEMPLATE_MODE);
+		}
+}
 
 return Widget;
 });

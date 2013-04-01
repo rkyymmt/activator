@@ -17,5 +17,5 @@
 	<p class="subheader" data-bind="text: fileStats"></span>
 	</p>
 </header>
-<div class="wrapper" data-bind="template: { name: subView().id, data: subView(), afterRender: subView().onRender }"></div>
+<div class="wrapper" data-bind="snapView: subView()"></div>
 <!-- /ko -->

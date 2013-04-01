@@ -108,7 +108,6 @@ require([
 				event.preventDefault();
 				var msg = formToJson(event.currentTarget);
 				msg.request = 'CreateNewApplication';
-				debugger;
 				streams.send(msg);
 				toggleWorking();
 			});
