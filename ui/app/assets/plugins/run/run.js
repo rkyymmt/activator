@@ -45,6 +45,15 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 		onCompileSucceeded: function(event) {
 			var self = this;
 
+			// whether we get main classes or not we'll try to
+			// run, but get the main classes first so we don't
+			// fail if there are multiple main classes.
+			function afterLoadMainClasses() {
+				if (self.rerunOnBuild() && !self.haveActiveTask()) {
+					self.doRun(true); // true=triggeredByBuild
+				}
+			}
+
 			// update our list of main classes
 			sbt.runTask({
 				task: 'discovered-main-classes',
@@ -67,15 +76,13 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 						if (self.currentMainClass() == "")
 							self.currentMainClass(self.mainClasses()[0]);
 					}
+					afterLoadMainClasses();
 				},
 				failure: function(status, message) {
 					console.log("getting main class failed", message);
+					afterLoadMainClasses();
 				}
 			});
-
-			if (self.rerunOnBuild() && !self.haveActiveTask()) {
-				self.doRun(true); // true=triggeredByBuild
-			}
 		},
 		doAfterRun: function() {
 			var self = this;
