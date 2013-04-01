@@ -44,9 +44,10 @@ aside.tutorial {
 				background: #6F7F89;
 				color: #fff;
 			}
-			&[disabled] {
+			&.disabled {
 				background: none;
 				color: #B6C8D5;
+				cursor: default;
 			}
 		}
 		.previous {
@@ -75,6 +76,7 @@ aside.tutorial {
 			box-shadow: 0 2px 5px rgba(0,0,0,.2);
 			li {
 				position: relative;
+				background: white;
 				z-index: 9999;
 				padding: 5px 10px;
 				border-bottom: 1px solid #eee;
@@ -85,7 +87,7 @@ aside.tutorial {
 				}
 			}
 			span.step {
-				opacity: .5;
+			    opacity: 0.5;
 			}
 			&.open {
 				display: block;
@@ -184,12 +186,6 @@ aside.tutorial {
 		}
 		ol li {
 			list-style-type: decimal;
-		}
-		div {
-			display: none;
-		}
-		div.active {
-			display: block;
 		}
 		strong {
 			font-weight: bold;

@@ -1,5 +1,5 @@
 // Sort of MVC (Module, Grid, Router)
-define(['./plugin', './grid', './router', './pluginapi', './navigation', './tutorial/tutorial', './streams'], function(plugins, Grid, router, api, navigation, tutorial, streams) {
+define(['./plugin', './grid', './router', './pluginapi', './navigation', './tutorial/tutorial', './streams'], function(plugins, Grid, router, api, navigation, Tutorial, streams) {
 
 	var ko = api.ko,
 		key = api.key;
@@ -42,7 +42,7 @@ define(['./plugin', './grid', './router', './pluginapi', './navigation', './tuto
 			return self;
 		},
 		api: api,
-		tutorial: tutorial
+		tutorial: new Tutorial()
 	};
 	window.model = model.init();
 

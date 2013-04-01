@@ -1,88 +1,141 @@
-define(['css!./tutorial', 'core/pluginapi'], function(css, api){
+define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/pluginapi'], function(css, template, pageTemplate, api){
 
 	var ko = api.ko,
 		key = api.key;
 
-	function Page(index, content) {
-		var title = $(content).find("h1,h2").text();
-		return {
-			index: index,
-			title: title,
-			link: "<span class=\"step\">"+index+"</span> "+title,
-			content: content.innerHTML
+	var Page = api.Widget({
+		id: 'page-widget',
+		template: pageTemplate,
+		init: function(parameters) {
+			var self = this;
+			this.index = parameters.index;
+			this.content = parameters.content.innerHTML;
+			this.title = $(parameters.content).find("h1,h2").text();
+			this.link = "<span class=\"step\">" + this.index + "</span> " + this.title;
+			this.tutorial = parameters.tutorial;
+			this.active = ko.computed(function() {
+				var result = self === self.tutorial.currentPage();
+				console.info("page " + self.index + " active=" + result);
+				return result;
+			}, this);
+		},
+		activate: function() {
+			this.tutorial.select(this);
+			// hide the menu if it was open
+			this.tutorial.showingIndex(false);
 		}
-	}
+	});
 
-	function Tutorials(){
-		var self = this;
-		self.pages = ko.observableArray([]);
-		self.currentPage = ko.observable();
-		self.select = function(item){
-			self.currentPage(item);
-		};
-		if (serverAppModel && serverAppModel.template && serverAppModel.template.id){
-			$.ajax("/api/templates/"+serverAppModel.template.id+"/tutorial/index.html",{
-				success: function(data){
-					// parseHTML dumps the <html> <head> and <body> tags it looks like
-					// so we'll get back a list with <title> and some <div> and some
-					// text nodes.
-					var htmlNodes = $.parseHTML(data);
-					$(htmlNodes).filter("div").each(function(i,el){
-						self.pages.push(new Page(i+1,el));
-					});
-					if (self.pages().length > 0)
-						self.currentPage(self.pages()[0]);
-					setTimeout(function(){
-						$("aside.tutorial nav a.previous").trigger("click");
-					},100);
-				}
+	var Tutorial = api.Widget({
+		id: 'tutorial-widget',
+		template: template,
+		init: function(parameters) {
+			var self = this;
+			self.pages = ko.observableArray([]);
+			self.currentPage = ko.observable(null);
+			self.havePages = ko.computed(function() {
+				return self.pages().length > 0;
+			}, self);
+			self.havePrevious = ko.computed(function() {
+				return self.havePages() &&
+					self.currentPage() !== self.pages()[0];
+			}, self);
+			self.haveNext = ko.computed(function() {
+				var length = self.pages().length;
+				return self.havePages() &&
+					self.currentPage() !== self.pages()[length - 1];
+			}, self);
+			self.previousClass = ko.computed(function() {
+				if (self.havePrevious())
+					return "";
+				else
+					return "disabled";
+			}, self);
+			self.nextClass = ko.computed(function() {
+				if (self.haveNext())
+					return "";
+				else
+					return "disabled";
+			}, self);
+			self.currentTitle = ko.computed(function() {
+				var page = self.currentPage();
+				if (page === null)
+					return "";
+				else
+					return page.title;
+			}, self);
+			self.showingIndex = ko.observable(false);
+			self.indexMenuClass = ko.computed(function() {
+				if (self.showingIndex())
+					return "open";
+				else
+					return "";
+			}, self);
+
+			if (serverAppModel && serverAppModel.template && serverAppModel.template.id) {
+				$.ajax("/api/templates/"+serverAppModel.template.id+"/tutorial/index.html",{
+					success: function(data){
+						// parseHTML dumps the <html> <head> and <body> tags it looks like
+						// so we'll get back a list with <title> and some <div> and some
+						// text nodes.
+						var htmlNodes = $.parseHTML(data);
+						$(htmlNodes).filter("div").each(function(i,el){
+							self.pages.push(new Page({ index: i+1, content: el, tutorial: self }));
+						});
+						if (self.havePages())
+							self.currentPage(self.pages()[0]);
+						else
+							self.currentPage(null);
+					}
+				});
+			}
+		},
+		select: function(item) {
+			if (item) {
+				console.info("selecting page " + item.index + ": " + item.title);
+				this.currentPage(item);
+			} else if (item === null) {
+				console.info("unselecting all pages");
+				this.currentPage(null);
+			} else {
+				console.error("Invalid page to select: ", item);
+			}
+		},
+		selectNext: function() {
+			this.showingIndex(false);
+
+			var length = this.pages().length;
+			var i = 0;
+			for (; i < length; ++i) {
+				if (this.pages()[i] === this.currentPage())
+					break;
+			}
+			if (i < length)
+				this.select(this.pages()[i + 1]);
+		},
+		selectPrevious: function() {
+			this.showingIndex(false);
+
+			var length = this.pages().length;
+			var i = length - 1;
+			for (; i >= 0; --i) {
+				if (this.pages()[i] === this.currentPage())
+					break;
+			}
+			if (i > 0)
+				this.select(this.pages()[i - 1]);
+		},
+		toggleIndexMenu: function() {
+			this.showingIndex(!this.showingIndex());
+		},
+		onRender: function(children) {
+			var tuts = $(children[0]).parent();
+			tuts.on("click", "header .collapse", function(event) {
+				tuts.toggleClass("collapsed");
+				$('body').toggleClass("right-collapsed")
 			});
 		}
-	}
+	});
 
-	// BAAAAAAD
-	// BAAAAAAD
-	// BAAAAAAD
-	// BAAAAAAD
-	var tuts = $("aside.tutorial");
-	tuts.on("click", "header .collapse", function(event) {
-		tuts.toggleClass("collapsed");
-		$('body').toggleClass("right-collapsed")
-	});
-	function display(target){
-		tuts.find(".previous").attr("disabled", false);
-		tuts.find(".next").attr("disabled", false);
-		if (target >= tuts.find("ul li").length - 1) {
-			tuts.find(".next").attr("disabled", true);
-		} else if (target <= 0) {
-			tuts.find(".previous").attr("disabled", true);
-		}
-		tuts.attr("data-step", target);
-		var active = tuts.find("article > div").eq(target).show()
-		active.siblings().hide();
-		var title = active.find("h1,h2").text();
-		tuts.find("h1").text(title)
-	}
-	tuts.on("click", "nav a", function(e){
-		var target = parseFloat(tuts.attr("data-step"));
-		if (e.target.className == "previous" && target > 0){
-			target--;
-		} else if (e.target.className == "next" && target < tuts.find("ul li").length -1 ){
-			target++;
-		}
-		display(target);
-	});
-	tuts.find("h1").click(function(){
-		tuts.find("ul").toggleClass("open");
-	});
-	tuts.on("click","ul, ul li", function(e){
-		tuts.find("ul").toggleClass("open");
-		display( $(e.currentTarget).index() )
-	});
-	// BAAAAAAD
-	// BAAAAAAD
-	// BAAAAAAD
-	// BAAAAAAD
-
-	return new Tutorials();
+	return Tutorial;
 });
