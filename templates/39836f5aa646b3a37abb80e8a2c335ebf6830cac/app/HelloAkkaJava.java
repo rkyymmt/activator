@@ -20,7 +20,7 @@ public class HelloAkkaJava {
     public static class HelloActorJava extends UntypedActor {
 
         public void onReceive(Object message) {
-            if (message == "sayhello")
+            if (message.equals("sayhello"))
                 System.out.println("hello, world");
         }
     }
