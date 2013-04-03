@@ -25,6 +25,7 @@ object Packaging {
   val makeBatScript = TaskKey[File]("make-bat-script")
 
   val makeReadmeHtml = TaskKey[File]("make-readme-html")
+  val makeLicensesHtml = TaskKey[File]("make-licenses-html")
 
   val localTemplateSourceDirectory = SettingKey[File]("local-template-source-directory")
   val localTemplateCache = SettingKey[File]("local-template-cache")
@@ -61,6 +62,7 @@ object Packaging {
         in split ("\\s+") map (_.toLowerCase) filterNot badList mkString ""
       for(license <- config.licenses sortBy (l => makeSortString(l.name))) {
         s.log.info(" * " + license.name + " @ " + license.url)
+         s.log.info("    - " + license.deps.mkString(", "))
       }
     }
   )
@@ -85,6 +87,7 @@ object Packaging {
     mappings in Universal <+= makeBashScript map (_ -> "builder"),
     mappings in Universal <+= makeBatScript map (_ -> "builder.bat"),
     mappings in Universal <+= makeReadmeHtml map (_ -> "README.html"),
+    mappings in Universal <+= makeLicensesHtml map (_ -> "LICENSE.html"),
     mappings in Universal <++= localRepoCreated map { repo =>
       for {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
@@ -122,6 +125,12 @@ object Packaging {
       val template = from / "README.md"
       val output = to / "README.html"
       Markdown.makeHtml(template, output, title="Typesafe Builder")
+      output
+    },
+    makeLicensesHtml <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
+      val template = from / "LICENSE.md"
+      val output = to / "LICENSE.html"
+      Markdown.makeHtml(template, output, title="Typesafe Builder License")
       output
     },
     localTemplateSourceDirectory <<= (baseDirectory in ThisBuild) apply (_ / "templates"),
