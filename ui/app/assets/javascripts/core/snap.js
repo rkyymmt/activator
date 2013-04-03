@@ -55,8 +55,10 @@ define(['./plugin', './grid', './router', './pluginapi', './navigation', './tuto
 		},
 		loadNews: function() {
 			var areq = {
-				url: "http://downloads.typesafe.com/typesafe-builder/" + window.serverAppModel.appVersion,
+				url: "http://downloads.typesafe.com/typesafe-builder/" + window.serverAppModel.appVersion + "/news.js",
 				type: 'GET',
+				// this is hardcoded for now since our server is just static files
+				// so can't respect a ?callback= query param.
 				jsonpCallback: 'setNewsJson',
 				dataType: 'jsonp' // return type
 			};
