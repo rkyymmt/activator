@@ -25,7 +25,7 @@ object BuilderBuild {
       .setPreference(IndentSpaces, 2)
   }
 
-  val typesafeIvyReleases = Resolver.url("typesafe-ivy-releases", new URL("http://private-repo.typesafe.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
+  val typesafeIvyReleases = Resolver.url("typesafe-ivy-releases", new URL("http://private-repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
 
   def builderDefaults: Seq[Setting[_]] =
     SbtScalariform.scalariformSettings ++
@@ -39,6 +39,7 @@ object BuilderBuild {
       resolvers += typesafeIvyReleases,
       // TODO - Publish to ivy for sbt plugins, maven central otherwise?
       publishTo := Some(typesafeIvyReleases),
+      publishMavenStyle := false,
       scalacOptions <<= (scalaVersion) map { sv =>
         Seq("-unchecked", "-deprecation") ++
           { if (sv.startsWith("2.9")) Seq.empty else Seq("-feature") }
