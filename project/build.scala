@@ -203,7 +203,9 @@ object TheBuilderBuild extends Build {
     settings(
       // This hack removes the project resolver so we don't resolve stub artifacts.
       Keys.fullResolvers <<= (Keys.externalResolvers, Keys.sbtResolver) map (_ :+ _),
-      Keys.resolvers += Resolver.url("sbt-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
+      Keys.resolvers += Resolver.url("sbt-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns),
+      Keys.publish := {},
+      Keys.publishLocal := {}
     )
   )
   lazy val it = (
@@ -212,7 +214,9 @@ object TheBuilderBuild extends Build {
       dependsOnRemote(sbtLauncherInterface)
       dependsOn(sbtDriver, props, cache)
       settings(
-        com.typesafe.sbtidea.SbtIdeaPlugin.ideaIgnoreModule := true
+        com.typesafe.sbtidea.SbtIdeaPlugin.ideaIgnoreModule := true,
+        Keys.publish := {},
+        Keys.publishLocal := {}
       )
   )
 
@@ -221,6 +225,9 @@ object TheBuilderBuild extends Build {
     settings(Packaging.settings:_*)
     settings(s3Settings:_*)
     settings(
+      // TODO - Should publish be pushing the S3 upload?
+      Keys.publish := {},
+      Keys.publishLocal := {},
       Keys.scalaBinaryVersion <<= Keys.scalaVersion,
       Keys.resolvers ++= Seq(
         "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
