@@ -31,7 +31,7 @@ object Dependencies {
   val specs2               = "org.specs2" % "specs2_2.10" % "1.13"
 
   // SBT plugins we have to shim
-  val playSbtPlugin        =  Defaults.sbtPluginExtra("play" % "sbt-plugin" % "2.1.0", sbtPluginVersion, sbtPluginScalaVersion)
+  val playSbtPlugin        =  Defaults.sbtPluginExtra("play" % "sbt-plugin" % "2.1.1", sbtPluginVersion, sbtPluginScalaVersion)
   val eclipseSbtPlugin     =  Defaults.sbtPluginExtra("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.2", sbtPluginVersion, sbtPluginScalaVersion)
   val ideaSbtPlugin        =  Defaults.sbtPluginExtra("com.github.mpeltonen" % "sbt-idea" % "1.2.0", sbtPluginVersion, sbtPluginScalaVersion)
 
