@@ -18,6 +18,7 @@
 		window.serverAppModel = {
       name: '@model.name',
       id: '@model.id',
+      appVersion: '@BuilderProperties.APP_VERSION',
       pluginIds:  [ @Html(model.plugins.mkString("\'", "\','","\'")) ],
       location: '@model.jsLocation'
       @for(id <- model.template) {
@@ -79,6 +80,8 @@
             <p class="version-info">
                 Typesafe Builder v@BuilderProperties.APP_VERSION (<a href="http://myaccount.zendesk.com/account/dropboxes/20150671" onClick="script: Zenbox.show(); return false;">Send Feedback</a>)
             </p>
+            <div data-bind="html: newsHtml">
+            </div>
           </div>
         </div>
         <div id="wrapper" data-bind="foreach: { data: widgets }, visible: snap.activeWidget() != undefined">
