@@ -70,6 +70,12 @@ class DemoTemplateCache() extends TemplateCache {
         description = """Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way.  This very simple Scala application will get you started building and testing standalone Scala apps.  This app uses Scala 2.10 and ScalaTest.""",
         tags = Seq("scala", "starter")),
       TemplateMetadata(
+        id = "39836f5aa646b3a37abb80e8a2c335ebf6830cac",
+        name = "Hello Akka!",
+        version = "1.0",
+        description = """Akka is a toolkit and runtime for building highly concurrent, distributed, and fault tolerant event-driven apps.  This simple application will get you started building Actor based systems in Java and Scala.  This app uses Akka 2.1, Java 6, Scala 2.10, JUnit, and ScalaTest.""",
+        tags = Seq("akka", "java", "scala", "starter")),
+      TemplateMetadata(
         id = "c63e1fe7748dcebdc0fc0243685e5ae6d1ec4072",
         name = "Hello Play Framework!",
         version = "1.0",
