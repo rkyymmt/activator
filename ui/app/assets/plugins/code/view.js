@@ -48,7 +48,7 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 				return new DefaultView(args);
 			});
 			self.title = ko.computed(function() {
-				return './' + self.file().name();
+				return self.file().relative();
 			});
 			self.isFile = ko.computed(function() {
 				return !self.file().isDirectory();
