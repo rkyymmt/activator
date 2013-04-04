@@ -45,8 +45,13 @@ class DefaultSbtChildFactory(val workingDir: File, val sbtChildMaker: SbtChildPr
       // we update shim plugin files ONLY if they exist, because when they
       // are missing it may be because they aren't applicable. Only the
       // remote probe can decide to ADD a shim file.
-      if (writer.updateIfExists(workingDir))
+      val updated =
+        if (snap.ShimWriter.alwaysIncludedShims contains shim) {
+          writer.ensureExists(workingDir)
+        } else writer.updateIfExists(workingDir)
+      if (updated)
         log.info(s"Updated shim plugin for ${shim}")
+
     }
   }
 

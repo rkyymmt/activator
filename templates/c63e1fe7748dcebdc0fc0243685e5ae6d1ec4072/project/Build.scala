@@ -26,16 +26,7 @@ object ApplicationBuild extends Build {
   )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
-    resolvers ++= {
-      // If local repo exists, use it.
-      val builderHome = Option(sys.props("builder.home"))
-      val repo = for {
-        home <- builderHome
-        localRepoDir = (new File(home)) / "repository"
-        if localRepoDir.exists
-      } yield Resolver.file("builder-local", localRepoDir)(Resolver.ivyStylePatterns)
-      repo.toSeq
-    }
+    fullResolvers <++= bootResolvers map (_ getOrElse Seq.empty)
     // Add your own project settings here      
   )
 
