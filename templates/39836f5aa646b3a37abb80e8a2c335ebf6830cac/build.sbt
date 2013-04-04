@@ -27,3 +27,5 @@ libraryDependencies ++= Seq(
 )
 
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+
+fullResolvers <++= bootResolvers map (_ getOrElse Seq.empty)

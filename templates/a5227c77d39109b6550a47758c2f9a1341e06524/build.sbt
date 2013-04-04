@@ -18,14 +18,4 @@ sourceDirectory in Test <<= baseDirectory / "test"
 
 libraryDependencies += "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test"
 
-// TODO - Just pull in boot repos
-resolvers ++= {
-  // If local repo exists, use it.
-  val builderHome = Option(sys.props("builder.home"))
-  val repo = for {
-    home <- builderHome
-    localRepoDir = (new File(home)) / "repository"
-    if localRepoDir.exists
-  } yield Resolver.file("builder-local", localRepoDir)(Resolver.ivyStylePatterns)
-  repo.toSeq
-}
+fullResolvers <++= bootResolvers map (_ getOrElse Seq.empty)
