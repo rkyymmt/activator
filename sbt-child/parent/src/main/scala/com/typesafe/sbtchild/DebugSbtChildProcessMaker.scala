@@ -85,6 +85,7 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
       "-XX:PermSize=512M",
       "-XX:+CMSClassUnloadingEnabled")
     val sbtProps = Seq(
+      "-Djline.terminal=jline.UnsupportedTerminal",
       "-Dbuilder.home=" + BUILDER_HOME,
       // Looks like this one is unset...
       "-Dsbt.boot.directory=" + (sys.props get "sbt.boot.directory" getOrElse (sys.props("user.home") + "/.sbt")),

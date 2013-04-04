@@ -13,12 +13,14 @@ import java.io.InputStream
 import java.io.BufferedInputStream
 import java.util.concurrent.RejectedExecutionException
 import scala.concurrent.duration._
+import scala.annotation.tailrec
 
 sealed trait ProcessRequest
 case class SubscribeProcess(ref: ActorRef) extends ProcessRequest
 case class UnsubscribeProcess(ref: ActorRef) extends ProcessRequest
 case object StartProcess extends ProcessRequest
 case object KillProcess extends ProcessRequest
+case object FlushBuffer extends ProcessRequest
 
 sealed trait ProcessEvent
 case class ProcessStdOut(bytes: ByteString) extends ProcessEvent
@@ -31,6 +33,10 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
   // flag handles the race where we get a kill request
   // before the process starts
   var killRequested = false
+
+  var flushScheduled = false
+
+  var eventBuffer = List.empty[ProcessEvent]
 
   val pool = NamedThreadFactory.newPool("ProcessActor")
 
@@ -58,27 +64,72 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
         // prematurely if the process fails to die. Since we only
         // send TERM not KILL on Linux, it could well fail to die.
         process.foreach { _.destroy() }
+      case FlushBuffer =>
+        flushScheduled = false
+        flushBuffer()
     }
 
     case Terminated(ref) =>
       subscribers = subscribers - ref
 
     case event: ProcessEvent =>
-      for (s <- subscribers) {
-        s ! event
-      }
-
-      event match {
-        case ProcessStopped(_) =>
-          context.stop(self)
-        case _ =>
-      }
+      bufferEvent(event)
 
     case p: Process =>
       process = Some(p)
       if (killRequested) {
         p.destroy()
       }
+  }
+
+  private def bufferEvent(event: ProcessEvent): Unit = {
+    if (!flushScheduled) {
+      // timeout length is intended to be user-imperceptible, but greater than OS timer resolution,
+      // so we don't get the message instantly. Remember user perception of slow is 100ms
+      // (rule of thumb).
+      context.system.scheduler.scheduleOnce(Duration(30, TimeUnit.MILLISECONDS), self, FlushBuffer)(context.system.dispatcher)
+      flushScheduled = true
+    }
+    eventBuffer = eventBuffer :+ event
+
+    // flush buffer on a clean newline, this is pure heuristic in
+    // case the process writes out lines all at once
+    event match {
+      case ProcessStdOut(bytes) if bytes.last == '\n' =>
+        flushBuffer()
+      case ProcessStdErr(bytes) if bytes.last == '\n' =>
+        flushBuffer()
+      case _ =>
+    }
+  }
+
+  // the point of the buffering is to try to get logically-related output
+  // bunched up into single messages, probabilistically, so we don't end
+  // up with funny line breaks in the UI
+  @tailrec
+  private def flushBuffer(): Unit = {
+    eventBuffer match {
+      case ProcessStdOut(bytes1) :: ProcessStdOut(bytes2) :: tail =>
+        eventBuffer = ProcessStdOut(bytes1 ++ bytes2) :: tail
+        flushBuffer()
+      case ProcessStdErr(bytes1) :: ProcessStdErr(bytes2) :: tail =>
+        eventBuffer = ProcessStdErr(bytes1 ++ bytes2) :: tail
+        flushBuffer()
+      case event :: tail =>
+        eventBuffer = tail
+        for (s <- subscribers) {
+          s ! event
+        }
+        event match {
+          case ProcessStopped(_) =>
+            context.stop(self)
+          case _ =>
+        }
+
+        flushBuffer()
+      case Nil =>
+      // nothing to do
+    }
   }
 
   def start(): Unit = {
@@ -157,6 +208,7 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
 
   override def postStop() = {
     log.debug("postStop")
+
     process.foreach { p =>
 
       process = None
@@ -189,6 +241,8 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
       pool.shutdown()
     if (!pool.isTerminated())
       pool.awaitTermination(2, TimeUnit.SECONDS)
+
+    flushBuffer()
   }
 }
 
