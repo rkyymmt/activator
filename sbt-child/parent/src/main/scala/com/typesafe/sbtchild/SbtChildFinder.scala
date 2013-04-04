@@ -56,6 +56,7 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
       "-XX:+CMSClassUnloadingEnabled")
     // TODO - handle spaces in strings and such...
     val sbtProps = Seq(
+      "-Djline.terminal=jline.UnsupportedTerminal",
       "-Dbuilder.home=" + BUILDER_HOME,
       // TODO - better handling of missing sbt.boot.directory property!
       "-Dsbt.boot.directory=" + (sys.props get "sbt.boot.directory" getOrElse (sys.props("user.home") + "/.sbt")),
