@@ -1,15 +1,6 @@
 <!-- ko if: isFile() -->
 <header>
 	<nav>
-		<dl class="dropdown" todo>
-			<dt>Open with...</dt>
-			<dd>
-				<p>Your favorite editor</p>
-				<a href="#">Eclipse</a>
-				<a data-bind="click: openInSystemEditor">Default Editor</a>
-				<a href="#">Configure a new one...</a>
-			</dd>
-		</dl>
 		<button class="revert" data-bind="click: subView().load, enable: subView().isDirty">revert</button>
 		<button class="save" data-bind="click: subView().save, enable: subView().isDirty">save</button>
 	</nav>
