@@ -72,6 +72,7 @@ require([
 			var appLocationInput = $('#newappLocation');
 			var homeDir = appLocationInput.attr('placeholder');
 			var appTemplateName = $('#newAppTemplateName');
+			var newButton = $('#newButton');
 			var evilLocationStore = homeDir;
 			function updateAppLocation(location) {
 				if(location) {
@@ -81,11 +82,22 @@ require([
 				var currentAppName = appNameInput.val() || '';
 				appLocationInput.attr('placeholder', evilLocationStore + '/' + currentAppName);
 			}
-			appNameInput.on('keyup', function() { updateAppLocation(); });
-			$('#newButton').on('click', function(){
-				if(!appLocationInput.val())
-					appLocationInput.val(appLocationInput.attr('placeholder'));
+			appNameInput.on('keyup', function() {
+				checkFormReady();
+				updateAppLocation();
 			});
+			function checkFormReady() {
+				if ((appNameInput.val().length > 0) && (appTemplateName.val().length > 0)) {
+					// form is ready
+					newButton.prop("disabled", false);
+					return true;
+				}
+				else {
+					// for is not ready
+					newButton.prop("disabled", true);
+					return false;
+				}
+			}
 			// Helper method to rip out form values appropriately...
 			// TODO - This probably belongs in util.
 			function formToJson(form) {
@@ -106,10 +118,20 @@ require([
 			// Hook Submissions to send to the websocket.
 			$('form#newApp').on('submit', function(event) {
 				event.preventDefault();
-				var msg = formToJson(event.currentTarget);
-				msg.request = 'CreateNewApplication';
-				streams.send(msg);
-				toggleWorking();
+
+				if (checkFormReady()) {
+					// disable the create button
+					newButton.prop("disabled", true);
+
+					// use the placeholder value in the location field, unless one was manually specified
+					if(!appLocationInput.val())
+						appLocationInput.val(appLocationInput.attr('placeholder'));
+
+					var msg = formToJson(event.currentTarget);
+					msg.request = 'CreateNewApplication';
+					streams.send(msg);
+					toggleWorking();
+				}
 			});
 			function toggleDirectoryBrowser() {
 				$('#newAppForm, #newAppLocationBrowser').toggle();
@@ -154,6 +176,7 @@ require([
 				$('input:radio', this).prop('checked',true);
 				var name = $('h3', this).text();
 				appTemplateName.val(name);
+				checkFormReady()
 			})
 			.on('click', '#browseAppLocation', function(event) {
 				event.preventDefault();

@@ -34,11 +34,11 @@
 	                    <fieldset>
 	                        <label for="newappLocation">Location</label>
 	                        <a href="#" id="browseAppLocation"></a>
-	                        <input type="text" id="newappLocation" name="location" placeholder="@model.userHome" required>
+	                        <input type="text" id="newappLocation" name="location" placeholder="@model.userHome">
 	                    </fieldset>
 	                    <fieldset>
 	                        <label for="newappTemplate">Template</label>
-	                        <input type="text" id="newAppTemplateName" name="template-name" placeholder="Choose a template in the list below" disabled required>
+	                        <input type="text" id="newAppTemplateName" name="template-name" placeholder="Choose from the list below" disabled required>
 	                    </fieldset>
 	                    <ul>
 	                    @model.templates.map { template =>
@@ -49,7 +49,7 @@
 	                        </li>
 	                    }
 	                    </ul>
-	                    <input type="submit" class="button" value="Create" id="newButton">
+	                    <input type="submit" class="button" value="Create" id="newButton" disabled>
 	                }
 	            </div>
 	            <div id="newAppLocationBrowser" class="subsection hidden"></div>
