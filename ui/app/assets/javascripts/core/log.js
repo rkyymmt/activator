@@ -38,9 +38,33 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 		init: function(parameters) {
 			this.logs = ko.observableArray();
 			this.tail = ko.observable(true);
+			this.queue = [];
+			this.boundFlush = this.flush.bind(this);
+		},
+		flush: function() {
+			if (this.queue.length > 0) {
+				var toPush = this.queue;
+				this.queue = [];
+				ko.utils.arrayPushAll(this.logs(), toPush);
+				this.logs.valueHasMutated();
+			}
 		},
 		log: function(level, message) {
-			this.logs.push({ level: level, message: message });
+			// because knockout array modifications are linear
+			// time and space in array size (it computes a diff
+			// every time), we try to batch them up and minimize
+			// the problem. Unfortunately the diff can still end
+			// up taking a long time but batching makes it an
+			// annoying rather than disastrous issue for users.
+			this.queue.push({ level: level, message: message });
+			if (this.queue.length == 1) {
+				// 100ms = threshold for user-perceptible slowness,
+				// but for a few thousand log messages each
+				// flush can easily take 250ms so we need to
+				// space this out a little more to keep the
+				// page responsive.
+				setTimeout(this.boundFlush, 450);
+			}
 		},
 		debug: function(message) {
 			this.log("debug", message);
@@ -61,12 +85,13 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 			this.log("stdout", message);
 		},
 		clear: function() {
+			this.flush(); // be sure we collect the queue
 			return this.logs.removeAll();
 		},
 		moveFrom: function(other) {
 			// "other" is another logs widget
 			var removed = other.logs.removeAll();
-			ko.utils.arrayPushAll(this.logs, removed);
+			ko.utils.arrayPushAll(this.logs(), removed);
 			this.logs.valueHasMutated();
 		},
 		// returns true if it was a log event
