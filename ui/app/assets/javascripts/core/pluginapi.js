@@ -9,12 +9,12 @@ define([
 	function(ko, sbt, key, utils, ignore_ace, events, Widget) {
 
 
-// Add knockout bindings for ace editor.  Try to capture all info we need
-// here so we don't have to dig in like crazy when we need a good editor.
-// Example:
-//  <div class="editor" data-bind="ace: contents"/>
-// <div class="editor" data-bind="ace: { contents: contents, theme: 'ace/theme/xcode', dirty: isEditorDirty, highlight: 'scala' }"/>
-ko.bindingHandlers.ace = {
+	// Add knockout bindings for ace editor.  Try to capture all info we need
+	// here so we don't have to dig in like crazy when we need a good editor.
+	// Example:
+	//  <div class="editor" data-bind="ace: contents"/>
+	// <div class="editor" data-bind="ace: { contents: contents, theme: 'ace/theme/xcode', dirty: isEditorDirty, highlight: 'scala' }"/>
+	ko.bindingHandlers.ace = {
 		init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 			// First pull out all the options we may or may not use.
 			var options = valueAccessor();
@@ -70,30 +70,30 @@ ko.bindingHandlers.ace = {
 		}
 	};
 
-		// Here we add the ability to tail
-		ko.bindingHandlers.autoScroll = {
-			init: function(element, valueAccessor) {
-				var va = valueAccessor();
-				if(ko.utils.unwrapObservable(va)) {
-					if(element.scrollIntoView) {
-						element.scrollIntoView(true);
-					}
+	// Here we add the ability to tail
+	ko.bindingHandlers.autoScroll = {
+		init: function(element, valueAccessor) {
+			var va = valueAccessor();
+			if(ko.utils.unwrapObservable(va)) {
+				if(element.scrollIntoView) {
+					element.scrollIntoView(true);
 				}
-			},
-			update: function(element, valueAccessor) {
-				var va = valueAccessor();
-				if(ko.utils.unwrapObservable(va)) {
-					if(element.scrollIntoView) {
-						element.scrollIntoView(true);
-					}
+			}
+		},
+		update: function(element, valueAccessor) {
+			var va = valueAccessor();
+			if(ko.utils.unwrapObservable(va)) {
+				if(element.scrollIntoView) {
+					element.scrollIntoView(true);
 				}
 			}
 		}
+	}
 
 
-		var STATUS_DEFAULT = 'default';
-		var STATUS_BUSY = 'busy';
-		var STATUS_ERROR = 'error;'
+	var STATUS_DEFAULT = 'default';
+	var STATUS_BUSY = 'busy';
+	var STATUS_ERROR = 'error;'
 
 	// Verifies that a new plugin configuration is acceptable for our application, or
 	// issues debugging log statements on what the issue is.
