@@ -10,7 +10,7 @@
     </div>
     <div class="generate hidden">
         <p data-bind="text: workingStatus"></p>
-	    <div data-bind="template: { name: log.view, data: log }">
+	    <div data-bind="snapView: log">
 	    </div>
         <p>Once you've generated project files, <a data-bind="click: instructions">import the project into Eclipse</a>.
     </div>
