@@ -36,17 +36,46 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 		id: 'log-widget',
 		template: template,
 		init: function(parameters) {
-			this.logs = ko.observableArray();
+			// we keep an array of arrays because Knockout
+			// needs linear time in array size to update
+			// the view, so we are using lots of little
+			// arrays.
+			this.currentLog = ko.observableArray();
+			this.logGroups = ko.observableArray([ this.currentLog ]);
 			this.tail = ko.observable(true);
 			this.queue = [];
 			this.boundFlush = this.flush.bind(this);
+			this.node = null;
+		},
+		onRender: function(childNodes) {
+			this.node = $(childNodes).parent();
 		},
 		flush: function() {
 			if (this.queue.length > 0) {
 				var toPush = this.queue;
 				this.queue = [];
-				ko.utils.arrayPushAll(this.logs(), toPush);
-				this.logs.valueHasMutated();
+				ko.utils.arrayPushAll(this.currentLog(), toPush);
+				this.currentLog.valueHasMutated();
+
+				// 100 could probably be higher, but already lets
+				// us scale the logs up by probably 100x what they
+				// could be otherwise by keeping observable arrays
+				// small enough.
+				if (this.currentLog().length > 100) {
+					this.currentLog = ko.observableArray();
+					this.logGroups.push(this.currentLog);
+				}
+
+				if (this.tail()) {
+					// autoScroll doesn't work for adding to the child
+					// log instead of to logGroups, so do it manually
+					// here. we can't use autoScroll for containerless
+					// knockout bindings.
+					var end = $(this.node).last()[0];
+					if ('scrollIntoView' in end) {
+						end.scrollIntoView(false); // true=alignWithTop
+					}
+				}
 			}
 		},
 		log: function(level, message) {
@@ -56,14 +85,14 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 			// the problem. Unfortunately the diff can still end
 			// up taking a long time but batching makes it an
 			// annoying rather than disastrous issue for users.
+			// The main mitigation for the problem is our nested array
+			// (logGroups) but this helps a bit too perhaps.
 			this.queue.push({ level: level, message: message });
 			if (this.queue.length == 1) {
-				// 100ms = threshold for user-perceptible slowness,
-				// but for a few thousand log messages each
-				// flush can easily take 250ms so we need to
-				// space this out a little more to keep the
-				// page responsive.
-				setTimeout(this.boundFlush, 450);
+				// 100ms = threshold for user-perceptible slowness
+				// in general but nobody has much expectation for
+				// the exact moment a log message appears.
+				setTimeout(this.boundFlush, 150);
 			}
 		},
 		debug: function(message) {
@@ -86,13 +115,17 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 		},
 		clear: function() {
 			this.flush(); // be sure we collect the queue
-			return this.logs.removeAll();
+			this.currentLog = ko.observableArray();
+			this.logGroups.removeAll();
+			this.logGroups.push(this.currentLog);
 		},
 		moveFrom: function(other) {
 			// "other" is another logs widget
-			var removed = other.logs.removeAll();
-			ko.utils.arrayPushAll(this.logs(), removed);
-			this.logs.valueHasMutated();
+			other.flush();
+			this.flush();
+			var removed = other.logGroups.removeAll();
+			ko.utils.arrayPushAll(this.logGroups(), removed);
+			this.logGroups.valueHasMutated();
 		},
 		// returns true if it was a log event
 		event: function(event) {
