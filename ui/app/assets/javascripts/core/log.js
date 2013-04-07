@@ -52,6 +52,29 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 		},
 		flush: function() {
 			if (this.queue.length > 0) {
+				if (this.node === null)
+					throw new Error("no node");
+
+				// Look for the node that we intend to have the scrollbar.
+				// If no 'auto' node found, just use our own node
+				// (which is probably wrong).
+				var logsListNode = $(this.node).children('ul.logsList')[0];
+				var parents = [ logsListNode ].concat($(logsListNode).parents().get());
+				var element = parents[0];
+				var i = 0;
+				for (; i < parents.length; ++i) {
+					var scrollMode = $(parents[i]).css('overflowY');
+					if (scrollMode == 'auto' || scrollMode == 'scroll') {
+						element = parents[i];
+						break;
+					}
+				}
+
+				// if we're within twenty pixels of the bottom, stick to the bottom;
+				// if we require being *exactly* at the bottom it can feel like it's
+				// too hard to get there.
+				var wasAtBottom = (element.scrollHeight - element.clientHeight - element.scrollTop) < 20;
+
 				var toPush = this.queue;
 				this.queue = [];
 				ko.utils.arrayPushAll(this.currentLog(), toPush);
@@ -66,15 +89,9 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 					this.logGroups.push(this.currentLog);
 				}
 
-				if (this.tail()) {
-					// autoScroll doesn't work for adding to the child
-					// log instead of to logGroups, so do it manually
-					// here. we can't use autoScroll for containerless
-					// knockout bindings.
-					var end = $(this.node).last()[0];
-					if ('scrollIntoView' in end) {
-						end.scrollIntoView(false); // true=alignWithTop
-					}
+				if (wasAtBottom && this.tail()) {
+					// stay on the bottom if we were on the bottom
+					element.scrollTop = (element.scrollHeight - element.clientHeight);
 				}
 			}
 		},

@@ -70,27 +70,6 @@ define([
 		}
 	};
 
-	// Here we add the ability to tail
-	ko.bindingHandlers.autoScroll = {
-		init: function(element, valueAccessor) {
-			var va = valueAccessor();
-			if(ko.utils.unwrapObservable(va)) {
-				if(element.scrollIntoView) {
-					element.scrollIntoView(true);
-				}
-			}
-		},
-		update: function(element, valueAccessor) {
-			var va = valueAccessor();
-			if(ko.utils.unwrapObservable(va)) {
-				if(element.scrollIntoView) {
-					element.scrollIntoView(true);
-				}
-			}
-		}
-	}
-
-
 	var STATUS_DEFAULT = 'default';
 	var STATUS_BUSY = 'busy';
 	var STATUS_ERROR = 'error;'
