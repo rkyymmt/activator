@@ -42,7 +42,6 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 			// arrays.
 			this.currentLog = ko.observableArray();
 			this.logGroups = ko.observableArray([ this.currentLog ]);
-			this.tail = ko.observable(true);
 			this.queue = [];
 			this.boundFlush = this.flush.bind(this);
 			this.node = null;
@@ -89,7 +88,7 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 					this.logGroups.push(this.currentLog);
 				}
 
-				if (wasAtBottom && this.tail()) {
+				if (wasAtBottom) {
 					// stay on the bottom if we were on the bottom
 					element.scrollTop = (element.scrollHeight - element.clientHeight);
 				}
