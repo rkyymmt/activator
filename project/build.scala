@@ -30,7 +30,7 @@ object TheBuilderBuild extends Build {
   )
 
   // These are the projects we want in the local Builder repository
-  lazy val publishedSbtShimProjects = Set(playShimPlugin, eclipseShimPlugin, ideaShimPlugin, sbtUiInterface)
+  lazy val publishedSbtShimProjects = Set(playShimPlugin, eclipseShimPlugin, ideaShimPlugin, sbtUiInterface, defaultsShimPlugin)
   lazy val publishedProjects = Seq(io, common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects
 
   // basic project that gives us properties to use in other projects.
@@ -107,6 +107,11 @@ object TheBuilderBuild extends Build {
     SbtShimPlugin("idea")
     dependsOn(sbtUiInterface)
     dependsOnRemote(ideaSbtPlugin)
+  )
+
+  lazy val defaultsShimPlugin = (
+    SbtShimPlugin("defaults")
+    // TODO - can we just depend on all the other plugins so we only have one shim?
   )
 
   val verboseSbtTests = false
@@ -244,7 +249,7 @@ object TheBuilderBuild extends Build {
       localRepoArtifacts ++=
         Seq("org.scala-sbt" % "sbt" % Dependencies.sbtVersion,
             // For some reason, these are not resolving transitively correctly!
-            "org.scala-lang" % "scala-compiler" % "2.9.2",
+            "org.scala-lang" % "scala-compiler" % Dependencies.sbtPluginScalaVersion,
             "org.scala-lang" % "scala-compiler" % Dependencies.scalaVersion,
             "net.java.dev.jna" % "jna" % "3.2.3",
             "commons-codec" % "commons-codec" % "1.3",

@@ -1,6 +1,7 @@
 import sbt._
 import Keys._
 import play.Project._
+import com.typesafe.builder.sbtshim.DefaultsPlugin.useBuilderLocalRepo
 
 object ApplicationBuild extends Build {
 
@@ -25,8 +26,7 @@ object ApplicationBuild extends Build {
     // "group" % "artifact" % "version"
   )
 
-  val main = play.Project(appName, appVersion, appDependencies).settings(
-    fullResolvers <++= bootResolvers map (_ getOrElse Seq.empty)
+  val main = play.Project(appName, appVersion, appDependencies).settings(useBuilderLocalRepo:_*).settings(
     // Add your own project settings here      
   )
 

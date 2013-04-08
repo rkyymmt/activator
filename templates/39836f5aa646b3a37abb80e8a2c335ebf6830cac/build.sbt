@@ -2,21 +2,7 @@ name := "hello-akka"
 
 version := "1.0"
 
-scalaVersion := "2.10.1"
-
-scalaSource in Compile <<= baseDirectory / "app"
-
-javaSource in Compile <<= baseDirectory / "app"
-
-sourceDirectory in Compile <<= baseDirectory / "app"
-
-scalaSource in Test <<= baseDirectory / "test"
-
-javaSource in Test <<= baseDirectory / "test"
-
-sourceDirectory in Test <<= baseDirectory / "test"
-
-resourceDirectory in Compile <<= baseDirectory / "conf"
+builderDefaults
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.1.2",
@@ -27,5 +13,3 @@ libraryDependencies ++= Seq(
 )
 
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
-
-fullResolvers <++= bootResolvers map (_ getOrElse Seq.empty)
