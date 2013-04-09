@@ -3,7 +3,7 @@ import PlayProject._
 import Keys._
 
 object Dependencies {
-  val sbtVersion = "0.12.2"
+  val sbtVersion = "0.12.3"
   val sbtPluginVersion = "0.12"
   val sbtPluginScalaVersion = "2.9.2"
   val scalaVersion = "2.10.1"
@@ -19,7 +19,7 @@ object Dependencies {
   // TODO - Don't use a snapshot version for this...
   val sbtCompletion           = "org.scala-sbt" % "completion" % sbtSnapshotVersion
   
-  val akkaActor            = "com.typesafe.akka" % "akka-actor_2.10" % "2.1.0"
+  val akkaActor            = "com.typesafe.akka" % "akka-actor_2.10" % "2.1.2"
   
   val commonsIo            = "commons-io" % "commons-io" % "2.0.1"
 
