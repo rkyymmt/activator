@@ -59,7 +59,7 @@ object TheBuilderBuild extends Build {
   lazy val sbtUiInterface = (
       SbtShimPlugin("ui-interface")
       settings(
-          Keys.scalaVersion := "2.9.2", 
+          Keys.scalaVersion := Dependencies.sbtPluginScalaVersion, 
           Keys.scalaBinaryVersion <<= Keys.scalaVersion,
           Keys.crossVersion := CrossVersion.Disabled,
           Keys.projectID <<=  Keys.projectID apply { id =>
@@ -76,7 +76,7 @@ object TheBuilderBuild extends Build {
   // sbt-child process projects
   lazy val sbtRemoteProbe = (
     SbtChildProject("remote-probe")
-    settings(Keys.scalaVersion := "2.9.2", Keys.scalaBinaryVersion <<= Keys.scalaVersion)
+    settings(Keys.scalaVersion := Dependencies.sbtPluginScalaVersion, Keys.scalaBinaryVersion <<= Keys.scalaVersion)
     dependsOnSource("../protocol")
     dependsOnSource("../../io")
     dependsOn(props, sbtUiInterface % "provided")
@@ -258,6 +258,7 @@ object TheBuilderBuild extends Build {
             // For some reason, these are not resolving transitively correctly!
             "org.scala-lang" % "scala-compiler" % Dependencies.sbtPluginScalaVersion,
             "org.scala-lang" % "scala-compiler" % Dependencies.scalaVersion,
+            // TODO - Versions in Dependencies.scala
             "net.java.dev.jna" % "jna" % "3.2.3",
             "commons-codec" % "commons-codec" % "1.3",
             "org.apache.httpcomponents" % "httpclient" % "4.0.1",

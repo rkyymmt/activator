@@ -16,16 +16,6 @@ object DefaultsPlugin extends Plugin {
         case (rs, _) => rs
       })
 
-  def useBuilderSourceLayout: Seq[Setting[_]] =
-    Seq(scalaSource in Compile <<= baseDirectory / "app",
-      javaSource in Compile <<= baseDirectory / "app",
-      sourceDirectory in Compile <<= baseDirectory / "app",
-      scalaSource in Test <<= baseDirectory / "test",
-      javaSource in Test <<= baseDirectory / "test",
-      sourceDirectory in Test <<= baseDirectory / "test",
-      resourceDirectory in Compile <<= baseDirectory / "conf")
-
-  def builderDefaults: Seq[Setting[_]] =
-    useBuilderLocalRepo ++ useBuilderSourceLayout ++ Seq(
-      scalaVersion := "2.10.1")
+  // As a shim, fix the builder local repository to be used first on every project. 
+  override val settings = useBuilderLocalRepo
 }
