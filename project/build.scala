@@ -220,8 +220,7 @@ object TheBuilderBuild extends Build {
       dependsOn(sbtDriver, props, cache)
       settings(
         com.typesafe.sbtidea.SbtIdeaPlugin.ideaIgnoreModule := true,
-        Keys.publish := {},
-        Keys.publishLocal := {}
+        Keys.publish := {}
       )
   )
 
