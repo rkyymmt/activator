@@ -1,7 +1,6 @@
 import sbt._
 import Keys._
 import play.Project._
-import com.typesafe.builder.sbtshim.DefaultsPlugin.useBuilderLocalRepo
 
 object ApplicationBuild extends Build {
 
