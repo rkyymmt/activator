@@ -91,8 +91,9 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 			}, this);
 			this.rerunOnBuild = ko.observable(true);
 			this.restartPending = ko.observable(false);
+			this.lastTaskFailed = ko.observable(false);
 			this.status = ko.computed(function() {
-				var anyFailures = this.resultStats().failed > 0;
+				var anyFailures = this.lastTaskFailed() || this.resultStats().failed > 0;
 
 				if (this.haveActiveTask())
 					return api.STATUS_BUSY;
@@ -128,6 +129,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 			var self = this;
 
 			self.logModel.clear();
+			self.results.removeAll();
 			self.testStatus('Running tests...')
 
 			if (triggeredByBuild) {
@@ -168,12 +170,14 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 						self.logModel.error('Unexpected reply: ' + JSON.stringify(data));
 						self.testStatus("Unexpected: " + JSON.stringify(data));
 					}
+					self.lastTaskFailed(false);
 					self.doAfterTest();
 				},
 				failure: function(status, message) {
 					console.log("test failed: ", status, message)
 					self.logModel.error("Failed: " + status + ": " + message);
 					self.testStatus('Testing error: ' + message);
+					self.lastTaskFailed(true);
 					self.doAfterTest();
 				}
 			});
