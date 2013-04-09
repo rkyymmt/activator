@@ -26,7 +26,8 @@ object ApplicationBuild extends Build {
     // "group" % "artifact" % "version"
   )
 
-  val main = play.Project(appName, appVersion, appDependencies).settings(useBuilderLocalRepo:_*).settings(
+  val main = play.Project(appName, appVersion, appDependencies).settings(
+    scalaVersion := "2.10.1"
     // Add your own project settings here      
   )
 

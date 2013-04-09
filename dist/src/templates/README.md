@@ -8,7 +8,9 @@
 
 #### Launch from Windows Explorer
 
-1. Double-click on the `builder.bat` file
+1. Right-click on the `builder.bat` file
+2. Select "Open"
+3. If prompted with a warning, select to continue
 
 #### Launch from a Command prompt
 

@@ -1,11 +1,5 @@
-<ul class="logsList" data-bind="foreach: logs">
-  <li data-bind="css: level, text: message, autoScroll: $parent.tail"></li>
+<ul class="logsList" data-bind="foreach: logGroups, autoScroll: tail">
+    <!-- ko foreach: $data -->
+    <li data-bind="css: level, text: message"></li>
+    <!-- /ko -->
 </ul>
-<!-- 
-<div class="log" data-bind="foreach: logs">
-    <div data-bind="css: level">
-    <pre>
-      <span class="level"></span> <span class="message" data-bind="text: message"></span>
-    </div>
-</div>
- -->
