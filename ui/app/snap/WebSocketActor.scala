@@ -53,12 +53,13 @@ abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatt
         }
         case Input.El(x) ⇒ {
           if (actor.isTerminated) {
-            log.debug("Sending error to the incoming websocket, can't consume since actor is terminated {}", i)
+            log.debug("Sending error to the incoming websocket, can't consume since actor is terminated {}", x)
             Error("web socket consumer actor has been terminated", i)
           } else {
             actor.ask(Incoming[In](x))(WebSocketActor.timeout).onFailure({
               case e: Exception ⇒
-                log.warning("Failed to consume incoming websocket message due to terminated actor")
+                log.warning("Failed to consume incoming websocket message: consumer.isTerminated={}: {}: {}: message was {}",
+                  actor.isTerminated, e.getClass.getName, e.getMessage, x)
             })
             this
           }
