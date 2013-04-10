@@ -42,6 +42,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 			self.results = ko.observableArray();
 			self.testStatus = ko.observable('Waiting to test');
 			self.logModel = new log.Log();
+			self.logScroll = self.logModel.findScrollState();
 			// TODO - Store state beyond the scope of this widget!
 			// We should probably be listening to tests *always*
 			// and displaying latest status *always*.
@@ -228,6 +229,12 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/log'], fun
 			console.log("Restart was clicked");
 			self.doStop();
 			self.restartPending(true);
+		},
+		onPreDeactivate: function() {
+			this.logScroll = this.logModel.findScrollState();
+		},
+		onPostActivate: function() {
+			this.logModel.applyScrollState(this.logScroll);
 		}
 	});
 

@@ -100,10 +100,38 @@ define([
 			return activeWidget() == config.widgets[0].id
 		}, config);
 
+		// add plugin-specific hooks to widgets
+		// (these aren't in Widget class since they
+		// are plugin-specific, would probably be cleaner
+		// to make a PluginWidget base class)
+		var noOp = function() {};
+		var hooks = [ 'onPostActivate', 'onPreDeactivate' ]
+		$.each(config.widgets, function(i, widget) {
+			$.each(hooks, function(i, hook) {
+				if (!(hook in widget)) {
+					widget[hook] = noOp;
+				}
+			});
+		});
+
 		return config;
 	}
 
 	var scrollStates = {};
+	function findWidget(id) {
+		if (!('model' in window)) {
+			// this most likely means we are setting the active widget
+			// from inside model.init() ...
+			return null;
+		}
+
+		var matches = $.grep(window.model.widgets, function(w) { return w.id === id; });
+		if (matches.length == 0) {
+			return null;
+		} else {
+			return matches[0];
+		}
+	}
 
 	var activeWidget = ko.observable("");
 	function setActiveWidget(widget) {
@@ -121,41 +149,25 @@ define([
 		if (newId == oldId)
 			return;  // no change
 
-		// now save scroll information by ID
-		// this selector is a VERY FRAGILE ASSUMPTION
-		// but not sure how else to do it yet.
-		var oldNode = $('#wrapper .logs:visible');
-		var scrollTop = 0;
-		var wasAtBottom = true;
-		if (oldNode.length > 0) {
-			scrollTop = oldNode[0].scrollTop;
-			wasAtBottom = (oldNode[0].scrollHeight - oldNode[0].clientHeight - scrollTop) == 0;
-			scrollStates[oldId] = { scrollTop: scrollTop, wasAtBottom: wasAtBottom };
+		var oldWidget = findWidget(oldId);
+		var newWidget = findWidget(newId);
+		if (newWidget === null) {
+			// this probably means the app model is still being
+			// constructed so widgets aren't registered.
+			// In that scenario we MUST set to a widget, not an
+			// ID.
+			if (typeof(widget) != 'string')
+				newWidget = widget;
+			else
+				throw new Error("don't know the widget yet for " + newId);
 		}
 
-		// this should update the DOM
+		if (oldWidget !== null)
+			oldWidget.onPreDeactivate();
+
 		activeWidget(newId);
 
-		var newNode = $('#wrapper .logs:visible');
-
-		if (newNode.length > 0) {
-			var state = null;
-			if (newId in scrollStates) {
-				state = scrollStates[newId];
-			} else {
-				// if nothing saved, scroll to bottom
-				state = { scrollTop: newNode[0].scrollTop, wasAtBottom: true };
-			}
-
-			if (state.wasAtBottom) {
-				// recompute bottom position
-				var topWhenAtBottom = newNode[0].scrollHeight - newNode[0].clientHeight;
-				newNode[0].scrollTop = topWhenAtBottom;
-			} else {
-				// restore exact previous position
-				newNode[0].scrollTop = state.scrollTop;
-			}
-		}
+		newWidget.onPostActivate();
 	}
 
 	return {

@@ -36,8 +36,10 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 			});
 
 			this.logModel = new log.Log();
+			this.logScroll = this.logModel.findScrollState();
 			this.outputModel = new log.Log();
-			this.status = ko.observable('Application is stopped.')
+			this.outputScroll = this.outputModel.findScrollState();
+			this.status = ko.observable('Application is stopped.');
 		},
 		update: function(parameters){
 		},
@@ -190,6 +192,14 @@ define(['text!./run.html', 'core/pluginapi', 'core/log', 'css!./run.css'], funct
 			console.log("Restart was clicked");
 			self.doStop();
 			self.restartPending(true);
+		},
+		onPreDeactivate: function() {
+			this.logScroll = this.logModel.findScrollState();
+			this.outputScroll = this.outputModel.findScrollState();
+		},
+		onPostActivate: function() {
+			this.logModel.applyScrollState(this.logScroll);
+			this.outputModel.applyScrollState(this.outputScroll);
 		}
 	});
 
