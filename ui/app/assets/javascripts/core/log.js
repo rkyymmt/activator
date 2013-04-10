@@ -56,35 +56,47 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 			state.wasAtBottom = true;
 			this.applyScrollState(state);
 		},
-		findScrollState: function() {
-			var state = { wasAtBottom: true, element: null };
+		findScrollElement: function() {
+			var element = null;
 			if (this.node !== null) {
 				// Look for the node that we intend to have the scrollbar.
 				// If no 'auto' node found, just use our own node
 				// (which is probably wrong).
 				var logsListNode = $(this.node).children('ul.logsList')[0];
 				var parents = [ logsListNode ].concat($(logsListNode).parents().get());
-				state.element = parents[0];
+				element = parents[0];
 				var i = 0;
 				for (; i < parents.length; ++i) {
 					var scrollMode = $(parents[i]).css('overflowY');
 					if (scrollMode == 'auto' || scrollMode == 'scroll') {
-						state.element = parents[i];
+						element = parents[i];
 						break;
 					}
 				}
-
+			}
+			return element;
+		},
+		findScrollState: function() {
+			var element = this.findScrollElement();
+			var state = { wasAtBottom: true };
+			if (element !== null) {
 				// if we're within twenty pixels of the bottom, stick to the bottom;
 				// if we require being *exactly* at the bottom it can feel like it's
 				// too hard to get there.
-				state.wasAtBottom = (state.element.scrollHeight - state.element.clientHeight - state.element.scrollTop) < 20;
+				state.wasAtBottom = (element.scrollHeight - element.clientHeight - element.scrollTop) < 20;
+				state.scrollTop = element.scrollTop;
 			}
 			return state;
 		},
 		applyScrollState: function(state) {
-			if (state.element !== null && state.wasAtBottom) {
-				// stay on the bottom if we were on the bottom
-				state.element.scrollTop = (state.element.scrollHeight - state.element.clientHeight);
+			var element = this.findScrollElement();
+			if (element !== null) {
+				if (state.wasAtBottom) {
+					// stay on the bottom if we were on the bottom
+					element.scrollTop = (element.scrollHeight - element.clientHeight);
+				} else {
+					element.scrollTop = state.scrollTop;
+				}
 			}
 		},
 		flush: function() {
