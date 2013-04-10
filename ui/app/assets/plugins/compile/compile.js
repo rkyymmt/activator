@@ -1,4 +1,4 @@
-define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'], function(template, api, log){
+define(['text!./compile.html', 'core/pluginapi', 'core/widgets/log', 'css!./compile.css'], function(template, api, log){
 
 	var ko = api.ko;
 	var sbt = api.sbt;

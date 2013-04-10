@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit
 import akka.actor._
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import play.api.libs.json.JsObject
 
 sealed trait AppCacheRequest
 
@@ -128,12 +129,12 @@ object AppManager {
   // - we should load the app and determine a good id
   // - we should store the id/location in the RootConfig
   // - We should return the new ID or None if this location is not an App.
-  def loadAppIdFromLocation(location: File): Future[ProcessResult[String]] = {
+  def loadAppIdFromLocation(location: File, eventHandler: Option[JsObject => Unit] = None): Future[ProcessResult[String]] = {
     val absolute = location.getAbsoluteFile()
     RootConfig.user.applications.find(_.location == absolute) match {
       case Some(app) => Promise.successful(ProcessSuccess(app.id)).future
       case None => {
-        doInitialAppAnalysis(location) map { _.map(_.id) }
+        doInitialAppAnalysis(location, eventHandler) map { _.map(_.id) }
       }
     }
   }
@@ -148,8 +149,7 @@ object AppManager {
       case None => candidate
     }
   }
-
-  private def doInitialAppAnalysis(location: File): Future[ProcessResult[AppConfig]] = {
+  private def doInitialAppAnalysis(location: File, eventHandler: Option[JsObject => Unit] = None): Future[ProcessResult[AppConfig]] = {
     val validated = ProcessSuccess(location).validate(
       Validation.isDirectory,
       Validation.looksLikeAnSbtProject)
@@ -157,34 +157,39 @@ object AppManager {
     validated flatMapNested { location =>
       val sbt = SbtChild(snap.Akka.system, location, sbtChildProcessMaker)
       implicit val timeout = Timeout(60, TimeUnit.SECONDS)
-      val resultFuture: Future[ProcessResult[AppConfig]] = (sbt ? protocol.NameRequest(sendEvents = false)) map {
-        case protocol.NameResponse(name) => {
-          Logger.info("sbt told us the name is: '" + name + "'")
-          name
-        }
-        case protocol.ErrorResponse(error) =>
-          // here we need to just recover, because if you can't open the app
-          // you can't work on it to fix it
-          Logger.info("error getting name from sbt: " + error)
-          val name = location.getName
-          Logger.info("using file basename as app name: " + name)
-          name
-      } flatMap { name =>
-        RootConfig.rewriteUser { root =>
-          val config = AppConfig(id = newIdFromName(root, name), cachedName = Some(name), location = location)
-          val newApps = root.applications.filterNot(_.location == config.location) :+ config
-          root.copy(applications = newApps)
-        } map { Unit =>
-          import ProcessResult.opt2Process
-          RootConfig.user.applications.find(_.location == location)
-            .validated(s"Somehow failed to save new app at ${location.getPath} in config")
-        }
-      }
 
+      val requestManager = snap.Akka.system.actorOf(
+        Props(new RequestManagerActor("learn-project-name", sbt, false)({
+          event =>
+            eventHandler foreach (_ apply event)
+        })))
+      val resultFuture: Future[ProcessResult[AppConfig]] =
+        (requestManager ? protocol.NameRequest(sendEvents = true)) map {
+          case protocol.NameResponse(name) => {
+            Logger.info("sbt told us the name is: '" + name + "'")
+            name
+          }
+          case protocol.ErrorResponse(error) =>
+            // here we need to just recover, because if you can't open the app
+            // you can't work on it to fix it
+            Logger.info("error getting name from sbt: " + error)
+            val name = location.getName
+            Logger.info("using file basename as app name: " + name)
+            name
+        } flatMap { name =>
+          RootConfig.rewriteUser { root =>
+            val config = AppConfig(id = newIdFromName(root, name), cachedName = Some(name), location = location)
+            val newApps = root.applications.filterNot(_.location == config.location) :+ config
+            root.copy(applications = newApps)
+          } map { Unit =>
+            import ProcessResult.opt2Process
+            RootConfig.user.applications.find(_.location == location)
+              .validated(s"Somehow failed to save new app at ${location.getPath} in config")
+          }
+        }
       resultFuture onComplete { _ =>
         sbt ! PoisonPill
       }
-
       resultFuture
     }
   }

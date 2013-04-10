@@ -3,6 +3,8 @@
 
 //@retina: only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (min--moz-device-pixel-ratio: 2), only screen and (-o-min-device-pixel-ratio: 2/1), only screen and (min-device-pixel-ratio: 2), only screen and (min-resolution: 192dpi), only screen and (min-resolution: 2dppx);
 
+// TODO - better way to get log css?
+@import 'apps/_code.less';
 
 .title(){
 	font-family: "HelveticaNeue-CondensedBold", "Open Sans Condensed", "Helvetica", sans-serif;
@@ -115,46 +117,48 @@ section {
     cursor: pointer;
 }
 
-ul {
-	position: absolute;
-	background: #f5f5f5;
-	top: 40px;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	overflow: auto;
-	box-shadow: inset 0 2px 3px rgba(0,0,0,.1), inset 0 -2px 3px rgba(0,0,0,.1);
-	li {
-		position: relative;
-		padding: 10px 20px;
-		border-top: 1px solid #ddd;
-		cursor: pointer;
-		h3, h3 a {
-			font-size: 14px;
-			font-weight: 700;
-			color: #333;
-		}
-		p {
-			//.ellipsis();
-		}
-		&:last-child {
-			border-bottom: 1px solid #ddd;
-		}
-		&.highlight {
-		  border: 3px solid #e25758;
-          padding: 8px 17px 7px 17px;
-		}
-		&:hover {
-			background: #e25758;
-			border-color: #e25758 - #222;
+#homePage {
+	ul {
+		position: absolute;
+		background: #f5f5f5;
+		top: 40px;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		overflow: auto;
+		box-shadow: inset 0 2px 3px rgba(0,0,0,.1), inset 0 -2px 3px rgba(0,0,0,.1);
+		li {
+			position: relative;
+			padding: 10px 20px;
+			border-top: 1px solid #ddd;
+			cursor: pointer;
 			h3, h3 a {
-				color: #fff;
+				font-size: 14px;
+				font-weight: 700;
+				color: #333;
 			}
 			p {
-				color: rgba(0,0,0,.4);
+				//.ellipsis();
 			}
-			& + dd {
-				border-top: 1px solid #e25758 - #222;
+			&:last-child {
+				border-bottom: 1px solid #ddd;
+			}
+			&.highlight {
+			  border: 3px solid #e25758;
+	          padding: 8px 17px 7px 17px;
+			}
+			&:hover {
+				background: #e25758;
+				border-color: #e25758 - #222;
+				h3, h3 a {
+					color: #fff;
+				}
+				p {
+					color: rgba(0,0,0,.4);
+				}
+				& + dd {
+					border-top: 1px solid #e25758 - #222;
+				}
 			}
 		}
 	}
@@ -269,4 +273,33 @@ form {
 }
 ::-webkit-scrollbar-thumb:window-inactive {
     background: rgba(0,0,0,.05);
+}
+
+div.logs {
+  width: 80em;
+  height: 10em;
+  right: 10px;
+  bottom: 10px;
+  background: #ffffff;
+  overflow: scroll;
+  position: absolute;
+  
+  ul {
+    display: inline;
+  }
+	li {
+		padding: 4px 20px;
+		border-left: 4px solid #E4EAEF;
+		font-family: Monaco, monospace;
+		font-size: 12px;
+		color: #6F7F89;
+		line-height: 16px;
+	}
+
+	li.success { border-color: #4BA300; }
+	li.error { border-color: #E25758; }
+	li.warn { border-color: #F89614; }
+	li.info { border-color: #53cdec; }
+
+}
 }

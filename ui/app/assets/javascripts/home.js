@@ -32,9 +32,12 @@ require([
 	'vendors/chain',
 	'vendors/keymage.min'
 ],function(){
-	require(['core/streams', 'core/widgets/fileselection'], function(streams, FileSelection) {
+	require(['core/streams', 'core/widgets/fileselection', 'core/widgets/log'], function(streams, FileSelection, log) {
 		// Register handlers on the UI.
 		$(function() {
+			// Create log widget before we start recording websocket events...
+			var logs = new log.Log();
+			logs.renderTo($('#loading-logs'));
 			// Register webSocket error handler
 			streams.subscribe({
 				handler: function(event) {
@@ -49,9 +52,6 @@ require([
 			function toggleWorking() {
 				$('#homePage, #workingPage').toggle();
 			}
-			// TODO - Remove debugging...
-			window.streams = streams;
-			window.toggleWorking = toggleWorking;
 			streams.subscribe(function(event) {
 				// Handle all the remote events here...
 				switch(event.response) {
@@ -61,10 +61,18 @@ require([
 						toggleWorking();
 						break;
 					case 'RedirectToApplication':
+						// NOTE - Comment this out if you want to debug showing logs!
 						window.location.href = window.location.href.replace('home', 'app/'+event.appId);
 						break;
 					default:
-						console.log('Unknown event: ', event);
+						// Now check for log events...
+						if(event.event && event.event.type == 'LogEvent') {
+							logs.event(event.event);
+						} else {
+							// TODO - Should we do something more useful with these?
+							console.debug('Unhandled event: ', event)
+						}
+					break;
 				}
 			});
 			// Save these lookups so we don't have to do them repeatedly.

@@ -88,7 +88,12 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
   // the application id and return an appropriate response.
   private def loadApplicationAndSendResponse(file: ProcessResult[File]) = {
     import context.dispatcher
-    val id = file flatMapNested AppManager.loadAppIdFromLocation
+    val id = file flatMapNested { file =>
+      AppManager.loadAppIdFromLocation(file,
+        Some({
+          json => self ! Respond(json)
+        }))
+    }
     val response = id map {
       case snap.ProcessSuccess(id) =>
         log.debug(s"HomeActor: Found application id: $id")
