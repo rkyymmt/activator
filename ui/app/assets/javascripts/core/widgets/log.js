@@ -1,6 +1,4 @@
-define(['text!./log.html', 'core/pluginapi'], function(template, api){
-
-	var ko = api.ko;
+define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget'], function(template, ko, Widget){
 
 	// TODO we should move both the ANSI stripping and the heuristic
 	// parseLogLevel to the server side. We could also use
@@ -32,7 +30,7 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 		return { level: level, message: message };
 	};
 
-	var Log = api.Widget({
+	var Log = Widget({
 		id: 'log-widget',
 		template: template,
 		init: function(parameters) {

@@ -1,4 +1,4 @@
-define(['text!./openInEclipse.html', 'text!./openInIdea.html', 'core/pluginapi', 'core/widgets/overlay', 'core/log'],
+define(['text!./openInEclipse.html', 'text!./openInIdea.html', 'core/pluginapi', 'core/widgets/overlay', 'core/widgets/log'],
 function(eclipseTemplate, ideaTemplate, api, Overlay, log){
 
 	var ko = api.ko;
