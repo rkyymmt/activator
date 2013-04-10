@@ -117,7 +117,6 @@ define([
 		return config;
 	}
 
-	var scrollStates = {};
 	function findWidget(id) {
 		if (!('model' in window)) {
 			// this most likely means we are setting the active widget
