@@ -289,17 +289,20 @@ div.logs {
   }
 	li {
 		padding: 4px 20px;
+        border-width: 0;
 		border-left: 4px solid #E4EAEF;
 		font-family: Monaco, monospace;
 		font-size: 12px;
 		color: #6F7F89;
 		line-height: 16px;
+        white-space: normal;
+        overflow: hidden;
 	}
 
 	li.success { border-color: #4BA300; }
-	li.error { border-color: #E25758; }
+	li.error, li.stderr { border-color: #E25758; }
 	li.warn { border-color: #F89614; }
-	li.info { border-color: #53cdec; }
+	li.info, li.stdout { border-color: #53cdec; }
 
 }
 }
