@@ -48,23 +48,28 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 		},
 		onRender: function(childNodes) {
 			this.node = $(childNodes).parent();
-		},
-		flush: function() {
-			if (this.queue.length > 0) {
-				if (this.node === null)
-					throw new Error("no node");
 
+			// force scroll to bottom to start, in case
+			// when we render we already have a page full
+			// of lines.
+			var state = this.findScrollState();
+			state.wasAtBottom = true;
+			this.applyScrollState(state);
+		},
+		findScrollState: function() {
+			var state = { wasAtBottom: true, element: null };
+			if (this.node !== null) {
 				// Look for the node that we intend to have the scrollbar.
 				// If no 'auto' node found, just use our own node
 				// (which is probably wrong).
 				var logsListNode = $(this.node).children('ul.logsList')[0];
 				var parents = [ logsListNode ].concat($(logsListNode).parents().get());
-				var element = parents[0];
+				state.element = parents[0];
 				var i = 0;
 				for (; i < parents.length; ++i) {
 					var scrollMode = $(parents[i]).css('overflowY');
 					if (scrollMode == 'auto' || scrollMode == 'scroll') {
-						element = parents[i];
+						state.element = parents[i];
 						break;
 					}
 				}
@@ -72,7 +77,19 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 				// if we're within twenty pixels of the bottom, stick to the bottom;
 				// if we require being *exactly* at the bottom it can feel like it's
 				// too hard to get there.
-				var wasAtBottom = (element.scrollHeight - element.clientHeight - element.scrollTop) < 20;
+				state.wasAtBottom = (state.element.scrollHeight - state.element.clientHeight - state.element.scrollTop) < 20;
+			}
+			return state;
+		},
+		applyScrollState: function(state) {
+			if (state.element !== null && state.wasAtBottom) {
+				// stay on the bottom if we were on the bottom
+				state.element.scrollTop = (state.element.scrollHeight - state.element.clientHeight);
+			}
+		},
+		flush: function() {
+			if (this.queue.length > 0) {
+				var state = this.findScrollState();
 
 				var toPush = this.queue;
 				this.queue = [];
@@ -88,10 +105,7 @@ define(['text!./log.html', 'core/pluginapi'], function(template, api){
 					this.logGroups.push(this.currentLog);
 				}
 
-				if (wasAtBottom) {
-					// stay on the bottom if we were on the bottom
-					element.scrollTop = (element.scrollHeight - element.clientHeight);
-				}
+				this.applyScrollState(state);
 			}
 		},
 		log: function(level, message) {
