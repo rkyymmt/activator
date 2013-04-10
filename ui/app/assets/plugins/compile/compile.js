@@ -24,6 +24,7 @@ define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'
 			this.recompileOnChange = ko.observable(true);
 
 			this.logModel = new log.Log();
+			this.logScroll = this.logModel.findScrollState();
 
 			this.status = ko.observable(api.STATUS_DEFAULT);
 
@@ -153,6 +154,12 @@ define(['text!./compile.html', 'core/pluginapi', 'core/log', 'css!./compile.css'
 			} else {
 				self.doCompile();
 			}
+		},
+		onPreDeactivate: function() {
+			this.logScroll = this.logModel.findScrollState();
+		},
+		onPostActivate: function() {
+			this.logModel.applyScrollState(this.logScroll);
 		}
 	});
 

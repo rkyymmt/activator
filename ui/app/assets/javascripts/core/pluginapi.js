@@ -9,12 +9,12 @@ define([
 	function(ko, sbt, key, utils, ignore_ace, events, Widget) {
 
 
-// Add knockout bindings for ace editor.  Try to capture all info we need
-// here so we don't have to dig in like crazy when we need a good editor.
-// Example:
-//  <div class="editor" data-bind="ace: contents"/>
-// <div class="editor" data-bind="ace: { contents: contents, theme: 'ace/theme/xcode', dirty: isEditorDirty, highlight: 'scala' }"/>
-ko.bindingHandlers.ace = {
+	// Add knockout bindings for ace editor.  Try to capture all info we need
+	// here so we don't have to dig in like crazy when we need a good editor.
+	// Example:
+	//  <div class="editor" data-bind="ace: contents"/>
+	// <div class="editor" data-bind="ace: { contents: contents, theme: 'ace/theme/xcode', dirty: isEditorDirty, highlight: 'scala' }"/>
+	ko.bindingHandlers.ace = {
 		init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 			// First pull out all the options we may or may not use.
 			var options = valueAccessor();
@@ -70,30 +70,9 @@ ko.bindingHandlers.ace = {
 		}
 	};
 
-		// Here we add the ability to tail
-		ko.bindingHandlers.autoScroll = {
-			init: function(element, valueAccessor) {
-				var va = valueAccessor();
-				if(ko.utils.unwrapObservable(va)) {
-					if(element.scrollIntoView) {
-						element.scrollIntoView(true);
-					}
-				}
-			},
-			update: function(element, valueAccessor) {
-				var va = valueAccessor();
-				if(ko.utils.unwrapObservable(va)) {
-					if(element.scrollIntoView) {
-						element.scrollIntoView(true);
-					}
-				}
-			}
-		}
-
-
-		var STATUS_DEFAULT = 'default';
-		var STATUS_BUSY = 'busy';
-		var STATUS_ERROR = 'error;'
+	var STATUS_DEFAULT = 'default';
+	var STATUS_BUSY = 'busy';
+	var STATUS_ERROR = 'error;'
 
 	// Verifies that a new plugin configuration is acceptable for our application, or
 	// issues debugging log statements on what the issue is.
@@ -121,16 +100,74 @@ ko.bindingHandlers.ace = {
 			return activeWidget() == config.widgets[0].id
 		}, config);
 
+		// add plugin-specific hooks to widgets
+		// (these aren't in Widget class since they
+		// are plugin-specific, would probably be cleaner
+		// to make a PluginWidget base class)
+		var noOp = function() {};
+		var hooks = [ 'onPostActivate', 'onPreDeactivate' ]
+		$.each(config.widgets, function(i, widget) {
+			$.each(hooks, function(i, hook) {
+				if (!(hook in widget)) {
+					widget[hook] = noOp;
+				}
+			});
+		});
+
 		return config;
 	}
 
-	var activeWidget = ko.observable();
-	function setActiveWidget(widget) {
-		if(typeof(widget) == 'string') {
-			activeWidget(widget);
-		} else if(widget.id){
-			activeWidget(widget.id);
+	var scrollStates = {};
+	function findWidget(id) {
+		if (!('model' in window)) {
+			// this most likely means we are setting the active widget
+			// from inside model.init() ...
+			return null;
 		}
+
+		var matches = $.grep(window.model.widgets, function(w) { return w.id === id; });
+		if (matches.length == 0) {
+			return null;
+		} else {
+			return matches[0];
+		}
+	}
+
+	var activeWidget = ko.observable("");
+	function setActiveWidget(widget) {
+		var newId = null;
+		if (typeof(widget) == 'string') {
+			newId = widget;
+		} else if (widget.id){
+			newId = widget.id;
+		} else {
+			throw new Error("need a widget id not " + widget);
+		}
+
+		var oldId = activeWidget();
+
+		if (newId == oldId)
+			return;  // no change
+
+		var oldWidget = findWidget(oldId);
+		var newWidget = findWidget(newId);
+		if (newWidget === null) {
+			// this probably means the app model is still being
+			// constructed so widgets aren't registered.
+			// In that scenario we MUST set to a widget, not an
+			// ID.
+			if (typeof(widget) != 'string')
+				newWidget = widget;
+			else
+				throw new Error("don't know the widget yet for " + newId);
+		}
+
+		if (oldWidget !== null)
+			oldWidget.onPreDeactivate();
+
+		activeWidget(newId);
+
+		newWidget.onPostActivate();
 	}
 
 	return {
