@@ -46,11 +46,16 @@ for /F %%j in ('"%_JAVACMD%" -version  2^>^&1') do (
 )
 if not defined JAVAINSTALLED (
   echo.
-  echo Java is not installed or can't be found at: 
+  echo A Java JDK is not installed or can't be found at: 
   echo %_JAVACMD%
   echo.
   echo Please go to http://www.java.com/getjava/ and download
-  echo a valid Java Runtime and install before running builder.
+  echo a valid Java JDK and install before running builder.
+  echo
+  echo If you think this message is in error, please check
+  echo your environment variables to see if "java.exe" is
+  echo available via JAVA_HOME or PATH.
+  echo
   if defined DOUBLECLICKED pause
   exit /B 1
 )
