@@ -55,6 +55,9 @@ require([
 			streams.subscribe(function(event) {
 				// Handle all the remote events here...
 				switch(event.response) {
+					case 'Status':
+						logs.info(event.info);
+						break;
 					case 'BadRequest':
 						// TODO - Do better than an alert!
 						alert('Unable to perform request: ' + event.errors.join(' \n'));

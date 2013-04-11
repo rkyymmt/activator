@@ -42,6 +42,12 @@ object HomePageActor {
         "response" -> JsString("BadRequest"),
         "errors" -> JsArray(errors map JsString.apply)))
   }
+  object Status {
+    def apply(info: String): JsValue =
+      JsObject(Seq(
+        "response" -> JsString("Status"),
+        "info" -> JsString(info)))
+  }
   case class Respond(json: JsValue)
 }
 class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
@@ -69,7 +75,7 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
         controllers.api.Templates.templateCache,
         template,
         appLocation) map (_ => appLocation)
-
+    self ! Respond(Status("Template is cloned, compiling project definiton..."))
     loadApplicationAndSendResponse(installed)
   }
 
@@ -81,6 +87,7 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
     val file = snap.Validating(new File(location)).validate(
       snap.Validation.fileExists,
       snap.Validation.isDirectory)
+    self ! Respond(Status("Compiling project definiton..."))
     loadApplicationAndSendResponse(file)
   }
 
