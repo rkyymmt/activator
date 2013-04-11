@@ -155,7 +155,12 @@ object AppManager {
       Validation.looksLikeAnSbtProject)
 
     validated flatMapNested { location =>
-      val sbt = SbtChild(snap.Akka.system, location, sbtChildProcessMaker)
+      // NOTE -> We have to use the factory to ensure that shims are installed BEFORE we try to load the app.
+      // While we should consolidate all sbt specific code, right now the child factory is the correct entry point.
+      val factory = new DefaultSbtChildFactory(location, sbtChildProcessMaker)
+      // TODO - we should actually have ogging of this sucker
+      factory.init(akka.event.NoLogging)
+      val sbt = factory.newChild(snap.Akka.system)
       implicit val timeout = Timeout(60, TimeUnit.SECONDS)
 
       val requestManager = snap.Akka.system.actorOf(
