@@ -44,9 +44,8 @@ define(['./plugin', './grid', './router', './pluginapi', './navigation', './tuto
 		},
 		api: api,
 		tutorial: new Tutorial(),
-		setNewsJson: function(jsonString) {
-			console.log("setting news json to ", typeof(jsonString), jsonString);
-			var json = JSON.parse(jsonString);
+		setNewsJson: function(json) {
+			console.log("setting news json to ", json);
 			if ('html' in json) {
 				this.newsHtml(json.html);
 			} else {
