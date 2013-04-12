@@ -91,11 +91,11 @@ Then you can run simply:
 
 ## Publishing NEWS to versions
 
-First, edit the file `new/news.html` to display the news you'd like within builder.
+First, edit the file `news/news.html` to display the news you'd like within builder.
 
 Then run:
 
-    sbt> new/publish-news <version>
+    sbt> news/publish-news <version>
 
 
 # Issues
