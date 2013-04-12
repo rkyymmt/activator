@@ -28,6 +28,11 @@ object TheBuilderBuild extends Build {
       Keys.publishLocal := {}
     )
   )
+  
+  lazy val news: Project = (
+    Project("news", file("news"))
+    settings(NewsHelper.settings:_*)
+  )
 
   // These are the projects we want in the local Builder repository
   lazy val publishedSbtShimProjects = Set(playShimPlugin, eclipseShimPlugin, ideaShimPlugin, sbtUiInterface, defaultsShimPlugin)
