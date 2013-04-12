@@ -32,12 +32,9 @@ object NewsHelper {
   def publishParser = Space ~> token(versionParser, "<version>")
   
   def publishNewsVersion(v: String, state: State): Unit = {
-    println("Publish news with version = " + v)
-    // TODO - this is a bit of recursive madness... undo this if possible.
-    val project = TheBuilderBuild.news
     val state2 = injectVersion(switchToNewsProject(state), v)
     val extracted = Project.extract(state2)
-    val result = extracted.runTask(S3.upload in project, state2)
+    val result = extracted.runTask(S3.upload in extracted.currentRef, state2)
   }
   
   def switchToNewsProject(state: State): State = {
