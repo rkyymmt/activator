@@ -30,6 +30,76 @@ define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget'], funct
 		return { level: level, message: message };
 	};
 
+
+	// escapeHtml and entityMap from mustache.js MIT License
+	// Copyright (c) 2010 Jan Lehnardt
+
+	var entityMap = {
+			"&": "&amp;",
+			"<": "&lt;",
+			">": "&gt;",
+			'"': '&quot;',
+			"'": '&#39;',
+			"/": '&#x2F;'
+	};
+
+	function escapeHtml(string) {
+		return String(string).replace(/[&<>"'\/]/g, function (s) {
+			return entityMap[s];
+		});
+	}
+
+	function unix(filename) {
+		return filename.replace('\\', '/');
+	}
+
+	function stripTrailing(filename) {
+		if (filename.length > 0 && filename[filename.length - 1] == '/')
+			return filename.substring(0, filename.length - 1);
+		else
+			return filename;
+	}
+
+	function startsWith(prefix, s) {
+		return (prefix.length <= s.length &&
+				s.substring(0, prefix.length) == prefix);
+	}
+
+	function relativizeFile(file) {
+		if ('serverAppModel' in window && 'location' in window.serverAppModel) {
+			var root = stripTrailing(unix(window.serverAppModel.location));
+			file = unix(file);
+			if (startsWith(root, file))
+				return file.substring(root.length);
+			else
+				return file;
+		} else {
+			return file;
+		}
+	}
+
+	// this regex is used on both the text and html-escaped log line
+	var fileLineRegex = new RegExp("^([^:]+):([0-9]+): ");
+
+	ko.bindingHandlers['compilerMessage'] = {
+		update: function (element, valueAccessor, allBindingsAccessor, viewModel) {
+			var text = ko.utils.unwrapObservable(valueAccessor());
+			var html = escapeHtml(text);
+			var m = fileLineRegex.exec(text);
+			var file = null;
+			var line = null;
+			if (m !== null) {
+				file = m[1];
+				line = m[2];
+				// both html-escaped and second-arg-to-replace-escaped
+				var relativeEscaped= escapeHtml(relativizeFile(file)).replace('$', '$$');
+				// TODO include the line number in the url once code plugin can handle it
+				html = html.replace(fileLineRegex, "<a href=\"#code" + relativeEscaped + "\">$1:$2</a>: ");
+			}
+			ko.utils.setHtml(element, html);
+		}
+	};
+
 	var Log = Widget({
 		id: 'log-widget',
 		template: template,
