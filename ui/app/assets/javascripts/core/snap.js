@@ -29,7 +29,6 @@ define(['./plugin', './grid', './router', './pluginapi', './navigation', './tuto
 		init: function() {
 			var self = this;
 			self.widgets = [];
-			self.newsHtml = ko.observable("<div></div>");
 			// TODO - initialize plugins in a better way perhaps...
 			$.each(self.plugins.list, function(idx,plugin) {
 				self.router.registerRoutes(plugin.routes);
@@ -43,34 +42,9 @@ define(['./plugin', './grid', './router', './pluginapi', './navigation', './tuto
 			return self;
 		},
 		api: api,
-		tutorial: new Tutorial(),
-		setNewsJson: function(json) {
-			console.log("setting news json to ", json);
-			if ('html' in json) {
-				this.newsHtml(json.html);
-			} else {
-				console.error("json does not have an html field");
-			}
-		},
-		loadNews: function() {
-			var areq = {
-				url: "http://downloads.typesafe.com/typesafe-builder/" + window.serverAppModel.appVersion + "/news.js",
-				type: 'GET',
-				// this is hardcoded for now since our server is just static files
-				// so can't respect a ?callback= query param.
-				jsonpCallback: 'setNewsJson',
-				dataType: 'jsonp' // return type
-			};
-
-			console.log("sending ajax news request ", areq)
-			return $.ajax(areq);
-		}
+		tutorial: new Tutorial()
 	};
+	// TODO - Don't bleed into the window.
 	window.model = model.init();
-
-	// jsonp us up some news
-	window.setNewsJson = model.setNewsJson.bind(model);
-	model.loadNews();
-
 	return model;
 });
