@@ -143,6 +143,9 @@ body > aside {
       border-right: 8px solid transparent;
       border-bottom: 8px solid #53cdec;
     }
+    &[href="#"]:after {
+      border-bottom: 8px solid #d3d9df;
+    }
   }
 }
 
@@ -244,17 +247,11 @@ body.right-open {
 	#wrapper {
 		right: 300px;
 	}
-    #welcome-holder {
-        right: 300px;
-    }
     &.right-collapsed {
         > aside {
             width: 50px;
         }
         #wrapper {
-            right: 50px;
-        }
-        #welcome-holder {
             right: 50px;
         }
     }
@@ -267,17 +264,7 @@ body.right-open {
 		#wrapper {
 			right: 300px;
 		}
-        #welcome-holder {
-          right: 300px;
-        }
 	}
-}
-
-#welcome-holder {
-  position: absolute;
-  top: 50px;
-  bottom: 0px;
-  left: 0px;
 }
 
 #welcome-message {
