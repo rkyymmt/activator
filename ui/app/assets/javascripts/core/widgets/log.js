@@ -1,4 +1,4 @@
-define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget'], function(template, ko, Widget){
+define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget', 'core/markers'], function(template, ko, Widget, markers){
 
 	// TODO we should move both the ANSI stripping and the heuristic
 	// parseLogLevel to the server side. We could also use
@@ -30,6 +30,88 @@ define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget'], funct
 		return { level: level, message: message };
 	};
 
+
+	// escapeHtml and entityMap from mustache.js MIT License
+	// Copyright (c) 2010 Jan Lehnardt
+
+	var entityMap = {
+			"&": "&amp;",
+			"<": "&lt;",
+			">": "&gt;",
+			'"': '&quot;',
+			"'": '&#39;',
+			"/": '&#x2F;'
+	};
+
+	function escapeHtml(string) {
+		return String(string).replace(/[&<>"'\/]/g, function (s) {
+			return entityMap[s];
+		});
+	}
+
+	function unix(filename) {
+		return filename.replace('\\', '/');
+	}
+
+	function stripTrailing(filename) {
+		if (filename.length > 0 && filename[filename.length - 1] == '/')
+			return filename.substring(0, filename.length - 1);
+		else
+			return filename;
+	}
+
+	function startsWith(prefix, s) {
+		return (prefix.length <= s.length &&
+				s.substring(0, prefix.length) == prefix);
+	}
+
+	function relativizeFile(file) {
+		file = unix(file);
+		if ('serverAppModel' in window && 'location' in window.serverAppModel) {
+			var root = stripTrailing(unix(window.serverAppModel.location));
+			if (startsWith(root, file))
+				return file.substring(root.length);
+			else
+				return file;
+		} else {
+			return file;
+		}
+	}
+
+	// this regex is used on both the text and html-escaped log line
+	var fileLineRegex = new RegExp("^([^:]+):([0-9]+): ");
+
+	ko.bindingHandlers['compilerMessage'] = {
+		// we only implement init, not update, because log lines are immutable anyway
+		// and knockout calls update() multiple times (not smart enough to do deep
+		// equality on arrays, maybe?), the multiple update() in turn can result
+		// in not registering the most recent file markers, and just in inefficiency.
+		init: function (element, valueAccessor, allBindingsAccessor, viewModel) {
+			var o = ko.utils.unwrapObservable(valueAccessor());
+			var text = ko.utils.unwrapObservable(o.message);
+			var html = escapeHtml(text);
+			var m = fileLineRegex.exec(text);
+			var file = null;
+			var line = null;
+			if (m !== null) {
+				file = m[1];
+				line = m[2];
+				// both html-escaped and second-arg-to-replace-escaped
+				var relative = relativizeFile(file);
+				var relativeEscaped = escapeHtml(relative).replace('$', '$$');
+				// TODO include the line number in the url once code plugin can handle it
+				html = html.replace(fileLineRegex, "<a href=\"#code" + relativeEscaped + ":" + line + "\">$1:$2</a>: ");
+
+				// register the error globally so editors can pick it up
+				markers.registerFileMarker(ko.utils.unwrapObservable(o.markerOwner),
+						relative, line, ko.utils.unwrapObservable(o.level), text);
+			}
+			ko.utils.setHtml(element, html);
+		}
+	};
+
+	var nextMarkerOwner = 1;
+
 	var Log = Widget({
 		id: 'log-widget',
 		template: template,
@@ -43,6 +125,8 @@ define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget'], funct
 			this.queue = [];
 			this.boundFlush = this.flush.bind(this);
 			this.node = null;
+			this.markerOwner = 'log-' + nextMarkerOwner;
+			nextMarkerOwner += 1;
 		},
 		onRender: function(childNodes) {
 			this.node = $(childNodes).parent();
@@ -127,7 +211,8 @@ define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget'], funct
 			// annoying rather than disastrous issue for users.
 			// The main mitigation for the problem is our nested array
 			// (logGroups) but this helps a bit too perhaps.
-			this.queue.push({ level: level, message: message });
+			this.queue.push({ level: level, message: message, markerOwner: this.markerOwner });
+
 			if (this.queue.length == 1) {
 				// 100ms = threshold for user-perceptible slowness
 				// in general but nobody has much expectation for
@@ -157,6 +242,7 @@ define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget'], funct
 			this.flush(); // be sure we collect the queue
 			this.currentLog = ko.observableArray();
 			this.logGroups.removeAll();
+			markers.clearFileMarkers(this.markerOwner);
 			this.logGroups.push(this.currentLog);
 		},
 		moveFrom: function(other) {
@@ -164,6 +250,7 @@ define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget'], funct
 			other.flush();
 			this.flush();
 			var removed = other.logGroups.removeAll();
+			markers.clearFileMarkers(other.markerOwner);
 			ko.utils.arrayPushAll(this.logGroups(), removed);
 			this.logGroups.valueHasMutated();
 		},

@@ -10,6 +10,8 @@ define(["text!./viewImage.html", 'core/pluginapi'], function(template, api){
 				var file = self.file();
 				return '/api/local/show?location=' + file.location;
 			});
+		},
+		scrollToLine: function(line) {
 		}
 	});
 	return ImageView;
