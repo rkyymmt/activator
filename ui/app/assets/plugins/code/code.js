@@ -53,6 +53,25 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 			self.viewer = new Viewer({
 				file: self.currentFile
 			});
+		},
+		setCrumbs: function(crumbs) {
+			var line = -1;
+			var length = crumbs.length;
+			if (length != 0) {
+				var last = crumbs[length - 1];
+				var colon = last.lastIndexOf(':');
+				if (colon >= 0) {
+					var maybe = parseInt(last.substring(colon + 1), 10);
+					if (typeof(maybe) == 'number' && !isNaN(maybe)) {
+						line = maybe;
+						crumbs[length - 1] = crumbs[length - 1].substring(0, colon);
+					}
+				}
+			}
+
+			this.relativeCrumbs(crumbs);
+			if (line >= 0)
+				this.viewer.scrollToLine(line);
 		}
 	});
 
@@ -74,7 +93,7 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 				// DON'T UPDATE OBSERVABLES if they're the same.
 				// Otherwise, we reload junk and do all sorts of not-quite right behavior for remembering where we were....
 				if(home.relativeCrumbs().join('/') != bcs.rest.join('/')) {
-					home.relativeCrumbs(bcs.rest);
+					home.setCrumbs(bcs.rest);
 				}
 			}
 		},

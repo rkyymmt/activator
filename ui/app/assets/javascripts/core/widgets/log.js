@@ -98,9 +98,9 @@ define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget', 'core/
 				line = m[2];
 				// both html-escaped and second-arg-to-replace-escaped
 				var relative = relativizeFile(file);
-				var relativeEscaped= escapeHtml(relative).replace('$', '$$');
+				var relativeEscaped = escapeHtml(relative).replace('$', '$$');
 				// TODO include the line number in the url once code plugin can handle it
-				html = html.replace(fileLineRegex, "<a href=\"#code" + relativeEscaped + "\">$1:$2</a>: ");
+				html = html.replace(fileLineRegex, "<a href=\"#code" + relativeEscaped + ":" + line + "\">$1:$2</a>: ");
 
 				// register the error globally so editors can pick it up
 				markers.registerFileMarker(ko.utils.unwrapObservable(o.markerOwner),

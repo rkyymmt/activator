@@ -26,6 +26,8 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 		},
 		afterRender: function(a,b,c){
 			//console.log('abc', a,b,c)
+		},
+		scrollToLine: function(line) {
 		}
 	});
 
@@ -87,6 +89,9 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 				console.log('Failed to open file in browser: ', err)
 				alert('Failed to open file.  This may be unsupported by your system.');
 			});
+		},
+		scrollToLine: function(line) {
+			this.subView().scrollToLine(line);
 		}
 	});
 
