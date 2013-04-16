@@ -7,26 +7,32 @@ $ ->
         chart = $("<div>").addClass("chart").prop("id", message.symbol)
         stockHolder = $("<div>").addClass("stock-holder").attr("data-content",message.symbol).append(chart).click (event) ->
           # fetch stock details and tweet
-        $("#stocks").append(stockHolder)
+        $("#stocks").prepend(stockHolder)
         plot = chart.plot([getChartArray(message.history)], getChartOptions(message.history)).data("plot")
       when "stockupdate"
-        plot = $("#" + message.symbol).data("plot")
-        data = getPricesFromArray(plot.getData()[0].data)
-        data.shift()
-        data.push(message.price)
-        plot.setData([getChartArray(data)])
-        
-        yaxes = plot.getOptions().yaxes[0]
-        if ((getAxisMin(data) < yaxes.min) || (getAxisMax(data) > yaxes.max))
-          # reseting yaxes
-          yaxes.min = getAxisMin(data)
-          yaxes.max = getAxisMax(data)
-          plot.setupGrid()
-
-        plot.draw()
+        if ($("#" + message.symbol).size() > 0)
+          plot = $("#" + message.symbol).data("plot")
+          data = getPricesFromArray(plot.getData()[0].data)
+          data.shift()
+          data.push(message.price)
+          plot.setData([getChartArray(data)])
+          
+          yaxes = plot.getOptions().yaxes[0]
+          if ((getAxisMin(data) < yaxes.min) || (getAxisMax(data) > yaxes.max))
+            # reseting yaxes
+            yaxes.min = getAxisMin(data)
+            yaxes.max = getAxisMax(data)
+            plot.setupGrid()
+  
+          plot.draw()
       else
         console.log(message)
 
+  $("#addsymbolform").submit (event) ->
+    event.preventDefault()
+    $.post("/watch/" + $("body").attr("data-uuid") + "/" + $("#addsymboltext").val())
+    $("#addsymboltext").val("")
+        
 getPricesFromArray = (data) ->
   (v[1] for v in data)
 
