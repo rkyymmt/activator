@@ -12,9 +12,9 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class UserActor(uuid: String, out: WebSocket.Out[JsonNode]) extends Actor {
-  
+
   val stocks: mutable.Map[String, ActorRef] = mutable.Map.empty[String, ActorRef]
-  
+
   def receive = {
     case StockUpdate(symbol, price) => {
       if (stocks.contains(symbol)) {
@@ -26,22 +26,22 @@ class UserActor(uuid: String, out: WebSocket.Out[JsonNode]) extends Actor {
       }
     }
     case WatchStock(uuid: String, symbol: String) => {
-      context.system.actorFor("user/stocks") ! SetupStock(symbol)
-      val stockActor = context.system.actorFor("user/stocks/" + symbol)
-      stocks.put(symbol, stockActor)
-      
-      // send the whole history to the client
-      implicit val timeout = Timeout(5 seconds)
-      (stockActor ? FetchHistory).map { history =>
-        
-        val message = Json.newObject()
-        message.put("type", "stockhistory")
-        message.put("symbol", symbol)
-        
-        val historyJson = message.putArray("history")
-        history.asInstanceOf[Seq[Number]].foreach(price => historyJson.add(price.doubleValue))
-        
-        out.write(message)
+      implicit val timeout = Timeout(15 seconds)
+      (context.system.actorFor("user/stocks") ? SetupStock(symbol)).map { stockActorRef =>
+        stocks.put(symbol, stockActorRef.asInstanceOf[ActorRef])
+
+        // send the whole history to the client
+        (stockActorRef.asInstanceOf[ActorRef] ? FetchHistory).map { history =>
+
+          val message = Json.newObject()
+          message.put("type", "stockhistory")
+          message.put("symbol", symbol)
+
+          val historyJson = message.putArray("history")
+          history.asInstanceOf[Seq[Number]].foreach(price => historyJson.add(price.doubleValue))
+
+          out.write(message)
+        }
       }
     }
   }

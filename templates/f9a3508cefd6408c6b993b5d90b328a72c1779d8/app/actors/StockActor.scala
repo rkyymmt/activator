@@ -26,10 +26,10 @@ class StockActor(symbol: String) extends Actor {
 class StockHolderActor extends Actor {
   def receive = {
     case SetupStock(symbol) => {
-      val stockActor = context.actorFor(symbol)
-      if (stockActor.isTerminated) {
+      if (context.actorFor(symbol).isTerminated) {
         context.actorOf(Props(new StockActor(symbol)), symbol)
       }
+      sender ! context.actorFor(symbol)
     }
     case FetchLatest => {
       for(child <- context.children) child ! FetchLatest
