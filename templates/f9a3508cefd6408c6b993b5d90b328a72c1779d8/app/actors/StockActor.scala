@@ -8,7 +8,7 @@ import scala.collection.immutable.Queue
 class StockActor(symbol: String) extends Actor {
   var stockHistory = {
     lazy val initialPrices: Stream[java.lang.Double] = (new Random().nextDouble * 800) #:: initialPrices.map(previous => FakeStockQuote.newPrice(previous))
-    initialPrices.take(60).to[Queue]
+    initialPrices.take(50).to[Queue]
   }
   
   def receive = {

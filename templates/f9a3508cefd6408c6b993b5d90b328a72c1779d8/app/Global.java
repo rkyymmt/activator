@@ -23,7 +23,7 @@ public class Global extends GlobalSettings {
         ActorRef stockHolderActor = Akka.system().actorOf(new Props(StockHolderActor.class), "stocks");
 
         // fetch a new data point once every second
-        Akka.system().scheduler().schedule(Duration.Zero(), Duration.create(1, TimeUnit.SECONDS), stockHolderActor, FetchLatest.instance(), Akka.system().dispatcher());
+        Akka.system().scheduler().schedule(Duration.Zero(), Duration.create(50, TimeUnit.MILLISECONDS), stockHolderActor, FetchLatest.instance(), Akka.system().dispatcher());
 
         super.onStart(application);
     }
