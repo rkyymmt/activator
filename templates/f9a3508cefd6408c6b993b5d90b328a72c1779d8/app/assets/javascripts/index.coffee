@@ -6,7 +6,7 @@ $ ->
       when "stockhistory"
         chart = $("<div>").addClass("chart").prop("id", message.symbol)
         stockHolder = $("<div>").addClass("chart-holder").append(chart)
-        detailsHolder = $("<div>").addClass("details-holder").append($("<h1>").text("asdf"))
+        detailsHolder = $("<div>").addClass("details-holder").append($("<h1>").text("loading details &amp; tweets..."))
         flipper = $("<div>").addClass("flipper").append(stockHolder).append(detailsHolder).attr("data-content",message.symbol)
         flipContainer = $("<div>").addClass("flip-container").append(flipper).click (event) ->
           if ($(this).hasClass("flipped"))

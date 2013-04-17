@@ -80,6 +80,14 @@ body {
     transform: rotateY(180deg);
 }
 
+.details-holder h1 {
+    position: absolute;
+    left: 50%;
+    right: 50%;
+    top: 50%;
+    bottom: 50%;
+}
+
 .chart {
     position: relative;
     width: 920px;
