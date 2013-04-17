@@ -5,9 +5,16 @@ $ ->
     switch message.type
       when "stockhistory"
         chart = $("<div>").addClass("chart").prop("id", message.symbol)
-        stockHolder = $("<div>").addClass("stock-holder").attr("data-content",message.symbol).append(chart).click (event) ->
-          # fetch stock details and tweet
-        $("#stocks").prepend(stockHolder)
+        stockHolder = $("<div>").addClass("chart-holder").append(chart)
+        detailsHolder = $("<div>").addClass("details-holder").append($("<h1>").text("asdf"))
+        flipper = $("<div>").addClass("flipper").append(stockHolder).append(detailsHolder).attr("data-content",message.symbol)
+        flipContainer = $("<div>").addClass("flip-container").append(flipper).click (event) ->
+          if ($(this).hasClass("flipped"))
+            $(this).removeClass("flipped")
+          else
+            # fetch stock details and tweet
+            $(this).addClass("flipped")
+        $("#stocks").prepend(flipContainer)
         plot = chart.plot([getChartArray(message.history)], getChartOptions(message.history)).data("plot")
       when "stockupdate"
         if ($("#" + message.symbol).size() > 0)
@@ -16,14 +23,14 @@ $ ->
           data.shift()
           data.push(message.price)
           plot.setData([getChartArray(data)])
-          
+          # update the yaxes if either the min or max is now out of the acceptable range
           yaxes = plot.getOptions().yaxes[0]
           if ((getAxisMin(data) < yaxes.min) || (getAxisMax(data) > yaxes.max))
             # reseting yaxes
             yaxes.min = getAxisMin(data)
             yaxes.max = getAxisMax(data)
             plot.setupGrid()
-  
+          # redraw the chart
           plot.draw()
       else
         console.log(message)
@@ -32,7 +39,7 @@ $ ->
     event.preventDefault()
     $.post("/watch/" + $("body").attr("data-uuid") + "/" + $("#addsymboltext").val())
     $("#addsymboltext").val("")
-        
+
 getPricesFromArray = (data) ->
   (v[1] for v in data)
 
