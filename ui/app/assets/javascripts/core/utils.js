@@ -55,30 +55,6 @@ var Event = function(o) {
 	return o;
 };
 
-
-/* Local storage helper for UI settings
- */
-var Settings = (function() {
-	var settings = window.localStorage.settings || {};
-
-	function set(label, value) {
-		window.localStorage.settings.setItem(label, JSON.stringify(value));
-	}
-
-	function get(label, def) {
-		return JSON.parse(window.localStorage.settings.getItem(label)) || def;
-	}
-
-	function reset(label) {
-		window.localStorage.settings.removeItem('label');
-	}
-	return {
-		set: set,
-		get: get,
-		reset: reset
-	}
-}());
-
 var Class = function(o) {
 	function M() {
 		if(this.init) {
@@ -101,7 +77,6 @@ var Class = function(o) {
 
 	return {
 		Class: Class,
-		Settings: Settings,
 		Event: Event,
 		inUrl: inUrl
 	}
