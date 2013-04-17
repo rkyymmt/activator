@@ -7,12 +7,15 @@ import org.junit._
 import builder.properties.BuilderProperties._
 
 class ActionsTest {
-  @Test
-  def testCloneTemplate(): Unit = IO.withTemporaryDirectory { dir =>
+
+  class Dummy(dir: File) {
     // Setup dummies for test.
     val templateFile = new java.io.File(dir, "template-file")
     templateFile.createNewFile()
     val id = "1"
+    val buildSbtFile = new File(dir, "template-build.sbt")
+    IO.write(buildSbtFile, "\nname \t:= \t\"Hello\"\n")
+
     object DummyCache extends TemplateCache {
       val m = TemplateMetadata(id, "", "", "", Seq.empty)
       override val metadata = Seq(m)
@@ -20,19 +23,24 @@ class ActionsTest {
         Some(Template(m, Seq(
           templateFile -> "installed-file",
           dir -> "project",
-          templateFile -> "project/build.properties")))
+          templateFile -> "project/build.properties",
+          buildSbtFile -> "build.sbt")))
       override def tutorial(id: String) = None
-      Some(Template(m, Seq(
-        templateFile -> "installed-file",
-        dir -> "project",
-        templateFile -> "project/build.properties")))
+
       override def search(query: String): Iterable[TemplateMetadata] = metadata
     }
     val installLocation = new java.io.File(dir, "template-install")
 
     assert(!installLocation.exists)
+  }
+
+  @Test
+  def testCloneTemplate(): Unit = IO.withTemporaryDirectory { dir =>
+    val dummy = new Dummy(dir)
+    import dummy._
+
     // Run the command
-    val result = Actions.cloneTemplate(DummyCache, id, installLocation)
+    val result = Actions.cloneTemplate(DummyCache, id, installLocation, projectName = None)
 
     assert(!result.isFailure)
 
@@ -45,5 +53,22 @@ class ActionsTest {
     // Check that template ID was successfully written out.
     val props = IO loadProperties new File(installLocation, "project/build.properties")
     assert(props.getProperty(TEMPLATE_UUID_PROPERTY_NAME) == id)
+  }
+
+  @Test
+  def testRenameProject(): Unit = IO.withTemporaryDirectory { dir =>
+    val dummy = new Dummy(dir)
+    import dummy._
+
+    // this name needs escaping as regex, as string literal, etc.
+    val newName = "test\"\"\" foo bar \"\"\" $1 $2 \n blah blah \\n \\ what"
+    val result = Actions.cloneTemplate(DummyCache, id, installLocation, projectName = Some(newName))
+
+    assert(!result.isFailure)
+
+    val contents = IO.slurp(new File(installLocation, "build.sbt"))
+    // see if this makes your head hurt
+    assertEquals("\nname \t:= \t\"\"\"test\"\"\"+ \"\\\"\\\"\\\"\" + \"\"\" foo bar \"\"\"+ \"\\\"\\\"\\\"\" + \"\"\" $1 $2 \n blah blah \\n \\ what\"\"\"\n",
+      contents)
   }
 }
