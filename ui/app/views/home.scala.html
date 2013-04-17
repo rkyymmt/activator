@@ -32,6 +32,10 @@
 	            <div id="newAppForm" class="subsection">
 	                <h2>New application</h2>
 	                @helper.form(action = routes.Application.forceHome, 'id -> "newApp") {
+                        <fieldset>
+                            <label for="newappTemplate">Template</label>
+                            <input type="text" id="newAppTemplateName" name="template-name" placeholder="Choose from the list below" disabled required>
+                        </fieldset>
 	                    <fieldset>
 	                        <label for="newappName">Name</label>
 	                        <input type="text" id="newappName" name="name">
@@ -40,10 +44,6 @@
 	                        <label for="newappLocation">Location</label>
 	                        <a href="#" id="browseAppLocation"></a>
 	                        <input type="text" id="newappLocation" name="location" placeholder="@model.userHome">
-	                    </fieldset>
-	                    <fieldset>
-	                        <label for="newappTemplate">Template</label>
-	                        <input type="text" id="newAppTemplateName" name="template-name" placeholder="Choose from the list below" disabled required>
 	                    </fieldset>
 	                    <ul>
 	                    @model.templates.map { template =>
