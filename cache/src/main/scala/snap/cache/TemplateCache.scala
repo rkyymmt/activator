@@ -65,9 +65,9 @@ class DemoTemplateCache() extends TemplateCache {
       // TODO - Put more hardcoded template metadata for the demo here!
       TemplateMetadata(
         id = "f9a3508cefd6408c6b993b5d90b328a72c1779d8",
-        name = "Reactive Stock Tweets",
+        name = "Reactive Stocks",
         version = "1.0",
-        description = """The Reactive Stock Tweets application uses Java, Scala, Play Framework, and Akka to illustrate how to build reactive apps.  The tutorial in this example will teach you the reactive basics including Reactive Composition and Reactive Push.""",
+        description = """The Reactive Stocks application uses Java, Scala, Play Framework, and Akka to illustrate a reactive app.  The tutorial in this example will teach you the reactive basics including Reactive Composition and Reactive Push.""",
         tags = Seq("java", "scala", "play framework", "akka", "reactive")),
       TemplateMetadata(
         id = "a5227c77d39109b6550a47758c2f9a1341e06524",
