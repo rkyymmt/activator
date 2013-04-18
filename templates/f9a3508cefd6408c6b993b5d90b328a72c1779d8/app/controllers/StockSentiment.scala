@@ -14,7 +14,7 @@ object StockSentiment extends Controller {
   
   def getAverageSentiment(responses: Seq[Response], label: String) = responses.map { response =>
     (response.json \\ label).head.as[Double]
-  }.sum / responses.length
+  }.sum / responses.length.max(1) // avoid division by zero
   
   def get(symbol: String) = Action {
     Async {

@@ -74,18 +74,37 @@ body {
     z-index: 2;
 }
 
+.chart-holder p {
+    position: absolute;
+    bottom: 7px;
+    right: 20px;
+    font-size: 10px;
+    color: #aaaaaa;
+    font-style: italic;
+}
+
 .details-holder {
     -webkit-transform: rotateY(180deg);
     -moz-transform: rotateY(180deg);
     transform: rotateY(180deg);
+    text-align: center;
 }
 
-.details-holder h1 {
-    position: absolute;
-    left: 50%;
-    right: 50%;
-    top: 50%;
-    bottom: 50%;
+.details-holder h4 {
+    padding: 20px;
+}
+
+.details-holder .progress {
+    padding: 20px;
+    background: none;
+    border: none;
+    box-shadow: none;
+    -moz-box-shadow: none;
+}
+
+.details-holder img {
+    height: 128px;
+    width: 128px;
 }
 
 .chart {
