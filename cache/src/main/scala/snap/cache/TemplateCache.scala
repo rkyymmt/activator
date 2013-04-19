@@ -71,21 +71,21 @@ class DemoTemplateCache() extends TemplateCache {
         title = "Hello Scala!",
         timeStamp = 1,
         description = """Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way.  This very simple Scala application will get you started building and testing standalone Scala apps.  This app uses Scala 2.10 and ScalaTest.""",
-        tags = Seq("Introduction", "scala", "starter")),
+        tags = Seq("Basics", "scala", "starter")),
       TemplateMetadata(
         id = "39836f5aa646b3a37abb80e8a2c335ebf6830cac",
         name = "hello-akka",
         title = "Hello Akka!",
         timeStamp = 1,
         description = """Akka is a toolkit and runtime for building highly concurrent, distributed, and fault tolerant event-driven apps.  This simple application will get you started building Actor based systems in Java and Scala.  This app uses Akka 2.1, Java 6, Scala 2.10, JUnit, and ScalaTest.""",
-        tags = Seq("Introduction", "akka", "java", "scala", "starter")),
+        tags = Seq("Basics", "akka", "java", "scala", "starter")),
       TemplateMetadata(
         id = "c63e1fe7748dcebdc0fc0243685e5ae6d1ec4072",
         name = "hello-play",
         title = "Hello Play Framework!",
         timeStamp = 1,
         description = """Play Framework is the High Velocity Web Framework for Java and Scala.  Play is based on a lightweight, stateless, web-friendly architecture.  Built on Akka, Play provides predictable and minimal resource comsumption (CPU, memory, threads) for highly-scalable applications.  This app will teach you how to start building Play 2.1 apps with Java and Scala.""",
-        tags = Seq("Introduction", "play", "java", "scala", "starter")))
+        tags = Seq("Basics", "play", "java", "scala", "starter")))
 
   private val index: Map[String, TemplateMetadata] = (metadata map (m => m.id -> m)).toMap
   override def template(id: String): Option[Template] =
