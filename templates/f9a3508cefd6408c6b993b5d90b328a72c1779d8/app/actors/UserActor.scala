@@ -10,6 +10,7 @@ import akka.util.Timeout
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import utils.Global
 
 class UserActor(uuid: String, out: WebSocket.Out[JsonNode]) extends Actor {
 
@@ -27,21 +28,26 @@ class UserActor(uuid: String, out: WebSocket.Out[JsonNode]) extends Actor {
     }
     case WatchStock(uuid: String, symbol: String) => {
       implicit val timeout = Timeout(15 seconds)
-      (context.system.actorFor("user/stocks") ? SetupStock(symbol)).map { stockActorRef =>
-        stocks.put(symbol, stockActorRef.asInstanceOf[ActorRef])
+      (Global.stockHolderActor ? SetupStock(symbol)).mapTo[ActorRef].map { stockActorRef =>
+        stocks.put(symbol, stockActorRef)
 
         // send the whole history to the client
-        (stockActorRef.asInstanceOf[ActorRef] ? FetchHistory).map { history =>
+        (stockActorRef ? FetchHistory).mapTo[Seq[Number]].map { history =>
 
           val message = Json.newObject()
           message.put("type", "stockhistory")
           message.put("symbol", symbol)
 
           val historyJson = message.putArray("history")
-          history.asInstanceOf[Seq[Number]].foreach(price => historyJson.add(price.doubleValue))
+          history.foreach(price => historyJson.add(price.doubleValue))
 
           out.write(message)
         }
+      }
+    }
+    case UnwatchStock(uuid: String, symbol: String) => {
+      if (stocks.contains(symbol)) {
+        stocks.remove(symbol)
       }
     }
   }
@@ -57,6 +63,9 @@ class UsersActor extends Actor {
     }
     case WatchStock(uuid: String, symbol: String) => {
       context.actorFor(uuid) ! WatchStock(uuid, symbol)
+    }
+    case UnwatchStock(uuid: String, symbol: String) => {
+      context.actorFor(uuid) ! UnwatchStock(uuid, symbol)
     }
   }
 }

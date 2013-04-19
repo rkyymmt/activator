@@ -12,6 +12,7 @@ import play.mvc.Result;
 import play.mvc.WebSocket;
 
 import actors.Listen;
+import utils.Global;
 
 import java.util.List;
 
@@ -24,27 +25,24 @@ public class Application extends Controller {
     public static WebSocket<JsonNode> listen(final String uuid) {
         return new WebSocket<JsonNode>() {
             public void onReady(WebSocket.In<JsonNode> in, WebSocket.Out<JsonNode> out){
-                ActorRef usersActor = Akka.system().actorFor("user/users");
-                usersActor.tell(new Listen(uuid, out), usersActor);
+                Global.usersActor.tell(new Listen(uuid, out), Global.usersActor);
                 
                 // watch the default stocks
                 List<String> defaultStocks = Play.application().configuration().getStringList("default.stocks");
                 for (String symbol : defaultStocks) {
-                    usersActor.tell(new WatchStock(uuid, symbol), usersActor);
+                    Global.usersActor.tell(new WatchStock(uuid, symbol), Global.usersActor);
                 }
             }
         };
     }
     
     public static Result watch(String uuid, String symbol) {
-        ActorRef usersActor = Akka.system().actorFor("user/users/" + uuid);
-        usersActor.tell(new WatchStock(uuid, symbol), usersActor);
+        Global.usersActor.tell(new WatchStock(uuid, symbol), Global.usersActor);
         return ok();
     }
 
     public static Result unwatch(String uuid, String symbol) {
-        ActorRef usersActor = Akka.system().actorFor("user/users/" + uuid);
-        usersActor.tell(new UnwatchStock(uuid, symbol), usersActor);
+        Global.usersActor.tell(new UnwatchStock(uuid, symbol), Global.usersActor);
         return ok();
     }
 

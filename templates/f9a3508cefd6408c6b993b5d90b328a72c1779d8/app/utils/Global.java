@@ -18,6 +18,9 @@ public class Global extends GlobalSettings {
     public static String sentimentUrl;
     public static String tweetUrl;
     
+    public static ActorRef usersActor;
+    public static ActorRef stockHolderActor;
+    
     @Override
     public void onStart(Application application) {
 
@@ -28,9 +31,9 @@ public class Global extends GlobalSettings {
             throw new RuntimeException("Both sentiment.url and tweet.url configs must be specified");
         }
         
-        ActorRef usersActor = Akka.system().actorOf(new Props(UsersActor.class), "users");
+        usersActor = Akka.system().actorOf(new Props(UsersActor.class), "users");
         
-        ActorRef stockHolderActor = Akka.system().actorOf(new Props(StockHolderActor.class), "stocks");
+        stockHolderActor = Akka.system().actorOf(new Props(StockHolderActor.class), "stocks");
 
         // fetch a new data point once every second
         Akka.system().scheduler().schedule(Duration.Zero(), Duration.create(50, TimeUnit.MILLISECONDS), stockHolderActor, FetchLatest.instance(), Akka.system().dispatcher());
