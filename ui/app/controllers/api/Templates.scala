@@ -17,7 +17,8 @@ object Templates extends Controller {
       JsObject(
         List("id" -> JsString(o.id),
           "name" -> JsString(o.name),
-          "version" -> JsString(o.version),
+          "title" -> JsString(o.title),
+          "timestamp" -> JsNumber(o.timeStamp),
           "description" -> JsString(o.description),
           "tags" -> JsArray(o.tags map JsString.apply)))
     //We don't need reads, really

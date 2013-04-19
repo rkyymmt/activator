@@ -17,7 +17,7 @@ class ActionsTest {
     IO.write(buildSbtFile, "\nname \t:= \t\"Hello\"\n")
 
     object DummyCache extends TemplateCache {
-      val m = TemplateMetadata(id, "", "", "", Seq.empty)
+      val m = TemplateMetadata(id, "", "", 1, "", Seq.empty)
       override val metadata = Seq(m)
       override def template(id: String) =
         Some(Template(m, Seq(

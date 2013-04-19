@@ -48,8 +48,8 @@
 	                    <ul>
 	                    @model.templates.map { template =>
 	                        <li class="template">
-	                            <input type="radio" name="template" value="@template.id">
-	                            <h3>@template.name</h3>
+	                            <input type="radio" name="template" value="@template.id" data-snap-name-ref="@template.name">
+	                            <h3><span class="archetype">@template.tags.headOption.map(x=>s"[$x] ").getOrElse("")</span>@template.title</h3>
 	                            <p>@template.description</p>
 	                        </li>
 	                    }
