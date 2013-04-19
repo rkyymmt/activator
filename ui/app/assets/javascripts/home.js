@@ -188,7 +188,7 @@ require([
 			$('#new').on('click', 'li.template', function(event) {
 				// ???
 				$('input:radio', this).prop('checked',true);
-				var name = $('input', this).attr('snap-data-name-ref');
+				var name = $('input', this).attr('data-snap-name-ref');
 				appTemplateName.val(name);
 				var dirname = name.replace(' ', '-').replace(/[^A-Za-z0-9_-]/g, '').toLowerCase();
 				appNameInput.attr('placeholder', dirname);
