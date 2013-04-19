@@ -100,7 +100,7 @@ define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget', 'core/
 				var relative = relativizeFile(file);
 				var relativeEscaped = escapeHtml(relative).replace('$', '$$');
 				// TODO include the line number in the url once code plugin can handle it
-				var link = '<a href="#code'+relativeEscaped+':'+line+'">'+m[0]+'</a>: ';
+				var link = '<a href="#code'+relativeEscaped+':'+line+'">$1:$4</a>: ';
 				html = html.replace(fileLineRegex, link);
 
 				// register the error globally so editors can pick it up
