@@ -46,9 +46,10 @@ object Templates extends Controller {
 
     val location = new java.io.File((request.body \ "location").as[String])
     val templateid = (request.body \ "template").as[String]
+    val name = (request.body \ "name").asOpt[String]
 
     try {
-      snap.cache.Actions.cloneTemplate(templateCache, templateid, location)
+      snap.cache.Actions.cloneTemplate(templateCache, templateid, location, name)
       Ok(request.body)
     } catch {
       case NonFatal(e) => NotAcceptable(e.getMessage)

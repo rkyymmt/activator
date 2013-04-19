@@ -27,7 +27,7 @@ object BuilderCli {
       case Some(t) =>
         System.out.println(s"""OK, application "$name" is being created using the "${t.name}" template.""")
         System.out.println()
-        cloneTemplate(cache, t.id, projectDir)
+        cloneTemplate(cache, t.id, projectDir, Some(name))
         printUsage(name, projectDir)
         0
       case _ =>
