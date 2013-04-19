@@ -50,7 +50,7 @@ define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget', 'core/
 	}
 
 	function unix(filename) {
-		return filename.replace('\\', '/');
+		return filename.replace(/[\\]/g, '/');
 	}
 
 	function stripTrailing(filename) {
@@ -79,7 +79,7 @@ define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget', 'core/
 	}
 
 	// this regex is used on both the text and html-escaped log line
-	var fileLineRegex = new RegExp("^([^:]+):([0-9]+): ");
+	var fileLineRegex = new RegExp("^(([^:]+:)?([^:]+)):([0-9]+): ");
 
 	ko.bindingHandlers['compilerMessage'] = {
 		// we only implement init, not update, because log lines are immutable anyway
@@ -95,12 +95,13 @@ define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget', 'core/
 			var line = null;
 			if (m !== null) {
 				file = m[1];
-				line = m[2];
+				line = m[4];
 				// both html-escaped and second-arg-to-replace-escaped
 				var relative = relativizeFile(file);
 				var relativeEscaped = escapeHtml(relative).replace('$', '$$');
 				// TODO include the line number in the url once code plugin can handle it
-				html = html.replace(fileLineRegex, "<a href=\"#code" + relativeEscaped + ":" + line + "\">$1:$2</a>: ");
+				var link = '<a href="#code'+relativeEscaped+':'+line+'">$1:$4</a>: ';
+				html = html.replace(fileLineRegex, link);
 
 				// register the error globally so editors can pick it up
 				markers.registerFileMarker(ko.utils.unwrapObservable(o.markerOwner),
