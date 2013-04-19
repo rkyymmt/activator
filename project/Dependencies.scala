@@ -35,6 +35,11 @@ object Dependencies {
   val eclipseSbtPlugin     =  Defaults.sbtPluginExtra("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.2", sbtPluginVersion, sbtPluginScalaVersion)
   val ideaSbtPlugin        =  Defaults.sbtPluginExtra("com.github.mpeltonen" % "sbt-idea" % "1.3.0", sbtPluginVersion, sbtPluginScalaVersion)
 
+
+  // Embedded databases
+  val slick = "com.typesafe.slick" % "slick_2.10" % "1.0.0"
+  val sqlite = "org.xerial" % "sqlite-jdbc" % "3.7.2"
+
   // Mini DSL
   // DSL for adding remote deps like local deps.
   implicit def p2remote(p: Project): RemoteDepHelper = new RemoteDepHelper(p)

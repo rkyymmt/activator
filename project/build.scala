@@ -58,7 +58,7 @@ object TheActivatorBuild extends Build {
   lazy val cache = (
     ActivatorProject("cache")
     dependsOn(props, common)
-    dependsOnRemote(junitInterface % "test")
+    dependsOnRemote(junitInterface % "test", sqlite, slick)
   )
   
   lazy val sbtUiInterface = (
