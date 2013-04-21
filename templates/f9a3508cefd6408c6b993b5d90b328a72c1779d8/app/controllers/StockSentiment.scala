@@ -23,7 +23,7 @@ object StockSentiment extends Controller {
       for {
         tweets <- WS.url(Global.tweetUrl.format(symbol)).get // get tweets that contain the stock symbol
         futureSentiments = loadSentimentFromTweet(tweets.json) // queue web requests to get the sentiments of each tweet
-        sentiments <-  Future.sequence(futureSentiments) // when the sentiment responses arrive, set them
+        sentiments <- Future.sequence(futureSentiments) // when the sentiment responses arrive, set them
       }
       yield {
         val neg = getAverageSentiment(sentiments, "neg")

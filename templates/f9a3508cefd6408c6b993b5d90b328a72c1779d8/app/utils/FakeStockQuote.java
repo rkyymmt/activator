@@ -5,10 +5,8 @@ import java.util.Random;
 public class FakeStockQuote {
 
     public static Double newPrice(Double lastPrice) {
-        // todo: over time these values trend lower
-        Double randomDeltaPecent = ((5 - (10 * new Random().nextDouble()) ) / 100); // +/- 5%
-        Double newPrice = lastPrice * (1 + randomDeltaPecent);
-        return newPrice;
+        // todo: this trends towards zero
+        return lastPrice * (0.95  + (0.1 * new Random().nextDouble())); // lastPrice * (0.95 to 1.05)
     }
     
 }
