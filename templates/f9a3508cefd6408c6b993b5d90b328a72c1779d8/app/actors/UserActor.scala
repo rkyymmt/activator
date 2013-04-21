@@ -59,7 +59,7 @@ class UsersActor extends Actor {
       for(child <- context.children) child ! StockUpdate(symbol, price)
     }
     case Listen(uuid: String, out: WebSocket.Out[JsonNode]) => {
-      context.actorOf(Props(new UserActor(uuid, out)), uuid)
+      sender ! context.actorOf(Props(new UserActor(uuid, out)), uuid)
     }
     case WatchStock(uuid: String, symbol: String) => {
       context.actorFor(uuid) ! WatchStock(uuid, symbol)

@@ -2,7 +2,6 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
 GET     /                           controllers.Application.index
 GET     /listen/:uuid               controllers.Application.listen(uuid)
 POST    /watch/:uuid/:symbol        controllers.Application.watch(uuid, symbol)
