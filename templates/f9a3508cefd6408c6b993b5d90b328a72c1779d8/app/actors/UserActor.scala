@@ -27,7 +27,7 @@ class UserActor(uuid: String, out: WebSocket.Out[JsonNode]) extends Actor {
       }
     }
     case WatchStock(uuid: String, symbol: String) => {
-      implicit val timeout = Timeout(15 seconds)
+      implicit val timeout = Timeout(15.seconds)
       (Global.stockHolderActor ? SetupStock(symbol)).mapTo[ActorRef].map { stockActorRef =>
         stocks.put(symbol, stockActorRef)
 
