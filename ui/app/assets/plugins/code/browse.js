@@ -1,4 +1,4 @@
-define(['text!./browse.html', 'core/pluginapi', 'core/widgets/overlay'], function(template, api, files, Overlay) {
+define(['text!./browse.html', 'core/pluginapi'], function(template, api) {
 
 	var ko = api.ko,
 		key = api.key,
