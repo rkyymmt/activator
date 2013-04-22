@@ -11,12 +11,8 @@ class Greeter extends Actor {
   var greeting = ""
 
   def receive = {
-    case WhoToGreet(who) =>
-      greeting = s"hello, $who"
-      println(s"Changed greeting to $greeting")
-
-    case Greet =>
-      sender ! Greeting(greeting)
+    case WhoToGreet(who) => greeting = s"hello, $who"
+    case Greet           => sender tell Greeting(greeting)
   }
 }
 
@@ -35,7 +31,8 @@ object HelloAkkaScala extends App {
   // ask the greeter for its current greeting
   for (Greeting(message) <- greeter ask Greet) println(s"Greeting: $message")
 
-  greeter ! WhoToGreet("typesafe")
+  // change the greeting and ask for it again
+  greeter tell WhoToGreet("typesafe")
   for (Greeting(message) <- greeter ask Greet) println(s"Greeting: $message")
 
   system.shutdown()

@@ -13,9 +13,7 @@ class HelloAkkaSpec(_system: ActorSystem)
 
   def this() = this(ActorSystem("HelloAkkaSpec"))
 
-  override def afterAll {
-    system.shutdown()
-  }
+  override def afterAll: Unit = system.shutdown()
 
   "An HelloAkkaActor" should "be able to set a new greeting" in {
     val greeter = TestActorRef(Props[Greeter])

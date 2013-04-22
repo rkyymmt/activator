@@ -3,9 +3,8 @@ import akka.actor.UntypedActor;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.util.Timeout;
-import akka.japi.Procedure;
 import akka.dispatch.*;
-import akka.pattern.Patterns;
+import static akka.pattern.Patterns.ask;
 
 import scala.concurrent.Future;
 import scala.concurrent.ExecutionContext;
@@ -32,12 +31,10 @@ public class HelloAkkaJava {
         String greeting = "";
 
         public void onReceive(Object message) {
-            if (message instanceof WhoToGreet) {
+            if (message instanceof WhoToGreet)
                 greeting = "hello, " + ((WhoToGreet)message).who;
-                System.out.println("Changed greeting to " + greeting);
-            } else if (message instanceof Greet) {
-                getSender().tell(new Greeting(greeting));
-            }
+            else if (message instanceof Greet)
+                getSender().tell(new Greeting(greeting), getSelf());
         }
     }
 
@@ -51,13 +48,21 @@ public class HelloAkkaJava {
         // tell the greeter to change its greeting
         greeter.tell(new WhoToGreet("akka"));
 
+        // define a println 'foreach' function
+        final Foreach<Object> println = new Foreach<Object>() {
+            public void each(Object o) {
+                System.out.println("Greeting: " + ((Greeting)o).message);
+            }
+        };
+
         // ask the greeter for its current greeting
-        final Future<Object> f = Patterns.ask(greeter, new Greet(), timeout);
-        f.onSuccess(new OnSuccess<Object>() {
-          public void onSuccess(Object o) {
-            System.out.println(o);
-          }
-        }, ec);
+        final Future<Object> f1 = ask(greeter, new Greet(), timeout);
+        f1.foreach(println, ec);
+
+        // change the greeting and ask for it again
+        greeter.tell(new WhoToGreet("typesafe"));
+        final Future<Object> f2 = ask(greeter, new Greet(), timeout);
+        f2.foreach(println, ec);
 
         system.shutdown();
     }
