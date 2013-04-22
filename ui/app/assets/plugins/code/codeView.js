@@ -16,6 +16,9 @@ define(["text!./viewCode.html", 'core/pluginapi'], function(template, api){
 		if(ext == 'js') {
 			return 'javascript';
 		}
+		if(ext == 'coffee') {
+			return 'coffee';
+		}
 		if(ext == 'java') {
 			return 'java';
 		}
