@@ -56,7 +56,10 @@ object LuceneIndex {
     val id = doc get FIELD_ID
     val name = doc get FIELD_NAME
     val title = doc get FIELD_TITLE
-    val ts = (doc get FIELD_TS).toLong // TODO - handle failures...
+    // If we get a failure pulling this as a long, then we have a bad index...
+    // We need to figure out how to throw an error and what to do about it...
+    // For now, let's just throw any old error and deal on the Actor-side of the fence.
+    val ts = (doc get FIELD_TS).toLong
     val desc = doc get FIELD_DESC
     val tags = (doc get FIELD_TAGS) split ","
 

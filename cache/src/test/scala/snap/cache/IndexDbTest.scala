@@ -66,10 +66,6 @@ trait IndexDbTest {
   }
 }
 
-class SqlLiteIndexDbTest extends IndexDbTest {
-  def provider = SqlLiteIndex
-}
-
 class LuceneIndexDbTest extends IndexDbTest {
   def provider = LuceneIndexProvider
 }

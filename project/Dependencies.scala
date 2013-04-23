@@ -38,8 +38,6 @@ object Dependencies {
 
 
   // Embedded databases / index
-  val slick = "com.typesafe.slick" % "slick_2.10" % "1.0.0"
-  val sqlite = "org.xerial" % "sqlite-jdbc" % "3.7.2"
   val lucene = "org.apache.lucene" % "lucene-core" % luceneVersion
   val luceneAnalyzerCommon = "org.apache.lucene" % "lucene-analyzers-common" % luceneVersion
   val luceneQueryParser = "org.apache.lucene" % "lucene-queryparser" % luceneVersion
