@@ -8,6 +8,7 @@ object Dependencies {
   val sbtPluginScalaVersion = "2.9.2"
   val scalaVersion = "2.10.1"
   val sbtSnapshotVersion = "0.13.0-20130427-052157"
+  val luceneVersion = "4.2.1"
 
   val sbtLauncherInterface = "org.scala-sbt" % "launcher-interface" % sbtVersion
   val sbtMain              = "org.scala-sbt" % "main" % sbtVersion
@@ -36,9 +37,12 @@ object Dependencies {
   val ideaSbtPlugin        =  Defaults.sbtPluginExtra("com.github.mpeltonen" % "sbt-idea" % "1.3.0", sbtPluginVersion, sbtPluginScalaVersion)
 
 
-  // Embedded databases
+  // Embedded databases / index
   val slick = "com.typesafe.slick" % "slick_2.10" % "1.0.0"
   val sqlite = "org.xerial" % "sqlite-jdbc" % "3.7.2"
+  val lucene = "org.apache.lucene" % "lucene-core" % luceneVersion
+  val luceneAnalyzerCommon = "org.apache.lucene" % "lucene-analyzers-common" % luceneVersion
+  val luceneQueryParser = "org.apache.lucene" % "lucene-queryparser" % luceneVersion
 
   // Mini DSL
   // DSL for adding remote deps like local deps.

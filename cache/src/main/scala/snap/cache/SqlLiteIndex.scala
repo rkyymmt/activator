@@ -12,7 +12,7 @@ import scala.slick.driver.SQLiteDriver.Implicit._
 import java.util.Properties
 
 /** Implements our index db using SQLite and Slick sessions. */
-class SqlLiteIndex(session: Session) extends IndexDb {
+class SqlLiteIndex(session: Session) extends IndexDb with IndexWriter {
   import SqlLiteIndex._
   import slick.jdbc.StaticQuery.interpolation
   // TODO - Sanity check the database...
@@ -43,7 +43,7 @@ class SqlLiteIndex(session: Session) extends IndexDb {
     } yield t).take(1)
     q.run(session).headOption map convertFromSlick
   }
-  def search(query: String): Iterable[TemplateMetadata] = {
+  def search(query: String, max: Int): Iterable[TemplateMetadata] = {
     // In the future we should care about the search query...
     val likeQuery = s"%$query%"
     // TODO - better query here.
@@ -54,7 +54,7 @@ class SqlLiteIndex(session: Session) extends IndexDb {
         (t.tags like likeQuery) ||
         (t.name like likeQuery)
     } yield t
-    q.run(session) map convertFromSlick
+    q.take(max).run(session) map convertFromSlick
   }
 
   def metadata: Iterable[TemplateMetadata] = {
@@ -70,11 +70,19 @@ class SqlLiteIndex(session: Session) extends IndexDb {
 object SqlLiteIndex extends IndexDbProvider {
 
   def open(localDirOrFile: java.io.File): IndexDb = {
-    val url = getFileUrl(localDirOrFile)
+    new SqlLiteIndex(newSession(localDirOrFile))
+  }
+
+  def write(localDirOrFile: java.io.File): IndexWriter = {
+    new SqlLiteIndex(newSession(localDirOrFile))
+  }
+
+  private def newSession(dir: java.io.File) = {
+    val url = getFileUrl(dir)
     val db = openDb(url, "", "", null)
     val session = db.createSession
     setupDb(session)
-    new SqlLiteIndex(session)
+    session
   }
 
   val driver = new org.sqlite.JDBC
