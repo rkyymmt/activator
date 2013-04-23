@@ -17,7 +17,7 @@ class UserActor(uuid: String, out: WebSocket.Out[JsonNode]) extends Actor {
   val stocks: mutable.Map[String, ActorRef] = mutable.Map.empty[String, ActorRef]
 
   def receive = {
-    case StockUpdate(symbol, price) => {
+    case StockUpdate(symbol, price) =>
       if (stocks.contains(symbol)) {
         val message = Json.newObject()
         message.put("type", "stockupdate")
@@ -25,8 +25,7 @@ class UserActor(uuid: String, out: WebSocket.Out[JsonNode]) extends Actor {
         message.put("price", price.doubleValue)
         out.write(message)
       }
-    }
-    case WatchStock(uuid: String, symbol: String) => {
+    case WatchStock(uuid: String, symbol: String) =>
       implicit val timeout = Timeout(15.seconds)
       (Global.stockHolderActor ? SetupStock(symbol)).mapTo[ActorRef].map { stockActorRef =>
         stocks.put(symbol, stockActorRef)
@@ -44,29 +43,22 @@ class UserActor(uuid: String, out: WebSocket.Out[JsonNode]) extends Actor {
           out.write(message)
         }
       }
-    }
-    case UnwatchStock(uuid: String, symbol: String) => {
-      if (stocks.contains(symbol)) {
+    case UnwatchStock(uuid: String, symbol: String) =>
+      if (stocks.contains(symbol))
         stocks.remove(symbol)
-      }
-    }
   }
 }
 
 class UsersActor extends Actor {
   def receive = {
-    case StockUpdate(symbol, price) => {
+    case StockUpdate(symbol, price) =>
       for(child <- context.children) child ! StockUpdate(symbol, price)
-    }
-    case Listen(uuid: String, out: WebSocket.Out[JsonNode]) => {
+    case Listen(uuid: String, out: WebSocket.Out[JsonNode]) =>
       sender ! context.actorOf(Props(new UserActor(uuid, out)), uuid)
-    }
-    case WatchStock(uuid: String, symbol: String) => {
-      context.actorFor(uuid) ! WatchStock(uuid, symbol)
-    }
-    case UnwatchStock(uuid: String, symbol: String) => {
-      context.actorFor(uuid) ! UnwatchStock(uuid, symbol)
-    }
+    case WatchStock(uuid: String, symbol: String) =>
+      context.child(uuid).map (_ ! WatchStock(uuid, symbol))
+    case UnwatchStock(uuid: String, symbol: String) =>
+      context.child(uuid).map (_ ! UnwatchStock(uuid, symbol))
   }
 }
 
