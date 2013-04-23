@@ -1,5 +1,5 @@
 // Sort of MVC (Module, Grid, Router)
-define(['./plugin', './grid', './router', './pluginapi', './navigation', './tutorial/tutorial', './streams'], function(plugins, Grid, router, api, navigation, Tutorial, streams) {
+define(['./plugin', './router', './pluginapi', './navigation', './tutorial/tutorial', './streams'], function(plugins, router, api, navigation, Tutorial, streams) {
 
 	var ko = api.ko,
 		key = api.key;
@@ -24,7 +24,6 @@ define(['./plugin', './grid', './router', './pluginapi', './navigation', './tuto
 		},
 		plugins: plugins,
 		router: router,
-		grid: Grid,
 		// This is the initialization of the application...
 		init: function() {
 			var self = this;
