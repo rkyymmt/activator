@@ -1,9 +1,6 @@
 define(['core/pluginapi'], function(api) {
 
-	var ko = api.ko,
-		key = api.key,
-		Widget = api.Widget,
-		Class = api.Class;
+	var ko = api.ko;
 
 	function browse(location) {
 		return $.ajax({
@@ -38,7 +35,7 @@ define(['core/pluginapi'], function(api) {
 
 	// A model for files that works directly off a location, and
 	// nothing else.
-	var FileModel = Class({
+	var FileModel = api.Class({
 		init: function(config) {
 			var self = this;
 			// TODO - Split this into relative + absolute/canonical locations...
@@ -93,15 +90,33 @@ define(['core/pluginapi'], function(api) {
 			if(config.name) self.name(config.name);
 			if(config.isDirectory) self.isDirectory(config.isDirectory);
 			if(config.type) self.type(config.type);
-			// TODO - Find the best way to do this...
+
+			// we build up the new child list in a temp array
+			// so we aren't constantly updating the UI as we
+			// fill in the list.
+			var newChildren = [];
 			var children = self.childLookup();
 			$.each(config.children || [], function(idx, config) {
 				if(children[config.name]) {
 					children[config.name].updateWith(config);
 				} else {
-					self.children.push(new FileModel(config));
+					newChildren.push(new FileModel(config));
 				}
 			});
+			if (newChildren.length > 0) {
+				var oldChildren = self.children();
+				var allChildren = oldChildren.concat(newChildren);
+				allChildren.sort(function(a, b) {
+					if (a.isDirectory() && !b.isDirectory())
+						return -1;
+					else if (!a.isDirectory() && b.isDirectory())
+						return 1;
+					else
+						return a.name().localeCompare(b.name());
+				});
+				// load all children to the UI at once.
+				self.children(allChildren);
+			}
 		},
 		loadContents: function() {
 			var self = this;

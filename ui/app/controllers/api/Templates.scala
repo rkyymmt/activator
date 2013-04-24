@@ -17,7 +17,8 @@ object Templates extends Controller {
       JsObject(
         List("id" -> JsString(o.id),
           "name" -> JsString(o.name),
-          "version" -> JsString(o.version),
+          "title" -> JsString(o.title),
+          "timestamp" -> JsNumber(o.timeStamp),
           "description" -> JsString(o.description),
           "tags" -> JsArray(o.tags map JsString.apply)))
     //We don't need reads, really
@@ -46,9 +47,10 @@ object Templates extends Controller {
 
     val location = new java.io.File((request.body \ "location").as[String])
     val templateid = (request.body \ "template").as[String]
+    val name = (request.body \ "name").asOpt[String]
 
     try {
-      snap.cache.Actions.cloneTemplate(templateCache, templateid, location)
+      snap.cache.Actions.cloneTemplate(templateCache, templateid, location, name)
       Ok(request.body)
     } catch {
       case NonFatal(e) => NotAcceptable(e.getMessage)

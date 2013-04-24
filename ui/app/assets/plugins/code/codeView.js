@@ -16,6 +16,9 @@ define(["text!./viewCode.html", 'core/pluginapi'], function(template, api){
 		if(ext == 'js') {
 			return 'javascript';
 		}
+		if(ext == 'coffee') {
+			return 'coffee';
+		}
 		if(ext == 'java') {
 			return 'java';
 		}
@@ -40,7 +43,7 @@ define(["text!./viewCode.html", 'core/pluginapi'], function(template, api){
 		return 'text';
 	}
 
-	var CodeView = api.Widget({
+	var CodeView = api.Class(api.Widget, {
 		id: 'code-edit-view',
 		template: template,
 		init: function(args) {
@@ -57,6 +60,17 @@ define(["text!./viewCode.html", 'core/pluginapi'], function(template, api){
 		},
 		save: function() {
 			this.file().saveContents();
+		},
+		scrollToLine: function(line) {
+			// naughty knowledge of our view... not sure how else
+			// to go about this.
+			if ('editor' in this) {
+				// rows are 0-based, lines 1-based
+				this.editor.moveCursorTo(line - 1, 0);
+				this.editor.scrollToRow(line - 1);
+			} else {
+				console.error("No editor to scroll to? bug");
+			}
 		}
 	});
 	return CodeView;

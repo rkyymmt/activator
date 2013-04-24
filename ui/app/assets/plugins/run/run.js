@@ -3,7 +3,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 	var ko = api.ko;
 	var sbt = api.sbt;
 
-	var Run = api.Widget({
+	var runConsole = api.PluginWidget({
 		id: 'play-run-widget',
 		template: template,
 		init: function(parameters){
@@ -203,9 +203,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 		}
 	});
 
-	var runConsole = new Run();
-
-	return api.Plugin({
+	return new api.Plugin({
 		id: 'run',
 		name: "Run",
 		icon: "▶",

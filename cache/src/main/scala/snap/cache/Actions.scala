@@ -4,17 +4,42 @@ package cache
 import snap.IO
 import _root_.builder.properties.BuilderProperties._
 import java.io.File
+import java.util.regex.Matcher
+import java.io.FileNotFoundException
 /**
  * this class contains all template cache actions for both the UI and the console-based
  * methods.  We put it here for easier testing (at least we hope we can get easier testing).
  */
 object Actions {
+  private def stringLiteral(s: String): String = {
+    // sorry!
+    "\"\"\"" + s.replaceAllLiterally("\"\"\"", "\"\"\"" + """+ "\"\"\"" + """ + "\"\"\"") + "\"\"\""
+  }
+
+  // this does nothing if it can't figure out how to perform the rename,
+  // but should throw if a rename looks possible but fails due to e.g. an IO error
+  private def bestEffortRename(basedir: java.io.File, projectName: String): Unit = {
+    for (
+      file <- Seq(
+        new File(basedir, "build.sbt"),
+        new File(basedir, "project/Build.scala"))
+        .filter(_.exists)
+        .headOption
+    ) {
+      val contents = IO.slurp(file)
+
+      val modified = contents.replaceFirst("(name[ \t]*:=[ \t]*)\"[^\"]+\"", "$1" + Matcher.quoteReplacement(stringLiteral(projectName)));
+      if (modified != contents) {
+        IO.write(file, modified)
+      }
+    }
+  }
 
   // This method will clone a template to a given location
-  def cloneTemplate(cache: TemplateCache, id: String, location: java.io.File): ProcessResult[Unit] =
+  def cloneTemplate(cache: TemplateCache, id: String, location: java.io.File, projectName: Option[String]): ProcessResult[Unit] =
     for {
       template <- Validating(cache template id getOrElse sys.error(s"Template ${id} not found"))
-      _ <- Validating.withMsg("Failred to create $location") {
+      _ <- Validating.withMsg("Failed to create $location") {
         if (!location.exists) IO createDirectory location
       }
       _ <- Validating.withMsg("Failed to copy template") {
@@ -36,6 +61,9 @@ object Actions {
           Map(
             TEMPLATE_UUID_PROPERTY_NAME -> id,
             BUILDER_ABI_VERSION_PROPERTY_NAME -> APP_ABI_VERSION))
+      }
+      _ <- Validating.withMsg("Failed to rename project") {
+        projectName.foreach(bestEffortRename(location, _))
       }
     } yield ()
 
