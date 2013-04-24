@@ -205,7 +205,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 
 	var runConsole = new Run();
 
-	return api.Plugin({
+	return new api.Plugin({
 		id: 'run',
 		name: "Run",
 		icon: "▶",

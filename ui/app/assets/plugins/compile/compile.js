@@ -165,7 +165,7 @@ define(['text!./compile.html', 'core/pluginapi', 'core/widgets/log', 'css!./comp
 
 	var compileConsole = new Compile();
 
-	return api.Plugin({
+	return new api.Plugin({
 		id: 'compile',
 		name: "Compile",
 		icon: "B",

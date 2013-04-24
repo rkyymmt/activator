@@ -240,7 +240,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/widgets/lo
 
 	var testConsole = new TestDisplay();
 
-	return api.Plugin({
+	return new api.Plugin({
 		id: 'test',
 		name: "Test",
 		icon: 'ꙫ',

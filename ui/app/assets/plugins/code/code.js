@@ -77,7 +77,7 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 
 	var home = new CodeCore();
 
-	return api.Plugin({
+	return new api.Plugin({
 		id: 'code',
 		name: "Code",
 		icon: "",

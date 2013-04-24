@@ -38,7 +38,7 @@ define(['text!./home.html', 'core/pluginapi' ], function(template, api){
 
 	window.setNewsJson = homePage.setNewsJson.bind(homePage);
 
-	return api.Plugin({
+	return new api.Plugin({
 		id: 'home',
 		name: "Home",
 		icon: "",

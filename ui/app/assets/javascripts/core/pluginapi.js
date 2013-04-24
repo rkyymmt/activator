@@ -19,41 +19,53 @@ define([
 		onPreDeactivate: noOp
 	});
 
-	// Verifies that a new plugin configuration is acceptable for our application, or
-	// issues debugging log statements on what the issue is.
-	function Plugin(config) {
-		//Verify plugins are 'complete'.
-		if(!config.id) console.log('Error, plugin has no id: ', config);
-		if(!config.name) console.log('Error, plugin has no name: ', config);
-		if(!config.icon) console.log('Error, plugin has no icon: ', config);
-		if(!config.url) console.log('Error, plugin has no url (default link): ', config)
-		if(!config.widgets) config.widgets = [];
-		if(!config.status) {
-			console.log('Plugin has no status attribute');
-			config.status = ko.observable(STATUS_DEFAULT);
+	var Plugin = utils.Class({
+		init: function(config) {
+			if(!config.id) console.log('Error, plugin has no id: ', config);
+			this.id = config.id;
+
+			if(!config.name) console.log('Error, plugin has no name: ', config);
+			this.name = config.name;
+
+			if(!config.icon) console.log('Error, plugin has no icon: ', config);
+			this.icon = config.icon;
+
+			if(!config.url) console.log('Error, plugin has no url (default link): ', config);
+			this.url = config.url;
+
+			if (!config.routes) console.log('Error, plugin has no routes: ', config);
+			this.routes = config.routes;
+
+			if(config.widgets)
+				this.widgets = config.widgets;
+			else
+				this.widgets = [];
+
+			if(config.status)
+				this.status = config.status;
+			else
+				this.status = ko.observable(STATUS_DEFAULT);
+
+			this.statusBusy = ko.computed(function() {
+				return this.status() == STATUS_BUSY;
+			}, this);
+
+			this.statusError = ko.computed(function() {
+				return this.status() == STATUS_ERROR;
+			}, this);
+
+			this.active = ko.computed(function() {
+				return activeWidget() == this.widgets[0].id;
+			}, this);
+
+			// validate widgets
+			$.each(this.widgets, function(i, widget) {
+				if (!(widget instanceof PluginWidget)) {
+					console.error("widget for plugin " + this.id + " is not a PluginWidget ", widget);
+				}
+			});
 		}
-
-		config.statusBusy = ko.computed(function() {
-			return this.status() == STATUS_BUSY
-		}, config);
-
-		config.statusError = ko.computed(function() {
-			return this.status() == STATUS_ERROR
-		}, config);
-
-		config.active = ko.computed(function() {
-			return activeWidget() == config.widgets[0].id
-		}, config);
-
-		// validate widgets
-		$.each(config.widgets, function(i, widget) {
-			if (!(widget instanceof PluginWidget)) {
-				console.error("widget for plugin " + config.id + " is not a PluginWidget ", widget);
-			}
-		});
-
-		return config;
-	}
+	});
 
 	function findWidget(id) {
 		if (!('model' in window)) {
