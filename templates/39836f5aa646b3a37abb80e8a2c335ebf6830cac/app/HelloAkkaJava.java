@@ -2,15 +2,8 @@ import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import akka.util.Timeout;
-import akka.dispatch.*;
-import static akka.pattern.Patterns.ask;
-
-import scala.concurrent.Future;
-import scala.concurrent.ExecutionContext;
+import akka.actor.Inbox;
 import scala.concurrent.duration.Duration;
-
-import static java.util.concurrent.TimeUnit.*;
 
 public class HelloAkkaJava {
     public static class Greet {}
@@ -34,35 +27,37 @@ public class HelloAkkaJava {
             if (message instanceof WhoToGreet)
                 greeting = "hello, " + ((WhoToGreet)message).who;
             else if (message instanceof Greet)
+                // Send the current greeting back to the sender
                 getSender().tell(new Greeting(greeting), getSelf());
         }
     }
 
     public static void main(String[] args) {
+        // Create the 'helloakka' actor system
         final ActorSystem system = ActorSystem.create("helloakka");
+
+        // Create the 'greeter' actor
         final ActorRef greeter = system.actorOf(new Props(Greeter.class), "greeter");
 
-        final ExecutionContext ec = system.dispatcher();
-        final Timeout timeout = new Timeout(Duration.create(5, "seconds"));
+        // Create the mailbox
+        final Inbox inbox = Inbox.create(system);
 
-        // tell the greeter to change its greeting
+        // Tell the 'greeter' to change its 'greeting' message
         greeter.tell(new WhoToGreet("akka"));
 
-        // define a println 'foreach' function
-        final Foreach<Object> println = new Foreach<Object>() {
-            public void each(Object o) {
-                System.out.println("Greeting: " + ((Greeting)o).message);
-            }
-        };
+        // Ask the 'greeter for the latest 'greeting'
+        // Reply should go to the mailbox
+        inbox.send(greeter, new Greet());
 
-        // ask the greeter for its current greeting
-        final Future<Object> f1 = ask(greeter, new Greet(), timeout);
-        f1.foreach(println, ec);
+        // Wait 5 seconds for the reply with the 'greeting' message
+        Greeting greeting1 = (Greeting)inbox.receive(Duration.create(5, "seconds"));
+        System.out.println("Greeting: " + greeting1.message);
 
-        // change the greeting and ask for it again
+        // Change the greeting and ask for it again
         greeter.tell(new WhoToGreet("typesafe"));
-        final Future<Object> f2 = ask(greeter, new Greet(), timeout);
-        f2.foreach(println, ec);
+        inbox.send(greeter, new Greet());
+        Greeting greeting2 = (Greeting)inbox.receive(Duration.create(5, "seconds"));
+        System.out.println("Greeting: " + greeting2.message);
 
         system.shutdown();
     }
