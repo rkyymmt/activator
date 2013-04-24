@@ -3,7 +3,7 @@ define(['text!./compile.html', 'core/pluginapi', 'core/widgets/log', 'css!./comp
 	var ko = api.ko;
 	var sbt = api.sbt;
 
-	var Compile = api.Widget({
+	var compileConsole = api.PluginWidget({
 		id: 'compile-widget',
 		template: template,
 		init: function(parameters){
@@ -163,9 +163,7 @@ define(['text!./compile.html', 'core/pluginapi', 'core/widgets/log', 'css!./comp
 		}
 	});
 
-	var compileConsole = new Compile();
-
-	return api.Plugin({
+	return new api.Plugin({
 		id: 'compile',
 		name: "Compile",
 		icon: "B",

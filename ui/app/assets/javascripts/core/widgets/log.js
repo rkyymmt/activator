@@ -1,4 +1,4 @@
-define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget', 'core/markers'], function(template, ko, Widget, markers){
+define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget', 'core/utils', 'core/markers'], function(template, ko, Widget, utils, markers){
 
 	// TODO we should move both the ANSI stripping and the heuristic
 	// parseLogLevel to the server side. We could also use
@@ -113,7 +113,7 @@ define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget', 'core/
 
 	var nextMarkerOwner = 1;
 
-	var Log = Widget({
+	var Log = utils.Class(Widget, {
 		id: 'log-widget',
 		template: template,
 		init: function(parameters) {

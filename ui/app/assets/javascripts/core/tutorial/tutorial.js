@@ -1,9 +1,8 @@
 define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/pluginapi'], function(css, template, pageTemplate, api){
 
-	var ko = api.ko,
-		key = api.key;
+	var ko = api.ko;
 
-	var Page = api.Widget({
+	var Page = api.Class(api.Widget, {
 		id: 'page-widget',
 		template: pageTemplate,
 		init: function(parameters) {
@@ -27,7 +26,7 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/plug
 		}
 	});
 
-	var Tutorial = api.Widget({
+	var Tutorial = api.Class(api.Widget, {
 		id: 'tutorial-widget',
 		template: template,
 		init: function(parameters) {

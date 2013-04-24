@@ -1,8 +1,7 @@
 // Sort of MVC (Module, Grid, Router)
 define(['./plugin', './router', './pluginapi', './navigation', './tutorial/tutorial', './streams'], function(plugins, router, api, navigation, Tutorial, streams) {
 
-	var ko = api.ko,
-		key = api.key;
+	var ko = api.ko;
 
 	// Register webSocket error handler
 	streams.subscribe({

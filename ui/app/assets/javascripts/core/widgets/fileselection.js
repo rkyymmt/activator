@@ -1,4 +1,4 @@
-define(['css!./fileselection.css', 'text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widget'], function(css, template, ko, Widget) {
+define(['css!./fileselection.css', 'text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widget', 'core/utils'], function(css, template, ko, Widget, utils) {
 
 	function browse(location) {
 		return $.ajax({
@@ -36,7 +36,7 @@ define(['css!./fileselection.css', 'text!./fileselection.html', 'vendors/knockou
 	};
 	function noop() {}
 
-	var FileSelection = Widget({
+	var FileSelection = utils.Class(Widget, {
 		id: 'file-selection-widget',
 		template: template,
 		init: function(config) {

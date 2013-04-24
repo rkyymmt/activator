@@ -3,164 +3,116 @@ define([
 	'./sbt',
 	'vendors/keymage.min',
 	'./utils',
-	'vendors/ace/ace',
 	'./events',
 	'./widget',
-	'./markers'],
-	function(ko, sbt, key, utils, ignore_ace, events, Widget, markers) {
-
-	function refreshFileMarkers(editor, markers) {
-		var annotations = [];
-		$.each(markers, function(idx, m) {
-			// m.kind is supposed to match what we use for log levels,
-			// i.e. info, warn, error; need to convert to ace which is
-			// info, warning, error.
-			var aceLevel = 'info';
-			if (m.kind == 'error')
-				aceLevel = 'error';
-			else if (m.kind == 'warn')
-				aceLevel = 'warning';
-			annotations.push({ row: m.line - 1, column: 0, text: m.message, type: aceLevel });
-		});
-
-		editor.getSession().clearAnnotations();
-		editor.getSession().setAnnotations(annotations);
-	}
-
-	// Add knockout bindings for ace editor.  Try to capture all info we need
-	// here so we don't have to dig in like crazy when we need a good editor.
-	// Example:
-	//  <div class="editor" data-bind="ace: contents"/>
-	// <div class="editor" data-bind="ace: { contents: contents, theme: 'ace/theme/xcode', dirty: isEditorDirty, highlight: 'scala', file: filemodel }"/>
-	ko.bindingHandlers.ace = {
-		init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-			// First pull out all the options we may or may not use.
-			var options = valueAccessor();
-			// If they only provide a text field to bind into, we allow that too.
-			var editorValue = options.contents || options;
-			var dirtyValue = options.dirty;
-			// TODO - unwrap observable?
-			var theme = ko.utils.unwrapObservable(options.theme || 'ace/theme/xcode');
-			var highlight = ko.utils.unwrapObservable(options.highlight || 'text');
-
-			// We have to write our text into the element before instantiating the editor.
-			$(element).text(ko.utils.unwrapObservable(editorValue))
-
-			var editor = ace.edit(element);
-
-			editor.setTheme(theme);
-			// TODO - Check for no highlight mode as well, or allow non-built-in
-			// highlighting...
-			editor.getSession().setMode('ace/mode/'+highlight);
-
-			// Assume we can sneak this on here.
-			viewModel.editor = editor;
-			//handle edits made in the editor
-			editor.getSession().on('change', function (e) {
-				if (ko.isWriteableObservable(editorValue)) {
-					editorValue(editor.getValue());
-				}
-				// mark things dirty after an edit.
-				if(ko.isWriteableObservable(dirtyValue)) {
-					dirtyValue(true);
-				}
-			});
-			// Ensure things are cleaned on destruction.
-			ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
-				if ('fileMarkersSub' in editor) {
-					editor.fileMarkersSub.dispose();
-				}
-				editor.destroy();
-			});
-		},
-		update: function (element, valueAccessor, allBindingsAccessor, viewModel) {
-			var options = valueAccessor();
-			var editorValue = options.contents;
-			var dirtyValue = options.dirty;
-			var content = ko.utils.unwrapObservable(editorValue);
-			var file = ko.utils.unwrapObservable(ko.utils.unwrapObservable(options.file).relative);
-			var editor = viewModel.editor;
-
-			var fileMarkers = markers.ensureFileMarkers(file);
-			var oldMarkers = null;
-			var markersSub = null;
-			if ('fileMarkers' in editor) {
-				oldMarkers = editor.fileMarkers;
-				markersSub = editor.fileMarkersSub;
-			}
-			// when file changes, subscribe to the new markers array
-			if (fileMarkers !== oldMarkers) {
-				if (markersSub !== null) {
-					console.log("editor dropping watch on old file markers: ", oldMarkers());
-					markersSub.dispose();
-				}
-				console.log("editor watching file markers for " + file + ": ", fileMarkers());
-				editor.fileMarkers = fileMarkers;
-				editor.fileMarkersSub = fileMarkers.subscribe(function(newMarkers) {
-					refreshFileMarkers(editor, newMarkers);
-				});
-				// initially load the file markers
-				refreshFileMarkers(editor, fileMarkers());
-			}
-
-			// TODO - Don't freaking do this all the time.  We should not
-			// involved in changes we caused.
-			if(editor.getValue() != content) {
-				editor.setValue(content, editor.getCursorPosition());
-				// Update dirty value.
-				if(ko.isWriteableObservable(dirtyValue)) {
-					dirtyValue(false);
-				}
-			}
-		}
-	};
+	'./acebinding'],
+	function(ko, sbt, key, utils, events, Widget, acebinding) {
 
 	var STATUS_DEFAULT = 'default';
 	var STATUS_BUSY = 'busy';
 	var STATUS_ERROR = 'error;'
 
-	// Verifies that a new plugin configuration is acceptable for our application, or
-	// issues debugging log statements on what the issue is.
-	function Plugin(config) {
-		//Verify plugins are 'complete'.
-		if(!config.id) console.log('Error, plugin has no id: ', config);
-		if(!config.name) console.log('Error, plugin has no name: ', config);
-		if(!config.icon) console.log('Error, plugin has no icon: ', config);
-		if(!config.url) console.log('Error, plugin has no url (default link): ', config)
-		if(!config.widgets) config.widgets = [];
-		if(!config.status) {
-			console.log('Plugin has no status attribute');
-			config.status = ko.observable(STATUS_DEFAULT);
-		}
+	var noOp = function(){};
 
-		config.statusBusy = ko.computed(function() {
-			return this.status() == STATUS_BUSY
-		}, config);
-
-		config.statusError = ko.computed(function() {
-			return this.status() == STATUS_ERROR
-		}, config);
-
-		config.active = ko.computed(function() {
-			return activeWidget() == config.widgets[0].id
-		}, config);
-
-		// add plugin-specific hooks to widgets
-		// (these aren't in Widget class since they
-		// are plugin-specific, would probably be cleaner
-		// to make a PluginWidget base class)
-		var noOp = function() {};
-		var hooks = [ 'onPostActivate', 'onPreDeactivate' ]
-		$.each(config.widgets, function(i, widget) {
-			$.each(hooks, function(i, hook) {
-				if (!(hook in widget)) {
-					widget[hook] = noOp;
+	var PluginWidget = utils.Class(Widget, {
+		onPostActivate: noOp,
+		onPreDeactivate: noOp,
+		// a list of parameter lists for keymage(),
+		// they automatically get scoped to this widget
+		keybindings: [],
+		_keyScope: null,
+		_keysInstalled: false,
+		// called by the plugin framework to give each plugin
+		// widget a unique scope
+		setKeybindingScope: function(scope) {
+			if (this._keyScope !== null) {
+				console.log("Attempt to set key scope twice", scope);
+				return;
+			}
+			this._keyScope = scope;
+			$.each(this.keybindings, function(i, params) {
+				// we need to decide if there's a sub-scope in the parameter list,
+				// which would look like key('scope', 'ctrl-c', function(){})
+				var adjusted = null;
+				if (params.length > 2 && typeof(params[2]) == 'function') {
+					adjusted = params.slice(0);
+					adjusted[0] = scope + '.' + params[0];
+				} else {
+					adjusted = params.slice(0);
+					adjusted.unshift(scope);
 				}
+				console.log("creating keybinding ", adjusted);
+				key.apply(null, adjusted);
 			});
-		});
+		},
+		// automatically called when widget becomes active
+		installKeybindings: function() {
+			if (this._keyScope === null) {
+				console.log("nobody set the key scope");
+				return;
+			}
+			if (this._keysInstalled) {
+				console.log("tried to install keybindings twice", this);
+				return;
+			}
+			this._keysInstalled = true;
+			key.pushScope(this._keyScope);
+		},
+		// automatically called when widget becomes inactive
+		uninstallKeybindings: function() {
+			this._keysInstalled = false;
+			key.popScope(this._keyScope);
+		}
+	});
 
-		return config;
-	}
+	var Plugin = utils.Class({
+		init: function(config) {
+			if(!config.id) console.log('Error, plugin has no id: ', config);
+			this.id = config.id;
+
+			if(!config.name) console.log('Error, plugin has no name: ', config);
+			this.name = config.name;
+
+			if(!config.icon) console.log('Error, plugin has no icon: ', config);
+			this.icon = config.icon;
+
+			if(!config.url) console.log('Error, plugin has no url (default link): ', config);
+			this.url = config.url;
+
+			if (!config.routes) console.log('Error, plugin has no routes: ', config);
+			this.routes = config.routes;
+
+			if(config.widgets)
+				this.widgets = config.widgets;
+			else
+				this.widgets = [];
+
+			if(config.status)
+				this.status = config.status;
+			else
+				this.status = ko.observable(STATUS_DEFAULT);
+
+			this.statusBusy = ko.computed(function() {
+				return this.status() == STATUS_BUSY;
+			}, this);
+
+			this.statusError = ko.computed(function() {
+				return this.status() == STATUS_ERROR;
+			}, this);
+
+			this.active = ko.computed(function() {
+				return activeWidget() == this.widgets[0].id;
+			}, this);
+
+			// validate widgets and set their key scope
+			$.each(this.widgets, function(i, widget) {
+				if (!(widget instanceof PluginWidget)) {
+					console.error("widget for plugin " + this.id + " is not a PluginWidget ", widget);
+				}
+				widget.setKeybindingScope(this.id.replace('.', '-') + ":" + widget.id.replace('.', '-'));
+			});
+		}
+	});
 
 	function findWidget(id) {
 		if (!('model' in window)) {
@@ -206,20 +158,24 @@ define([
 				throw new Error("don't know the widget yet for " + newId);
 		}
 
-		if (oldWidget !== null)
+		if (oldWidget !== null) {
+			oldWidget.uninstallKeybindings();
 			oldWidget.onPreDeactivate();
+		}
 
 		activeWidget(newId);
 
 		newWidget.onPostActivate();
+		newWidget.installKeybindings();
 	}
 
 	return {
 		ko: ko,
 		sbt: sbt,
-		key: key,
-		Class: utils.Class,
+		utils: utils,
+		Class: utils.Class, // TODO make people use api.utils.Class
 		Widget: Widget,
+		PluginWidget: PluginWidget,
 		Plugin: Plugin,
 		// TODO - should this be non-public?
 		activeWidget: activeWidget,
