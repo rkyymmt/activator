@@ -66,30 +66,16 @@ define([
 	});
 
 	var Plugin = utils.Class({
-		init: function(config) {
-			if(!config.id) console.log('Error, plugin has no id: ', config);
-			this.id = config.id;
+		widgets: [],
+		status: null,
+		init: function() {
+			if(!this.id) console.log('Error, plugin has no id: ', this);
+			if(!this.name) console.log('Error, plugin has no name: ', this);
+			if(!this.icon) console.log('Error, plugin has no icon: ', this);
+			if(!this.url) console.log('Error, plugin has no url (default link): ', this);
+			if(!this.routes) console.log('Error, plugin has no routes: ', this);
 
-			if(!config.name) console.log('Error, plugin has no name: ', config);
-			this.name = config.name;
-
-			if(!config.icon) console.log('Error, plugin has no icon: ', config);
-			this.icon = config.icon;
-
-			if(!config.url) console.log('Error, plugin has no url (default link): ', config);
-			this.url = config.url;
-
-			if (!config.routes) console.log('Error, plugin has no routes: ', config);
-			this.routes = config.routes;
-
-			if(config.widgets)
-				this.widgets = config.widgets;
-			else
-				this.widgets = [];
-
-			if(config.status)
-				this.status = config.status;
-			else
+			if(this.status === null)
 				this.status = ko.observable(STATUS_DEFAULT);
 
 			this.statusBusy = ko.computed(function() {

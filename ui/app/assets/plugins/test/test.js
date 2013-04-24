@@ -238,7 +238,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/widgets/lo
 		}
 	});
 
-	return new api.Plugin({
+	return api.Plugin({
 		id: 'test',
 		name: "Test",
 		icon: 'ꙫ',

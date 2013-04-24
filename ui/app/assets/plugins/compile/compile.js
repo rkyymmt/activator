@@ -163,7 +163,7 @@ define(['text!./compile.html', 'core/pluginapi', 'core/widgets/log', 'css!./comp
 		}
 	});
 
-	return new api.Plugin({
+	return api.Plugin({
 		id: 'compile',
 		name: "Compile",
 		icon: "B",

@@ -84,7 +84,7 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 		}
 	});
 
-	return new api.Plugin({
+	return api.Plugin({
 		id: 'code',
 		name: "Code",
 		icon: "",
