@@ -39,11 +39,23 @@ define([], function() {
 		}
 
 		function M() {
-			if (!('init' in this)) {
-				console.error("no init in ", this);
-				throw new Error("no init in " + this);
+			// If you call the constructor directly (with no 'new') then we make
+			// a subtype of ourselves with a singleton instance.
+			// So if you only want a singleton, you do var instance = Foo({}) instead of making
+			// Class(Foo, {}) and then "new"-ing it.
+			// (when called with no constructor, "this" will be something random, not
+			// an instance of ourselves).
+			if (!(this instanceof M)) {
+				if (arguments.length < 1)
+					throw new Error("no class object provided for singleton (did you omit 'new'?)");
+				return Singleton(M, arguments[0]);
+			} else {
+				if (!('init' in this)) {
+					console.error("no init in ", this);
+					throw new Error("no init in " + this);
+				}
+				this.init.apply(this, [].slice.call(arguments, 0))
 			}
-			this.init.apply(this, [].slice.call(arguments, 0))
 		}
 
 		// proto is our eventual M.prototype
@@ -108,7 +120,12 @@ define([], function() {
 		classInit(M.prototype);
 
 		return M;
-	}
+	};
+
+	var Singleton = function(base, o) {
+		var ctor = Class(base, o);
+		return new ctor();
+	};
 
 	/*  TODO
 	 *   - comment out test suite once we test on IE

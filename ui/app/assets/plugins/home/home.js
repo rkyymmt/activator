@@ -2,7 +2,7 @@ define(['text!./home.html', 'core/pluginapi' ], function(template, api){
 
 	var ko = api.ko;
 
-	var HomePage = api.Class(api.PluginWidget, {
+	var homePage = api.PluginWidget({
 		id: 'home-page-screen',
 		template: template,
 		appVersion: window.serverAppModel.appVersion,
@@ -32,9 +32,6 @@ define(['text!./home.html', 'core/pluginapi' ], function(template, api){
 			}
 		}
 	});
-
-	var homePage = new HomePage();
-
 
 	window.setNewsJson = homePage.setNewsJson.bind(homePage);
 

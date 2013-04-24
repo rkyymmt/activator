@@ -3,7 +3,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 	var ko = api.ko;
 	var sbt = api.sbt;
 
-	var Run = api.Class(api.PluginWidget, {
+	var runConsole = api.PluginWidget({
 		id: 'play-run-widget',
 		template: template,
 		init: function(parameters){
@@ -202,8 +202,6 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 			this.outputModel.applyScrollState(this.outputScroll);
 		}
 	});
-
-	var runConsole = new Run();
 
 	return new api.Plugin({
 		id: 'run',

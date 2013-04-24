@@ -33,7 +33,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/widgets/lo
 			this.outcome(event.outcome);
 		}
 	});
-	var TestDisplay = api.Class(api.PluginWidget, {
+	var testConsole = api.PluginWidget({
 		id: 'test-result-widget',
 		title: 'Testing',
 		template: template,
@@ -237,8 +237,6 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/widgets/lo
 			this.logModel.applyScrollState(this.logScroll);
 		}
 	});
-
-	var testConsole = new TestDisplay();
 
 	return new api.Plugin({
 		id: 'test',

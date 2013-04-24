@@ -172,7 +172,8 @@ define([
 	return {
 		ko: ko,
 		sbt: sbt,
-		Class: utils.Class,
+		utils: utils,
+		Class: utils.Class, // TODO make people use api.utils.Class
 		Widget: Widget,
 		PluginWidget: PluginWidget,
 		Plugin: Plugin,
