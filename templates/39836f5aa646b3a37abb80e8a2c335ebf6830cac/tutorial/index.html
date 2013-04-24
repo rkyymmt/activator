@@ -23,8 +23,8 @@
     and <a href="#code/app/HelloAkkaScala.scala" class="shortcut">HelloAkkaScala.scala</a>.
     </p>
     <p>
-    The sample in this tutorial is pretty simple; it consists of a 'Greeter' Actor who holds
-    onto the latest defined 'greeting' string and can respond to two actions; set a new greeting
+    The sample in this tutorial is pretty simple; it consists of a <code>Greeter</code> Actor who holds
+    onto the latest defined <code>greeting</code> string and can respond to two actions; set a new greeting
     string and return the latest greeting string.
     </p>
     <p>
@@ -37,8 +37,9 @@
     <p>
     An Actor does not have a public API in terms of methods that you can invoke. Instead its public
     API is defined through messages that the actor handles. Messages can be of arbitrary
-    type (any subtype of 'Object' in Java or 'Any' in Scala).  This means that we can send boxed primitive
-    values (such as String, Integer, Boolean etc.) as messages or plain data structures like arrays and
+    type (any subtype of <code>Object</code> in Java or <code>Any</code> in Scala).  This means that we
+    can send boxed primitive values (such as <code>String</code>, <code>Integer</code>,
+    <code>Boolean</code> etc.) as messages or plain data structures like arrays and
     collection types. However, since the messages are the Actor's public API, you should define
     messages with good names and rich semantic and domain specific meaning, even if it's just wrapping
     your data type. This will make it easier to use, understand and debug actor-based systems.
@@ -46,9 +47,9 @@
     <p>
      Now we want to define three different messages;
      <ul>
-      <li>'WhoToGreet' redefines the new greeting</li>
-      <li>'Greet' asks the Actor for latest greeting</li>
-      <li>'Greeting' returns the latest greeting</li>
+      <li><code>WhoToGreet</code> redefines the new greeting</li>
+      <li><code>Greet</code> asks the Actor for latest greeting</li>
+      <li><code>Greeting</code> returns the latest greeting</li>
     </ul>
     </p>
     <p>
@@ -99,22 +100,22 @@ case class Greeting(message: String)
     state and behavior, but they have much stronger isolation than regular objects in Java or Scala. The Actor
     model prevents sharing state between Actors and the only way to observe another actor's state is by sending
     it a message asking for it. Actors are extremely lightweight, they are only constrained by memory of which
-    they only consume only a few hundred bytes each -  this means you can easily create millions of concurrent
+    they only consume only a few hundred bytes each &#8212; this means you can easily create millions of concurrent
     Actors in a single application. Their strong isolation principles together with the event-driven model (that
     we will talk about later on) and location transparency makes it easy to solve hard concurrency and scalability
     problems in an intuitive way.
     </p>
     <p>
-    You create an Actor in Java by defining a class that extends 'UntypedActor' and implement the 'onReceive' method
-    (in Scala you have to extend 'Actor' trait and implement the 'receive' method). It is in the
-    'onReceive' method that you define the behavior; how the Actor should react to the different messages it
-    receives.  An Actor can have - and often has - state.  Accessing or mutating the internal state of an Actor is
-    fully thread safe since protected by the Actor model.
+    You create an Actor in Java by defining a class that extends <code>UntypedActor</code> and implement the
+    <code>onReceive</code> method (in Scala you have to extend <code>Actor</code> trait and implement the
+    <code>receive</code> method). It is in the <code>onReceive</code> method that you define the behavior; how
+    the Actor should react to the different messages it receives.  An Actor can have &#8212; and often has &#8212;
+    state.  Accessing or mutating the internal state of an Actor is fully thread safe since protected by the Actor model.
     </p>
     <p>
-    So, let's now create a 'Greeter' Actor with a single variable 'greeting' as its state, holding on to the latest
-    defined greeting, and in its 'onReceive' method let's add the behavior for how it should react upon receiving
-    the 'WhoToGreet' and the 'Greet' messages.
+    So, let's now create a <code>Greeter</code> Actor with a single variable <code>greeting</code> as its state, holding on to the latest
+    defined greeting, and in its <code>onReceive</code> method let's add the behavior for how it should react upon receiving
+    the <code>WhoToGreet</code> and the <code>Greet</code> messages.
     </p>
     <p>
     Let's start by creating our Actor in Java (you can find the code in the <a href="#code/app/HelloAkkaJava.java"
@@ -136,8 +137,8 @@ public static class Greeter extends UntypedActor {
         </code></pre>
     </p>
     <p>
-    Don't worry about the 'getSender()', 'tell(..)' and 'getSelf()' API calls, we will get to that soon when we talk
-    about sending and replying to messages.
+    Don't worry about the <code>getSender()</code>, <code>tell(..)</code> and <code>getSelf()</code> API calls,
+    we will get to that soon when we talk about sending and replying to messages.
     </p>
     <p>
     Now let's implement it in Scala. As you can see, Scala's pattern matching features really simplify working
@@ -163,23 +164,23 @@ class Greeter extends Actor {
 
     <p>
     So far we have defined our Actor and its messages. Now let's create an instance of this actor. In Akka you can't
-    create an instance of an Actor the regular way using 'new' but you have to do so through a factory. What is
-    returned from this factory is not an instance of the Actor itself but an 'ActorRef' pointing to our actor
+    create an instance of an Actor the regular way using <code>new</code> but you have to do so through a factory. What is
+    returned from this factory is not an instance of the Actor itself but an <code>ActorRef</code> pointing to our actor
     instance.
     </p>
     <p>
     This level of indirection adds a lot of power and flexibility. It enables for example location transparency
-    meaning that the 'ActorRef' can, while retaining the same semantics, represent an instance of the running actor
+    meaning that the <code>ActorRef</code> can, while retaining the same semantics, represent an instance of the running actor
     in-process or on a remote machine. I.e. location doesn't matter. This also means that the runtime can if needed
     optimize the system by changing an actor's location or the application's topology while it is running. Another
-    thing that this level of indirection enables is the "let it crash" model of failure management in which the b
+    thing that this level of indirection enables is the "let it crash" model of failure management in which the
     system can heal itself by crashing and restarting faulty actors.
     </p>
     <p>
-    This factory in Akka is the 'ActorSystem' and is to some extent similar to Spring's 'BeanFactory' in that it
-    also acts as a container for your Actors, managing their life-cycles etc.  You create an Actor through the
-    'actorOf' factory method. This method takes a configuration object called 'Props' and a name. Actor (and
-    ActorSystem) names are important in Akka, you use them for example when looking Actors up as well as when you
+    This factory in Akka is the <code>ActorSystem</code> and is to some extent similar to Spring's <code>BeanFactory</code>
+    in that it also acts as a container for your Actors, managing their life-cycles etc.  You create an Actor through the
+    <code>actorOf</code> factory method. This method takes a configuration object called <code>Props</code> and a name.
+    Actor (and ActorSystem) names are important in Akka, you use them for example when looking Actors up as well as when you
     configure them in the <a href="http://doc.akka.io/docs/akka/2.2-M3/general/configuration.html">configuration
     file</a>, so you should take your time giving your Actors good names.
     </p>
@@ -202,7 +203,7 @@ val greeter = system.actorOf(Props[Greeter], "greeter")
           </code></pre>
     </p>
     <p>
-    Now we have a running instance of a 'Greeter' actor. Next we will learn how to communicate with it.
+    Now we have a running instance of a <code>Greeter</code> actor. Next we will learn how to communicate with it.
     </p>
 </div>
 
@@ -224,8 +225,8 @@ val greeter = system.actorOf(Props[Greeter], "greeter")
     It is in a suspended state in which it does not consume any resources apart from memory.
     </p>
     <p>
-    You tell an Actor to do something by passing in a message into the 'tell' method on the 'ActorRef'.
-    This method puts the message on the actor's mailbox and then returns immediately.
+    You tell an Actor to do something by passing in a message into the <code>tell</code> method on the
+    <code>ActorRef</code>. This method puts the message on the actor's mailbox and then returns immediately.
     </p>
     <p>
         <pre><code>
@@ -242,8 +243,8 @@ greeter tell WhoToGreet("akka")
         </code></pre>
     </p>
     <p>
-    If you are using Akka from Scala then you can also use the alias; '!', called the bang operator,
-    but we will stick to 'tell' in this tutorial.
+    If you are using Akka from Scala then you can also use the alias; <code>!</code>, called the bang operator,
+    but we will stick to <code>tell</code> in this tutorial.
         <pre><code>
 // Scala code
 
@@ -262,10 +263,10 @@ greeter ! WhoToGreet("akka")
     itself towards request-reply. One explicit way of doing that is by adding a reference of yourself as part
     of the message so the receiver can use that reference to send a reply back to you. This is such a common
     scenario that it is directly supported by Akka; for every message you send you have the option of passing
-    along the sender reference (the Actor's 'ActorRef').  If you are sending a message from within an Actor
-    then you have access to your own 'ActorRef' through 'self' reference, please note that you should never
-    use 'this'. In Java you can access the self reference through the 'getSelf()' method, while you can use
-    'self' in Scala.
+    along the sender reference (the Actor's <code>ActorRef</code>).  If you are sending a message from within
+    an Actor then you have access to your own <code>ActorRef</code> through <code>self</code> reference, please
+    note that you should never use <code>this</code>. In Java you can access the self reference through the
+    <code>getSelf()</code> method, while you can use <code>self</code> in Scala.
     </p>
     <p>
         <pre><code>
@@ -282,8 +283,8 @@ greeter.tell(new Greet(), getSelf());
     pass along the sender reference when you send a message to another Actor.
     </p>
     <p>
-    This code will, if invoked from within Actor 'A' automatically pass along the 'ActorRef' of Actor 'A' as the
-    sender of this message:
+    This code will, if invoked from within Actor 'A' automatically pass along the <code>ActorRef</code> of
+    Actor 'A' as the sender of this message:
         <pre><code>
 // Scala code
 
@@ -292,9 +293,9 @@ greeter tell Greet
         </code></pre>
     </p>
     <p>
-    If you choose not to pass in a sender reference into the 'tell' method, or forget it, then a reference to
+    If you choose not to pass in a sender reference into the <code>tell</code> method, or forget it, then a reference to
     the 'dead-letter' Actor will be used. The 'dead-letter' Actor is where all unhandled messages end up, and
-    you can use Akka's Event Bus to subscribe on them.
+    you can use Akka's <a href="http://doc.akka.io/docs/akka/2.2-M3/java/event-bus.html">Event Bus</a> to subscribe on them.
     </p>
 
     <h3>The 'sender' reference</h3>
@@ -303,8 +304,8 @@ greeter tell Greet
     This sender reference will then be available in the receiver Actor when it's processing the message. Since
     each message is paired with its unique sender reference, the "current" sender reference will change with each
     new message you process. So if you for some reason need to use a specific sender reference later then you have
-    to hold on to it, storing it away in a member field or similar. In Java you can access it using the 'getSender()'
-    method (while you can use 'sender' in Scala).
+    to hold on to it, storing it away in a member field or similar. In Java you can access it using the
+    <code>getSender()</code> method (while you can use <code>sender</code> in Scala).
     </p>
     <p>
         <pre><code>
@@ -336,32 +337,30 @@ sender tell Greeting(greeting)
     </p>
     <p>
     However, for simplicity we are just using a single Actor in this sample. This means that if we communicate
-    with this single actor from a 'main' program then we have no 'sender', since we are not communicating with
-    the Actor that within another Actor. Luckily Akka has a nice solution to this problem; 'Inbox'.
+    with this single actor from a <code>main</code> program then we have no <code>sender</code>, since we are
+    not communicating with the Actor that within another Actor. Luckily Akka has a nice solution to this problem;
+    <code>Inbox</code>.
     </p>
     <p>
-    'Inbox' allows you to create a mailbox without having to create an Actor that is tied to that mailbox.
-    You can use this mailbox to send messages in which the mailbox will be the 'sender' of the message.
-    This means that when the recipient replies to the message it will reply back to the mailbox. You can
-    create an 'Inbox' through the 'Inbox.create(..)' method and send messages from it through the
-    'inbox.send(..)' method. Simple enough.
+    <code>Inbox</code> allows you to create an "actor-in-a-box", i.e. it contains an Actor which can be used as a puppet
+    for sending messages to other Actors and receiving their replies. You can create an <code>Inbox</code> using
+    <code>Inbox.create</code> and send messages from it using <code>inbox.send</code>. The internal Actor will just
+    put any message it receives into a queue from which it can be retrieved by calling <code>inbox.receive</code>;
+    if the queue is empty then that call will block until a message becomes available. Pretty simple.
     </p>
     <p>
-    The 'Inbox' also allows you to wait on a message to arrive - in a blocking fashion. As you probably know,
-    blocking is something that can really inhibit performance and scalability, and that you should use very
-    sparingly and with care. That said, we are making use of it in this sample since it makes it simplifies
-    the sample and makes it very easy to follow the message flow. This blocking receive on the mailbox is done
-    through the 'inbox.receive(timeout)' method, where the timeout defines how long we should block the thread
-    waiting for a message to arrive in the mailbox.
+    As you probably know, blocking is something that can really inhibit performance and scalability, and that
+    you should use very sparingly and with care. That said, we are making use of it in this sample since it
+    makes it simplifies the sample and makes it very easy to follow the message flow.
     </p>
     <p>
-    Now let's complete this tutorial by writing the driver code that will exercise our 'Greeter' Actor.
+    Now let's complete this tutorial by writing the driver code that will exercise our <code>Greeter</code> Actor.
     </p>
     <p>
         <pre><code>
 // Java code
 
-// Create the mailbox
+// Create an "actor-in-a-box"
 final Inbox inbox = Inbox.create(system);
 
 // Tell the 'greeter' to change its 'greeting' message
@@ -380,7 +379,7 @@ System.out.println("Greeting: " + greeting.message);
         <pre><code>
 // Scala code
 
-// Create the mailbox
+// Create an "actor-in-a-box"
 val inbox = Inbox.create(system)
 
 // Tell the 'greeter' to change its 'greeting' message
@@ -415,7 +414,7 @@ println(s"Greeting: $message")
     Let's have some fun and run it.
     </p>
     <p>
-    In <a href="#run" class="shortcut">Run</a>, select the application to run from the down-down list, and select
+    In <a href="#run" class="shortcut">Run</a>, select the application to run from the drop-down list, and select
     <strong>Start</strong>. Feel free to modify, compile and re-run the sample.
     </p>
 </div>
