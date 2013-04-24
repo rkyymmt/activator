@@ -33,7 +33,7 @@ define(['text!./test.html', 'css!./test.css', 'core/pluginapi', 'core/widgets/lo
 			this.outcome(event.outcome);
 		}
 	});
-	var TestDisplay = api.Widget({
+	var TestDisplay = api.Class(api.Widget, {
 		id: 'test-result-widget',
 		title: 'Testing',
 		template: template,

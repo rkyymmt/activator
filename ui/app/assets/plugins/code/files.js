@@ -1,9 +1,7 @@
 define(['core/pluginapi'], function(api) {
 
 	var ko = api.ko,
-		key = api.key,
-		Widget = api.Widget,
-		Class = api.Class;
+		key = api.key;
 
 	function browse(location) {
 		return $.ajax({
@@ -38,7 +36,7 @@ define(['core/pluginapi'], function(api) {
 
 	// A model for files that works directly off a location, and
 	// nothing else.
-	var FileModel = Class({
+	var FileModel = api.Class({
 		init: function(config) {
 			var self = this;
 			// TODO - Split this into relative + absolute/canonical locations...

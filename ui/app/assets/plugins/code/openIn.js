@@ -15,7 +15,7 @@ function(eclipseTemplate, ideaTemplate, api, Overlay, log){
 		});
 	}
 
-	var shared = {
+	var OpenIn = api.Class(api.Widget, {
 		init: function(parameters) {
 			var self = this;
 			self.overlay = new Overlay({
@@ -102,28 +102,25 @@ function(eclipseTemplate, ideaTemplate, api, Overlay, log){
 		instructions: function() {
 			this._switchTo(this.instructionsNode);
 		}
-	};
+	});
 
-	var eclipse = {
+	var OpenInEclipse = api.Class(OpenIn, {
 		id: 'open-in-eclipse-widget',
 		template: eclipseTemplate,
 		overlayClass: 'open-in-eclipse',
 		projectFilename: '.project',
 		taskName: 'eclipse',
 		ideName: 'Eclipse'
-	};
+	});
 
-	var idea = {
+	var OpenInIdea = api.Class(OpenIn, {
 		id: 'open-in-idea-widget',
 		template: ideaTemplate,
 		overlayClass: 'open-in-idea',
 		projectFilename: '.idea',
 		taskName: 'gen-idea',
 		ideName: 'IntelliJ IDEA'
-	};
-
-	var OpenInEclipse = api.Widget($.extend({}, shared, eclipse));
-	var OpenInIdea = api.Widget($.extend({}, shared, idea));
+	});
 
 	return {
 		OpenInEclipse : OpenInEclipse,

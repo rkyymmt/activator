@@ -43,7 +43,7 @@ define(["text!./viewCode.html", 'core/pluginapi'], function(template, api){
 		return 'text';
 	}
 
-	var CodeView = api.Widget({
+	var CodeView = api.Class(api.Widget, {
 		id: 'code-edit-view',
 		template: template,
 		init: function(args) {

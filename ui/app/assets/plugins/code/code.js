@@ -3,7 +3,7 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 
 	var ko = api.ko;
 
-	var CodeCore = api.Widget({
+	var CodeCore = api.Class(api.Widget, {
 		id: 'code-core',
 		template: template,
 		init: function() {

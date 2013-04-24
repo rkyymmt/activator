@@ -14,7 +14,7 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 	}
 
 	// Default view for when we don't know which other to use.
-	var DefaultView = api.Widget({
+	var DefaultView = api.Class(api.Widget, {
 		id: 'code-default-view',
 		template: defaultTemplate,
 		init: function(args) {
@@ -32,7 +32,7 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 	});
 
 	// Fetch utility
-	var FileBrowser = api.Widget({
+	var FileBrowser = api.Class(api.Widget, {
 		id: 'file-browser-widget',
 		template: viewOuter,
 		init: function(args) {

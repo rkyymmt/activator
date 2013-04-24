@@ -1,9 +1,7 @@
 define(['text!./browse.html', 'core/pluginapi'], function(template, api) {
 
 	var ko = api.ko,
-		key = api.key,
-		Widget = api.Widget,
-		Class = api.Class;
+		key = api.key;
 
 	// TODO - Don't duplicate this in both view.js + browse.js...
 	function open(location) {
@@ -16,7 +14,7 @@ define(['text!./browse.html', 'core/pluginapi'], function(template, api) {
 		});
 	}
 
-	var Browser = Widget({
+	var Browser = api.Class(api.Widget, {
 		id: 'code-browser-view',
 		template: template,
 		init: function(config) {
