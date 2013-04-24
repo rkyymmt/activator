@@ -203,7 +203,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 		}
 	});
 
-	return new api.Plugin({
+	return api.Plugin({
 		id: 'run',
 		name: "Run",
 		icon: "▶",
