@@ -110,6 +110,10 @@ define([], function() {
 		return M;
 	}
 
+	/*  TODO
+	 *   - comment out test suite once we test on IE
+	 *   - remove this little test suite once we have somewhere reasonable to put it
+	 */
 	function assert(t) {
 		if (!t)
 			throw new Error("fail");
@@ -157,11 +161,6 @@ define([], function() {
 		}
 	});
 
-
-	/*  TODO
-	 *   - comment out test suite once we test on IE
-	 *   - remove this little test suite once we have somewhere reasonable to put it
-	 */
 	var b = new B(1,2);
 	var s1 = new S1(3,4);
 	var s2 = new S2(5,6);
