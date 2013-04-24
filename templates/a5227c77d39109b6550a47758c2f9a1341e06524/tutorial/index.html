@@ -11,12 +11,24 @@
       class="shortcut">app/Hello.scala</a> file.</p>
 
     <p>This file consists of a single object called <code>Hello</code>.  This
-       object extends <code>App</code>, which denotes that it can be run as a
-       standalone application.  When executed, this application will evaluate
-       the expressions inside the curly braces. For the <code>Hello</code> object,
-       this means the expression:
+       object defines a <code>main</code> method, which denotes that it can be run as a
+       standalone application.  Let's look into the definition of the main method:</p>
+<pre><code>def main(args: Array[String]): Unit = </code></pre>
+    <p> The method definition starts with the keyword "<code>def</code>".   This is used to define all
+       methods in scala.  After def comes the name of the method, in this case "main".</p>
+    <p>Following the name is the argument list, denoting input parameters to the method.  In
+       the case of the "<code>main</code>" method, it takes a single parameter called "<code>args</code>".
+       When the application is executed, any command line arguments will be bundled into an array 
+       of string values (or "<code>Array[String]</code>") and passed into the "<code>main</code>" method.</p>
+    <p>Following the argument list is the return type of the method.  For main, this is "<code>Unit</code>" which
+       denotes "uninteresting" return type.   It is similar to the "void" type of Java/C/C++ in that we aren't
+       interesting in calling the "<code>main</code>" method for a return value.
+    <p>Following the return type is an "<code>=</code>" character and then the method implementation.
+       For the <code>Hello.main</code> method, the implementation is the following block of code:
     </p>
-    <pre><code>println("Hello, World")</code></pre>
+    <pre><code>{
+  println("Hello, World")
+}</code></pre>
 
     <p>This block of code uses the <code>println</code> method to display the string
        literal "Hello, World" on the console.  We can see this output by
@@ -44,13 +56,13 @@
        shows: <pre><code>hello, builder</code></pre></p>
 </div>
 <div>
-    <h2>Defining Members</h2>
+    <h2>Defining Values</h2>
 
     <p>Let's go back to <a href="#code/app/Hello.scala" class="shortcut">Hello.scala</a>
        and start mucking with the code.</p>
 
     <p>First, we'd like to have our application also say goodbye.   Let's add the
-       following line to the end of the Hello object's body:
+       following line to the end of the Hello main method's body:
     <p>
     <pre><code>println("goodbye, builder")</pre></code>
 
@@ -63,18 +75,23 @@ Goodbye, builder</pre></code>
        A <code>def</code> denotes a method, or block of re-usable code.  Let's modify our Hello app as follows:
     </p>
 <pre><code>
-object Hello extends App {
-  def who = "builder"
-  println("hello, " + who)
-  println("Goodbye, " + who)
+object Hello {
+  val who = "builder"
+
+  def main(args: Array[String]): Unit = {
+    println("hello, " + who)
+    println("goodbye, " + who)
+  }
 }
 </code></pre>
-    <p>This new code creates a <code>def</code> called "<code>who</code>" which is used in the greeting messages.  After defining the method, everytime the "<code>who</code>" method is referenced, the method will be called and executed.</p>
+    <p>This new code creates a <code>val</code> called "<code>who</code>" which is used in the greeting messages.  After defining the value, everytime the "<code>who</code>" name is referenced, the value we've stored will be used.</p>
     <p>The <code>+</code> operator is used to join the necessary strings together before passing to the <code>println</code> method.  If we swap back to the <a href="#run" class="shortcut">Run</a> tab, we'll see that the greeting and goodbye messages remain unchanged.
     </p>
+    <p>In Scala, a "val" represents a re-usable piece of data or computation that we do not want to re-run.   Once set, a val points to the same information forever.  In
+       other words, it is immutable.</p>
 </div>
 <div>
-    <h2> Testing the App</h2>
+    <h2>Testing Applications</h2>
 
     <p>No app, regardless of how simple, is complete without a modicum of testing!   Let's modify our existing tests to account for the new "<code>who</code>" method we've added.</p>
 
@@ -92,13 +109,13 @@ class HelloSpec extends FlatSpec with ShouldMatchers {
 </pre></code>
 
      <p>Let's ignore the imports and class definition for now, and focus on the test itself.   This test is using the <a href="http://scalatest.org">scalatest library</a>.
-        Scalatest provides an elegant "scala" way of writing unit tests, as well as providing many other features.   For our purposes, we're using it to define tests of
-        the hello world application.   Currently, we have one test:</p>
+        Scalatest provides an elegant way of writing unit tests in Scala.   For our purposes, we're using it to define tests of the hello world application.   Currently, 
+        we have one test:</p>
 <pre><code>true should be(true)</pre></code>
       <p> This test is nested in the categorization/label:</p>
 <pre><code>"Hello" should "have tests"</pre></code>    
       <p>While it's true that we should have tests in our Hello world application, a test that true is true isn't particularly helpful.  Let's define a test using the new "who"
-      method in the the Hello object.  Modify the test as follows:</p>
+      value in the the Hello object.  Modify the test as follows:</p>
 <pre><code>
   "Hello" should "know who to greet" in {
     Hello.who should be("builder")
@@ -108,10 +125,10 @@ class HelloSpec extends FlatSpec with ShouldMatchers {
     <p>Save this new test, and make sure it runs.   You can see the testing output on the <a href="#test" class="shortcut">Test</a> tab.  Test results are updated automatically
        after saving a source file, and the build is finished rebuilding your project.</p>
 
-    <p>The new test should show up on the list of tests with the name "Hello sohuld know who to greet", and it should be passing.</p>
+    <p>The new test should show up on the list of tests with the name "Hello should know who to greet", and it should be passing.</p>
 
-    <p>If we look into this code a bit, we're calling the method "who" on the "Hello" object using the "." notation.  In Scala, we can reference any member on an object using
-       that object's name, the ".", and the name of the member.</p>
+    <p>If we take a closer look in the code, we're accessing the member "who" on the "Hello" object using the "." notation.  In Scala, we can reference any member on an 
+       object using that object's name, the ".", and the name of the member.</p>
 
     <p>Now that we've define a single test, it's time to dig further into the Scala language.</p>
 </div>
@@ -120,8 +137,8 @@ class HelloSpec extends FlatSpec with ShouldMatchers {
     <h2>Next Steps</h2>
 
     <p>You're now ready to really start learning how to write application in Scala!   While this tutorial presents the absolute basics of creating applications in Scala,
-       we don't cover the details of the language.  As you explore further tutorials, we recommend toying with code inside of builder.  You may continue using this
-       ui, or swap to a command line experience via the "builder" script in the hello-scala directory.</p>
+       we don't cover the details of the language.  As you explore further tutorials, we recommend toying with code inside of builder.  You may continue using the browser, 
+       or swap to a command line experience via the "builder" script in the hello-scala directory.</p>
     <p>If you're interested in learning more about Scala, please look through the following links/tutorials/books:</p>
     <ul>
       <li><a href="http://docs.scala-lang.org/tutorials/">Scala Tutorials</a></li>
