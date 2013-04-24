@@ -1,7 +1,6 @@
 define(['text!./browse.html', 'core/pluginapi'], function(template, api) {
 
-	var ko = api.ko,
-		key = api.key;
+	var ko = api.ko;
 
 	// TODO - Don't duplicate this in both view.js + browse.js...
 	function open(location) {

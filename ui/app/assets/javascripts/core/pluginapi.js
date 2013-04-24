@@ -122,7 +122,6 @@ define([
 	return {
 		ko: ko,
 		sbt: sbt,
-		key: key,
 		Class: utils.Class,
 		Widget: Widget,
 		PluginWidget: PluginWidget,

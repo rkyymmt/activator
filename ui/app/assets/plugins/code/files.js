@@ -1,7 +1,6 @@
 define(['core/pluginapi'], function(api) {
 
-	var ko = api.ko,
-		key = api.key;
+	var ko = api.ko;
 
 	function browse(location) {
 		return $.ajax({
