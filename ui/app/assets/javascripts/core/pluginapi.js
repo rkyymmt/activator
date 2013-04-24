@@ -16,7 +16,53 @@ define([
 
 	var PluginWidget = utils.Class(Widget, {
 		onPostActivate: noOp,
-		onPreDeactivate: noOp
+		onPreDeactivate: noOp,
+		// a list of parameter lists for keymage(),
+		// they automatically get scoped to this widget
+		keybindings: [],
+		_keyScope: null,
+		_keysInstalled: false,
+		// called by the plugin framework to give each plugin
+		// widget a unique scope
+		setKeybindingScope: function(scope) {
+			if (this._keyScope !== null) {
+				console.log("Attempt to set key scope twice", scope);
+				return;
+			}
+			this._keyScope = scope;
+			$.each(this.keybindings, function(i, params) {
+				// we need to decide if there's a sub-scope in the parameter list,
+				// which would look like key('scope', 'ctrl-c', function(){})
+				var adjusted = null;
+				if (params.length > 2 && typeof(params[2]) == 'function') {
+					adjusted = params.slice(0);
+					adjusted[0] = scope + '.' + params[0];
+				} else {
+					adjusted = params.slice(0);
+					adjusted.unshift(scope);
+				}
+				console.log("creating keybinding ", adjusted);
+				key.apply(null, adjusted);
+			});
+		},
+		// automatically called when widget becomes active
+		installKeybindings: function() {
+			if (this._keyScope === null) {
+				console.log("nobody set the key scope");
+				return;
+			}
+			if (this._keysInstalled) {
+				console.log("tried to install keybindings twice", this);
+				return;
+			}
+			this._keysInstalled = true;
+			key.pushScope(this._keyScope);
+		},
+		// automatically called when widget becomes inactive
+		uninstallKeybindings: function() {
+			this._keysInstalled = false;
+			key.popScope(this._keyScope);
+		}
 	});
 
 	var Plugin = utils.Class({
@@ -58,11 +104,12 @@ define([
 				return activeWidget() == this.widgets[0].id;
 			}, this);
 
-			// validate widgets
+			// validate widgets and set their key scope
 			$.each(this.widgets, function(i, widget) {
 				if (!(widget instanceof PluginWidget)) {
 					console.error("widget for plugin " + this.id + " is not a PluginWidget ", widget);
 				}
+				widget.setKeybindingScope(this.id.replace('.', '-') + ":" + widget.id.replace('.', '-'));
 			});
 		}
 	});
@@ -111,12 +158,15 @@ define([
 				throw new Error("don't know the widget yet for " + newId);
 		}
 
-		if (oldWidget !== null)
+		if (oldWidget !== null) {
+			oldWidget.uninstallKeybindings();
 			oldWidget.onPreDeactivate();
+		}
 
 		activeWidget(newId);
 
 		newWidget.onPostActivate();
+		newWidget.installKeybindings();
 	}
 
 	return {
