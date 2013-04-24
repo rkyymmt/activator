@@ -49,19 +49,6 @@ class UserActor(uuid: String, out: WebSocket.Out[JsonNode]) extends Actor {
   }
 }
 
-class UsersActor extends Actor {
-  def receive = {
-    case StockUpdate(symbol, price) =>
-      for(child <- context.children) child ! StockUpdate(symbol, price)
-    case Listen(uuid: String, out: WebSocket.Out[JsonNode]) =>
-      sender ! context.actorOf(Props(new UserActor(uuid, out)), uuid)
-    case WatchStock(uuid: String, symbol: String) =>
-      context.child(uuid).map (_ ! WatchStock(uuid, symbol))
-    case UnwatchStock(uuid: String, symbol: String) =>
-      context.child(uuid).map (_ ! UnwatchStock(uuid, symbol))
-  }
-}
-
 case class Listen(uuid: String, out: WebSocket.Out[JsonNode])
 
 case class WatchStock(uuid: String, symbol: String)
