@@ -2,7 +2,7 @@ define(['text!./home.html', 'core/pluginapi' ], function(template, api){
 
 	var ko = api.ko;
 
-	var HomePage = api.Class(api.Widget, {
+	var HomePage = api.Class(api.PluginWidget, {
 		id: 'home-page-screen',
 		template: template,
 		appVersion: window.serverAppModel.appVersion,

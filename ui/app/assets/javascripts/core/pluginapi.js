@@ -12,6 +12,13 @@ define([
 	var STATUS_BUSY = 'busy';
 	var STATUS_ERROR = 'error;'
 
+	var noOp = function(){};
+
+	var PluginWidget = utils.Class(Widget, {
+		onPostActivate: noOp,
+		onPreDeactivate: noOp
+	});
+
 	// Verifies that a new plugin configuration is acceptable for our application, or
 	// issues debugging log statements on what the issue is.
 	function Plugin(config) {
@@ -38,18 +45,11 @@ define([
 			return activeWidget() == config.widgets[0].id
 		}, config);
 
-		// add plugin-specific hooks to widgets
-		// (these aren't in Widget class since they
-		// are plugin-specific, would probably be cleaner
-		// to make a PluginWidget base class)
-		var noOp = function() {};
-		var hooks = [ 'onPostActivate', 'onPreDeactivate' ]
+		// validate widgets
 		$.each(config.widgets, function(i, widget) {
-			$.each(hooks, function(i, hook) {
-				if (!(hook in widget)) {
-					widget[hook] = noOp;
-				}
-			});
+			if (!(widget instanceof PluginWidget)) {
+				console.error("widget for plugin " + config.id + " is not a PluginWidget ", widget);
+			}
 		});
 
 		return config;
@@ -113,6 +113,7 @@ define([
 		key: key,
 		Class: utils.Class,
 		Widget: Widget,
+		PluginWidget: PluginWidget,
 		Plugin: Plugin,
 		// TODO - should this be non-public?
 		activeWidget: activeWidget,
