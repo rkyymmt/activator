@@ -4,9 +4,10 @@ define([], function() {
 	// IE adds it in 11, others should have it.
 	var __proto__Works = (function() {
 		function F() {}
+		F.prototype = { foo: 42 };
 		var anF = new F;
 		return ('__proto__' in anF && anF.__proto__ === F.prototype &&
-				({ __proto__ : F.prototype }).__proto__ === F.prototype);
+				({ __proto__ : F.prototype }).foo === 42);
 	})();
 
 	var noOp = function() {};
