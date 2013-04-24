@@ -90,7 +90,7 @@ require([
 					evilLocationStore = location;
 					appLocationInput.val('');
 				}
-				var currentAppName = appNameInput.val() || '';
+				var currentAppName = appNameInput.val() || appNameInput.attr('placeholder') || '';
 				appLocationInput.attr('placeholder', evilLocationStore + '/' + currentAppName);
 			}
 			appNameInput.on('keyup', function() {
@@ -98,13 +98,14 @@ require([
 				updateAppLocation();
 			});
 			function checkFormReady() {
-				if ((appNameInput.val().length > 0) && (appTemplateName.val().length > 0)) {
-					// form is ready
+				// if there's a template name then we should have filled in
+				// at least placeholders for the other two fields.
+				if (appTemplateName.val().length > 0) {
 					newButton.prop("disabled", false);
 					return true;
 				}
 				else {
-					// for is not ready
+					// form is not ready
 					newButton.prop("disabled", true);
 					return false;
 				}
@@ -134,9 +135,11 @@ require([
 					// disable the create button
 					newButton.prop("disabled", true);
 
-					// use the placeholder value in the location field, unless one was manually specified
+					// use the placeholder values, unless one was manually specified
 					if(!appLocationInput.val())
 						appLocationInput.val(appLocationInput.attr('placeholder'));
+					if (!appNameInput.val())
+						appNameInput.val(appNameInput.attr('placeholder'));
 
 					var msg = formToJson(event.currentTarget);
 					msg.request = 'CreateNewApplication';
@@ -181,12 +184,15 @@ require([
 				}
 			});
 			openFs.renderTo('#openAppLocationBrowser');
-			// Register fancy radio button controlls.
+			// Register fancy radio button controls.
 			$('#new').on('click', 'li.template', function(event) {
 				// ???
 				$('input:radio', this).prop('checked',true);
-				var name = $('h3', this).text();
+				var name = $('input', this).attr('data-snap-name-ref');
 				appTemplateName.val(name);
+				var dirname = name.replace(' ', '-').replace(/[^A-Za-z0-9_-]/g, '').toLowerCase();
+				appNameInput.attr('placeholder', dirname);
+				updateAppLocation();
 				checkFormReady()
 			})
 			.on('click', '#browseAppLocation', function(event) {

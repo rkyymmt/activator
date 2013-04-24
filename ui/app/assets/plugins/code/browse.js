@@ -1,9 +1,6 @@
-define(['text!./browse.html', 'core/pluginapi', 'core/widgets/overlay'], function(template, api, files, Overlay) {
+define(['text!./browse.html', 'core/pluginapi'], function(template, api) {
 
-	var ko = api.ko,
-		key = api.key,
-		Widget = api.Widget,
-		Class = api.Class;
+	var ko = api.ko;
 
 	// TODO - Don't duplicate this in both view.js + browse.js...
 	function open(location) {
@@ -16,7 +13,7 @@ define(['text!./browse.html', 'core/pluginapi', 'core/widgets/overlay'], functio
 		});
 	}
 
-	var Browser = Widget({
+	var Browser = api.Class(api.Widget, {
 		id: 'code-browser-view',
 		template: template,
 		init: function(config) {

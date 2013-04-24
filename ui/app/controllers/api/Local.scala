@@ -39,6 +39,7 @@ object Local extends Controller {
     case "gif" => "image"
     case "png" => "image"
     case "sbt" => "code"
+    case "coffee" => "code"
     case "conf" => "code"
     case "css" => "code"
     case "less" => "code"

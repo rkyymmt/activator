@@ -1,9 +1,8 @@
 define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/pluginapi'], function(css, template, pageTemplate, api){
 
-	var ko = api.ko,
-		key = api.key;
+	var ko = api.ko;
 
-	var Page = api.Widget({
+	var Page = api.Class(api.Widget, {
 		id: 'page-widget',
 		template: pageTemplate,
 		init: function(parameters) {
@@ -12,6 +11,8 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/plug
 			this.content = parameters.content.innerHTML;
 			this.title = $(parameters.content).find("h1,h2").text();
 			this.tutorial = parameters.tutorial;
+			// first time on each page, we always want to scroll to 0
+			this.lastScrollTop = 0;
 			this.active = ko.computed(function() {
 				var result = self === self.tutorial.currentPage();
 				console.log("page " + self.index + " active=" + result);
@@ -25,11 +26,12 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/plug
 		}
 	});
 
-	var Tutorial = api.Widget({
+	var Tutorial = api.Class(api.Widget, {
 		id: 'tutorial-widget',
 		template: template,
 		init: function(parameters) {
 			var self = this;
+			self.node = null;
 			self.pages = ko.observableArray([]);
 			self.currentPage = ko.observable(null);
 			self.havePages = ko.computed(function() {
@@ -90,9 +92,16 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/plug
 			}
 		},
 		select: function(item) {
+			var old = this.currentPage();
+			if (old) {
+				// save the page's scroll position
+				old.lastScrollTop = $(this.node).find('article')[0].scrollTop;
+			}
 			if (item) {
 				console.log("selecting page " + item.index + ": " + item.title);
 				this.currentPage(item);
+				// restore the page's scroll position
+				$(this.node).find('article')[0].scrollTop = item.lastScrollTop;
 			} else if (item === null) {
 				console.log("unselecting all pages");
 				this.currentPage(null);
@@ -133,6 +142,7 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/plug
 				tuts.toggleClass("collapsed");
 				$('body').toggleClass("right-collapsed")
 			});
+			this.node = tuts;
 		}
 	});
 

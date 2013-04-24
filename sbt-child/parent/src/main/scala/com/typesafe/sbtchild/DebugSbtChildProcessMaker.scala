@@ -88,7 +88,7 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
       "-Dbuilder.home=" + BUILDER_HOME,
       // Looks like this one is unset...
       "-Dsbt.boot.directory=" + (sys.props get "sbt.boot.directory" getOrElse (sys.props("user.home") + "/.sbt")),
-      "-Dsbt.boot.properties=" + propsFile.getAbsolutePath,
+      "-Dsbt.boot.properties=" + propsFile.toURI.toString,
       // TODO - Don't allow user-global plugins?
       //"-Dsbt.global.base=/tmp/.sbtboot",
       portArg)

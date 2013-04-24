@@ -1,5 +1,5 @@
 <ul class="logsList" data-bind="foreach: logGroups">
     <!-- ko foreach: $data -->
-    <li data-bind="css: level, text: message"></li>
+    <li data-bind="css: level, compilerMessage: $data"></li>
     <!-- /ko -->
 </ul>

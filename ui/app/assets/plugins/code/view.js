@@ -1,7 +1,6 @@
 define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./codeView", 'core/pluginapi'], function(viewOuter, defaultTemplate, ImageView, CodeView, api) {
 
-	var ko = api.ko,
-		key = api.key;
+	var ko = api.ko;
 
 	function open(location) {
 		return $.ajax({
@@ -14,7 +13,7 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 	}
 
 	// Default view for when we don't know which other to use.
-	var DefaultView = api.Widget({
+	var DefaultView = api.Class(api.Widget, {
 		id: 'code-default-view',
 		template: defaultTemplate,
 		init: function(args) {
@@ -26,11 +25,13 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 		},
 		afterRender: function(a,b,c){
 			//console.log('abc', a,b,c)
+		},
+		scrollToLine: function(line) {
 		}
 	});
 
 	// Fetch utility
-	var FileBrowser = api.Widget({
+	var FileBrowser = api.Class(api.Widget, {
 		id: 'file-browser-widget',
 		template: viewOuter,
 		init: function(args) {
@@ -87,6 +88,9 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 				console.log('Failed to open file in browser: ', err)
 				alert('Failed to open file.  This may be unsupported by your system.');
 			});
+		},
+		scrollToLine: function(line) {
+			this.subView().scrollToLine(line);
 		}
 	});
 

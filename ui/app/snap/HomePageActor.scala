@@ -18,13 +18,14 @@ object HomePageActor {
         case e: JsResultException => None
       }
   }
-  case class CreateNewApplication(location: String, templateId: String)
+  case class CreateNewApplication(location: String, templateId: String, projectName: Option[String])
   object CreateNewApplication {
     def unapply(in: JsValue): Option[CreateNewApplication] =
       try if ((in \ "request").as[String] == "CreateNewApplication")
         Some(CreateNewApplication(
           (in \ "location").as[String],
-          (in \ "template").asOpt[String] getOrElse ""))
+          (in \ "template").asOpt[String] getOrElse "",
+          (in \ "name").asOpt[String]))
       else None
       catch {
         case e: JsResultException => None
@@ -54,7 +55,7 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
   import HomePageActor._
   override def onMessage(json: JsValue): Unit = json match {
     case OpenExistingApplication(msg) => openExistingApplication(msg.location)
-    case CreateNewApplication(msg) => createNewApplication(msg.location, msg.templateId)
+    case CreateNewApplication(msg) => createNewApplication(msg.location, msg.templateId, msg.projectName)
     case _ =>
       // TODO - Send error...
       log.error(s"HomeActor: received unknown msg: $json")
@@ -65,7 +66,7 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
   }
 
   // Goes off and tries to create/load an application.
-  def createNewApplication(location: String, template: String): Unit = {
+  def createNewApplication(location: String, template: String, projectName: Option[String]): Unit = {
     import context.dispatcher
     val appLocation = new java.io.File(location)
     // a chance of knowing what the error is.
@@ -74,7 +75,8 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
       snap.cache.Actions.cloneTemplate(
         controllers.api.Templates.templateCache,
         template,
-        appLocation) map (_ => appLocation)
+        appLocation,
+        projectName) map (_ => appLocation)
     self ! Respond(Status("Template is cloned, compiling project definiton..."))
     loadApplicationAndSendResponse(installed)
   }

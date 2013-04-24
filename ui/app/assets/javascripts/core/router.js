@@ -117,9 +117,10 @@ define(['./pluginapi'], function(api) {
 		// If no arguments, take the hash
 		url = url || window.location.hash;
 		// Split full path in modules
-		var bcs = url ? /^#?\/?(.+)\/?$/.exec(url)[1].split("/") : [];
+		var bcs = url ? /^#?\/?(.+)\/?$/.exec(url)[1].split("/") : ['home'];
 		// Make arguments to churn through routers...
 		var args = createArgs(bcs);
+
 		// TODO - Check if we're empty and add a link to the 'home' widget action?
 		// Check if modules are loaded, or retrieve module object
 		executeRoutes(routes, args);
