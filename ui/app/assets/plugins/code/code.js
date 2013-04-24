@@ -53,6 +53,15 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 			self.viewer = new Viewer({
 				file: self.currentFile
 			});
+			var onSave = function() {
+				if (self.viewer.subView().save)
+					self.viewer.subView().save();
+				else
+					alert("Saving this kind of file is not supported");
+			};
+			self.keybindings = [
+				[ 'ctrl-s', onSave, { preventDefault: true } ]
+			];
 		},
 		setCrumbs: function(crumbs) {
 			var line = -1;
