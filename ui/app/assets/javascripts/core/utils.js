@@ -204,6 +204,7 @@ define([], function() {
 	/* TODO end of test suite to remove */
 
 	return {
-		Class: Class
+		Class: Class,
+		Singleton: Singleton
 	}
 });
