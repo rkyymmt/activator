@@ -14,7 +14,7 @@ import utils.Global
 
 class UserActor(uuid: String, out: WebSocket.Out[JsonNode]) extends Actor {
 
-  val stocks: mutable.Map[String, ActorRef] = mutable.Map.empty[String, ActorRef]
+  var stocks: Map[String, ActorRef] = Map.empty[String, ActorRef]
 
   def receive = {
     case StockUpdate(symbol, price) =>
@@ -28,7 +28,7 @@ class UserActor(uuid: String, out: WebSocket.Out[JsonNode]) extends Actor {
     case WatchStock(uuid: String, symbol: String) =>
       implicit val timeout = Timeout(15.seconds)
       (Global.stockHolderActor ? SetupStock(symbol)).mapTo[ActorRef].map { stockActorRef =>
-        stocks.put(symbol, stockActorRef)
+        stocks = stocks + (symbol -> stockActorRef)
 
         // send the whole history to the client
         (stockActorRef ? FetchHistory).mapTo[Seq[Number]].map { history =>
@@ -45,7 +45,7 @@ class UserActor(uuid: String, out: WebSocket.Out[JsonNode]) extends Actor {
       }
     case UnwatchStock(uuid: String, symbol: String) =>
       if (stocks.contains(symbol))
-        stocks.remove(symbol)
+        stocks = stocks - symbol
   }
 }
 
