@@ -9,7 +9,8 @@ import scala.util.control.NonFatal
 object Templates extends Controller {
   // This will load our template cache and ensure all templates are available for the demo.
   // We should think of an alternative means of loading this in the future.
-  val templateCache = snap.cache.TemplateCache()
+  implicit val timeout = akka.util.Timeout(60000L)
+  val templateCache = snap.cache.DefaultTemplateCache(snap.Akka.system)
 
   // Here's the JSON rendering of template metadata.
   implicit object Protocol extends Format[TemplateMetadata] {

@@ -2,7 +2,7 @@ package snap
 package cache
 
 import java.io.File
-import builder.properties.BuilderProperties
+import activator.properties.ActivatorProperties
 import scala.concurrent.Future
 import akka.actor.{ ActorRefFactory, Props }
 import akka.pattern.ask
@@ -49,6 +49,6 @@ object DefaultTemplateCache {
   }
   /** The default cache directory, configured by builder properties. */
   def defaultCacheDir: File = (
-    Option(BuilderProperties.BUILDER_TEMPLATE_CACHE) map (new File(_)) getOrElse
+    Option(ActivatorProperties.ACTIVATOR_TEMPLATE_CACHE) map (new File(_)) getOrElse
     sys.error("Could not instatiate template cache!  Does this user have a home directory?"))
 }

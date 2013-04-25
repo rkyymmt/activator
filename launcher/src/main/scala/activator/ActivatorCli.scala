@@ -2,20 +2,23 @@ package activator
 
 import xsbti.{ AppMain, AppConfiguration }
 import activator.properties.ActivatorProperties.SCRIPT_NAME
-import snap.cache.TemplateCache
 import snap.cache.Actions.cloneTemplate
+import snap.cache.DefaultTemplateCache
 import java.io.File
 import sbt.complete.{ Parser, Parsers }
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import akka.actor.ActorSystem
 
 object ActivatorCli {
   def apply(configuration: AppConfiguration): Int = try {
     System.out.println()
     val name = getApplicationName()
+    val system = ActorSystem()
     val projectDir = new File(name).getAbsoluteFile
     // Ok, now we load the template cache...
-    val cache = TemplateCache()
+    implicit val timeout = akka.util.Timeout(60000L)
+    val cache = DefaultTemplateCache(system)
     // Get all possible names.
     // TODO - Re-architect this for the actor-based template cache!
     val metadata = Await.result(cache.metadata, Duration(1, SECONDS))
