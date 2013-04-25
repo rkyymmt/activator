@@ -18,8 +18,16 @@ case class TemplateMetadata(
   // TODO - update equality/hashcode to be based on ID
 }
 
-/** A mapping of the files included in this tutorial. */
+/**
+ * A mapping of the files included in this tutorial.
+ *
+ * The map is relative-file-name to actual File.
+ */
 case class Tutorial(id: String, files: Map[String, java.io.File])
+/**
+ * All information about a template.
+ * @files is a sequence of actual file -> relative location name.
+ */
 case class Template(metadata: TemplateMetadata,
   files: Seq[(java.io.File, String)]) // TODO - What do we need for help?
 
