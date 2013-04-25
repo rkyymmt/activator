@@ -6,6 +6,7 @@ import play.api.libs.iteratee.Concurrent
 import java.io.File
 import akka.pattern.pipe
 import scala.util.control.NonFatal
+import scala.concurrent.Future
 
 // THE API for the HomePage actor.
 object HomePageActor {
@@ -71,17 +72,21 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
     import context.dispatcher
     val appLocation = new java.io.File(location)
     // a chance of knowing what the error is.
-    val installed: ProcessResult[File] =
+    val installed: Future[ProcessResult[File]] =
       //TODO - Store template cache somehwere better...
       snap.cache.Actions.cloneTemplate(
         controllers.api.Templates.templateCache,
         template,
         appLocation,
-        projectName) map (_ => appLocation)
-    if (installed.isSuccess)
-      self ! Respond(Status("Template is cloned, compiling project definition..."))
-    else
-      log.warning("Failed to clone template: " + installed) // error response is generated in loadApplicationAndSendResponse
+        projectName) map (result => result map (_ => appLocation))
+
+    // Ensure feedback happens after clone-ing is done.
+    for (result <- installed) {
+      if (result.isSuccess)
+        self ! Respond(Status("Template is cloned, compiling project definition..."))
+      else
+        log.warning("Failed to clone template: " + result)
+    }
     loadApplicationAndSendResponse("CreateNewApplication", installed)
   }
 
@@ -97,12 +102,15 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
       self ! Respond(Status("Compiling project definition..."))
     else
       log.warning(s"Failed to locate directory $location: " + file) // error response is generated in loadApplicationAndSendResponse
-    loadApplicationAndSendResponse("OpenExistingApplication", file)
+    import scala.concurrent.promise
+    val filePromise = promise[ProcessResult[File]]
+    filePromise.success(file)
+    loadApplicationAndSendResponse("OpenExistingApplication", filePromise.future)
   }
 
   // helper method that given a validated file, will try to load
   // the application id and return an appropriate response.
-  private def loadApplicationAndSendResponse(request: String, file: ProcessResult[File]) = {
+  private def loadApplicationAndSendResponse(request: String, file: Future[ProcessResult[File]]) = {
     import context.dispatcher
     val id = file flatMapNested { file =>
       AppManager.loadAppIdFromLocation(file,

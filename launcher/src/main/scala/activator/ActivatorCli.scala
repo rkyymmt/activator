@@ -6,6 +6,8 @@ import snap.cache.TemplateCache
 import snap.cache.Actions.cloneTemplate
 import java.io.File
 import sbt.complete.{ Parser, Parsers }
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 object ActivatorCli {
   def apply(configuration: AppConfiguration): Int = try {
@@ -15,19 +17,23 @@ object ActivatorCli {
     // Ok, now we load the template cache...
     val cache = TemplateCache()
     // Get all possible names.
-    val templateNames = cache.metadata.map(_.name).toSeq.distinct
+    // TODO - Re-architect this for the actor-based template cache!
+    val metadata = Await.result(cache.metadata, Duration(1, SECONDS))
+    val templateNames = metadata.map(_.name).toSeq.distinct
     System.out.println()
     System.out.println(s"The new application will be created in ${projectDir.getAbsolutePath}")
     System.out.println()
     val templateName = getTemplateName(templateNames)
     // Check validity, and check for direct match first
-    val template = (cache.metadata.find(_.name == templateName) orElse
-      cache.metadata.find(_.name.toLowerCase contains templateName.toLowerCase))
+    val template = (metadata.find(_.name == templateName) orElse
+      metadata.find(_.name.toLowerCase contains templateName.toLowerCase))
     template match {
       case Some(t) =>
         System.out.println(s"""OK, application "$name" is being created using the "${t.name}" template.""")
         System.out.println()
-        cloneTemplate(cache, t.id, projectDir, Some(name))
+        import scala.concurrent.ExecutionContext.Implicits.global
+        // TODO - Is this duration ok?
+        Await.result(cloneTemplate(cache, t.id, projectDir, Some(name)), Duration(5, MINUTES))
         printUsage(name, projectDir)
         0
       case _ =>

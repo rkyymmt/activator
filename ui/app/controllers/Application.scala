@@ -71,15 +71,20 @@ object Application extends Controller {
       "template" -> text)(NewAppForm.apply)(NewAppForm.unapply))
 
   /** Reloads the model for the home page. */
-  private def homeModel = HomeModel(
-    userHome = ActivatorProperties.GLOBAL_USER_HOME,
-    templates = api.Templates.templateCache.metadata.toSeq,
-    recentApps = RootConfig.user.applications)
+  private def homeModel = api.Templates.templateCache.metadata map { templates =>
+    HomeModel(
+      userHome = ActivatorProperties.GLOBAL_USER_HOME,
+      templates = templates.toSeq,
+      recentApps = RootConfig.user.applications)
+  }
 
   /** Loads the homepage, with a blank new-app form. */
   def forceHome = Action { implicit request =>
-    // TODO - make sure template cache lives in one and only one place!
-    Ok(views.html.home(homeModel, newAppForm))
+    Async {
+      homeModel map { model =>
+        Ok(views.html.home(model, newAppForm))
+      }
+    }
   }
 
   def test = Action { implicit request =>

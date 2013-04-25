@@ -2,7 +2,8 @@ package snap.cache
 
 import snap.IO
 import activator.properties.ActivatorProperties
-
+import scala.concurrent.{ Future, Await }
+import scala.concurrent.duration._
 // TODO - This whole thing should use an abstraction file files, like "Source" or some such.
 
 // TODO - This may need more work.
@@ -28,14 +29,14 @@ case class Template(metadata: TemplateMetadata,
  */
 trait TemplateCache {
   /** Find a template within the cache. */
-  def template(id: String): Option[Template]
+  def template(id: String): Future[Option[Template]]
   /** Find the tutorial for a given template. */
   // TODO - Different method, or against Template?
-  def tutorial(id: String): Option[Tutorial]
+  def tutorial(id: String): Future[Option[Tutorial]]
   /** Search for a template within the cache. */
-  def search(query: String): Iterable[TemplateMetadata]
+  def search(query: String): Future[Iterable[TemplateMetadata]]
   /** Returns all metadata we have for templates. */
-  def metadata: Iterable[TemplateMetadata]
+  def metadata: Future[Iterable[TemplateMetadata]]
 }
 
 object TemplateCache {
@@ -46,12 +47,14 @@ object TemplateCache {
 // This class hacks everything together we need for the demo.
 class DemoTemplateCache() extends TemplateCache {
 
+  import scala.concurrent.ExecutionContext.Implicits.global
+
   private val cacheDir = (
     Option(ActivatorProperties.ACTIVATOR_TEMPLATE_CACHE) map (new java.io.File(_)) getOrElse
     sys.error("Could not instatiate template cache!  Does this user have a home directory?"))
 
   // First we copy our templates from the snap.home (if we have them there).
-  copyTemplatesIfNeeded()
+  ZipInstallHelper.copyLocalCacheIfNeeded(cacheDir)
 
   import java.io.File
   private def defaultTemplateFiles: Seq[(File, String)] = {
@@ -62,8 +65,8 @@ class DemoTemplateCache() extends TemplateCache {
     Seq(batFile, jarFile, bashFile).flatten
   }
 
-  override val metadata: Set[TemplateMetadata] =
-    Set(
+  override val metadata: Future[Set[TemplateMetadata]] =
+    Future(Set(
       // TODO - Put more hardcoded template metadata for the demo here!
       TemplateMetadata(
         id = "f9a3508cefd6408c6b993b5d90b328a72c1779d8",
@@ -92,11 +95,13 @@ class DemoTemplateCache() extends TemplateCache {
         title = "Hello Play Framework!",
         timeStamp = 1,
         description = """Play Framework is the High Velocity Web Framework for Java and Scala.  Play is based on a lightweight, stateless, web-friendly architecture.  Built on Akka, Play provides predictable and minimal resource comsumption (CPU, memory, threads) for highly-scalable applications.  This app will teach you how to start building Play 2.1 apps with Java and Scala.""",
-        tags = Seq("Basics", "play", "java", "scala", "starter")))
+        tags = Seq("Basics", "play", "java", "scala", "starter"))))
 
-  private val index: Map[String, TemplateMetadata] = (metadata map (m => m.id -> m)).toMap
-  override def template(id: String): Option[Template] =
-    index get id map { metadata =>
+  private val index: Map[String, TemplateMetadata] = {
+    (Await.result(metadata, Duration(1, SECONDS)) map (m => m.id -> m)).toMap
+  }
+  override def template(id: String): Future[Option[Template]] =
+    Future(index get id map { metadata =>
       // TODO - Find all files associated with a template...
       val templateDir = new java.io.File(cacheDir, id)
       val fileMappings = for {
@@ -106,10 +111,10 @@ class DemoTemplateCache() extends TemplateCache {
         if !(relative startsWith "tutorial")
       } yield file -> relative
       Template(metadata, fileMappings ++ defaultTemplateFiles)
-    }
+    })
 
-  override def tutorial(id: String): Option[Tutorial] =
-    index get id map { metadata =>
+  override def tutorial(id: String): Future[Option[Tutorial]] =
+    Future(index get id map { metadata =>
       // TODO - Find all files associated with a template...
       val templateDir = new java.io.File(cacheDir, id + "/tutorial")
       val fileMappings = for {
@@ -119,31 +124,15 @@ class DemoTemplateCache() extends TemplateCache {
         if !relative.isEmpty
       } yield relative -> file
       Tutorial(id, fileMappings.toMap)
-    }
+    })
 
-  override def search(query: String): Iterable[TemplateMetadata] =
-    for {
-      m <- metadata
+  override def search(query: String): Future[Iterable[TemplateMetadata]] =
+    Future(for {
+      m <- Await.result(metadata, Duration(1, SECONDS))
       // Hack so we can search this stuff.
       searchstring = s"""${m.title} ${m.name} ${m.tags mkString " "} ${m.description}"""
       // TODO - better search
       if searchstring contains query
-    } yield m
+    } yield m)
 
-  private def copyTemplatesIfNeeded() {
-    // Ensure template cache exists.
-    IO.createDirectory(cacheDir)
-    // TODO - use SBT IO library when it's on scala 2.10
-    for (templateRepo <- Option(ActivatorProperties.ACTIVATOR_TEMPLATE_LOCAL_REPO) map (new java.io.File(_)) filter (_.isDirectory)) {
-      // Now loop over all the files in this repo and copy them into the local cache.
-      for {
-        file <- IO allfiles templateRepo
-        relative <- IO.relativize(templateRepo, file)
-        if !relative.isEmpty
-        to = new java.io.File(cacheDir, relative)
-        if !to.exists
-      } if (file.isDirectory) IO.createDirectory(to)
-      else IO.copyFile(file, to)
-    }
-  }
 }
