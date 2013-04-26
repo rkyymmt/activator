@@ -9,7 +9,7 @@ import play.api.libs.json._
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import java.io._
-import builder.properties.BuilderProperties.BUILDER_USER_HOME
+import activator.properties.ActivatorProperties.ACTIVATOR_USER_HOME
 import scala.concurrent.duration._
 
 case class AppConfig(location: File, id: String, cachedName: Option[String] = None) {
@@ -51,7 +51,7 @@ object RootConfig {
     RootConfig(applications)
   }
 
-  private def loadUser = ConfigFile(new File(BUILDER_USER_HOME(), "config.json"))
+  private def loadUser = ConfigFile(new File(ACTIVATOR_USER_HOME(), "config.json"))
 
   // volatile because we read it unsynchronized. we don't care
   // which one we get, just something sane.

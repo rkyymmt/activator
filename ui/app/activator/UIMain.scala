@@ -1,4 +1,4 @@
-package builder
+package activator
 
 import xsbti.{ AppMain, AppConfiguration }
 import java.awt._
@@ -8,7 +8,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import com.typesafe.sbtchild.SbtChildLauncher
 import snap._
-import builder.properties.BuilderProperties._
+import activator.properties.ActivatorProperties._
 import xsbti.GlobalLock
 
 object PidDetector {
@@ -20,20 +20,20 @@ object PidDetector {
   // Helper to make global lock easier to use.
   implicit class LockHelper(val lock: GlobalLock) extends AnyVal {
     def onBuilder[A](f: => A): A =
-      lock.apply(BUILDER_LOCK_FILE, f2c(f))
+      lock.apply(ACTIVATOR_LOCK_FILE, f2c(f))
   }
   // Checks to see if we can load the previous pid.
   private def previousPid(lock: GlobalLock): Option[String] =
     lock onBuilder {
-      if (BUILDER_PID_FILE.exists)
-        Option(snap.IO.slurp(BUILDER_PID_FILE).trim) filterNot (_.isEmpty)
+      if (ACTIVATOR_PID_FILE.exists)
+        Option(snap.IO.slurp(ACTIVATOR_PID_FILE).trim) filterNot (_.isEmpty)
       else None
     }
 
   private def writeCurrentPid(lock: GlobalLock): Unit = {
     for (pid <- java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split('@').headOption) {
       lock onBuilder {
-        snap.IO.write(BUILDER_PID_FILE, pid, append = false)
+        snap.IO.write(ACTIVATOR_PID_FILE, pid, append = false)
       }
     }
   }

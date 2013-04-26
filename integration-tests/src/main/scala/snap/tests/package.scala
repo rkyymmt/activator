@@ -1,6 +1,6 @@
 package snap
 
-import builder.properties.BuilderProperties._
+import activator.properties.ActivatorProperties._
 
 // Helper methods for running tests.
 package object tests {
@@ -28,7 +28,7 @@ package object tests {
     finally writer.close()
   }
 
-  /** Creates a dummy project we can run Builder against. */
+  /** Creates a dummy project we can run Activator against. */
   def makeDummySbtProject(dir: java.io.File): java.io.File = {
     snap.IO.createDirectory(dir)
     val project = new java.io.File(dir, "project")
@@ -42,7 +42,7 @@ package object tests {
     dir
   }
 
-  /** Creates a dummy project we can run Builder against. */
+  /** Creates a dummy project we can run Activator against. */
   def makeDummyPlayProject(dir: java.io.File): java.io.File = {
     makeDummySbtProject(dir)
     val project = new java.io.File(dir, "project")

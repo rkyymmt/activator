@@ -1,6 +1,6 @@
 @(model: controllers.ApplicationModel)(implicit request: RequestHeader)
 
-@import builder.properties.BuilderProperties
+@import activator.properties.ActivatorProperties
 
 @name(app: snap.AppConfig) = {
   @app.cachedName.getOrElse(app.id)
@@ -12,13 +12,13 @@
 <html>
 	<head>
 		<meta charset="utf-8" />
-		<title>Typesafe Builder</title>
+		<title>Typesafe Activator</title>
 		<script type="text/javascript">
 		window.wsUrl = '@routes.Application.connectApp(model.id).webSocketURL()';
 		window.serverAppModel = {
       name: '@model.name',
       id: '@model.id',
-      appVersion: '@BuilderProperties.APP_VERSION',
+      appVersion: '@ActivatorProperties.APP_VERSION',
       pluginIds:  [ @Html(model.plugins.mkString("\'", "\','","\'")) ],
       location: '@model.jsLocation'
       @for(id <- model.template) {

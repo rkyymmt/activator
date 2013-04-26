@@ -10,7 +10,7 @@ class MustStartUI extends IntegrationTest {
 
   val sbtProject = makeDummySbtProject(new java.io.File("dummy"))
 
-  val process = run_builder(Seq("ui"), sbtProject).run
+  val process = run_activator(Seq("ui"), sbtProject).run
 
   // Wait for Http Server startup on port 8888
   // TODO - If we pick a random port in the future, this needs to detect it...
