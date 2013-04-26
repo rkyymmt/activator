@@ -1,4 +1,4 @@
-# Activator Instructions
+# Typesafe Activator Instructions
 
 > Activator can be used from a web browser or from a command line.
 
