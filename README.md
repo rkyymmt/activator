@@ -1,4 +1,4 @@
-# Typesafe Activator
+# Activator
 
 This project aims to be the snappiest snaptastic snapster you've every snapping laid eyes on!  And by that, we mean it builds stuff.
 

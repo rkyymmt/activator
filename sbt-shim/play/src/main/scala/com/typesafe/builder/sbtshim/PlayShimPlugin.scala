@@ -120,7 +120,7 @@ object PlayShimPlugin extends Plugin {
       ctx.sendEvent("playServerStarted", SimpleJsonMessage(JSONObject(Map("port" -> port))))
 
       println()
-      println("(Server started, use Builder to stop....")
+      println("(Server started, use Activator to stop....")
       println()
 
       val ContinuousState = AttributeKey[WatchState]("watch state", "Internal: tracks state for continuous execution.")

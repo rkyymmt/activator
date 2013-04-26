@@ -1,6 +1,6 @@
-# Typesafe Activator Instructions
+# Activator Instructions
 
-> Typesafe Activator can be used from a web browser or from a command line.
+> Activator can be used from a web browser or from a command line.
 
 ## Browser Launch Instructions
 

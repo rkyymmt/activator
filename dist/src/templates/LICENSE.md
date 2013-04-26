@@ -65,17 +65,17 @@ This software makes use of the following projects/licenses:
 ## GNU Lesser General Public License 2.1
   [http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html](http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
 
-  The jna lbrary is included in this distribution, but is not used by Typesafe Activator.  JNA is supported, and the jar is loaded by the typesafe Activator build-tool for those who wish to make use of it.
+  The jna lbrary is included in this distribution, but is not used by Activator.  JNA is supported, and the jar is loaded by the Activator build-tool for those who wish to make use of it.
 
 ## GNU Lesser General Public License 3.0
   [http://www.gnu.org/licenses/lgpl.txt](http://www.gnu.org/licenses/lgpl.txt])
 
-  The giter8 and pamflet libraries are included, which are GPL v3.0 licensed.  These libraries are only used if directly requested, e.g. using pamflet to generate project reports.  These are not used directly by Typesafe Activator, but included in the offline repository.
+  The giter8 and pamflet libraries are included, which are GPL v3.0 licensed.  These libraries are only used if directly requested, e.g. using pamflet to generate project reports.  These are not used directly by Activator, but included in the offline repository.
 
 ## The H2 License, Version 1.0 
   [http://h2database.com/html/license.html](http://h2database.com/html/license.html)
 
-  The H2 database is included in the local repository, but not used directly by Typesafe Activator.
+  The H2 database is included in the local repository, but not used directly by Activator.
 
 ## MIT License
   [http://www.opensource.org/licenses/MIT](http://www.opensource.org/licenses/MIT)

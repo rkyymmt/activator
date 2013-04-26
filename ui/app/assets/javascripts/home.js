@@ -17,7 +17,7 @@ require([
 			streams.subscribe({
 				handler: function(event) {
 					// TODO - Can we try to reconnect X times before failing?
-					alert("Connection lost; you will need to reload the page or restart Builder");
+					alert("Connection lost; you will need to reload the page or restart Activator");
 				},
 				filter: function(event) {
 					return event.type == streams.WEB_SOCKET_CLOSED;
