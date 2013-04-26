@@ -113,7 +113,7 @@ require([
 		assert(b.a == 1);
 		assert(b.b == 2);
 		assert(b.foo() == "B");
-		assert(b.count == 1)
+		assert(b.count == 1);
 
 		assert(s1.name == "S1");
 		assert(s1.a1 == 3);
