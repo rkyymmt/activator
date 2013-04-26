@@ -71,8 +71,8 @@ object Packaging {
     name <<= version apply ("activator-" + _),
     wixConfig := <wix/>,
     maintainer := "Josh Suereth <joshua.suereth@typesafe.com>",
-    packageSummary := "Typesafe Activatory",
-    packageDescription := """A templating and project runner for Typesafe applications.""",
+    packageSummary := "Activator",
+    packageDescription := """Helps developers get started with Typesafe technologies quickly and easily.""",
     stage <<= (target, mappings in Universal) map { (t, m) =>
       val to = t / "stage"
       val copies = m collect { case (f, p) => f -> (to / p) }
@@ -124,13 +124,13 @@ object Packaging {
     makeReadmeHtml <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
       val template = from / "README.md"
       val output = to / "README.html"
-      Markdown.makeHtml(template, output, title="Typesafe Activator")
+      Markdown.makeHtml(template, output, title="Activator")
       output
     },
     makeLicensesHtml <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
       val template = from / "LICENSE.md"
       val output = to / "LICENSE.html"
-      Markdown.makeHtml(template, output, title="Typesafe Activator License")
+      Markdown.makeHtml(template, output, title="Activator License")
       output
     },
     localTemplateSourceDirectory <<= (baseDirectory in ThisBuild) apply (_ / "templates"),
