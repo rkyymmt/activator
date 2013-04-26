@@ -104,7 +104,7 @@ class UIMain extends AppMain {
       // Delay opening the browser a short bit so play can start.
       waitForServerStartup()
     } else {
-      System.err.println("Connecting to existing builder UI server...")
+      System.err.println("Connecting to existing Activator UI server...")
     }
 
     // openBrowser

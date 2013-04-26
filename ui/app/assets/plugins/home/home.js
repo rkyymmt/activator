@@ -13,7 +13,7 @@ define(['text!./home.html', 'core/pluginapi' ], function(template, api){
 		},
 		loadNews: function() {
 			var areq = {
-					url: "http://downloads.typesafe.com/typesafe-builder/" + window.serverAppModel.appVersion + "/news.js",
+					url: "http://downloads.typesafe.com/typesafe-activator/" + window.serverAppModel.appVersion + "/news.js",
 					type: 'GET',
 					// this is hardcoded for now since our server is just static files
 					// so can't respect a ?callback= query param.

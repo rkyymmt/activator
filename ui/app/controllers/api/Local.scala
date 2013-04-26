@@ -152,7 +152,7 @@ object Local extends Controller {
     val loc = Platform.fromClientFriendlyFilename(location)
     // We should probably just save any file...
     import snap.IO
-    IO.withTemporaryFile("builder", "save-file") { file =>
+    IO.withTemporaryFile("activator", "save-file") { file =>
       IO.write(file, content)
       IO.move(file, loc)
     }
