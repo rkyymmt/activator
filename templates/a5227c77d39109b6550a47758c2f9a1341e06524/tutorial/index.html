@@ -47,9 +47,9 @@
 
     <p>First, go back to <a href="#code/app/Hello.scala"
        class="shortcut">Hello.scala</a> and change 
-       <pre><code>println("hello, world")</code></pre> 
+       <pre><code>println("Hello, world!")</code></pre> 
        to 
-       <pre><code>println("hello, builder")</code></pre> 
+       <pre><code>println("Hello, Builder!")</code></pre> 
        and select "Save".</p>
     <p>Now, come back to the <a href="#run" class="shortcut">Run</a> tab.  After
        recompiling and running the project, you should see the console output now
@@ -64,23 +64,23 @@
     <p>First, we'd like to have our application also say goodbye.   Let's add the
        following line to the end of the Hello main method's body:
     <p>
-    <pre><code>println("goodbye, builder")</pre></code>
+    <pre><code>println("Goodbye, Builder!")</pre></code>
 
     <p>Navigate back to the <a href="#run" class="shortcut">Run</a> tab, and you should see:</p>
 
-<pre><code>hello, builder
-Goodbye, builder</pre></code>
+<pre><code>Hello, Builder!
+Goodbye, Builder!</pre></code>
 
     <p> Now, we'd like to re-use the name for the greeting and farewell text.  To do so, we're going to use a <code>def</code> in Scala.
-       A <code>def</code> denotes a method, or block of re-usable code.  Let's modify our Hello app as follows:
+       A <code>def</code> denotes a method, or block of re-usable code.  Let's modify our <a href="#code/app/Hello.scala" class="shortcut">Hello</a> app as follows:
     </p>
 <pre><code>
 object Hello {
-  val who = "builder"
+  val who = "Builder"
 
   def main(args: Array[String]): Unit = {
-    println("hello, " + who)
-    println("goodbye, " + who)
+    println("Hello, " + who + "!")
+    println("Goodbye, " + who + "!")
   }
 }
 </code></pre>
@@ -102,8 +102,7 @@ import org.scalatest.matchers.ShouldMatchers
 
 class HelloSpec extends FlatSpec with ShouldMatchers {
   "Hello" should "have tests" in {
-      
-    true should be(true)
+    true should be === true
   }
 }
 </pre></code>
@@ -118,7 +117,7 @@ class HelloSpec extends FlatSpec with ShouldMatchers {
       value in the the Hello object.  Modify the test as follows:</p>
 <pre><code>
   "Hello" should "know who to greet" in {
-    Hello.who should be("builder")
+    Hello.who should be === "Builder"
   }
 </pre></code>
 
