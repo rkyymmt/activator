@@ -57,20 +57,22 @@
     class="shortcut">HelloAkkaJava</a> class,
     containing our full sample). It is <b>very important</b> that the messages we create are immutable (meaning that
     they cannot be changed), if not we run the risk of accidentally sharing state between two different Actors
-    which will violate the Actor Model.
+    which will violate the Actor Model. In this sample we will not use any remoting, but it is a good practice to
+    always mark your messages as <code>Serializable</code> since then you will not run in to any runtime issues if
+    you decide to scale out (on to multiple nodes) with Akka but forget to go back and reimplement your messages.
         <pre><code>
 // Java code
 
-public static class Greet {}
+public static class Greet implements Serializable {}
 
-public static class WhoToGreet {
+public static class WhoToGreet implements Serializable {
     public final String who;
     public WhoToGreet(String who) {
         this.who = who;
     }
 }
 
-public static class Greeting {
+public static class Greeting implements Serializable {
     public final String message;
     public Greeting(String message) {
         this.message = message;
@@ -81,7 +83,8 @@ public static class Greeting {
     <p>
     This is the way we would define the messages in Scala.  In Scala case classes and case objects makes
     excellent messages since they are immutable and have support for pattern matching, something we will
-    take advantage of in the Actor when matching on the messages it has received.
+    take advantage of in the Actor when matching on the messages it has received. Another advantage case
+    classes has is that they are marked as serializable by default.
         <pre><code>
 // Scala code
 
@@ -128,10 +131,12 @@ public static class Greeter extends UntypedActor {
 
     public void onReceive(Object message) {
         if (message instanceof WhoToGreet)
-            greeting = "hello, " + ((WhoToGreet)message).who;
+            greeting = "hello, " + ((WhoToGreet) message).who;
 
         else if (message instanceof Greet)
             getSender().tell(new Greeting(greeting), getSelf());
+
+        else unhandled(message);
     }
 }
         </code></pre>
@@ -190,7 +195,7 @@ class Greeter extends Actor {
 // Java code
 
 final ActorSystem system = ActorSystem.create("helloakka");
-final ActorRef greeter = system.actorOf(new Props(Greeter.class), "greeter");
+final ActorRef greeter = system.actorOf(Props.create(Greeter.class), "greeter");
         </code></pre>
     </p>
     <p>
@@ -371,7 +376,7 @@ greeter.tell(new WhoToGreet("akka"));
 inbox.send(greeter, new Greet());
 
 // Wait 5 seconds for the reply with the 'greeting' message
-Greeting greeting = (Greeting)inbox.receive(Duration.create(5, "seconds"));
+Greeting greeting = (Greeting) inbox.receive(Duration.create(5, "seconds"));
 System.out.println("Greeting: " + greeting.message);
         </code></pre>
     </p>
