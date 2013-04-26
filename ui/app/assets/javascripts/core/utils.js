@@ -127,83 +127,8 @@ define([], function() {
 		return new ctor();
 	};
 
-	/*  TODO
-	 *   - comment out test suite once we test on IE
-	 *   - remove this little test suite once we have somewhere reasonable to put it
-	 */
-	function assert(t) {
-		if (!t)
-			throw new Error("fail");
-	}
-
-	var B = Class({
-		init: function(a,b) {
-			this.a = a;
-			this.b = b;
-			this.name = "B";
-			this.count = 1;
-		},
-		foo: function() {
-			return "B";
-		}
-	});
-
-	var S1 = Class(B, {
-		init: function(a, b) {
-			this.a1 = a;
-			this.b1 = b;
-			this.name = "S1";
-			this.count += 1;
-		},
-		classInit: function(proto) {
-			proto.classValue = 42;
-		},
-		foo: function() {
-			return "S1";
-		}
-	});
-
-	var S2 = Class(S1, {
-		init: function(a, b) {
-			this.a2 = a;
-			this.b2 = b;
-			this.name = "S2";
-			this.count += 1;
-		},
-		classInit: function(proto) {
-			proto.classValue = 43;
-		},
-		foo: function() {
-			return "S2";
-		}
-	});
-
-	var b = new B(1,2);
-	var s1 = new S1(3,4);
-	var s2 = new S2(5,6);
-
-	assert(b.name == "B");
-	assert(b.a == 1);
-	assert(b.b == 2);
-	assert(b.foo() == "B");
-	assert(b.count == 1)
-
-	assert(s1.name == "S1");
-	assert(s1.a1 == 3);
-	assert(s1.b1 == 4);
-	assert(s1.foo() == "S1");
-	assert(s1.count == 2);
-	assert(s1.classValue == 42);
-
-	assert(s2.name == "S2");
-	assert(s2.a2 == 5);
-	assert(s2.b2 == 6);
-	assert(s2.foo() == "S2");
-	assert(s2.count == 3);
-	assert(s2.classValue == 43);
-	/* TODO end of test suite to remove */
-
 	return {
-		Class: Class
+		Class: Class,
+		Singleton: Singleton
 	}
 });

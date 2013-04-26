@@ -13,6 +13,8 @@ import scala.util.control.NonFatal
 import scala.util.Try
 import play.Logger
 import play.api.libs.iteratee.{ Iteratee, Enumerator, Concurrent, Input }
+import play.api.Play
+import play.api.Mode
 import akka.pattern._
 import snap.CloseWebSocket
 
@@ -78,6 +80,15 @@ object Application extends Controller {
     // TODO - make sure template cache lives in one and only one place!
     Ok(views.html.home(homeModel, newAppForm))
   }
+
+  def test = Action { implicit request =>
+    import Play.current
+    if (Play.mode == Mode.Dev)
+      Ok(views.html.test())
+    else
+      NotFound
+  }
+
   /** Loads an application model and pushes to the view by id. */
   def app(id: String) = Action { implicit request =>
     Async {
