@@ -4,16 +4,18 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.Inbox;
 import scala.concurrent.duration.Duration;
+import java.io.Serializable;
+import java.util.concurrent.TimeUnit;
 
 public class HelloAkkaJava {
-    public static class Greet {}
-    public static class WhoToGreet {
+    public static class Greet implements Serializable {}
+    public static class WhoToGreet implements Serializable {
         public final String who;
         public WhoToGreet(String who) {
             this.who = who;
         }
     }
-    public static class Greeting {
+    public static class Greeting implements Serializable {
         public final String message;
         public Greeting(String message) {
             this.message = message;
@@ -25,10 +27,11 @@ public class HelloAkkaJava {
 
         public void onReceive(Object message) {
             if (message instanceof WhoToGreet)
-                greeting = "hello, " + ((WhoToGreet)message).who;
+                greeting = "hello, " + ((WhoToGreet) message).who;
             else if (message instanceof Greet)
                 // Send the current greeting back to the sender
                 getSender().tell(new Greeting(greeting), getSelf());
+            else unhandled(message);
         }
     }
 
@@ -37,26 +40,26 @@ public class HelloAkkaJava {
         final ActorSystem system = ActorSystem.create("helloakka");
 
         // Create the 'greeter' actor
-        final ActorRef greeter = system.actorOf(new Props(Greeter.class), "greeter");
+        final ActorRef greeter = system.actorOf(Props.create(Greeter.class), "greeter");
 
-        // Create the mailbox
+        // Create the "actor-in-a-box"
         final Inbox inbox = Inbox.create(system);
 
         // Tell the 'greeter' to change its 'greeting' message
         greeter.tell(new WhoToGreet("akka"));
 
         // Ask the 'greeter for the latest 'greeting'
-        // Reply should go to the mailbox
+        // Reply should go to the "actor-in-a-box"
         inbox.send(greeter, new Greet());
 
         // Wait 5 seconds for the reply with the 'greeting' message
-        Greeting greeting1 = (Greeting)inbox.receive(Duration.create(5, "seconds"));
+        Greeting greeting1 = (Greeting) inbox.receive(Duration.create(5, TimeUnit.SECONDS));
         System.out.println("Greeting: " + greeting1.message);
 
         // Change the greeting and ask for it again
         greeter.tell(new WhoToGreet("typesafe"));
         inbox.send(greeter, new Greet());
-        Greeting greeting2 = (Greeting)inbox.receive(Duration.create(5, "seconds"));
+        Greeting greeting2 = (Greeting) inbox.receive(Duration.create(5, TimeUnit.SECONDS));
         System.out.println("Greeting: " + greeting2.message);
 
         system.shutdown();

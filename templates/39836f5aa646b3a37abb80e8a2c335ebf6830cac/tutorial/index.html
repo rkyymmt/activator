@@ -277,7 +277,7 @@ greeter.tell(new Greet(), getSelf());
         </code></pre>
     </p>
     <p>
-    In Scala the this is simplified a bit. Scala has something called
+    In Scala this is simplified a bit. Scala has something called
     <a href="http://www.scala-lang.org/node/114">implicit parameters</a> which allows you to automatically and
     transparently pass in parameters into methods, a feature that are taking advantage of here to automatically
     pass along the sender reference when you send a message to another Actor.
@@ -351,7 +351,7 @@ sender tell Greeting(greeting)
     <p>
     As you probably know, blocking is something that can really inhibit performance and scalability, and that
     you should use very sparingly and with care. That said, we are making use of it in this sample since it
-    makes it simplifies the sample and makes it very easy to follow the message flow.
+    simplifies the sample and makes it very easy to follow the message flow.
     </p>
     <p>
     Now let's complete this tutorial by writing the driver code that will exercise our <code>Greeter</code> Actor.
