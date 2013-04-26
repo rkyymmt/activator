@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>Hello Scala - Builder Template</title>
+    <title>Hello Scala - Activator Template</title>
 </head>
 <body>
 <div>
@@ -49,11 +49,11 @@
        class="shortcut">Hello.scala</a> and change 
        <pre><code>println("Hello, world!")</code></pre> 
        to 
-       <pre><code>println("Hello, Builder!")</code></pre> 
+       <pre><code>println("Hello, Activator!")</code></pre> 
        and select "Save".</p>
     <p>Now, come back to the <a href="#run" class="shortcut">Run</a> tab.  After
        recompiling and running the project, you should see the console output now
-       shows: <pre><code>hello, builder</code></pre></p>
+       shows: <pre><code>Hello, Activator!</code></pre></p>
 </div>
 <div>
     <h2>Defining Values</h2>
@@ -64,19 +64,19 @@
     <p>First, we'd like to have our application also say goodbye.   Let's add the
        following line to the end of the Hello main method's body:
     <p>
-    <pre><code>println("Goodbye, Builder!")</pre></code>
+    <pre><code>println("Goodbye, Activator!")</pre></code>
 
     <p>Navigate back to the <a href="#run" class="shortcut">Run</a> tab, and you should see:</p>
 
-<pre><code>Hello, Builder!
-Goodbye, Builder!</pre></code>
+<pre><code>Hello, Activator!
+Goodbye, Activator!</pre></code>
 
     <p> Now, we'd like to re-use the name for the greeting and farewell text.  To do so, we're going to use a <code>def</code> in Scala.
        A <code>def</code> denotes a method, or block of re-usable code.  Let's modify our <a href="#code/app/Hello.scala" class="shortcut">Hello</a> app as follows:
     </p>
 <pre><code>
 object Hello {
-  val who = "Builder"
+  val who = "Activator"
 
   def main(args: Array[String]): Unit = {
     println("Hello, " + who + "!")
@@ -117,7 +117,7 @@ class HelloSpec extends FlatSpec with ShouldMatchers {
       value in the the Hello object.  Modify the test as follows:</p>
 <pre><code>
   "Hello" should "know who to greet" in {
-    Hello.who should be === "Builder"
+    Hello.who should be === "Activator"
   }
 </pre></code>
 
@@ -136,8 +136,8 @@ class HelloSpec extends FlatSpec with ShouldMatchers {
     <h2>Next Steps</h2>
 
     <p>You're now ready to really start learning how to write application in Scala!   While this tutorial presents the absolute basics of creating applications in Scala,
-       we don't cover the details of the language.  As you explore further tutorials, we recommend toying with code inside of builder.  You may continue using the browser, 
-       or swap to a command line experience via the "builder" script in the hello-scala directory.</p>
+       we don't cover the details of the language.  As you explore further tutorials, we recommend toying with code inside of Activator.  You may continue using the browser, 
+       or swap to a command line experience via the "activator" script in the hello-scala directory.</p>
     <p>If you're interested in learning more about Scala, please look through the following links/tutorials/books:</p>
     <ul>
       <li><a href="http://docs.scala-lang.org/tutorials/">Scala Tutorials</a></li>

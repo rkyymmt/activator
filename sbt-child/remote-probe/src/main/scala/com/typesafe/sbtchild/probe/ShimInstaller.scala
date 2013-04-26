@@ -1,7 +1,7 @@
 package com.typesafe.sbtchild.probe
 
 import sbt._
-import builder.properties.BuilderProperties._
+import activator.properties.ActivatorProperties._
 
 class ShimInstaller(val name: String) {
 

@@ -1,6 +1,6 @@
 package com.typesafe.sbtchild
 
-import builder.properties.BuilderProperties._
+import activator.properties.ActivatorProperties._
 import java.io.File
 
 /**
@@ -8,8 +8,8 @@ import java.io.File
  * inside the SBT UI so we can run sbt children.
  */
 object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
-  private val probeClassPathProp = "builder.remote.probe.classpath"
-  private val sbtLauncherJarProp = "builder.sbt.launch.jar"
+  private val probeClassPathProp = "activator.remote.probe.classpath"
+  private val sbtLauncherJarProp = "activator.sbt.launch.jar"
   private val allNeededProps = Seq(probeClassPathProp, sbtLauncherJarProp)
 
   // NOTE -> THIS HAS TO BE LAZY
@@ -28,7 +28,7 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
   private lazy val sbtLauncherJar: String = sys.props(sbtLauncherJarProp)
 
   private lazy val propsFile = {
-    val tmp = File.createTempFile("builder", "properties")
+    val tmp = File.createTempFile("activator", "properties")
     val writer = new java.io.BufferedWriter(new java.io.FileWriter(tmp))
     try {
       writer.write(s"""
@@ -71,7 +71,7 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
 
   def arguments(port: Int): Seq[String] = {
     assertPropsArentMissing()
-    val portArg = "-Dbuilder.sbt-child-port=" + port.toString
+    val portArg = "-Dactivator.sbt-child-port=" + port.toString
     // TODO - We have to create a new sbt.boot.properties
     // with the settings we need, like:
     // resources=<path-to-ui-interface-jar>
@@ -85,7 +85,7 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
       "-XX:PermSize=512M",
       "-XX:+CMSClassUnloadingEnabled")
     val sbtProps = Seq(
-      "-Dbuilder.home=" + BUILDER_HOME,
+      "-Dactivator.home=" + ACTIVATOR_HOME,
       // Looks like this one is unset...
       "-Dsbt.boot.directory=" + (sys.props get "sbt.boot.directory" getOrElse (sys.props("user.home") + "/.sbt")),
       "-Dsbt.boot.properties=" + propsFile.toURI.toString,

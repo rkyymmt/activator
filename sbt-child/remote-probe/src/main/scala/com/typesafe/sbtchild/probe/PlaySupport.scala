@@ -2,7 +2,7 @@ package com.typesafe.sbtchild
 package probe
 
 import sbt._
-import builder.properties.BuilderProperties._
+import activator.properties.ActivatorProperties._
 import com.typesafe.sbtchild.protocol.TaskNames
 import com.typesafe.sbt.ui.{ Context => UIContext, Params }
 import com.typesafe.sbt.ui.{ Context => UIContext }

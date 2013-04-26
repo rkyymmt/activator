@@ -15,9 +15,9 @@ fullResolvers <<= (fullResolvers, bootResolvers) map {
   case (rs, _) => rs
 }
     
-addSbtPlugin("com.typesafe.builder" % "sbt-shim-""" + name + """" % """" + version + "\")\n"
+addSbtPlugin("com.typesafe.activator" % "sbt-shim-""" + name + """" % """" + version + "\")\n"
 
-  private val SHIM_FILE_NAME = "builder-" + name + "-shim.sbt"
+  private val SHIM_FILE_NAME = "activator-" + name + "-shim.sbt"
 
   private lazy val pluginSbtFile = {
     val tmp = java.io.File.createTempFile(name, "sbt-shim")

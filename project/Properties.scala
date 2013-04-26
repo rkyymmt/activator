@@ -16,9 +16,9 @@ object Properties {
   def makePropertyClassSetting(sbtVersion: String, scalaVersion: String): Seq[Setting[_]] = Seq(
     resourceGenerators in Compile <+= makePropertiesSource,
     makePropertiesSource <<= (version, resourceManaged in Compile, compile in Compile) map { (v, dir, analysis) =>
-      val parent= dir / "builder" / "properties"
+      val parent= dir / "activator" / "properties"
       IO createDirectory parent
-      val target = parent / "builder.properties"
+      val target = parent / "activator.properties"
 
       writeIfChanged(target, makeJavaPropertiesString(v, sbtVersion, scalaVersion))
 

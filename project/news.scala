@@ -66,7 +66,7 @@ object NewsHelper {
       jsonpNewsFileCreated <<= (newsFile, jsonpNewsFile) map generateJsonp,
       newsVersion in Global <<= version,
       mappings in S3.upload <<= (jsonpNewsFileCreated, newsVersion) map { (news, v) =>
-        Seq(news -> ("typesafe-builder/%s/news.js" format (v, v)))
+        Seq(news -> ("typesafe-activator/%s/news.js" format (v, v)))
       },
       S3.host in S3.upload := "downloads.typesafe.com.s3.amazonaws.com",
       S3.progress in S3.upload := true,

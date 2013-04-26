@@ -7,7 +7,7 @@ scalaVersion := "2.10.1"
 libraryDependencies += "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test"
 
 
-// Note: These settings are defaults for builder, and reorganize your source directories.
+// Note: These settings are defaults for activator, and reorganize your source directories.
 Seq(
   scalaSource in Compile <<= baseDirectory / "app",
   javaSource in Compile <<= baseDirectory / "app",

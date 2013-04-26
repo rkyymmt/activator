@@ -154,7 +154,7 @@ run() {
 
   # run sbt
   execRunner "$java_cmd" \
-    "-Dbuilder.home=${builder_home}" \
+    "-Dactivator.home=${activator_home}" \
     $(get_mem_opts $app_mem) \
     ${java_opts} \
     ${java_args[@]} \
@@ -175,7 +175,7 @@ usage() {
  cat <<EOM
 Usage: $script_name [ui] [options]
 
-  ui                 starts the Builder UI
+  ui                 starts the Activator UI
   new                Create a new project from a template
   -h | -help         print this message
   -v | -verbose      this runner is chattier
@@ -204,10 +204,10 @@ EOM
 declare -a residual_args
 declare -a java_args
 declare -a app_commands
-declare -r builder_home=$(realpath $(dirname $0))
+declare -r activator_home=$(realpath $(dirname $0))
 ${{template_declares}}
-declare -r app_launcher="${builder_home}/builder-launch-${app_version}.jar"
-declare -r script_name=builder
+declare -r app_launcher="${activator_home}/activator-launch-${app_version}.jar"
+declare -r script_name=activator
 declare -r java_cmd=$(get_java_cmd)
 
 # Now check to see if it's a good enough version
@@ -221,11 +221,11 @@ if [[ "$java_version" == "" ]]; then
 elif [[ ! "$java_version" > "1.6" ]]; then
   echo
   echo The java installation you have is not up to date
-  echo Builder requires at least version 1.6+, you have
+  echo Activator requires at least version 1.6+, you have
   echo version $java_version
   echo
   echo Please go to http://www.java.com/getjava/ and download
-  echo a valid Java Runtime and install before running builder.
+  echo a valid Java Runtime and install before running Activator.
   echo
   exit 1
 fi
