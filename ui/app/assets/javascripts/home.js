@@ -120,6 +120,10 @@ require([
 					msg.request = 'CreateNewApplication';
 					streams.send(msg);
 					toggleWorking();
+
+					try {
+						ga('send', 'event', 'activator', msg.request, msg.template);
+					} catch(err){}
 				}
 			});
 			function toggleDirectoryBrowser() {
