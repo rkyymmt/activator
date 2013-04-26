@@ -1,13 +1,13 @@
-package builder.properties;
+package activator.properties;
 
 import java.util.Properties;
 
 // This is a lame-o class that's kinda dirty.  maybe we can clean it up later, but we're using it across two scala versions right now.
-public class BuilderProperties {
+public class ActivatorProperties {
 
   private static Properties loadProperties() {
     Properties props = new Properties();
-    java.io.InputStream in = BuilderProperties.class.getResourceAsStream("builder.properties");
+    java.io.InputStream in = ActivatorProperties.class.getResourceAsStream("activator.properties");
     try {
       props.load(in);
     } catch(java.io.IOException e) { throw new RuntimeException(e); }
@@ -25,9 +25,9 @@ public class BuilderProperties {
     if(value == null) {
       value = props.getProperty(name);
     }
-    return value; 
+    return value;
   }
-  
+
   /** Looks up a property value, and parses its value as appropriate. */
   private static String lookupOr(String name, String defaultValue) {
     String value = getProperty(name);
@@ -38,23 +38,23 @@ public class BuilderProperties {
   }
 
   public static String TEMPLATE_UUID_PROPERTY_NAME = "template.uuid";
-  public static String BUILDER_ABI_VERSION_PROPERTY_NAME = "builder.abi.version";
-  public static String SCRIPT_NAME = "builder";
-  
-  
+  public static String ABI_VERSION_PROPERTY_NAME = "activator.abi.version";
+  public static String SCRIPT_NAME = "activator";
+
+
   public static String APP_VERSION() {
     return props.getProperty("app.version");
   }
 
   public static String APP_ABI_VERSION() {
-    // TODO - Encode ABI version in builder metadata...
+    // TODO - Encode ABI version in metadata...
     return APP_VERSION();
   }
 
   public static String APP_SCALA_VERSION() {
     return props.getProperty("app.scala.version");
   }
-  
+
   public static String SBT_VERSION() {
     return props.getProperty("sbt.version");
   }
@@ -63,32 +63,32 @@ public class BuilderProperties {
     return props.getProperty("sbt.scala.version");
   }
 
-  public static String BUILDER_HOME() {
-    return getProperty("builder.home");
+  public static String ACTIVATOR_HOME() {
+    return getProperty("activator.home");
   }
 
   public static String GLOBAL_USER_HOME() {
     return getProperty("user.home");
   }
 
-  public static String BUILDER_USER_HOME() {
-    return lookupOr("builder.user.home", getProperty("user.home") + "/.builder/" + APP_ABI_VERSION());
+  public static String ACTIVATOR_USER_HOME() {
+    return lookupOr("activator.user.home", getProperty("user.home") + "/.activator/" + APP_ABI_VERSION());
   }
 
-  public static String BUILDER_TEMPLATE_CACHE() {
-    return lookupOr("builder.template.cache", BUILDER_USER_HOME() + "/templates");
+  public static String ACTIVATOR_TEMPLATE_CACHE() {
+    return lookupOr("activator.template.cache", ACTIVATOR_USER_HOME() + "/templates");
   }
 
-  public static String BUILDER_TEMPLATE_LOCAL_REPO() {
-    String defaultValue = BUILDER_HOME();
+  public static String ACTIVATOR_TEMPLATE_LOCAL_REPO() {
+    String defaultValue = ACTIVATOR_HOME();
     if(defaultValue != null) {
       defaultValue = defaultValue + "/templates";
     }
-    return lookupOr("builder.template.localrepo", defaultValue);
+    return lookupOr("activator.template.localrepo", defaultValue);
   }
 
-  public static String BUILDER_LAUNCHER_JAR() {
-    String value = BUILDER_HOME();
+  public static String ACTIVATOR_LAUNCHER_JAR() {
+    String value = ACTIVATOR_HOME();
     String version = APP_VERSION();
     if(value != null && version != null) {
       // TODO - synch this with build in some better fashion!
@@ -97,26 +97,26 @@ public class BuilderProperties {
     return value;
   }
 
-  public static String BUILDER_LAUNCHER_BAT() {
-    String value = BUILDER_HOME();
+  public static String ACTIVATOR_LAUNCHER_BAT() {
+    String value = ACTIVATOR_HOME();
     if(value != null) {
       value = value+"/"+SCRIPT_NAME+".bat";
     }
     return value;
   }
-  public static String BUILDER_LAUNCHER_BASH() {
-    String value = BUILDER_HOME();
+  public static String ACTIVATOR_LAUNCHER_BASH() {
+    String value = ACTIVATOR_HOME();
     if(value != null) {
       value = value+"/"+SCRIPT_NAME;
     }
     return value;
   }
-  
-  public static java.io.File BUILDER_LOCK_FILE() {
-    return new java.io.File(BUILDER_USER_HOME() + "/.lock");
+
+  public static java.io.File ACTIVATOR_LOCK_FILE() {
+    return new java.io.File(ACTIVATOR_USER_HOME() + "/.lock");
   }
-  
-  public static java.io.File BUILDER_PID_FILE() {
-    return new java.io.File(BUILDER_USER_HOME() + "/.currentpid");
+
+  public static java.io.File ACTIVATOR_PID_FILE() {
+    return new java.io.File(ACTIVATOR_USER_HOME() + "/.currentpid");
   }
 }

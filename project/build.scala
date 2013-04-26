@@ -1,5 +1,5 @@
 import sbt._
-import BuilderBuild._
+import ActivatorBuild._
 import Dependencies._
 import Packaging.localRepoArtifacts
 import com.typesafe.sbt.S3Plugin._
@@ -8,13 +8,13 @@ import com.typesafe.sbt.SbtNativePackager.Universal
 // As such try to avoid putting stuff in here so we can see how good build.sbt is without build.scala.
 
 
-object TheBuilderBuild extends Build {
+object TheActivatorBuild extends Build {
 
   // ADD sbt launcher support here.
   override def settings = super.settings ++ SbtSupport.buildSettings ++ baseVersions ++ Seq(
     // This is a hack, so the play application will have the right view of the template directory.
     Keys.baseDirectory <<= Keys.baseDirectory apply { bd =>
-      sys.props("builder.home") = bd.getAbsoluteFile.getAbsolutePath
+      sys.props("activator.home") = bd.getAbsoluteFile.getAbsolutePath
       bd
     }
   ) ++ play.Project.intellijCommandSettings(play.Project.SCALA) // workaround for #24
@@ -34,29 +34,29 @@ object TheBuilderBuild extends Build {
     settings(NewsHelper.settings:_*)
   )
 
-  // These are the projects we want in the local Builder repository
+  // These are the projects we want in the local repository we deploy.
   lazy val publishedSbtShimProjects = Set(playShimPlugin, eclipseShimPlugin, ideaShimPlugin, sbtUiInterface, defaultsShimPlugin)
   lazy val publishedProjects = Seq(io, common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects
 
   // basic project that gives us properties to use in other projects.
   lazy val props = (
-    BuilderJavaProject("props")
+    ActivatorJavaProject("props")
     settings(Properties.makePropertyClassSetting(Dependencies.sbtVersion, Dependencies.scalaVersion):_*)
   )
 
   lazy val io = (
-    BuilderProject("io")
+    ActivatorProject("io")
     dependsOnRemote(junitInterface % "test", specs2 % "test")
   )
 
   lazy val common = (
-    BuilderProject("common")
+    ActivatorProject("common")
     dependsOnRemote(junitInterface % "test", specs2 % "test")
     dependsOn(io)
   )
 
   lazy val cache = (
-    BuilderProject("cache")
+    ActivatorProject("cache")
     dependsOn(props, common)
     dependsOnRemote(junitInterface % "test")
   )
@@ -131,9 +131,9 @@ object TheBuilderBuild extends Build {
       requiredClasspath in sbtRemoteProbe,
       Keys.compile in Compile in sbtRemoteProbe) map {
       (launcher, oldOptions, probeCp, _) =>
-        oldOptions ++ Seq("-Dbuilder.sbt.no-shims=true",
-                          "-Dbuilder.sbt.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
-                          "-Dbuilder.remote.probe.classpath=" + Path.makeString(probeCp.files)) ++
+        oldOptions ++ Seq("-Dactivator.sbt.no-shims=true",
+                          "-Dactivator.sbt.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
+                          "-Dactivator.remote.probe.classpath=" + Path.makeString(probeCp.files)) ++
       (if (verboseSbtTests)
         Seq("-Dakka.loglevel=DEBUG",
             "-Dakka.actor.debug.autoreceive=on",
@@ -156,7 +156,7 @@ object TheBuilderBuild extends Build {
   )
 
   lazy val ui = (
-    BuilderPlayProject("ui")
+    ActivatorPlayProject("ui")
     dependsOnRemote(
       commonsIo, mimeUtil, slf4jLog4j,
       sbtLauncherInterface % "provided"
@@ -179,10 +179,10 @@ object TheBuilderBuild extends Build {
           Keys.publishLocal in playShimPlugin) map {
         (launcher, update, probeCp, _, _) =>
           // We register the location after it's resolved so we have it for running play...
-          sys.props("builder.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
-          sys.props("builder.remote.probe.classpath") = Path.makeString(probeCp.files)
-          System.err.println("Updating sbt launch jar: " + sys.props("builder.sbt.launch.jar"))
-          System.err.println("Remote probe classpath = " + sys.props("builder.remote.probe.classpath"))
+          sys.props("activator.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
+          sys.props("activator.remote.probe.classpath") = Path.makeString(probeCp.files)
+          System.err.println("Updating sbt launch jar: " + sys.props("activator.sbt.launch.jar"))
+          System.err.println("Remote probe classpath = " + sys.props("activator.remote.probe.classpath"))
           update
       }
     )
@@ -202,14 +202,14 @@ object TheBuilderBuild extends Build {
   )
 
   lazy val launcher = (
-    BuilderProject("launcher")
+    ActivatorProject("launcher")
     dependsOnRemote(sbtLauncherInterface, sbtCompletion)
     dependsOn(props, common, cache)
   )
 
   // A hack project just for convenient IvySBT when resolving artifacts into new local repositories.
   lazy val dontusemeresolvers = (
-    BuilderProject("dontuseme")
+    ActivatorProject("dontuseme")
     settings(
       // This hack removes the project resolver so we don't resolve stub artifacts.
       Keys.fullResolvers <<= (Keys.externalResolvers, Keys.sbtResolver) map (_ :+ _),
@@ -219,7 +219,7 @@ object TheBuilderBuild extends Build {
     )
   )
   lazy val it = (
-      BuilderProject("integration-tests")
+      ActivatorProject("integration-tests")
       settings(integration.settings:_*)
       dependsOnRemote(sbtLauncherInterface)
       dependsOn(sbtDriver, props, cache)
@@ -230,7 +230,7 @@ object TheBuilderBuild extends Build {
   )
 
   lazy val dist = (
-    BuilderProject("dist")
+    ActivatorProject("dist")
     settings(Packaging.settings:_*)
     settings(s3Settings:_*)
     settings(
@@ -285,7 +285,7 @@ object TheBuilderBuild extends Build {
         )
       },
       Keys.mappings in S3.upload <<= (Keys.packageBin in Universal, Keys.version) map { (zip, v) =>
-        Seq(zip -> ("typesafe-builder/%s/typesafe-builder-%s.zip" format (v, v)))
+        Seq(zip -> ("typesafe-activator/%s/typesafe-activator-%s.zip" format (v, v)))
       },
       S3.host in S3.upload := "downloads.typesafe.com.s3.amazonaws.com",
       S3.progress in S3.upload := true

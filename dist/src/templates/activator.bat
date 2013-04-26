@@ -1,24 +1,24 @@
-@REM builder launcher script
-@REM 
+@REM activator launcher script
+@REM
 @REM Envioronment:
 @REM JAVA_HOME - location of a JDK home dir (optional if java on path)
-@REM SBT_OPTS  - JVM options (optional)
+@REM CFG_OPTS  - JVM options (optional)
 @REM Configuration:
-@REM builderconfig.txt found in the BUILDER_HOME.
+@REM activatorconfig.txt found in the ACTIVATOR_HOME.
 @setlocal enabledelayedexpansion
 
 @echo off
-if "%BUILDER_HOME%"=="" set BUILDER_HOME=%~dp0
+if "%ACTIVATOR_HOME%"=="" set ACTIVATOR_HOME=%~dp0
 set ERROR_CODE=0
 ${{template_declares}}
-set BUILDER_LAUNCH_JAR=builder-launch-%BUILDER_VERSION%.jar
+set ACTIVATOR_LAUNCH_JAR=activator-launch-%APP_VERSION%.jar
 
 rem Detect if we were double clicked, although theoretically A user could
 rem manually run cmd /c
 for %%x in (%cmdcmdline%) do if %%~x==/c set DOUBLECLICKED=1
 
 rem FIRST we load the config file of extra options.
-set CFG_FILE=%BUILDER_HOME%builderconfig.txt
+set CFG_FILE=%ACTIVATOR_HOME%activatorconfig.txt
 set CFG_OPTS=
 if exist %CFG_FILE% (
   FOR /F "tokens=* eol=# usebackq delims=" %%i IN ("%CFG_FILE%") DO (
@@ -70,7 +70,7 @@ if "%JAVAOK%"=="false" (
   echo.
   echo Please go to
   echo   http://www.oracle.com/technetwork/java/javase/downloads/index.html
-  echo and download a valid Java JDK and install before running builder.
+  echo and download a valid Java JDK and install before running Activator.
   echo.
   echo If you think this message is in error, please check
   echo your environment variables to see if "java.exe" and "javac.exe" are
@@ -95,9 +95,9 @@ if "%*"=="" (
 
 rem We add a / in front, so we get file:///C: instead of file://C:
 rem Java considers the later a UNC path.
-set JAVA_FRIENDLY_BUILDER_HOME=/!BUILDER_HOME:\=\\!
+set JAVA_FRIENDLY_HOME=/!ACTIVATOR_HOME:\=\\!
 
-"%_JAVACMD%" %_JAVA_OPTS% -XX:PermSize=64M -XX:MaxPermSize=256M %BUILDER_OPTS% "-Dbuilder.home=%JAVA_FRIENDLY_BUILDER_HOME%" -jar "%BUILDER_HOME%\%BUILDER_LAUNCH_JAR%" %CMDS%
+"%_JAVACMD%" %_JAVA_OPTS% -XX:PermSize=64M -XX:MaxPermSize=256M %ACTIVATOR_OPTS% "-Dactivator.home=%JAVA_FRIENDLY_HOME%" -jar "%ACTIVATOR_HOME%\%ACTIVATOR_LAUNCH_JAR%" %CMDS%
 if ERRORLEVEL 1 goto error
 goto end
 

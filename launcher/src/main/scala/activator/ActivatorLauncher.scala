@@ -1,17 +1,17 @@
-package builder
+package activator
 
 import xsbti.{ AppMain, AppConfiguration }
-import builder.properties.BuilderProperties._
+import activator.properties.ActivatorProperties._
 import java.io.File
 import snap.Sbt
 /** Expose for SBT launcher support. */
-class BuilderLauncher extends AppMain {
+class ActivatorLauncher extends AppMain {
 
   def run(configuration: AppConfiguration) =
     // TODO - Detect if we're running against a local project.
     try configuration.arguments match {
       case Array("ui") => RebootToUI(configuration)
-      case Array("new") => Exit(BuilderCli(configuration))
+      case Array("new") => Exit(ActivatorCli(configuration))
       case Array("shell") => RebootToSbt(configuration, useArguments = false)
       case _ if Sbt.looksLikeAProject(new File(".")) => RebootToSbt(configuration, useArguments = true)
       case _ => displayHelp(configuration)
@@ -49,9 +49,9 @@ case class RebootToUI(configuration: AppConfiguration) extends xsbti.Reboot {
   val app = ApplicationID(
     groupID = configuration.provider.id.groupID,
     // TODO - Pull this string from somewhere else so it's only configured in the build?
-    name = "builder-ui",
+    name = "activator-ui",
     version = APP_VERSION,
-    mainClass = "builder.UIMain")
+    mainClass = "activator.UIMain")
 }
 
 // Wrapper to reboot into SBT.
@@ -66,7 +66,7 @@ case class RebootToSbt(configuration: AppConfiguration, useArguments: Boolean = 
     // The Application for the child probe.  We can use this to get the classpath.
     val uiPlugin = ApplicationID(
       // TODO - Pull these constants from some build-generated properties or something.
-      groupID = "com.typesafe.builder",
+      groupID = "com.typesafe.activator",
       name = "sbt-shim-ui-interface",
       version = configuration.provider.id.version, // Cheaty way to get version
       mainClass = "com.typesafe.sbt.ui.SbtUiPlugin",

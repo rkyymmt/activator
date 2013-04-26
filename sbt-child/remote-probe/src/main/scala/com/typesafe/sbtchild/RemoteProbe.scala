@@ -37,7 +37,7 @@ object SetupSbtChild extends (State => State) {
 
     // this property is set to true for unit tests but not integration
     // tests or production.
-    if (System.getProperty("builder.sbt.no-shims", "false") != "true") {
+    if (System.getProperty("activator.sbt.no-shims", "false") != "true") {
       // Make sure the shims are installed we need for this build.
       val anyShimAdded = probe.installShims(loggedState)
 
@@ -124,7 +124,7 @@ object SetupSbtChild extends (State => State) {
   }
 
   private def getPort(): Int = {
-    val portString = System.getProperty("builder.sbt-child-port")
+    val portString = System.getProperty("activator.sbt-child-port")
     if (portString == null)
       throw new Exception("No port property set")
     val port = Integer.parseInt(portString)
@@ -244,7 +244,7 @@ object SetupSbtChild extends (State => State) {
       send(entry)
     }
 
-    private def throwawayBackingFile = java.io.File.createTempFile("builder-", ".log")
+    private def throwawayBackingFile = java.io.File.createTempFile("activator-", ".log")
 
     private def newBacking = GlobalLogBacking(file = throwawayBackingFile,
       last = None,

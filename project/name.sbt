@@ -1,1 +1,1 @@
-name := "builder-build"
+name := "activator-build"

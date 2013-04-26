@@ -4,7 +4,7 @@ import Keys._
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 
-object BuilderBuild {
+object ActivatorBuild {
 
   def baseVersions: Seq[Setting[_]] = Seq(
     version := {
@@ -15,7 +15,7 @@ object BuilderBuild {
       val default = "1.0-" + (df format (new java.util.Date))
       // TODO - Alternative way to release is desired....
       // TODO - Should also track a binary ABI value...
-      Option(sys.props("builder.version")) getOrElse default
+      Option(sys.props("activator.version")) getOrElse default
     }
   )
 
@@ -27,10 +27,10 @@ object BuilderBuild {
 
   val typesafeIvyReleases = Resolver.url("typesafe-ivy-releases", new URL("http://private-repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
 
-  def builderDefaults: Seq[Setting[_]] =
+  def activatorDefaults: Seq[Setting[_]] =
     SbtScalariform.scalariformSettings ++
     Seq(
-      organization := "com.typesafe.builder",
+      organization := "com.typesafe.activator",
       version <<= version in ThisBuild,
       crossPaths := false,
       resolvers += "typesafe-mvn-releases" at "http://repo.typesafe.com/typesafe/releases/",
@@ -54,7 +54,7 @@ object BuilderBuild {
     )
 
   def sbtShimPluginSettings: Seq[Setting[_]] =
-    builderDefaults ++
+    activatorDefaults ++
     Seq(
       scalaVersion := Dependencies.sbtPluginScalaVersion,
       scalaBinaryVersion := Dependencies.sbtPluginScalaVersion,
@@ -62,33 +62,32 @@ object BuilderBuild {
       publishMavenStyle := false
     )
 
-  def BuilderProject(name: String): Project = (
-    Project("builder-" + name, file(name))
-    settings(builderDefaults:_*)
+  def ActivatorProject(name: String): Project = (
+    Project("activator-" + name, file(name))
+    settings(activatorDefaults:_*)
   )
 
-  
+
   def SbtChildProject(name: String): Project = (
     Project("sbt-child-" + name, file("sbt-child") / name)
-    settings(builderDefaults:_*)
+    settings(activatorDefaults:_*)
   )
 
   def SbtShimPlugin(name: String): Project = (
     Project("sbt-shim-" + name, file("sbt-shim") / name)
     settings(sbtShimPluginSettings:_*)
   )
-  
-  def BuilderPlayProject(name: String): Project = (
-    play.Project("builder-" + name, path = file(name)) 
-    settings(builderDefaults:_*)
+
+  def ActivatorPlayProject(name: String): Project = (
+    play.Project("activator-" + name, path = file(name))
+    settings(activatorDefaults:_*)
   )
 
-  def BuilderJavaProject(name: String): Project = (
-    Project("builder-" + name, file(name))
-    settings(builderDefaults:_*)
+  def ActivatorJavaProject(name: String): Project = (
+    Project("activator-" + name, file(name))
+    settings(activatorDefaults:_*)
     settings(
         autoScalaLibrary := false
     )
   )
 }
-

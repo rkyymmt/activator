@@ -24,7 +24,7 @@ final class TestUtil(val scratchDir: File) {
     if (!project.isDirectory()) project.mkdirs()
 
     val props = new File(project, "build.properties")
-    createFile(props, "sbt.version=" + builder.properties.BuilderProperties.SBT_VERSION)
+    createFile(props, "sbt.version=" + activator.properties.ActivatorProperties.SBT_VERSION)
 
     val build = new File(dir, "build.sbt")
     createFile(build, s"""

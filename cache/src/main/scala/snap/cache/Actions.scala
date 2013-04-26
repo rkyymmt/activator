@@ -2,7 +2,7 @@ package snap
 package cache
 
 import snap.IO
-import _root_.builder.properties.BuilderProperties._
+import _root_.activator.properties.ActivatorProperties._
 import java.io.File
 import java.util.regex.Matcher
 import java.io.FileNotFoundException
@@ -60,7 +60,7 @@ object Actions {
         updateProperties(propsFile,
           Map(
             TEMPLATE_UUID_PROPERTY_NAME -> id,
-            BUILDER_ABI_VERSION_PROPERTY_NAME -> APP_ABI_VERSION))
+            ABI_VERSION_PROPERTY_NAME -> APP_ABI_VERSION))
       }
       _ <- Validating.withMsg("Failed to rename project") {
         projectName.foreach(bestEffortRename(location, _))

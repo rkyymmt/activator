@@ -4,7 +4,7 @@ import snap.IO
 import java.io._
 import org.junit.Assert._
 import org.junit._
-import builder.properties.BuilderProperties._
+import activator.properties.ActivatorProperties._
 
 class ActionsTest {
 

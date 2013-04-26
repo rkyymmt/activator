@@ -2,7 +2,7 @@ package com.typesafe.sbtchild
 
 import akka.actor._
 import java.io.File
-import builder.properties.BuilderProperties
+import activator.properties.ActivatorProperties
 
 // the "id" can be anything as long as you ensure it's unique
 // for the pool; use a uuid if in doubt. taskName is a human-readable
@@ -41,7 +41,7 @@ trait SbtChildFactory {
 class DefaultSbtChildFactory(val workingDir: File, val sbtChildMaker: SbtChildProcessMaker) extends SbtChildFactory {
   override def init(log: akka.event.LoggingAdapter): Unit = {
     for (shim <- snap.ShimWriter.knownShims) {
-      val writer = new snap.ShimWriter(shim, BuilderProperties.APP_VERSION)
+      val writer = new snap.ShimWriter(shim, ActivatorProperties.APP_VERSION)
       // we update shim plugin files ONLY if they exist, because when they
       // are missing it may be because they aren't applicable. Only the
       // remote probe can decide to ADD a shim file.

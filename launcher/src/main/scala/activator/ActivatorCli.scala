@@ -1,13 +1,13 @@
-package builder
+package activator
 
 import xsbti.{ AppMain, AppConfiguration }
-import builder.properties.BuilderProperties.SCRIPT_NAME
+import activator.properties.ActivatorProperties.SCRIPT_NAME
 import snap.cache.TemplateCache
 import snap.cache.Actions.cloneTemplate
 import java.io.File
 import sbt.complete.{ Parser, Parsers }
 
-object BuilderCli {
+object ActivatorCli {
   def apply(configuration: AppConfiguration): Int = try {
     System.out.println()
     val name = getApplicationName()
@@ -47,7 +47,7 @@ object BuilderCli {
                            |To run the test for "$name" from the command-line, run:
                            |${dir.getAbsolutePath}/${SCRIPT_NAME} test
                            |
-                           |To run the Builder UI for "$name" from the command-line, run:
+                           |To run the Activator UI for "$name" from the command-line, run:
                            |${dir.getAbsolutePath}/${SCRIPT_NAME} ui
                            |""".stripMargin)
   }

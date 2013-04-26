@@ -18,7 +18,7 @@ object integration {
   val itContext = TaskKey[IntegrationContext]("integration-test-context")
   val tests = TaskKey[Unit]("integration-tests", "Runs all integration tests")
   val singleTest = InputKey[Unit]("integration-test-only", "Runs integration tests that match the given glob")
-  val builderHome = TaskKey[File]("integration-builder-home", "Creates the builder-home for use in integration tests.")
+  val integrationHome = TaskKey[File]("integration-home", "Creates the home directory for use in integration tests.")
   
   def settings: Seq[Setting[_]] = makeLocalRepoSettings("install-to-it-repository") ++ Seq(
     localRepoArtifacts := Seq.empty,
@@ -31,15 +31,15 @@ object integration {
         case (df, di) if !di.isModule && !df.modifiers.isAbstract => df.name
       }
     },
-    itContext <<= (sbtLaunchJar, localRepoCreated, streams, version, target, scalaVersion, builderHome) map IntegrationContext.apply,
+    itContext <<= (sbtLaunchJar, localRepoCreated, streams, version, target, scalaVersion, integrationHome) map IntegrationContext.apply,
     tests <<= (itContext, mains) map { (ctx, ms) =>
       ms foreach ctx.runTest
     },
     localRepoArtifacts <+= (Keys.projectID, Keys.scalaBinaryVersion, Keys.scalaVersion) apply {
       (id, sbv, sv) => CrossVersion(sbv,sv)(id)
     },
-    builderHome <<= (target, mappings in Universal in TheBuilderBuild.dist) map { (t, m) =>
-       val home = t / "builder-home"
+    integrationHome <<= (target, mappings in Universal in TheActivatorBuild.dist) map { (t, m) =>
+       val home = t / "integrationHome-home"
        IO createDirectory home
        val homeFiles = for {
          (file, name) <- m
@@ -63,7 +63,7 @@ case class IntegrationContext(launchJar: File,
                                version: String,
                                target: File,
                                scalaVersion: String,
-                               builderHome: File) {
+                               integrationHome: File) {
   def runTest(name: String): Unit = {
     streams.log.info(" [IT] Running: " + name + " [IT]")
     val friendlyName = name replaceAll("\\.", "-")
@@ -88,7 +88,7 @@ case class IntegrationContext(launchJar: File,
     Process(Seq("java", 
         "-Dsbt.boot.properties=" + props.getAbsolutePath, 
         "-Dsbt.boot.directory=" + boot.getAbsolutePath, 
-        "-Dbuilder.home=" +builderHome.getAbsolutePath,
+        "-Dactivator.home=" +integrationHome.getAbsolutePath,
         "-jar", 
         launchJar.getAbsolutePath), cwd)
   }
@@ -99,16 +99,16 @@ case class IntegrationContext(launchJar: File,
        |  version: %s
        |
        |[app]
-       |  org: com.typesafe.builder
-       |  name: builder-integration-tests
+       |  org: com.typesafe.activator
+       |  name: activator-integration-tests
        |  version: %s
        |  class: %s
        |  cross-versioned: false
        |  components: xsbti
        |
        |[repositories]
-       |  builder-local: file://${builder.local.repository-${builder.home-${user.home}/.builder}/repository}, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
-       |  builder-it-local: file://%s, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
+       |  activator-local: file://${activator.local.repository-${activator.home-${user.home}/.activator}/repository}, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
+       |  activator-it-local: file://%s, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
        |
        |[boot]
        |  directory: ${sbt.boot.directory}
