@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
 
 
-// Note: These settings are defaults for builder, and reorganize your source directories.
+// Note: These settings are defaults for activator, and reorganize your source directories.
 Seq(
   scalaSource in Compile <<= baseDirectory / "app",
   javaSource in Compile <<= baseDirectory / "app",
