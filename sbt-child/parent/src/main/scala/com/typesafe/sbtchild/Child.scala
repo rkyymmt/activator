@@ -280,7 +280,8 @@ class SbtChildSupervisorActor(workingDir: File, sbtChildMaker: SbtChildProcessMa
     log.debug("postStop")
 
     preStartBuffer foreach { m =>
-      log.debug("On destroy, sending queued request that never made it to the socket {}", m._1)
+      log.debug("On destroy, replying with error to queued request that never made it to the socket {}, requestor.isTerminated={}",
+        m._1, m._2.isTerminated)
       m._2 ! protocol.ErrorResponse("sbt process never got in touch, so unable to handle request " + m._1)
     }
     preStartBuffer = Vector.empty
