@@ -39,7 +39,7 @@ object Actions {
   def cloneTemplate(cache: TemplateCache, id: String, location: java.io.File, projectName: Option[String]): ProcessResult[Unit] =
     for {
       template <- Validating(cache template id getOrElse sys.error(s"Template ${id} not found"))
-      _ <- Validating.withMsg("Failed to create $location") {
+      _ <- Validating.withMsg(s"Failed to create $location") {
         if (!location.exists) IO createDirectory location
       }
       _ <- Validating.withMsg("Failed to copy template") {
