@@ -11,7 +11,7 @@ public class UsersActor extends UntypedActor {
 
         if (message instanceof StockUpdate) {
             for (ActorRef child : getContext().getChildren()) {
-                child.tell(message);
+                child.tell(message, getSelf());
             }
         }
         else if (message instanceof Listen) {
