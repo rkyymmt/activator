@@ -78,7 +78,7 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
         template,
         appLocation,
         projectName) map (_ => appLocation)
-    self ! Respond(Status("Template is cloned, compiling project definiton..."))
+    self ! Respond(Status("Template is cloned, compiling project definition..."))
     loadApplicationAndSendResponse("CreateNewApplication", installed)
   }
 
