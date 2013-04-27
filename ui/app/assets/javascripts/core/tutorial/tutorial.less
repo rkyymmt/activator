@@ -148,21 +148,26 @@ aside.tutorial {
                 height: 12px;
             }
 		}
+		.monospace {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+            font-size: 10px;
+		}
+		code {
+		    .monospace;
+		}
         pre {
+            .monospace;
             padding: 0.5em 0;
             margin-bottom: 1em;
             border: 1px solid #eee;
             border-width: 1px 0;
-            code {
-                font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
-                font-size: 10px;
-            }
         }
-		h1,h2 {
+		h1,h2,h3 {
 			color: #364550;
 			font-weight: bold;
 			padding: 0;
 			margin: 0;
+			white-space: nowrap;
 		}
 		h1 {
 			height: 40px;
@@ -173,6 +178,11 @@ aside.tutorial {
 			height: 30px;
 			line-height: 30px;
 			font-size: 1.2em;
+		}
+		h3 {
+		  height: 25px;
+		  line-height: 25px;
+		  font-size: 1.1em;
 		}
 		p {
 			margin: 1em 0;
