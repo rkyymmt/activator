@@ -204,9 +204,9 @@ object WebSocketActor {
    *  Note: This method is a convenience, and most likely needs tweaking
    *  as we use more websockets.
    */
-  def create[T](system: ActorSystem, creator: => WebSocketActor[T])(implicit fm: FrameFormatter[T]) =
+  def create[T](system: ActorSystem, creator: => WebSocketActor[T], name: String)(implicit fm: FrameFormatter[T]) =
     WebSocket.async[T] { request =>
-      val wsActor = system.actorOf(Props(creator))
+      val wsActor = system.actorOf(Props(creator), name = name)
       import system.dispatcher
       (wsActor ? GetWebSocket).map {
         case snap.WebSocketAlreadyUsed =>
