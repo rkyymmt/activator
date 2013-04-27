@@ -131,7 +131,8 @@ case class ProcessError(msg: String, cause: Option[Throwable])
 object ProcessError {
   def apply(msg: String) = new ProcessError(msg, None)
   def apply(err: Throwable) = new ProcessError(err.getMessage, Some(err))
-  def apply(msg: String, cause: Throwable) = new ProcessError(msg, Some(cause))
+  def apply(msg: String, cause: Throwable) = new ProcessError(msg + Option(cause.getMessage).map(": " + _).getOrElse(""),
+    Some(cause))
 
   // TODO - auto lift throwables a good idea?
   implicit final def throwable2Error(t: Throwable): ProcessError = apply(t)
