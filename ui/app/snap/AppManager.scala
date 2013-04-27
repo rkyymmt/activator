@@ -14,6 +14,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import play.api.libs.json.JsObject
 import java.util.concurrent.atomic.AtomicInteger
+import scala.util.control.NonFatal
 
 sealed trait AppCacheRequest
 
@@ -195,10 +196,16 @@ object AppManager {
               .validated(s"Somehow failed to save new app at ${location.getPath} in config")
           }
         }
-      resultFuture onComplete { _ =>
+      resultFuture onComplete { result =>
+        Logger.debug(s"Stopping sbt child because we got our app config or error ${result}")
         sbt ! PoisonPill
       }
-      resultFuture
+      // change a future-with-exception into a future-with-value
+      // where the value is a ProcessFailure
+      resultFuture recover {
+        case NonFatal(e) =>
+          ProcessFailure(e)
+      }
     }
   }
 
