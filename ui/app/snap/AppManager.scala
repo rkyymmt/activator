@@ -13,6 +13,7 @@ import akka.actor._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import play.api.libs.json.JsObject
+import java.util.concurrent.atomic.AtomicInteger
 
 sealed trait AppCacheRequest
 
@@ -110,6 +111,8 @@ object AppManager {
 
   val appCache = snap.Akka.system.actorOf(Props(new AppCacheActor), name = "app-cache")
 
+  val requestManagerCount = new AtomicInteger(1)
+
   // Loads an application based on its id.
   // This needs to look in the RootConfig for the App/Location
   // based on this ID.
@@ -167,7 +170,7 @@ object AppManager {
         Props(new RequestManagerActor("learn-project-name", sbt, false)({
           event =>
             eventHandler foreach (_ apply event)
-        })))
+        })), name = "request-manager-" + requestManagerCount.getAndIncrement())
       val resultFuture: Future[ProcessResult[AppConfig]] =
         (requestManager ? protocol.NameRequest(sendEvents = true)) map {
           case protocol.NameResponse(name) => {
