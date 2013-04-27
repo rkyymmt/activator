@@ -14,7 +14,12 @@ fullResolvers <<= (fullResolvers, bootResolvers) map {
     localRepos ++ rs
   case (rs, _) => rs
 }
-    
+
+// shim plugins are needed when plugins are not "UI aware"
+// (we need an interface for the UI program rather than an interface
+// for a person at a command line).
+// In future plans, we want plugins to have a built-in ability to be
+// remote-controlled by a UI and then we would drop the shims.
 addSbtPlugin("com.typesafe.activator" % "sbt-shim-""" + name + """" % """" + version + "\")\n"
 
   private val SHIM_FILE_NAME = "activator-" + name + "-shim.sbt"

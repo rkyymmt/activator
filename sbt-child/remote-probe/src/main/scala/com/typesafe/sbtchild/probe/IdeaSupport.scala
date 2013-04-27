@@ -13,7 +13,7 @@ object IdeaSupport {
   private val ideaShimGenerateTask = InputKey[Unit]("idea-shim-generate")
 
   private def generateProject(state: State, context: UIContext, params: Params): (State, Params) = {
-    val s = SbtUtil.runInputTask(ideaShimGenerateTask, state, args = "", context = Some(context))
+    val s = SbtUtil.runInputTask(ideaShimGenerateTask, state, args = " no-sbt-build-module", context = Some(context))
     (s, Params("application/json", "{}"))
   }
 }

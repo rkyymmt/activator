@@ -24,6 +24,6 @@ object IdeaShimPlugin extends Plugin {
     })
 
   private def generate(args: Seq[String], state: State, ctx: UIContext): State = {
-    Command.process("gen-idea", state)
+    Command.process("gen-idea" + (if (args.nonEmpty) args.mkString(" ", " ", "") else ""), state)
   }
 }
