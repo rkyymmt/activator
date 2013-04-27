@@ -89,7 +89,7 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
     val file = snap.Validating(new File(location)).validate(
       snap.Validation.fileExists,
       snap.Validation.isDirectory)
-    self ! Respond(Status("Compiling project definiton..."))
+    self ! Respond(Status("Compiling project definition..."))
     loadApplicationAndSendResponse(file)
   }
 
