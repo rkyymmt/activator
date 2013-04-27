@@ -4,6 +4,8 @@ import sbt._
 import Keys._
 object DefaultsPlugin extends Plugin {
 
+  private val defaultsShimInstalled = SettingKey[Boolean]("defaults-shim-installed")
+
   val ACTIVATOR_LOCAL_RESOLVER_NAME = "activator-local"
 
   def useActivatorLocalRepo: Seq[Setting[_]] =
@@ -17,5 +19,5 @@ object DefaultsPlugin extends Plugin {
       })
 
   // As a shim, fix the builder local repository to be used first on every project. 
-  override val settings = useActivatorLocalRepo
+  override val settings = useActivatorLocalRepo ++ Seq(defaultsShimInstalled := true)
 }
