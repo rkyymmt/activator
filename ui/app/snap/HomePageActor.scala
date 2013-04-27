@@ -78,7 +78,10 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
         template,
         appLocation,
         projectName) map (_ => appLocation)
-    self ! Respond(Status("Template is cloned, compiling project definition..."))
+    if (installed.isSuccess)
+      self ! Respond(Status("Template is cloned, compiling project definition..."))
+    else
+      log.warning("Failed to clone template: " + installed) // error response is generated in loadApplicationAndSendResponse
     loadApplicationAndSendResponse("CreateNewApplication", installed)
   }
 
@@ -90,7 +93,10 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
     val file = snap.Validating(new File(location)).validate(
       snap.Validation.fileExists,
       snap.Validation.isDirectory)
-    self ! Respond(Status("Compiling project definition..."))
+    if (file.isSuccess)
+      self ! Respond(Status("Compiling project definition..."))
+    else
+      log.warning(s"Failed to locate directory $location: " + file) // error response is generated in loadApplicationAndSendResponse
     loadApplicationAndSendResponse("OpenExistingApplication", file)
   }
 
