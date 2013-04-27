@@ -83,6 +83,10 @@ class ProcessActor(argv: Seq[String], cwd: File, textMode: Boolean = true) exten
   }
 
   private def bufferEvent(event: ProcessEvent): Unit = {
+    if (log.isDebugEnabled) {
+      log.debug("Buffering process event {}", event)
+    }
+
     if (!flushScheduled) {
       // timeout length is intended to be user-imperceptible, but greater than OS timer resolution,
       // so we don't get the message instantly. Remember user perception of slow is 100ms
