@@ -22,14 +22,14 @@ object HelloAkkaScala extends App {
   // Create the 'greeter' actor
   val greeter = system.actorOf(Props[Greeter], "greeter")
 
-  // Create the mailbox
+  // Create an "actor-in-a-box"
   val inbox = Inbox.create(system)
 
   // Tell the 'greeter' to change its 'greeting' message
   greeter tell WhoToGreet("akka")
 
   // Ask the 'greeter for the latest 'greeting'
-  // Reply should go to the mailbox
+  // Reply should go to the "actor-in-a-box"
   inbox.send(greeter, Greet)
 
   // Wait 5 seconds for the reply with the 'greeting' message
