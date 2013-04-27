@@ -66,12 +66,12 @@
 				<span class="label" data-bind="text: snap.appName"></span>
 				<div>
 					<ul>
-                        <li class="newApp">
+                        <li class="newApp" onclick="window.location='@routes.Application.forceHome'" style="cursor: hand; cursor: pointer;">
                             <a href="@routes.Application.forceHome">New Application</a>
                         </li>
                         @model.recentApps.zipWithIndex.map { case (app, idx) =>
-                        <li>
-                            <a href="@routes.Application.app(app.id)" class="@className(app)">@name(app)<br><span class="counter">@(idx+1)</span></a>
+                        <li onclick="window.location='@routes.Application.app(app.id)'" style="cursor: hand; cursor: pointer;">
+                            <span style="font-weight: bold;">@name(app)</span> (@app.location)
                         </li>
                         }
 					</ul>
