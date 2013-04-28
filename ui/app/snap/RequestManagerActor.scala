@@ -126,6 +126,7 @@ class RequestManagerActor(taskId: String, taskActor: ActorRef, respondWhenReceiv
   // this makes us a little less generic (taskActor can't be used for multiple requests)
   // but for now it's OK since we don't use taskActor for multiple requests.
   override def postStop = {
+    log.debug("postStop, needsReply={}", needsReply)
     val response = protocol.ErrorResponse("Failure prior to receiving response from sbt")
     for (requestor <- needsReply) {
       sendReply(requestor, response)

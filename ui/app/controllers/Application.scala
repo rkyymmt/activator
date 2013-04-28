@@ -17,6 +17,7 @@ import play.api.Play
 import play.api.Mode
 import akka.pattern._
 import snap.CloseWebSocket
+import java.util.concurrent.atomic.AtomicInteger
 
 case class ApplicationModel(
   id: String,
@@ -154,9 +155,11 @@ object Application extends Controller {
       app.templateID,
       RootConfig.user.applications)
 
+  val homeActorCount = new AtomicInteger(1)
+
   /** Opens a stream for home events. */
   def homeStream =
-    snap.WebSocketActor.create(snap.Akka.system, new snap.HomePageActor)
+    snap.WebSocketActor.create(snap.Akka.system, new snap.HomePageActor, "home-socket-" + homeActorCount.getAndIncrement())
 
   /** The current working directory of the app. */
   val cwd = (new java.io.File(".").getAbsoluteFile.getParentFile)

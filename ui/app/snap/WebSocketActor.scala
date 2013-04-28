@@ -56,12 +56,23 @@ abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatt
             log.debug("Sending error to the incoming websocket, can't consume since actor is terminated {}", x)
             Error("web socket consumer actor has been terminated", i)
           } else {
-            actor.ask(Incoming[In](x))(WebSocketActor.timeout).onFailure({
-              case e: Exception ⇒
-                log.warning("Failed to consume incoming websocket message: consumer.isTerminated={}: {}: {}: message was {}",
-                  actor.isTerminated, e.getClass.getName, e.getMessage, x)
-            })
-            this
+            val response = actor.ask(Incoming[In](x))(WebSocketActor.timeout)
+            flatMapM(_ =>
+              response map {
+                case iteratee: Iteratee[_, _] =>
+                  // note: this iteratee could be an Error, in theory,
+                  // though in practice right now it's just another
+                  // ActorIteratee that serves as an ack
+                  iteratee.asInstanceOf[Iteratee[In, Unit]]
+                case whatever =>
+                  log.warning("Bad reply from websocket actor {}", whatever)
+                  Error("web socket actor gave us a mystery reply: " + whatever, Input.El(x))
+              } recover {
+                case e: Exception ⇒
+                  log.warning("Failed to consume incoming websocket message: consumer.isTerminated={}: {}: {}: message was {}",
+                    actor.isTerminated, e.getClass.getName, e.getMessage, x)
+                  Error("web socket actor failed to consume a message", Input.El(x))
+              })
           }
         }
       }
@@ -137,6 +148,8 @@ abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatt
     }
     case Incoming(message) ⇒
       onMessage(message.asInstanceOf[MessageType])
+      // reply with the new iteratee
+      sender ! new ActorIteratee[MessageType](self)
     case GetWebSocket ⇒
       if (createdSocket) {
         log.warning("second connection attempt will fail")
@@ -204,9 +217,9 @@ object WebSocketActor {
    *  Note: This method is a convenience, and most likely needs tweaking
    *  as we use more websockets.
    */
-  def create[T](system: ActorSystem, creator: => WebSocketActor[T])(implicit fm: FrameFormatter[T]) =
+  def create[T](system: ActorSystem, creator: => WebSocketActor[T], name: String)(implicit fm: FrameFormatter[T]) =
     WebSocket.async[T] { request =>
-      val wsActor = system.actorOf(Props(creator))
+      val wsActor = system.actorOf(Props(creator), name = name)
       import system.dispatcher
       (wsActor ? GetWebSocket).map {
         case snap.WebSocketAlreadyUsed =>

@@ -30,29 +30,41 @@ object SetupSbtChild extends (State => State) {
 
   val ListenCommandName = "listen"
 
+  class NeedToRebootException extends Exception("Need to reboot SBT (this is expected)")
+
   // this is the entry point invoked by sbt
   override def apply(s: State): State = {
-    val betweenRequestsLogger = new EventLogger(client, 0L)
-    val loggedState = addLogger(s, betweenRequestsLogger.toGlobalLogging)
+    try {
+      val betweenRequestsLogger = new EventLogger(client, 0L)
+      val loggedState = addLogger(s, betweenRequestsLogger.toGlobalLogging)
 
-    // this property is set to true for unit tests but not integration
-    // tests or production.
-    if (System.getProperty("activator.sbt.no-shims", "false") != "true") {
-      // Make sure the shims are installed we need for this build.
-      val anyShimAdded = probe.installShims(loggedState)
+      // this property is set to true for unit tests but not integration
+      // tests or production.
+      if (System.getProperty("activator.sbt.no-shims", "false") != "true") {
+        // Make sure the shims are installed we need for this build.
+        val anyShimAdded = probe.installShims(loggedState)
 
-      if (anyShimAdded) {
-        client.sendJson(protocol.NeedRebootEvent)
-        // close down in orderly fashion
-        client.close()
-        // By Erroring out (and doing so before responding to protocol method),
-        // We force the Sbt process to reload and try again...
-        sys.error("Need to reboot SBT")
+        if (anyShimAdded) {
+          client.sendJson(protocol.NeedRebootEvent)
+          // close down in orderly fashion
+          client.close()
+          // By erroring out (and doing so before responding to protocol method),
+          // We force the sbt process to reload and try again...
+          throw new NeedToRebootException
+        }
       }
-    }
 
-    // now add our command
-    loggedState ++ Seq(listen)
+      // now add our command
+      loggedState ++ Seq(listen)
+    } catch {
+      case e: NeedToRebootException =>
+        throw e
+      case e: Exception =>
+        // this is pure paranoia
+        System.err.println("Failed to probe sbt: " + e.getClass.getName + ": " + e.getMessage);
+        e.printStackTrace()
+        throw e
+    }
   }
 
   private def addLogger(origState: State, logging: GlobalLogging): State = {

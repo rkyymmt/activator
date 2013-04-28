@@ -13,6 +13,8 @@ import akka.actor._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import play.api.libs.json.JsObject
+import java.util.concurrent.atomic.AtomicInteger
+import scala.util.control.NonFatal
 
 sealed trait AppCacheRequest
 
@@ -110,6 +112,8 @@ object AppManager {
 
   val appCache = snap.Akka.system.actorOf(Props(new AppCacheActor), name = "app-cache")
 
+  val requestManagerCount = new AtomicInteger(1)
+
   // Loads an application based on its id.
   // This needs to look in the RootConfig for the App/Location
   // based on this ID.
@@ -167,7 +171,7 @@ object AppManager {
         Props(new RequestManagerActor("learn-project-name", sbt, false)({
           event =>
             eventHandler foreach (_ apply event)
-        })))
+        })), name = "request-manager-" + requestManagerCount.getAndIncrement())
       val resultFuture: Future[ProcessResult[AppConfig]] =
         (requestManager ? protocol.NameRequest(sendEvents = true)) map {
           case protocol.NameResponse(name) => {
@@ -192,10 +196,16 @@ object AppManager {
               .validated(s"Somehow failed to save new app at ${location.getPath} in config")
           }
         }
-      resultFuture onComplete { _ =>
+      resultFuture onComplete { result =>
+        Logger.debug(s"Stopping sbt child because we got our app config or error ${result}")
         sbt ! PoisonPill
       }
-      resultFuture
+      // change a future-with-exception into a future-with-value
+      // where the value is a ProcessFailure
+      resultFuture recover {
+        case NonFatal(e) =>
+          ProcessFailure(e)
+      }
     }
   }
 

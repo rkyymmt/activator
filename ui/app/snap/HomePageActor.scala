@@ -5,6 +5,7 @@ import play.api.libs.json._
 import play.api.libs.iteratee.Concurrent
 import java.io.File
 import akka.pattern.pipe
+import scala.util.control.NonFatal
 
 // THE API for the HomePage actor.
 object HomePageActor {
@@ -57,8 +58,8 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
     case OpenExistingApplication(msg) => openExistingApplication(msg.location)
     case CreateNewApplication(msg) => createNewApplication(msg.location, msg.templateId, msg.projectName)
     case _ =>
-      // TODO - Send error...
       log.error(s"HomeActor: received unknown msg: $json")
+      produce(BadRequest(json.toString, Seq("Could not parse JSON for request")))
   }
 
   override def subReceive: Receive = {
@@ -77,8 +78,11 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
         template,
         appLocation,
         projectName) map (_ => appLocation)
-    self ! Respond(Status("Template is cloned, compiling project definiton..."))
-    loadApplicationAndSendResponse(installed)
+    if (installed.isSuccess)
+      self ! Respond(Status("Template is cloned, compiling project definition..."))
+    else
+      log.warning("Failed to clone template: " + installed) // error response is generated in loadApplicationAndSendResponse
+    loadApplicationAndSendResponse("CreateNewApplication", installed)
   }
 
   // Goes off and tries to open an application, responding with
@@ -89,13 +93,16 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
     val file = snap.Validating(new File(location)).validate(
       snap.Validation.fileExists,
       snap.Validation.isDirectory)
-    self ! Respond(Status("Compiling project definiton..."))
-    loadApplicationAndSendResponse(file)
+    if (file.isSuccess)
+      self ! Respond(Status("Compiling project definition..."))
+    else
+      log.warning(s"Failed to locate directory $location: " + file) // error response is generated in loadApplicationAndSendResponse
+    loadApplicationAndSendResponse("OpenExistingApplication", file)
   }
 
   // helper method that given a validated file, will try to load
   // the application id and return an appropriate response.
-  private def loadApplicationAndSendResponse(file: ProcessResult[File]) = {
+  private def loadApplicationAndSendResponse(request: String, file: ProcessResult[File]) = {
     import context.dispatcher
     val id = file flatMapNested { file =>
       AppManager.loadAppIdFromLocation(file,
@@ -109,8 +116,10 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
         RedirectToApplication(id)
       // TODO - Return with form and flash errors?
       case snap.ProcessFailure(errors) =>
-        log.debug(s"HomeActor: Failed to find application: ${errors map (_.msg) mkString "\n\t"}")
-        BadRequest("OpenExistingApplication", errors map (_.msg))
+        log.warning(s"HomeActor: Failed to find application: ${errors map (_.msg) mkString "\n\t"}")
+        BadRequest(request, errors map (_.msg))
+    } recover {
+      case NonFatal(e) => BadRequest(request, Seq(s"${e.getClass.getName}: ${e.getMessage}"))
     } map Respond.apply
     pipe(response) to self
   }
