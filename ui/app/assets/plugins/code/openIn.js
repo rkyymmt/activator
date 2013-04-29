@@ -29,6 +29,10 @@ function(eclipseTemplate, ideaTemplate, api, Overlay, log){
 			self.activeTask = ko.observable(""); // empty string or taskId
 		},
 		onRender: function(childElements) {
+			try {
+				ga('send', 'event', 'activator', "OpenIn", this.ideName);
+			} catch(err){}
+
 			var self = this;
 
 			var node = $(childElements[0]).parent();
