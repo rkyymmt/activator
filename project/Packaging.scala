@@ -1,6 +1,6 @@
 import sbt._
 import Keys._
-import SbtSupport.sbtLaunchJar
+import SbtSupport.{sbtLaunchJar,jansiJar}
 
 package sbt {
   object IvySbtCheater {
@@ -103,7 +103,7 @@ object Packaging {
     rpmUrl := Some("http://github.com/scala/scala-dist"),
     rpmLicense := Some("BSD"),
 
-    repackagedLaunchJar <<= (target, sbtLaunchJar, repackagedLaunchMappings) map repackageJar,
+    repackagedLaunchJar <<= (target, sbtLaunchJar, jansiJar, repackagedLaunchMappings) map repackageJar,
     repackagedLaunchMappings := Seq.empty,
     repackagedLaunchMappings <+= (target, scalaVersion, version) map makeLauncherProps,
 
@@ -148,9 +148,11 @@ object Packaging {
 
 
   // TODO - Use SBT caching API for this.
-  def repackageJar(target: File, launcher: File, replacements: Seq[(File, String)] = Seq.empty): File = IO.withTemporaryDirectory { tmp =>
+  def repackageJar(target: File, launcher: File, jansi: File, replacements: Seq[(File, String)] = Seq.empty): File = IO.withTemporaryDirectory { tmp =>
     val jardir = tmp / "jar"
     IO.createDirectory(jardir)
+    // Explode jansi into the jar directory first.
+    IO.unzip(jansi, jardir)
     IO.unzip(launcher, jardir)
     // TODO - manually delete sbt.boot.properties for james, since he's seeing wierd issues.
     (jardir ** "sbt.boot.properties0*").get map (f => IO delete f)
