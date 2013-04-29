@@ -24,6 +24,12 @@ realpath () {
 )
 }
 
+# Make something URI friendly
+make_url() {
+  url="$@"
+  echo "${url// /%20}"
+}
+
 # Detect if we should use JAVA_HOME or just try PATH.
 get_java_cmd() {
   if [[ -n "$JAVA_HOME" ]] && [[ -x "$JAVA_HOME/bin/java" ]];  then
@@ -154,7 +160,7 @@ run() {
 
   # run sbt
   execRunner "$java_cmd" \
-    "-Dactivator.home=${activator_home}" \
+    "-Dactivator.home=$(make_url $activator_home)" \
     $(get_mem_opts $app_mem) \
     ${java_opts} \
     ${java_args[@]} \
@@ -204,7 +210,7 @@ EOM
 declare -a residual_args
 declare -a java_args
 declare -a app_commands
-declare -r activator_home=$(realpath $(dirname $0))
+declare -r activator_home="$(realpath "$(dirname "$0")")"
 ${{template_declares}}
 declare -r app_launcher="${activator_home}/activator-launch-${app_version}.jar"
 declare -r script_name=activator

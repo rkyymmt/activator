@@ -14,7 +14,7 @@ object TheActivatorBuild extends Build {
   override def settings = super.settings ++ SbtSupport.buildSettings ++ baseVersions ++ Seq(
     // This is a hack, so the play application will have the right view of the template directory.
     Keys.baseDirectory <<= Keys.baseDirectory apply { bd =>
-      sys.props("activator.home") = bd.getAbsoluteFile.getAbsolutePath
+      sys.props("activator.home") = bd.getAbsoluteFile.getAbsolutePath  // TODO - Make space friendly
       bd
     }
   ) ++ play.Project.intellijCommandSettings(play.Project.SCALA) // workaround for #24

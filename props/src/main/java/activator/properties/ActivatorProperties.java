@@ -63,6 +63,21 @@ public class ActivatorProperties {
     return props.getProperty("sbt.scala.version");
   }
 
+  private static String uriToFilename(String uri) {
+    try {
+      return new java.io.File(new java.net.URI(uri)).getAbsolutePath();
+    } catch(java.net.URISyntaxException ex) {
+      // TODO - fix this error handling to not suck.
+      throw new RuntimeException("BAD URI: " + uri);
+    }
+  }
+
+  /** Returns the distribution home directory (or local project) as a URI string. */
+  public static String ACTIVATOR_HOME_FILENAME() {
+    return uriToFilename("file://" + ACTIVATOR_HOME());
+  }
+
+  /** Returns the distribution home directory (or local project) as a URI string. */
   public static String ACTIVATOR_HOME() {
     return getProperty("activator.home");
   }
@@ -80,7 +95,7 @@ public class ActivatorProperties {
   }
 
   public static String ACTIVATOR_TEMPLATE_LOCAL_REPO() {
-    String defaultValue = ACTIVATOR_HOME();
+    String defaultValue = ACTIVATOR_HOME_FILENAME();
     if(defaultValue != null) {
       defaultValue = defaultValue + "/templates";
     }
@@ -88,7 +103,7 @@ public class ActivatorProperties {
   }
 
   public static String ACTIVATOR_LAUNCHER_JAR() {
-    String value = ACTIVATOR_HOME();
+    String value = ACTIVATOR_HOME_FILENAME();
     String version = APP_VERSION();
     if(value != null && version != null) {
       // TODO - synch this with build in some better fashion!
@@ -98,14 +113,14 @@ public class ActivatorProperties {
   }
 
   public static String ACTIVATOR_LAUNCHER_BAT() {
-    String value = ACTIVATOR_HOME();
+    String value = ACTIVATOR_HOME_FILENAME();
     if(value != null) {
       value = value+"/"+SCRIPT_NAME+".bat";
     }
     return value;
   }
   public static String ACTIVATOR_LAUNCHER_BASH() {
-    String value = ACTIVATOR_HOME();
+    String value = ACTIVATOR_HOME_FILENAME();
     if(value != null) {
       value = value+"/"+SCRIPT_NAME;
     }
