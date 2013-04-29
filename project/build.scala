@@ -270,8 +270,26 @@ object TheActivatorBuild extends Build {
             "xml-apis" % "xml-apis" % "1.0.b2",
             // USED BY templates. TODO - autofind these
             "org.scalatest" % "scalatest_2.10" % "1.9.1",
+            "org.webjars" % "webjars-play" % "2.1.0-1",
             "org.webjars" % "webjars-play" % "2.1.0",
-            "org.webjars" % "bootstrap" % "2.3.1"
+            "org.webjars" % "bootstrap" % "2.3.1",
+            "org.webjars" % "bootstrap" % "2.1.1",
+            "org.webjars" % "flot" % "0.8.0",
+            "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.2.1",
+            "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.1.2",
+            "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.1.1",
+            "org.avaje.ebeanorm" % "avaje-ebeanorm-agent" % "3.1.1",
+            "org.avaje.ebeanorm" % "avaje-ebeanorm-agent" % "3.2.1",
+            "jline" % "jline" % "0.9.94",
+            "junit" % "junit" % "3.8.1",
+            "junit" % "junit-dep" % "4.8.2",
+            "junit" % "junit" % "4.11",
+            "com.jcraft" % "jsch" % "0.1.44-1",
+            "com.typesafe.akka" % "akka-actor_2.10" % "2.2-M3",
+            "com.typesafe.akka" % "akka-testkit_2.10" % "2.2-M3",
+            "com.typesafe.akka" % "akka-actor_2.10" % "2.1.2",
+            "com.typesafe.akka" % "akka-slf4j_2.10" % "2.1.2",
+            "com.novocode" % "junit-interface" % "0.7"
         ),
       localRepoArtifacts ++= {
         val sbt = sbtPluginVersion
