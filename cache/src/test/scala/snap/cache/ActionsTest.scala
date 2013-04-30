@@ -5,9 +5,12 @@ import java.io._
 import org.junit.Assert._
 import org.junit._
 import activator.properties.ActivatorProperties._
+import scala.concurrent.Future
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class ActionsTest {
-
+  import scala.concurrent.ExecutionContext.Implicits.global
   class Dummy(dir: File) {
     // Setup dummies for test.
     val templateFile = new java.io.File(dir, "template-file")
@@ -18,16 +21,15 @@ class ActionsTest {
 
     object DummyCache extends TemplateCache {
       val m = TemplateMetadata(id, "", "", 1, "", Seq.empty)
-      override val metadata = Seq(m)
+      override val metadata = Future(Seq(m))
       override def template(id: String) =
-        Some(Template(m, Seq(
+        Future(Some(Template(m, Seq(
           templateFile -> "installed-file",
           dir -> "project",
           templateFile -> "project/build.properties",
-          buildSbtFile -> "build.sbt")))
-      override def tutorial(id: String) = None
-
-      override def search(query: String): Iterable[TemplateMetadata] = metadata
+          buildSbtFile -> "build.sbt"))))
+      override def tutorial(id: String) = Future(None)
+      override def search(query: String) = metadata
     }
     val installLocation = new java.io.File(dir, "template-install")
 
@@ -42,7 +44,7 @@ class ActionsTest {
     // Run the command
     val result = Actions.cloneTemplate(DummyCache, id, installLocation, projectName = None)
 
-    assert(!result.isFailure)
+    assert(!Await.result(result, Duration(5, SECONDS)).isFailure)
 
     // Now verify it worked!
     assert(installLocation.exists && installLocation.isDirectory)
@@ -64,7 +66,7 @@ class ActionsTest {
     val newName = "test\"\"\" foo bar \"\"\" $1 $2 \n blah blah \\n \\ what"
     val result = Actions.cloneTemplate(DummyCache, id, installLocation, projectName = Some(newName))
 
-    assert(!result.isFailure)
+    assert(!Await.result(result, Duration(5, SECONDS)).isFailure)
 
     val contents = IO.slurp(new File(installLocation, "build.sbt"))
     // see if this makes your head hurt

@@ -9,7 +9,8 @@ import scala.util.control.NonFatal
 object Templates extends Controller {
   // This will load our template cache and ensure all templates are available for the demo.
   // We should think of an alternative means of loading this in the future.
-  val templateCache = snap.cache.TemplateCache()
+  implicit val timeout = akka.util.Timeout(60000L)
+  val templateCache = snap.cache.DefaultTemplateCache(snap.Akka.system)
 
   // Here's the JSON rendering of template metadata.
   implicit object Protocol extends Format[TemplateMetadata] {
@@ -27,19 +28,27 @@ object Templates extends Controller {
   }
 
   def list = Action { request =>
-    Ok(Json toJson templateCache.metadata)
+    Async {
+      import concurrent.ExecutionContext.Implicits._
+      templateCache.metadata map { m => Ok(Json toJson m) }
+    }
   }
 
   def tutorial(id: String, location: String) = Action { request =>
-    // TODO - Use a freaking Validation  applicative functor so this isn't so ugly. 
-    val result =
-      for {
-        tutorial <- templateCache tutorial id
-        file <- tutorial.files get location
-      } yield file
-    result match {
-      case Some(file) => Ok sendFile file
-      case _ => NotFound
+    Async {
+      import concurrent.ExecutionContext.Implicits._
+      templateCache tutorial id map { tutorialOpt =>
+        // TODO - Use a Validation  applicative functor so this isn't so ugly. 
+        val result =
+          for {
+            tutorial <- tutorialOpt
+            file <- tutorial.files get location
+          } yield file
+        result match {
+          case Some(file) => Ok sendFile file
+          case _ => NotFound
+        }
+      }
     }
   }
 
@@ -48,12 +57,12 @@ object Templates extends Controller {
     val location = new java.io.File((request.body \ "location").as[String])
     val templateid = (request.body \ "template").as[String]
     val name = (request.body \ "name").asOpt[String]
-
-    try {
-      snap.cache.Actions.cloneTemplate(templateCache, templateid, location, name)
-      Ok(request.body)
-    } catch {
-      case NonFatal(e) => NotAcceptable(e.getMessage)
+    Async {
+      import scala.concurrent.ExecutionContext.Implicits._
+      val result = snap.cache.Actions.cloneTemplate(templateCache, templateid, location, name)
+      result.map(x => Ok(request.body)).recover {
+        case e => NotAcceptable(e.getMessage)
+      }
     }
   }
 }
