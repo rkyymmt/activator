@@ -8,7 +8,7 @@
 @setlocal enabledelayedexpansion
 
 @echo off
-if "%ACTIVATOR_HOME%"=="" set ACTIVATOR_HOME=%~dp0
+if "%ACTIVATOR_HOME%"=="" set "ACTIVATOR_HOME=%~dp0"
 set ERROR_CODE=0
 ${{template_declares}}
 set ACTIVATOR_LAUNCH_JAR=activator-launch-%APP_VERSION%.jar
@@ -18,7 +18,7 @@ rem manually run cmd /c
 for %%x in (%cmdcmdline%) do if %%~x==/c set DOUBLECLICKED=1
 
 rem FIRST we load the config file of extra options.
-set CFG_FILE=%ACTIVATOR_HOME%activatorconfig.txt
+set "CFG_FILE=%ACTIVATOR_HOME%activatorconfig.txt"
 set CFG_OPTS=
 if exist %CFG_FILE% (
   FOR /F "tokens=* eol=# usebackq delims=" %%i IN ("%CFG_FILE%") DO (
@@ -95,7 +95,10 @@ if "%*"=="" (
 
 rem We add a / in front, so we get file:///C: instead of file://C:
 rem Java considers the later a UNC path.
-set JAVA_FRIENDLY_HOME=/!ACTIVATOR_HOME:\=\\!
+rem We also attempt a solid effort at making it URI friendly.
+rem We don't even bother with UNC paths.
+set JAVA_FRIENDLY_HOME_1=/!ACTIVATOR_HOME:\=/!
+set JAVA_FRIENDLY_HOME=/!JAVA_FRIENDLY_HOME_1: =%%20!
 
 "%_JAVACMD%" %_JAVA_OPTS% -XX:PermSize=64M -XX:MaxPermSize=256M %ACTIVATOR_OPTS% "-Dactivator.home=%JAVA_FRIENDLY_HOME%" -jar "%ACTIVATOR_HOME%\%ACTIVATOR_LAUNCH_JAR%" %CMDS%
 if ERRORLEVEL 1 goto error
