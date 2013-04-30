@@ -110,7 +110,7 @@ class HelloSpec extends FlatSpec with ShouldMatchers {
      <p>Let's ignore the imports and class definition for now, and focus on the test itself.   This test is using the <a href="http://scalatest.org">scalatest library</a>.
         Scalatest provides an elegant way of writing unit tests in Scala.   For our purposes, we're using it to define tests of the hello world application.   Currently, 
         we have one test:</p>
-<pre><code>true should be(true)</pre></code>
+<pre><code>true should be === true</pre></code>
       <p> This test is nested in the categorization/label:</p>
 <pre><code>"Hello" should "have tests"</pre></code>    
       <p>While it's true that we should have tests in our Hello world application, a test that true is true isn't particularly helpful.  Let's define a test using the new "who"
