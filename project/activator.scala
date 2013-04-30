@@ -27,7 +27,7 @@ object ActivatorBuild {
 
   val typesafeIvyReleases = Resolver.url("typesafe-ivy-private-releases", new URL("http://private-repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
   // TODO - When SBT 0.13 is out we won't need this...
-  val typesafeIvySnapshots = Resolver.url("typesafe-ivy-private-releases", new URL("http://private-repo.typesafe.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
+  val typesafeIvySnapshots = Resolver.url("typesafe-ivy-private-snapshots", new URL("http://private-repo.typesafe.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
 
   def activatorDefaults: Seq[Setting[_]] =
     SbtScalariform.scalariformSettings ++
