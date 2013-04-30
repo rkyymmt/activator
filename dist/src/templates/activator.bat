@@ -98,7 +98,7 @@ rem Java considers the later a UNC path.
 rem We also attempt a solid effort at making it URI friendly.
 rem We don't even bother with UNC paths.
 set JAVA_FRIENDLY_HOME_1=/!ACTIVATOR_HOME:\=/!
-set JAVA_FRIENDLY_HOME=/!JAVA_FRIENDLY_HOME_1: =%20!
+set JAVA_FRIENDLY_HOME=/!JAVA_FRIENDLY_HOME_1: =%%20!
 
 "%_JAVACMD%" %_JAVA_OPTS% -XX:PermSize=64M -XX:MaxPermSize=256M %ACTIVATOR_OPTS% "-Dactivator.home=%JAVA_FRIENDLY_HOME%" -jar "%ACTIVATOR_HOME%\%ACTIVATOR_LAUNCH_JAR%" %CMDS%
 if ERRORLEVEL 1 goto error
