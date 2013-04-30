@@ -269,6 +269,7 @@ object TheActivatorBuild extends Build {
             "com.google.guava" % "guava" % "11.0.2",
             "xml-apis" % "xml-apis" % "1.0.b2",
             // USED BY templates. TODO - autofind these
+            "play" % "play-java_2.10" % "2.1.1",
             "org.scalatest" % "scalatest_2.10" % "1.9.1",
             "org.webjars" % "webjars-play" % "2.1.0-1",
             "org.webjars" % "webjars-play" % "2.1.0",
