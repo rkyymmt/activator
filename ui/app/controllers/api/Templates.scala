@@ -5,11 +5,13 @@ import play.api.mvc._
 import play.api.libs.json._
 import snap.cache.TemplateMetadata
 import scala.util.control.NonFatal
+import scala.concurrent.duration._
 
 object Templates extends Controller {
   // This will load our template cache and ensure all templates are available for the demo.
   // We should think of an alternative means of loading this in the future.
-  implicit val timeout = akka.util.Timeout(60000L)
+  // TODO - We should load timeout from configuration.
+  implicit val timeout = akka.util.Timeout(Duration(6, SECONDS))
   val templateCache = snap.cache.DefaultTemplateCache(snap.Akka.system)
 
   // Here's the JSON rendering of template metadata.

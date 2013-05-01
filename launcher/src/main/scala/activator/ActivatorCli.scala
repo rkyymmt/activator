@@ -17,11 +17,14 @@ object ActivatorCli {
     val system = ActorSystem()
     val projectDir = new File(name).getAbsoluteFile
     // Ok, now we load the template cache...
-    implicit val timeout = akka.util.Timeout(60000L)
+    
+    // TODO - Configurable durations in some config file somewhere.
+    val defaultDuration = Duration(6, SECONDS)
+    implicit val timeout = akka.util.Timeout(defaultDuration)
     val cache = DefaultTemplateCache(system)
     // Get all possible names.
-    // TODO - Re-architect this for the actor-based template cache!
-    val metadata = Await.result(cache.metadata, Duration(1, SECONDS))
+    // TODO - Drive this whole thing through futures, if we feel SAUCY enough, rather than waiting for results.
+    val metadata = Await.result(cache.metadata, defaultDuration)
     val templateNames = metadata.map(_.name).toSeq.distinct
     System.out.println()
     System.out.println(s"The new application will be created in ${projectDir.getAbsolutePath}")
