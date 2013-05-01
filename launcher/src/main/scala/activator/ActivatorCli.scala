@@ -17,7 +17,7 @@ object ActivatorCli {
     val system = ActorSystem()
     val projectDir = new File(name).getAbsoluteFile
     // Ok, now we load the template cache...
-    
+
     // TODO - Configurable durations in some config file somewhere.
     val defaultDuration = Duration(6, SECONDS)
     implicit val timeout = akka.util.Timeout(defaultDuration)

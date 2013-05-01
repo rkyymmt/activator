@@ -27,10 +27,6 @@ object Packaging {
   val makeReadmeHtml = TaskKey[File]("make-readme-html")
   val makeLicensesHtml = TaskKey[File]("make-licenses-html")
 
-  val localTemplateSourceDirectory = SettingKey[File]("local-template-source-directory")
-  val localTemplateCache = SettingKey[File]("local-template-cache")
-  val localTemplateCacheCreated = TaskKey[File]("local-template-cache-created")
-  
   val localRepoProjectsPublished = TaskKey[Unit]("local-repo-projects-published", "Ensures local projects are published before generating the local repo.")
   val localRepoArtifacts = SettingKey[Seq[ModuleID]]("local-repository-artifacts", "Artifacts included in the local repository.")
   val localRepoName = "install-to-local-repository"
@@ -93,7 +89,7 @@ object Packaging {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
       } yield file -> ("repository/" + path)
     },
-    mappings in Universal <++= localTemplateCacheCreated map { repo =>
+    mappings in Universal <++= (LocalTempalteRepo.localTemplateCacheCreated in TheActivatorBuild.localTemplateRepo) map { repo =>
       for {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
       } yield file -> ("templates/" + path)
@@ -132,20 +128,9 @@ object Packaging {
       val output = to / "LICENSE.html"
       Markdown.makeHtml(template, output, title="Activator License")
       output
-    },
-    localTemplateSourceDirectory <<= (baseDirectory in ThisBuild) apply (_ / "templates"),
-    localTemplateCache <<= target(_ / "template-cache"),
-    localTemplateCacheCreated <<= (localTemplateSourceDirectory, localTemplateCache) map makeTemplateCache
+    }
   )
-
-  def makeTemplateCache(sourceDir: File, targetDir: File): File = {
-    IO createDirectory targetDir
-    // TODO - we should be loading in the templates in this source and generating an index using the cache project's index generation main.
-    // Or some such production-y thing.  For now, just copy some sh***
-    IO.copyDirectory(sourceDir, targetDir)
-    targetDir
-  }
-
+  
 
   // TODO - Use SBT caching API for this.
   def repackageJar(target: File, launcher: File, jansi: File, replacements: Seq[(File, String)] = Seq.empty): File = IO.withTemporaryDirectory { tmp =>
