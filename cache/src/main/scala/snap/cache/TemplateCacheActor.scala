@@ -11,7 +11,7 @@ import akka.actor.Actor
  *
  * Although, if we use lucene, we could have multi-threaded access, best
  * not to assume technology for now.
- * 
+ *
  * TODO - Add a manager in front of this actor that knows how to update the lucene index and reboot this guy.
  */
 class TemplateCacheActor(provider: IndexDbProvider, location: File, remote: RemoteTemplateRepository) extends Actor {
