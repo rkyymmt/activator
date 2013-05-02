@@ -38,6 +38,8 @@ object Properties {
        |sbt.version=%s
        |sbt.scala.version=%s
        |app.scala.version=%s
+       |sbt.Xmx=512M
+       |sbt.PermSize=128M
        |""".stripMargin format (version, sbtVersion, sbtScalaVersion(sbtVersion), scalaVersion)
   
   

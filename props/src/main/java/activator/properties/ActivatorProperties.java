@@ -20,9 +20,12 @@ public class ActivatorProperties {
   private static String getProperty(String name) {
     String value = System.getProperty(name);
     if(value == null) {
-      value = System.getenv(name);
+      value = System.getenv("activator." + name);
     }
     if(value == null) {
+      value = System.getenv("ACTIVATOR_" + name.replace('.', '_').toUpperCase());
+    }
+    if (value == null) {
       value = props.getProperty(name);
     }
     return value;
@@ -133,5 +136,13 @@ public class ActivatorProperties {
 
   public static java.io.File ACTIVATOR_PID_FILE() {
     return new java.io.File(ACTIVATOR_USER_HOME() + "/.currentpid");
+  }
+
+  public static String SBT_XMX() {
+    return getProperty("sbt.Xmx");
+  }
+
+  public static String SBT_PERMSIZE() {
+    return getProperty("sbt.PermSize");
   }
 }
