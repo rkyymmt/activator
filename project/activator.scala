@@ -29,6 +29,17 @@ object ActivatorBuild {
   // TODO - When SBT 0.13 is out we won't need this...
   val typesafeIvySnapshots = Resolver.url("typesafe-ivy-private-snapshots", new URL("http://private-repo.typesafe.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
 
+  private val fixWhitespace = TaskKey[Seq[File]]("fix-whitespace")
+
+  private def makeFixWhitespace(config: Configuration): Setting[_] = {
+    fixWhitespace in config <<= (unmanagedSources in config, streams) map { (sources, streams) =>
+      for (s <- sources) {
+        Fixer.fixWhitespace(s, streams.log)
+      }
+      sources
+    }
+  }
+
   def activatorDefaults: Seq[Setting[_]] =
     SbtScalariform.scalariformSettings ++
     Seq(
@@ -53,7 +64,11 @@ object ActivatorBuild {
       scalaVersion := Dependencies.scalaVersion,
       scalaBinaryVersion := "2.10",
       ScalariformKeys.preferences in Compile := formatPrefs,
-      ScalariformKeys.preferences in Test    := formatPrefs
+      ScalariformKeys.preferences in Test    := formatPrefs,
+      makeFixWhitespace(Compile),
+      makeFixWhitespace(Test),
+      compileInputs in (Compile, compile) <<= (compileInputs in (Compile, compile)) dependsOn (fixWhitespace in Compile),
+      compileInputs in Test <<= (compileInputs in Test) dependsOn (fixWhitespace in Test)
     )
 
   def sbtShimPluginSettings: Seq[Setting[_]] =

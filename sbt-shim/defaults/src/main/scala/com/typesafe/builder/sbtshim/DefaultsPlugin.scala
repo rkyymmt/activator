@@ -18,6 +18,6 @@ object DefaultsPlugin extends Plugin {
         case (rs, _) => rs
       })
 
-  // As a shim, fix the builder local repository to be used first on every project. 
+  // As a shim, fix the builder local repository to be used first on every project.
   override val settings = useActivatorLocalRepo ++ Seq(defaultsShimInstalled := true)
 }

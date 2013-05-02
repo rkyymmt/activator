@@ -30,7 +30,7 @@ object Events extends Controller {
     msg.split("[\\r]?[\\n]").mkString("data: ", "\ndata: ", "\n\n\n")
   }
 
-  // Action that returns a new event source stream.    
+  // Action that returns a new event source stream.
   def eventSource = Action {
     Ok.stream(events &> toEventSource).withHeaders(CONTENT_TYPE -> "text/event-stream")
   }

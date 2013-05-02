@@ -229,4 +229,3 @@ object IO {
     } else sys.error("String cannot be encoded by charset " + charset.name)
 
 }
-
