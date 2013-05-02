@@ -51,8 +51,8 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
     // memory....
     val defaultJvmArgs = Seq(
       "-Xss1024K",
-      "-Xmx1024M",
-      "-XX:PermSize=512M",
+      "-Xmx" + SBT_XMX,
+      "-XX:PermSize=" + SBT_PERMSIZE,
       "-XX:+CMSClassUnloadingEnabled")
     // TODO - handle spaces in strings and such...
     val sbtProps = Seq(
@@ -66,7 +66,7 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
     val jar = Seq("-jar", launcher.getAbsolutePath)
 
     // TODO - Is the cross-platform friendly?
-    val probeClasspathString = 
+    val probeClasspathString =
       "\"\"\"" + ((probeClassPath map (_.getAbsolutePath)).distinct mkString File.pathSeparator) + "\"\"\""
     val sbtcommands = Seq(
       s"apply -cp $probeClasspathString com.typesafe.sbtchild.SetupSbtChild",

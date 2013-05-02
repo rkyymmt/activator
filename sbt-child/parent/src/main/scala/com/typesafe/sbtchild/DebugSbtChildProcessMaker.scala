@@ -81,8 +81,8 @@ object DebugSbtChildProcessMaker extends SbtChildProcessMaker {
     // memory....
     val defaultJvmArgs = Seq(
       "-Xss1024K",
-      "-Xmx1024M",
-      "-XX:PermSize=512M",
+      "-Xmx" + SBT_XMX,
+      "-XX:PermSize=" + SBT_PERMSIZE,
       "-XX:+CMSClassUnloadingEnabled")
     val sbtProps = Seq(
       "-Dactivator.home=" + ACTIVATOR_HOME,
