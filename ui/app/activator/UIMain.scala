@@ -93,6 +93,10 @@ class UIMain extends AppMain {
     // First set up the server port.
     System.setProperty("http.port", serverPort.toString)
 
+    // Play defaults to 0.0.0.0 which listens on all
+    // interfaces, we want loopback only.
+    System.setProperty("http.address", "127.0.0.1")
+
     if (!alreadyRunning) {
       // locate sbt details and store in a singleton
       snap.AppManager.sbtChildProcessMaker = new SbtChildLauncher(configuration)
