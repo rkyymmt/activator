@@ -35,7 +35,8 @@ class AppCacheActor extends Actor with ActorLogging {
       case (id, futureApp) =>
         if (futureApp.isCompleted) {
           try {
-            val app = Await.result(futureApp, 2.seconds)
+            // this should be "instant" but 5 seconds to be safe
+            val app = Await.result(futureApp, 5.seconds)
             if (Some(app.actor) == deadRef) {
               log.debug("cleaning up terminated app actor {} {}", id, app.actor)
               false
@@ -165,7 +166,7 @@ object AppManager {
       // TODO - we should actually have ogging of this sucker
       factory.init(akka.event.NoLogging)
       val sbt = factory.newChild(snap.Akka.system)
-      implicit val timeout = Timeout(60, TimeUnit.SECONDS)
+      implicit val timeout = Akka.longTimeoutThatIsAProblem;
 
       val requestManager = snap.Akka.system.actorOf(
         Props(new RequestManagerActor("learn-project-name", sbt, false)({
