@@ -48,7 +48,8 @@ class UsersActorSpec extends Specification with NoTimeConversions {
       actor ! stockUpdate
 
       // Expect the probes to get it.
-      probe1.expectMsg(500 millis, stockUpdate)
+      val actual = probe1.expectMsg(500 millis, stockUpdate)
+      actual must beTheSameAs(stockUpdate)
     }
   }
 
@@ -102,7 +103,8 @@ class UsersActorSpec extends Specification with NoTimeConversions {
       val watchStock = WatchStock(uuid, symbol)
       actor ! watchStock
 
-      probe1.expectMsg(500 millis, watchStock)
+      val actual = probe1.expectMsg(500 millis, watchStock)
+      actual must beTheSameAs(watchStock)
     }
   }
 
@@ -127,7 +129,8 @@ class UsersActorSpec extends Specification with NoTimeConversions {
       val unwatchStock = UnwatchStock(uuid, symbol)
       actor ! unwatchStock
 
-      probe1.expectMsg(500 millis, unwatchStock)
+      val actual = probe1.expectMsg(500 millis, unwatchStock)
+      actual must beTheSameAs(unwatchStock)
     }
   }
 }
