@@ -43,7 +43,8 @@ object Actions {
     cache: TemplateCache,
     id: String,
     location: java.io.File,
-    projectName: Option[String])(
+    projectName: Option[String],
+    filterMetadata: Boolean = true)(
       implicit ctx: ExecutionContext): Future[ProcessResult[Unit]] =
     (cache template id) map { templateOpt =>
       for {
@@ -54,6 +55,10 @@ object Actions {
         _ <- Validating.withMsg("Failed to copy template") {
           for {
             (file, path) <- template.files
+            // TODO - We should rethink how this guy is generated.
+            // Probably just generate him directly from metadata case class
+            // and without an ID or timestamp?
+            if !filterMetadata || (path != "activator.properties")
             to = new java.io.File(location, path)
           } if (file.isDirectory) IO.createDirectory(to)
           else {

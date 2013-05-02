@@ -27,13 +27,32 @@ object LocalTemplateRepo {
     mainMethod.invoke(null, Array(arg.getAbsolutePath))
   }
 
+  // Loads the id from a template metadata file.
+  def loadId(metadata: File): Option[String] = {
+    val props = new java.util.Properties
+    IO.load(props, metadata)
+    Option(props.getProperty("id"))
+  } 
+  
+  def obtainLocalTemplates(sourceDir: File, targetDir: File): File = {
+    // TODO - we should be loading the templates and cache from the typesafe.com server here, but for
+	// now we're generating it locally.
+    for {
+      templateDir <- IO.listFiles(sourceDir) 
+      metadata = templateDir / "activator.properties"
+      if metadata.exists
+      id <- loadId(metadata)
+      // TODO - Figure out the true structure (do we have intermediate dirs)
+      outDir = targetDir / id
+    } IO.copyDirectory(templateDir, outDir)
+    targetDir
+  }
+
   def makeTemplateCache(sourceDir: File, targetDir: File, classpath: Keys.Classpath): File = {
 	// TODO - We should check for staleness here...
     if(!targetDir.exists) {
 	  IO createDirectory targetDir
-	  // TODO - we should be loading the templates and cache from the typesafe.com server here, but for
-	  // now we're generating it locally.
-	  IO.copyDirectory(sourceDir, targetDir)
+      obtainLocalTemplates(sourceDir, targetDir)
 	  invokeTemplateCacheRepoMakerMain(classpath, targetDir)
     }
     targetDir
