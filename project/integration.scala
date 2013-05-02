@@ -6,8 +6,7 @@ import Packaging.{
   localRepoCreated,
   makeLocalRepoSettings,
   localRepoProjectsPublished,
-  repackagedLaunchJar,
-  localTemplateCacheCreated
+  repackagedLaunchJar
 }
 import xsbt.api.Discovery
 import com.typesafe.sbt.SbtNativePackager.Universal

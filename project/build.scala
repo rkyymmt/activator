@@ -21,7 +21,7 @@ object TheActivatorBuild extends Build {
 
   val root = (
     Project("root", file("."))  // TODO - Oddities with clean..
-    aggregate((publishedProjects.map(_.project) ++ Seq(dist.project, it.project)):_*)
+    aggregate((publishedProjects.map(_.project) ++ Seq(dist.project, it.project, localTemplateRepo.project)):_*)
     settings(
       // Stub out commands we run frequently but don't want them to really do anything.
       Keys.publish := {},
@@ -33,10 +33,18 @@ object TheActivatorBuild extends Build {
     Project("news", file("news"))
     settings(NewsHelper.settings:_*)
   )
+  
+  // This project helps us isolate creating the local template repository for testing.
+  lazy val localTemplateRepo: Project = (
+    Project("template-repository", file("template-repository"))
+    settings(LocalTemplateRepo.settings:_*)
+    settings(Keys.publishLocal := {},
+             Keys.publish := {})
+  )
 
   // These are the projects we want in the local repository we deploy.
   lazy val publishedSbtShimProjects = Set(playShimPlugin, eclipseShimPlugin, ideaShimPlugin, sbtUiInterface, defaultsShimPlugin)
-  lazy val publishedProjects = Seq(io, common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects
+  lazy val publishedProjects: Seq[Project] = Seq(io, common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects
 
   // basic project that gives us properties to use in other projects.
   lazy val props = (
@@ -155,6 +163,9 @@ object TheActivatorBuild extends Build {
     settings(configureSbtTest(Keys.testOnly): _*)
   )
 
+  
+  // We use this to ensure all necessary shims are pubished before we run, so sbt can resolve them.
+  lazy val shimsPublished = TaskKey[Unit]("sbt-shims-published")
   lazy val ui = (
     ActivatorPlayProject("ui")
     dependsOnRemote(
@@ -170,19 +181,23 @@ object TheActivatorBuild extends Build {
     settings(
       // Here we hack the update process that play-run calls to set up everything we need for embedded sbt.
       // Yes, it's a hack.  BUT we *love* hacks right?
+      shimsPublished <<= (publishedSbtShimProjects.toSeq map (project => Keys.publishLocal in project)).dependOn,
       Keys.update <<= (
           SbtSupport.sbtLaunchJar,
           Keys.update,
           requiredClasspath in sbtRemoteProbe,
           Keys.compile in Compile in sbtRemoteProbe,
           // Note: This one should generally push all shim plugins.
-          Keys.publishLocal in playShimPlugin) map {
-        (launcher, update, probeCp, _, _) =>
+          shimsPublished,
+          LocalTemplateRepo.localTemplateCacheCreated in localTemplateRepo) map {
+        (launcher, update, probeCp, _, _, templateCache) =>
           // We register the location after it's resolved so we have it for running play...
           sys.props("activator.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
           sys.props("activator.remote.probe.classpath") = Path.makeString(probeCp.files)
+          sys.props("activator.template.cache") = templateCache.getAbsolutePath
           System.err.println("Updating sbt launch jar: " + sys.props("activator.sbt.launch.jar"))
           System.err.println("Remote probe classpath = " + sys.props("activator.remote.probe.classpath"))
+          System.err.println("Template chace = " + sys.props("activator.template.cache"))
           update
       }
     )

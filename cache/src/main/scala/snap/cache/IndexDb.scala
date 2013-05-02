@@ -57,3 +57,6 @@ trait IndexDbProvider {
    */
   def write(localDirorFile: File): IndexWriter
 }
+object IndexDbProvider {
+  implicit def default: IndexDbProvider = LuceneIndexProvider
+}

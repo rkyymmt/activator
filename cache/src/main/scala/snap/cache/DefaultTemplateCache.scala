@@ -41,11 +41,11 @@ object DefaultTemplateCache {
   }
 
   /** The default remote repository configured via builder properties. */
-  def defaultRemoteRepo: RemoteTemplateRepository = {
+  object defaultRemoteRepo extends RemoteTemplateRepository {
     // TODO - Implement me!
-    new RemoteTemplateRepository {
-      def resolveTemplateTo(templateId: String, localDir: File): File = localDir
-    }
+    def resolveTemplateTo(templateId: String, localDir: File): File = localDir
+    def hasNewIndex(oldId: String): Boolean = false
+    def resolveIndexTo(indexDirOrFile: File): File = indexDirOrFile
   }
   /** The default cache directory, configured by builder properties. */
   def defaultCacheDir: File = (
