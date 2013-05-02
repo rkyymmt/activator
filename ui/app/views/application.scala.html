@@ -20,6 +20,7 @@
       id: '@model.id',
       appVersion: '@ActivatorProperties.APP_VERSION',
       pluginIds:  [ @Html(model.plugins.mkString("\'", "\','","\'")) ],
+      hasLocalTutorial: '@model.hasLocalTutorial',
       location: '@model.jsLocation'
       @for(id <- model.template) {
         ,template: {
