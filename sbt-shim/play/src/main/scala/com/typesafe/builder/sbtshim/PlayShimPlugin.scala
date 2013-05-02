@@ -163,7 +163,7 @@ object PlayShimPlugin extends Plugin {
           // Call back myself
           executeContinuously(watched, newState, reloader, Some(newWatchState))
         } else {
-          // Stop 
+          // Stop
           Some("Okay, i'm done")
         }
       }

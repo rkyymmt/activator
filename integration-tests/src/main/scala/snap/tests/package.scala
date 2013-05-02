@@ -14,7 +14,7 @@ package object tests {
     finally current setContextClassLoader old
   }
 
-  // Success and failure conditions for tests.  
+  // Success and failure conditions for tests.
   case object Success extends xsbti.Exit {
     val code = 0
   }
@@ -90,4 +90,3 @@ package object tests {
     checkAlive()
   }
 }
-

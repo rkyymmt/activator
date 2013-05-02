@@ -40,7 +40,7 @@ object Templates extends Controller {
     Async {
       import concurrent.ExecutionContext.Implicits._
       templateCache tutorial id map { tutorialOpt =>
-        // TODO - Use a Validation  applicative functor so this isn't so ugly. 
+        // TODO - Use a Validation  applicative functor so this isn't so ugly.
         val result =
           for {
             tutorial <- tutorialOpt
