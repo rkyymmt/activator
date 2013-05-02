@@ -3,7 +3,7 @@ import ActivatorBuild._
 import Keys._
 
 
-object LocalTempalteRepo {
+object LocalTemplateRepo {
   // TODO - We can probably move this to its own project, to more clearly delineate that the UI uses these
   // for local testing....
   val localTemplateSourceDirectory = SettingKey[File]("local-template-source-directory")

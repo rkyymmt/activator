@@ -37,7 +37,7 @@ object TheActivatorBuild extends Build {
   // This project helps us isolate creating the local template repository for testing.
   lazy val localTemplateRepo: Project = (
     Project("template-repository", file("template-repository"))
-    settings(LocalTempalteRepo.settings:_*)
+    settings(LocalTemplateRepo.settings:_*)
     settings(Keys.publishLocal := {},
              Keys.publish := {})
   )
@@ -185,7 +185,7 @@ object TheActivatorBuild extends Build {
           Keys.compile in Compile in sbtRemoteProbe,
           // Note: This one should generally push all shim plugins.
           Keys.publishLocal in playShimPlugin,
-          LocalTempalteRepo.localTemplateCacheCreated in localTemplateRepo) map {
+          LocalTemplateRepo.localTemplateCacheCreated in localTemplateRepo) map {
         (launcher, update, probeCp, _, _, templateCache) =>
           // We register the location after it's resolved so we have it for running play...
           sys.props("activator.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath

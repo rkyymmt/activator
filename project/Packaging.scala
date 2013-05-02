@@ -89,7 +89,7 @@ object Packaging {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
       } yield file -> ("repository/" + path)
     },
-    mappings in Universal <++= (LocalTempalteRepo.localTemplateCacheCreated in TheActivatorBuild.localTemplateRepo) map { repo =>
+    mappings in Universal <++= (LocalTemplateRepo.localTemplateCacheCreated in TheActivatorBuild.localTemplateRepo) map { repo =>
       for {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
       } yield file -> ("templates/" + path)

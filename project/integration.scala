@@ -8,7 +8,6 @@ import Packaging.{
   localRepoProjectsPublished,
   repackagedLaunchJar
 }
-import LocalTempalteRepo.localTemplateCacheCreated
 import xsbt.api.Discovery
 import com.typesafe.sbt.SbtNativePackager.Universal
 
