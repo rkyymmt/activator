@@ -12,7 +12,8 @@ object ApplicationBuild extends Build {
     "com.typesafe.akka" %% "akka-slf4j" % "2.1.2",
     "org.webjars" % "webjars-play" % "2.1.0-1",
     "org.webjars" % "bootstrap" % "2.1.1",
-    "org.webjars" % "flot" % "0.8.0"
+    "org.webjars" % "flot" % "0.8.0",
+    "com.typesafe.akka" %% "akka-testkit" % "2.1.2" % "test"
   )
 
 
