@@ -20,9 +20,12 @@ public class ActivatorProperties {
   private static String getProperty(String name) {
     String value = System.getProperty(name);
     if(value == null) {
-      value = System.getenv(name);
+      value = System.getenv("activator." + name);
     }
     if(value == null) {
+      value = System.getenv("ACTIVATOR_" + name.replace('.', '_').toUpperCase());
+    }
+    if (value == null) {
       value = props.getProperty(name);
     }
     return value;
