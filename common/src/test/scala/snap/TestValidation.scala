@@ -67,7 +67,7 @@ object TestValidation extends Specification {
           case ProcessFailure(Seq(err)) => err.msg
           case _ => ""
         }
-      msg must equalTo("Hello, World")
+      msg must equalTo("Hello, World: O NOES")
     }
   }
 
