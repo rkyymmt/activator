@@ -58,7 +58,7 @@ object Actions {
             // TODO - We should rethink how this guy is generated.
             // Probably just generate him directly from metadata case class
             // and without an ID or timestamp?
-            if !filterMetadata || (path != "activator.properties")
+            if !filterMetadata || (path != Constants.METADATA_FILENAME)
             to = new java.io.File(location, path)
           } if (file.isDirectory) IO.createDirectory(to)
           else {

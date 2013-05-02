@@ -22,7 +22,7 @@ object TemplateRepoIndexGenerator {
   def makeMetaDataIndex(localRepo: File)(implicit reader: MetadataReader, indexProvider: IndexDbProvider): File = {
     // TODO - Keep these relative file location magiks in one class
     val metadata = collectTemplateMetadata(localRepo)
-    val indexDir = new File(localRepo, "index.db")
+    val indexDir = new File(localRepo, Constants.METADATA_INDEX_FILENAME)
     // Make sure we clear out the previous index.
     if (indexDir.exists) IO.delete(indexDir)
     val writer = indexProvider.write(indexDir)
@@ -41,7 +41,7 @@ object TemplateRepoIndexGenerator {
       child <- Option(localRepo.listFiles) getOrElse Array.empty
       if child.isDirectory
       // TODO - Store this filename in one location!
-      metadataFile = new File(child, "activator.properties")
+      metadataFile = new File(child, Constants.METADATA_FILENAME)
       if metadataFile.exists
       metadata <- reader.read(metadataFile).toSeq
     } yield metadata
