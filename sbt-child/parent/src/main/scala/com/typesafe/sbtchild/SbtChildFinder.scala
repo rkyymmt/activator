@@ -66,9 +66,10 @@ class SbtChildLauncher(configuration: AppConfiguration) extends SbtChildProcessM
     val jar = Seq("-jar", launcher.getAbsolutePath)
 
     // TODO - Is the cross-platform friendly?
-    val probeClasspathString = (probeClassPath map (_.getAbsolutePath)).distinct mkString File.pathSeparator
+    val probeClasspathString = 
+      "\"\"\"" + ((probeClassPath map (_.getAbsolutePath)).distinct mkString File.pathSeparator) + "\"\"\""
     val sbtcommands = Seq(
-      "apply -cp " + probeClasspathString + " com.typesafe.sbtchild.SetupSbtChild",
+      s"apply -cp $probeClasspathString com.typesafe.sbtchild.SetupSbtChild",
       "listen")
 
     val result = Seq("java") ++
