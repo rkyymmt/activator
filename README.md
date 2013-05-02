@@ -9,13 +9,11 @@ This project uses [SBT 0.12](http://scala-sbt.org).   Make sure you have an SBT 
 
 ## Running the UI
 
-    sbt> publish-local
     sbt> project activator-ui
     sbt> run
 
 or just
 
-    sbt> publish-local
     sbt "activator-ui/run"
 
 
