@@ -2,7 +2,31 @@ define(function() {
 	var WEB_SOCKET_CLOSED = 'WebSocketClosed';
 	var id = window.wsUrl;
 	// We can probably just connect immediately.
-	var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket;
+	var WS;
+	if ('MozWebSocket' in window) {
+		WS = window.MozWebSocket;
+	} else if ('WebSocket' in window) {
+		WS = window.WebSocket;
+	} else {
+		WS = null;
+		var message = "This browser does not support WebSocket, but currently Activator requires it. " +
+		"Newer IE, Firefox, Safari, or Chrome should work for example.";
+		// be sure we at least log it
+		console.log(message);
+		// if jquery is screwy on the ancient browser, we still want to show the alert,
+		// so put it in a try block.
+		try {
+			$('body').html('<div class="error" style="font-size: 24px; margin: 40px;"></div>');
+			$('div.error').text(message);
+		} catch(e) {
+			console.log("jquery not working either", e);
+		}
+
+		alert(message);
+
+		// and give up, since this module isn't going to work.
+		throw new Error(message);
+	}
 
 	console.log("WS opening: " + id);
 	var socket = new WS(id);
