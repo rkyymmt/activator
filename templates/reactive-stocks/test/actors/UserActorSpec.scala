@@ -3,41 +3,14 @@ package actors
 import akka.actor._
 import akka.testkit._
 
-import org.codehaus.jackson.JsonNode
-
 import org.specs2.mutable._
 import org.specs2.time.NoTimeConversions
 
-import play.mvc.WebSocket
-
-import scala.concurrent._
 import scala.concurrent.duration._
-
-// Using http://blog.xebia.com/2012/10/01/testing-akka-with-specs2/
-/* A tiny class that can be used as a Specs2 'context'. */
-abstract class AkkaTestkitSpecs2Support extends TestKit(ActorSystem())
-with After
-with ImplicitSender {
-  // make sure we shut down the actor system after all tests have run
-  def after {
-    system.shutdown()
-  }
-}
-
 
 class UserActorSpec extends Specification with NoTimeConversions {
 
   sequential // forces all tests to be run sequentially
-
-  class StubOut() extends WebSocket.Out[JsonNode]() {
-    var expected:JsonNode = null
-
-    def write(node: JsonNode) {
-      expected = node
-    }
-
-    def close() {}
-  }
 
   "A user actor receiving StockUpdate" should {
 
