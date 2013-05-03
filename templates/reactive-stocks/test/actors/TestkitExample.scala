@@ -4,7 +4,6 @@ import akka.actor._
 import akka.testkit._
 
 import org.specs2.specification.AfterExample
-import org.specs2.mutable.Specification
 
 /**
  * This class provides any enclosed specs with an ActorSystem and an implicit sender.
