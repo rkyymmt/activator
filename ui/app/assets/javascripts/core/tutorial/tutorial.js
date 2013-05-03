@@ -83,13 +83,18 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/plug
 				else
 					return "";
 			}, self);
-
+			self.hasLocalTutorial = serverAppModel && serverAppModel.hasLocalTutorial === "true";
+			self.loadTutorial();
+		},
+		loadTutorial: function() {
+			var self = this;
 			getTutorial({
 				success: function(data){
 					// parseHTML dumps the <html> <head> and <body> tags it looks like
 					// so we'll get back a list with <title> and some <div> and some
 					// text nodes.
 					var htmlNodes = $.parseHTML(data);
+					self.pages.removeAll();
 					$(htmlNodes).filter("div").each(function(i,el){
 						self.pages.push(new Page({ index: i+1, content: el, tutorial: self }));
 					});
