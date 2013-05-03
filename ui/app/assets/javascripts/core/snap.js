@@ -6,7 +6,7 @@ define(['./plugin', './router', './pluginapi', './navigation', './tutorial/tutor
 	// Register webSocket error handler
 	streams.subscribe({
 		handler: function(event) {
-			alert("Connection lost; you will need to reload the page or restart Activator");
+			alert("Connection lost; you will need to reload the page or restart Activator. It's also possible that Activator is open in another tab, which causes this error.");
 		},
 		filter: function(event) {
 			return event.type == streams.WEB_SOCKET_CLOSED;
