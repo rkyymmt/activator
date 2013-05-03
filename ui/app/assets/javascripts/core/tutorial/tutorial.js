@@ -27,7 +27,7 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/plug
 	});
 
 	function getTutorial(config) {
-		if(serverAppModel && serverAppModel.hasLocalTutorial === "true") {
+		if(serverAppModel && serverAppModel.hasLocalTutorial) {
 			config.data = {
 					location: serverAppModel.location + '/tutorial/index.html'
 			};
@@ -83,7 +83,7 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/plug
 				else
 					return "";
 			}, self);
-			self.hasLocalTutorial = serverAppModel && serverAppModel.hasLocalTutorial === "true";
+			self.hasLocalTutorial = serverAppModel && serverAppModel.hasLocalTutorial;
 			self.loadTutorial();
 		},
 		loadTutorial: function() {
