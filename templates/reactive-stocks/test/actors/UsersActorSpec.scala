@@ -89,18 +89,13 @@ class UsersActorSpec extends TestkitExample with Specification with NoTimeConver
     val symbol = "ABC"
 
     "tell the child with the UUID about the message" in {
+      // Create a UsersActor with a child test probe already injected
       val probe1 = TestProbe()
-
       class UsersActorWithTestProbe extends UsersActor {
-        override def getUserActorCreator(listen:Listen) = new akka.japi.Creator[Actor] {
-          def create() = new ProbeWrapper(probe1)
-        }
+        context.actorOf(Props(new ProbeWrapper(probe1)), uuid)
       }
 
       val actor = system.actorOf(Props(new UsersActorWithTestProbe))
-
-      val out = new StubOut()
-      actor ! Listen(uuid, out)
 
       val watchStock = WatchStock(uuid, symbol)
       actor ! watchStock
@@ -112,21 +107,15 @@ class UsersActorSpec extends TestkitExample with Specification with NoTimeConver
 
   "A UsersActor receiving a UnwatchStock" should {
     val uuid = java.util.UUID.randomUUID.toString
-        val symbol = "ABC"
+    val symbol = "ABC"
 
     "tell the child with the UUID about the message" in {
+      // Create a UsersActor with a child test probe already injected
       val probe1 = TestProbe()
-
       class UsersActorWithTestProbe extends UsersActor {
-        override def getUserActorCreator(listen:Listen) = new akka.japi.Creator[Actor] {
-          def create() = new ProbeWrapper(probe1)
-        }
+        context.actorOf(Props(new ProbeWrapper(probe1)), uuid)
       }
-
       val actor = system.actorOf(Props(new UsersActorWithTestProbe))
-
-      val out = new StubOut()
-      actor ! Listen(uuid, out)
 
       val unwatchStock = UnwatchStock(uuid, symbol)
       actor ! unwatchStock
