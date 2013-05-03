@@ -5,6 +5,9 @@ import akka.testkit._
 
 import org.specs2.mutable._
 import org.specs2.time.NoTimeConversions
+import org.specs2.matcher._
+
+import org.codehaus.jackson.JsonNode
 
 import scala.concurrent.duration._
 
@@ -38,7 +41,10 @@ class UserActorSpec extends TestkitExample with Specification with NoTimeConvers
       userActor.receive(StockUpdate(symbol, price))
 
       // ...and expect it to be a JSON node.
-      out.actual must not beNull
+      val node = out.actual.toString
+      node must /("type" -> "stockupdate")
+      node must /("symbol" -> symbol)
+      node must /("price" -> price)
     }
 
     "not write out a stock that is NOT in the map" in {
@@ -68,9 +74,12 @@ class UserActorSpec extends TestkitExample with Specification with NoTimeConvers
 
       within (5 seconds) {
         userActorRef ! WatchStock(uuid, symbol)
-        expectNoMsg // block for 5 seconds
+        expectNoMsg() // block for 5 seconds
       }
-      out.actual must not beNull
+      // Check that the node exists.
+      val node = out.actual.toString
+      node must /("type" -> "stockhistory")
+      node must /("symbol" -> symbol)
     }
   }
 
