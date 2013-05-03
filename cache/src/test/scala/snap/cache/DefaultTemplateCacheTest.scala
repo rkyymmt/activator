@@ -86,7 +86,7 @@ class DefaultTemplateCacheTest {
     description = "A template that tests template existance.",
     tags = Seq("test", "template"))
   def makeTestCache(dir: File): Unit = {
-    val writer = LuceneIndexProvider.write(new File(dir, "index.db"))
+    val writer = LuceneIndexProvider.write(new File(dir, Constants.METADATA_INDEX_FILENAME))
     try {
 
       writer.insert(template1)
@@ -97,7 +97,7 @@ class DefaultTemplateCacheTest {
     val templateDir = new File(dir, "ID-1")
     snap.IO createDirectory templateDir
     snap.IO.write(new File(templateDir, "build.sbt"), """name := "Test" """)
-    val tutorialDir = new File(templateDir, "tutorial")
+    val tutorialDir = new File(templateDir, Constants.TUTORIAL_DIR)
     snap.IO createDirectory tutorialDir
     snap.IO.write(new File(tutorialDir, "index.html"), "<html></html>")
   }

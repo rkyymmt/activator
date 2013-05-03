@@ -32,7 +32,7 @@ class TemplateCacheActor(provider: IndexDbProvider, location: File, remote: Remo
     index.search(query, max)
 
   def getTutorial(id: String): Option[Tutorial] = {
-    val tutorialDir = new java.io.File(getTemplateDirAndEnsureLocal(id), "tutorial")
+    val tutorialDir = new java.io.File(getTemplateDirAndEnsureLocal(id), Constants.TUTORIAL_DIR)
     if (tutorialDir.exists) {
       val fileMappings = for {
         file <- IO allfiles tutorialDir
@@ -52,7 +52,7 @@ class TemplateCacheActor(provider: IndexDbProvider, location: File, remote: Remo
           file <- IO allfiles localDir
           relative <- IO.relativize(localDir, file)
           if !relative.isEmpty
-          if !(relative startsWith "tutorial")
+          if !(relative startsWith Constants.TUTORIAL_DIR)
         } yield file -> relative
         Some(Template(metadata, fileMappings))
       case _ => None
@@ -69,7 +69,7 @@ class TemplateCacheActor(provider: IndexDbProvider, location: File, remote: Remo
 
   override def preStart(): Unit = {
     // Our index is underneath the cache location...
-    index = provider.open(new File(location, "index.db"))
+    index = provider.open(new File(location, Constants.METADATA_INDEX_FILENAME))
   }
   override def postStop(): Unit = {
     if (index != null) {

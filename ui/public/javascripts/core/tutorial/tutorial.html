@@ -2,6 +2,9 @@
     <header>
         <a class="collapse"></a>
         <span>Tutorial</span>
+        <span data-bind="if: hasLocalTutorial" class="tutorialreload">
+          (<a data-bind="click: loadTutorial">Reload</a>)
+        </span>
     </header>
     <nav>
         <a class="previous" data-bind="css: previousClass, click: selectPrevious">←</a>

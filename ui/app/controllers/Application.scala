@@ -25,7 +25,8 @@ case class ApplicationModel(
   plugins: Seq[String],
   name: String,
   template: Option[String],
-  recentApps: Seq[AppConfig]) {
+  recentApps: Seq[AppConfig],
+  hasLocalTutorial: Boolean) {
 
   def jsLocation = location.replaceAll("'", "\\'")
 }
@@ -158,7 +159,13 @@ object Application extends Controller {
       app.config.cachedName getOrElse app.config.id,
       // TODO - something less lame than exception here...
       app.templateID,
-      RootConfig.user.applications)
+      RootConfig.user.applications,
+      hasLocalTutorial(app))
+
+  def hasLocalTutorial(app: snap.App): Boolean = {
+    val tutorialConfig = new java.io.File(app.config.location, snap.cache.Constants.METADATA_FILENAME)
+    tutorialConfig.exists
+  }
 
   val homeActorCount = new AtomicInteger(1)
 

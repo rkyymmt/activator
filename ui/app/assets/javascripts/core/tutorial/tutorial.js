@@ -26,6 +26,17 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/plug
 		}
 	});
 
+	function getTutorial(config) {
+		if(serverAppModel && serverAppModel.hasLocalTutorial) {
+			config.data = {
+					location: serverAppModel.location + '/tutorial/index.html'
+			};
+			$.ajax("/api/local/show", config);
+		} else if (serverAppModel && serverAppModel.template && serverAppModel.template.id) {
+			$.ajax("/api/templates/"+serverAppModel.template.id+"/tutorial/index.html",config);
+		}
+	}
+
 	var Tutorial = api.Class(api.Widget, {
 		id: 'tutorial-widget',
 		template: template,
@@ -72,24 +83,27 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/plug
 				else
 					return "";
 			}, self);
-
-			if (serverAppModel && serverAppModel.template && serverAppModel.template.id) {
-				$.ajax("/api/templates/"+serverAppModel.template.id+"/tutorial/index.html",{
-					success: function(data){
-						// parseHTML dumps the <html> <head> and <body> tags it looks like
-						// so we'll get back a list with <title> and some <div> and some
-						// text nodes.
-						var htmlNodes = $.parseHTML(data);
-						$(htmlNodes).filter("div").each(function(i,el){
-							self.pages.push(new Page({ index: i+1, content: el, tutorial: self }));
-						});
-						if (self.havePages())
-							self.select(self.pages()[0]);
-						else
-							self.select(null);
-					}
-				});
-			}
+			self.hasLocalTutorial = serverAppModel && serverAppModel.hasLocalTutorial;
+			self.loadTutorial();
+		},
+		loadTutorial: function() {
+			var self = this;
+			getTutorial({
+				success: function(data){
+					// parseHTML dumps the <html> <head> and <body> tags it looks like
+					// so we'll get back a list with <title> and some <div> and some
+					// text nodes.
+					var htmlNodes = $.parseHTML(data);
+					self.pages.removeAll();
+					$(htmlNodes).filter("div").each(function(i,el){
+						self.pages.push(new Page({ index: i+1, content: el, tutorial: self }));
+					});
+					if (self.havePages())
+						self.select(self.pages()[0]);
+					else
+						self.select(null);
+				}
+			});
 		},
 		select: function(item) {
 			var old = this.currentPage();
