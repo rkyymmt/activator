@@ -27,6 +27,8 @@ case object WebSocketAlreadyUsed extends AppReply
 
 class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extends Actor with ActorLogging {
 
+  AppManager.registerKeepAlive(self)
+
   def location = config.location
 
   val childFactory = new DefaultSbtChildFactory(location, sbtMaker)

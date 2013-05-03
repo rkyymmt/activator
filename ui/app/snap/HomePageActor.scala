@@ -54,6 +54,9 @@ object HomePageActor {
   case class Respond(json: JsValue)
 }
 class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
+
+  AppManager.registerKeepAlive(self)
+
   import HomePageActor._
   override def onMessage(json: JsValue): Unit = json match {
     case WebSocketActor.Ping(ping) => produce(WebSocketActor.Pong(ping.cookie))
