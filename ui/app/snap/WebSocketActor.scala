@@ -208,6 +208,26 @@ abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatt
 object WebSocketActor {
   implicit val timeout = Timeout(20.seconds)
   import play.api.mvc.WebSocket
+  import play.api.libs.json._
+
+  case class Ping(cookie: String)
+  case object Ping {
+    def unapply(in: JsValue): Option[Ping] =
+      try {
+        if ((in \ "request").as[String] == "Ping")
+          Some(Ping((in \ "cookie").as[String]))
+        else
+          None
+      } catch {
+        case e: JsResultException => None
+      }
+  }
+
+  object Pong {
+    def apply(cookie: String): JsValue =
+      JsObject(Seq("response" -> JsString("Pong"), "cookie" -> JsString(cookie)))
+  }
+
   /**
    * Creates a new controller method which instantiates a
    *  websocket actor (in the given actor system) and

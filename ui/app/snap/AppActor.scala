@@ -27,6 +27,8 @@ case object WebSocketAlreadyUsed extends AppReply
 
 class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extends Actor with ActorLogging {
 
+  AppManager.registerKeepAlive(self)
+
   def location = config.location
 
   val childFactory = new DefaultSbtChildFactory(location, sbtMaker)
@@ -229,7 +231,10 @@ class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extend
 
   class AppSocketActor extends WebSocketActor[JsValue] with ActorLogging {
     override def onMessage(json: JsValue): Unit = {
-      log.info("received message on web socket: {}", json)
+      json match {
+        case WebSocketActor.Ping(ping) => produce(WebSocketActor.Pong(ping.cookie))
+        case _ => log.info("unhandled message on web socket: {}", json)
+      }
     }
 
     override def subReceive: Receive = {

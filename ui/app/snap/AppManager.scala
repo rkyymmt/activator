@@ -104,12 +104,68 @@ class AppCacheActor extends Actor with ActorLogging {
   }
 }
 
+sealed trait KeepAliveRequest
+case class RegisterKeepAlive(ref: ActorRef) extends KeepAliveRequest
+case object CheckForExit extends KeepAliveRequest
+
+// Note: we only CheckForExit on the transition from
+// 1 to 0 keep alives, so we do not exit just because
+// no keep alive has ever been added. This means there is
+// infinite time on startup to wait for a browser tab to
+// be opened.
+class KeepAliveActor extends Actor with ActorLogging {
+  var keepAlives = Set.empty[ActorRef]
+
+  override def receive = {
+    case Terminated(ref) =>
+      log.debug("terminated {}", ref)
+      if (keepAlives.contains(ref)) {
+        log.debug("Removing ref from keep alives {}", ref)
+        keepAlives -= ref
+      } else {
+        log.warning("Ref was not in the keep alives set {}", ref)
+      }
+      if (keepAlives.isEmpty) {
+        log.debug("scheduling CheckForExit")
+        context.system.scheduler.scheduleOnce(60.seconds, self, CheckForExit)
+      }
+    case req: KeepAliveRequest => req match {
+      case RegisterKeepAlive(ref) =>
+        if (ref.isTerminated) {
+          log.debug("ref already terminated so won't keep us alive {}", ref)
+        } else {
+          log.debug("Actor will keep us alive {}", ref)
+          keepAlives += ref
+          context.watch(ref)
+        }
+      case CheckForExit =>
+        log.debug("checking for exit, keepAlives={}", keepAlives)
+        if (keepAlives.isEmpty) {
+          log.info("Activator doesn't seem to be open in any browser tabs, so shutting down.")
+          self ! PoisonPill
+        }
+    }
+  }
+
+  override def postStop() {
+    log.debug("postStop")
+    log.info("Exiting.")
+    System.exit(0)
+  }
+}
+
 object AppManager {
 
   // this is supposed to be set by the main() launching the UI.
   // If not, we know we're running inside the build and we need
   // to use the default "Debug" version.
   @volatile var sbtChildProcessMaker: SbtChildProcessMaker = DebugSbtChildProcessMaker
+
+  private val keepAlive = snap.Akka.system.actorOf(Props(new KeepAliveActor), name = "keep-alive")
+
+  def registerKeepAlive(ref: ActorRef): Unit = {
+    keepAlive ! RegisterKeepAlive(ref)
+  }
 
   val appCache = snap.Akka.system.actorOf(Props(new AppCacheActor), name = "app-cache")
 

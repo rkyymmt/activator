@@ -31,7 +31,9 @@ define(function() {
 	console.log("WS opening: " + id);
 	var socket = new WS(id);
 
-	var subscribers = []
+	var subscribers = [];
+
+	var pendingPing = null;
 
 	/** Sends a message down the event stream socket to the server.
 	 *  @param msg {object}
@@ -107,11 +109,49 @@ define(function() {
 	function receiveEvent(event) {
 		console.log("WS Event: ", event.data, event);
 		var obj = JSON.parse(event.data);
-		sendEvent(obj);
+		if ('response' in obj && obj.response == 'Pong') {
+			if (pendingPing !== null) {
+				if (obj.cookie != pendingPing.cookie) {
+					console.log("Pong cookie does not match! ", pendingPing, obj);
+					// somehow there must be a different ping in progress
+				} else {
+					// this keeps the timeout from deciding our socket is dead
+					console.log("Got Pong response, socket is alive!")
+					pendingPing = null;
+				}
+			} else {
+				console.log("not expecting a Pong right now");
+			}
+		} else {
+			sendEvent(obj);
+		}
+	}
+
+	function checkPing(delay) {
+		if (pendingPing === null) {
+			pendingPing = { request: "Ping", cookie: randomShort().toString() };
+			console.log("pinging websocket for live-ness cookie=" + pendingPing.cookie);
+			var cookie = pendingPing.cookie; // save cookie in timeout closure
+			sendMessage(pendingPing);
+			setTimeout(function() {
+				if (pendingPing !== null &&
+					pendingPing.cookie === cookie) {
+					console.log("socket ping timed out; closing WebSocket since it appears hosed");
+					// this should invoke our onclose() handler
+					socket.close();
+				}
+			}, 7000);
+		}
 	}
 
 	function onOpen(event) {
 		console.log("WS opened: ", event)
+		checkPing();
+		// re-ping every few minutes to catch it if the socket dies
+		setInterval(function() {
+			console.log("Periodic websocket re-ping WS.OPEN=" + WS.OPEN + " readyState=" + socket.readyState);
+			checkPing();
+		}, 1000 * 60 * 5);
 	}
 
 	function onClose(event) {
