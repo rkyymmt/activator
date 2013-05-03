@@ -10,7 +10,14 @@ import scala.concurrent.duration._
 
 class UserActorSpec extends TestkitExample with Specification with NoTimeConversions  {
 
-  sequential // forces all tests to be run sequentially
+  /*
+   * Running tests in parallel (which would ordinarily be the default) will work only if no
+   * shared resources are used (e.g. top-level actors with the same name or the
+   * system.eventStream).
+   *
+   * It's usually safer to run the tests sequentially.
+   */
+  sequential
 
   "A user actor receiving StockUpdate" should {
 
@@ -31,7 +38,7 @@ class UserActorSpec extends TestkitExample with Specification with NoTimeConvers
       userActor.receive(StockUpdate(symbol, price))
 
       // ...and expect it to be a JSON node.
-      out.expected should not beNull
+      out.actual must not beNull
     }
 
     "not write out a stock that is NOT in the map" in {
@@ -43,7 +50,7 @@ class UserActorSpec extends TestkitExample with Specification with NoTimeConvers
       userActor.receive(StockUpdate(symbol, price))
 
       // ...and expect null.
-      out.expected should beNull
+      out.actual must beNull
     }
   }
 
@@ -63,7 +70,7 @@ class UserActorSpec extends TestkitExample with Specification with NoTimeConvers
         userActorRef ! WatchStock(uuid, symbol)
         expectNoMsg // block for 5 seconds
       }
-      out.expected should not beNull
+      out.actual must not beNull
     }
   }
 

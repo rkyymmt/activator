@@ -10,13 +10,15 @@ import scala.concurrent.duration._
 
 class UsersActorSpec extends TestkitExample with Specification with NoTimeConversions {
 
-  sequential // forces all tests to be run sequentially
+  /*
+   * Running tests in parallel (which would ordinarily be the default) will work only if no
+   * shared resources are used (e.g. top-level actors with the same name or the
+   * system.eventStream).
+   *
+   * It's usually safer to run the tests sequentially.
+   */
+  sequential
 
-  class Wrapper(target: ActorRef) extends Actor {
-    def receive = {
-      case x => target forward x
-    }
-  }
 
   "A UsersActor receiving a StockUpdate" should {
     val uuid = java.util.UUID.randomUUID.toString
@@ -32,7 +34,7 @@ class UsersActorSpec extends TestkitExample with Specification with NoTimeConver
       // say "userActor.context.addChild" and touch it directly...)
       class UsersActorWithTestProbe extends UsersActor {
         override def getUserActorCreator(listen:Listen) = new akka.japi.Creator[Actor] {
-          def create() = new Wrapper(probe1.ref)
+          def create() = new ProbeWrapper(probe1)
         }
       }
 
@@ -65,7 +67,7 @@ class UsersActorSpec extends TestkitExample with Specification with NoTimeConver
         override def getUserActorCreator(listen:Listen) = new akka.japi.Creator[Actor] {
           def create() = {
             creatorMethodCalled = true
-            new Wrapper(probe1.ref)
+            new ProbeWrapper(probe1)
           }
         }
       }
@@ -91,7 +93,7 @@ class UsersActorSpec extends TestkitExample with Specification with NoTimeConver
 
       class UsersActorWithTestProbe extends UsersActor {
         override def getUserActorCreator(listen:Listen) = new akka.japi.Creator[Actor] {
-          def create() = new Wrapper(probe1.ref)
+          def create() = new ProbeWrapper(probe1)
         }
       }
 
@@ -117,7 +119,7 @@ class UsersActorSpec extends TestkitExample with Specification with NoTimeConver
 
       class UsersActorWithTestProbe extends UsersActor {
         override def getUserActorCreator(listen:Listen) = new akka.japi.Creator[Actor] {
-          def create() = new Wrapper(probe1.ref)
+          def create() = new ProbeWrapper(probe1)
         }
       }
 

@@ -3,11 +3,15 @@ package actors
 import play.mvc.WebSocket
 import org.codehaus.jackson.JsonNode
 
+/**
+ * A stub class that looks like WebSocket.Out to the rest of the system, and
+ * returns the actual results of the test to check against our expectations.
+ */
 class StubOut() extends WebSocket.Out[JsonNode]() {
-  var expected:JsonNode = null
+  var actual: JsonNode = null
 
   def write(node: JsonNode) {
-    expected = node
+    actual = node
   }
 
   def close() {}
