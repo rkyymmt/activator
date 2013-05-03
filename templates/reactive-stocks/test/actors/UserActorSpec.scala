@@ -8,7 +8,7 @@ import org.specs2.time.NoTimeConversions
 
 import scala.concurrent.duration._
 
-class UserActorSpec extends Specification with NoTimeConversions {
+class UserActorSpec extends TestkitExample with Specification with NoTimeConversions  {
 
   sequential // forces all tests to be run sequentially
 
@@ -18,7 +18,7 @@ class UserActorSpec extends Specification with NoTimeConversions {
     val symbol = "ABC"
     val price = 123
 
-    "write out a stock that is in the map" in new AkkaTestkitSpecs2Support {
+    "write out a stock that is in the map" in {
       val out = new StubOut()
       val userActorRef = TestActorRef[UserActor](Props(new UserActor(uuid, out)))
       val userActor = userActorRef.underlyingActor
@@ -34,7 +34,7 @@ class UserActorSpec extends Specification with NoTimeConversions {
       out.expected should not beNull
     }
 
-    "not write out a stock that is NOT in the map" in new AkkaTestkitSpecs2Support {
+    "not write out a stock that is NOT in the map" in {
       val out = new StubOut()
       val userActorRef = TestActorRef[UserActor](Props(new UserActor(uuid, out)))
       val userActor = userActorRef.underlyingActor
@@ -51,7 +51,7 @@ class UserActorSpec extends Specification with NoTimeConversions {
     val uuid = java.util.UUID.randomUUID.toString
     val symbol = "ABC"
 
-    "write out to a web socket" in new AkkaTestkitSpecs2Support {
+    "write out to a web socket" in {
       import utils.Global._
 
       // Do a straight integration test here...
@@ -72,7 +72,7 @@ class UserActorSpec extends Specification with NoTimeConversions {
     val uuid = java.util.UUID.randomUUID.toString
     val symbol = "ABC"
 
-    "remove the stock" in new AkkaTestkitSpecs2Support {
+    "remove the stock" in {
       val out = new StubOut()
 
       val userActorRef = TestActorRef[UserActor](Props(new UserActor(uuid, out)))

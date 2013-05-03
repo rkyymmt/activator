@@ -8,7 +8,7 @@ import org.specs2.time.NoTimeConversions
 
 import scala.concurrent.duration._
 
-class UsersActorSpec extends Specification with NoTimeConversions {
+class UsersActorSpec extends TestkitExample with Specification with NoTimeConversions {
 
   sequential // forces all tests to be run sequentially
 
@@ -23,7 +23,7 @@ class UsersActorSpec extends Specification with NoTimeConversions {
     val symbol = "ABC"
     val price = 123
 
-    "tell all its children about the message" in new AkkaTestkitSpecs2Support {
+    "tell all its children about the message" in {
       // Set up a test probe to pass into the actor...
       val probe1 = TestProbe()
 
@@ -56,7 +56,7 @@ class UsersActorSpec extends Specification with NoTimeConversions {
   "A UsersActor receiving a Listen" should {
     val uuid = java.util.UUID.randomUUID.toString
 
-    "create a new child UserActor" in new AkkaTestkitSpecs2Support {
+    "create a new child UserActor" in {
       // no real need for a probe here, but it makes the test happy
       val probe1 = TestProbe()
 
@@ -86,7 +86,7 @@ class UsersActorSpec extends Specification with NoTimeConversions {
     val uuid = java.util.UUID.randomUUID.toString
     val symbol = "ABC"
 
-    "tell the child with the UUID about the message" in new AkkaTestkitSpecs2Support {
+    "tell the child with the UUID about the message" in {
       val probe1 = TestProbe()
 
       class UsersActorWithTestProbe extends UsersActor {
@@ -112,7 +112,7 @@ class UsersActorSpec extends Specification with NoTimeConversions {
     val uuid = java.util.UUID.randomUUID.toString
         val symbol = "ABC"
 
-    "tell the child with the UUID about the message" in new AkkaTestkitSpecs2Support {
+    "tell the child with the UUID about the message" in {
       val probe1 = TestProbe()
 
       class UsersActorWithTestProbe extends UsersActor {
