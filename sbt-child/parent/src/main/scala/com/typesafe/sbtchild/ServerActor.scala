@@ -75,7 +75,7 @@ class ServerActor(serverSocket: ServerSocket, childActor: ActorRef) extends Acto
           s ! protocol.NeedRebootEvent
         }
         // self-destruct
-        throw new RuntimeException("Need to reboot sbt")
+        throw new RuntimeException("Need to reboot sbt (this is expected, not a problem)")
     }
   }
 
