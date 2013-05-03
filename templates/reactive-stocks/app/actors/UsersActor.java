@@ -7,7 +7,7 @@ import akka.actor.UntypedActor;
 import akka.japi.Creator;
 
 /**
- * You can also write Akka actors in Java.  This class creates child user actors in response to
+ * Writing actors in Java is easy.  This class creates child user actors in response to
  * Listen messages, and sends stock messages meant for a specific child actor directly to that child.
  */
 public class UsersActor extends UntypedActor {
