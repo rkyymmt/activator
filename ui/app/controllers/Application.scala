@@ -27,8 +27,6 @@ case class ApplicationModel(
   template: Option[String],
   recentApps: Seq[AppConfig],
   hasLocalTutorial: Boolean) {
-
-  def jsLocation = location.replaceAll("'", "\\'")
 }
 
 case class HomeModel(
@@ -46,6 +44,8 @@ case class FromLocationForm(location: String)
 
 // Here is where we detect if we're running at a given project...
 object Application extends Controller {
+
+  def jsEscape(s: String): String = "\"" + org.apache.commons.lang3.StringEscapeUtils.escapeEcmaScript(s) + "\""
 
   /**
    * Our index page.  Either we load an app from the CWD, or we direct
