@@ -1,6 +1,7 @@
 @(model: controllers.ApplicationModel)(implicit request: RequestHeader)
 
 @import activator.properties.ActivatorProperties
+@import controllers.Application.jsEscape
 
 @name(app: snap.AppConfig) = {
   @app.cachedName.getOrElse(app.id)
@@ -16,15 +17,15 @@
 		<script type="text/javascript">
 		window.wsUrl = '@routes.Application.connectApp(model.id).webSocketURL()';
 		window.serverAppModel = {
-      name: '@model.name',
-      id: '@model.id',
-      appVersion: '@ActivatorProperties.APP_VERSION',
-      pluginIds:  [ @Html(model.plugins.mkString("\'", "\','","\'")) ],
+      name: @Html(jsEscape(model.name)),
+      id: @Html(jsEscape(model.id)),
+      appVersion: @Html(jsEscape(ActivatorProperties.APP_VERSION)),
+      pluginIds:  [ @Html(model.plugins.map(jsEscape(_)).mkString(", ")) ],
       hasLocalTutorial: @model.hasLocalTutorial,
-      location: '@model.jsLocation'
+      location: @Html(jsEscape(model.location))
       @for(id <- model.template) {
         ,template: {
-      	  id: '@model.template'
+            id: @Html(jsEscape(id))
         }
       }
     };
