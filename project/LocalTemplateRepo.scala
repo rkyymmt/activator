@@ -18,30 +18,45 @@ object LocalTemplateRepo {
         Keys.fullClasspath in Runtime in TheActivatorBuild.cache) map makeTemplateCache
   )
   
-  def invokeTemplateCacheRepoMakerMain(classpath: Keys.Classpath, arg: File): Unit = {
-
-    val jars = classpath map (_.data.toURL)
-    val classLoader = new java.net.URLClassLoader(jars.toArray, null)
-    val maker = classLoader.loadClass("snap.cache.generator.TemplateRepoIndexGenerator")
-    val mainMethod = maker.getMethod("main", classOf[Array[String]])
-    mainMethod.invoke(null, Array(arg.getAbsolutePath))
-  }
-
+  def invokeTemplateCacheRepoMakerMain(cl: ClassLoader, arg: File): Unit =
+    invokeMainFor(cl, "snap.cache.generator.TemplateRepoIndexGenerator", Array(arg.getAbsolutePath))
+  
+  
   // Loads the id from a template metadata file.
-  def loadId(metadata: File): Option[String] = {
-    val props = new java.util.Properties
-    IO.load(props, metadata)
-    Option(props.getProperty("id"))
+  def loadId(repoDir: File, cl: ClassLoader): Option[String] = {
+    try {
+      val obj = cl.loadClass("snap.cache.generator.IdGenerator")
+      val maker = obj.getMethod("generateId", classOf[File])
+      val result = maker.invoke(null, repoDir)
+      Some(result.toString)
+    } catch {
+      case e: Exception => 
+        e.printStackTrace()
+        None
+    }
   } 
   
-  def obtainLocalTemplates(sourceDir: File, targetDir: File): File = {
+  private def makeClassLoaderFor(classpath: Keys.Classpath): java.net.URLClassLoader = {
+    val jars = classpath map (_.data.toURL)
+    new java.net.URLClassLoader(jars.toArray, null)
+  }
+  
+  private def invokeMainFor(cl: ClassLoader, mainClass: String, args: Array[String]): Unit = {
+    println("Loading " + mainClass + " from: " + cl)
+    val maker = cl.loadClass(mainClass)
+    println("Invoking object: " + maker)
+    val mainMethod = maker.getMethod("main", classOf[Array[String]])
+    println("Invoking maker: " + maker)
+    mainMethod.invoke(null, args)
+  }
+
+  
+  def obtainLocalTemplates(sourceDir: File, targetDir: File, cl: ClassLoader): File = {
     // TODO - we should be loading the templates and cache from the typesafe.com server here, but for
 	// now we're generating it locally.
     for {
       templateDir <- IO.listFiles(sourceDir) 
-      metadata = templateDir / "activator.properties"
-      if metadata.exists
-      id <- loadId(metadata)
+      id <- loadId(templateDir, cl)
       // TODO - Figure out the true structure (do we have intermediate dirs)
       outDir = targetDir / id
     } IO.copyDirectory(templateDir, outDir)
@@ -52,8 +67,9 @@ object LocalTemplateRepo {
 	// TODO - We should check for staleness here...
     if(!targetDir.exists) {
 	  IO createDirectory targetDir
-      obtainLocalTemplates(sourceDir, targetDir)
-	  invokeTemplateCacheRepoMakerMain(classpath, targetDir)
+	  val cl = makeClassLoaderFor(classpath)
+      obtainLocalTemplates(sourceDir, targetDir, cl)
+	  invokeTemplateCacheRepoMakerMain(cl, targetDir)
     }
     targetDir
   }

@@ -17,15 +17,15 @@ trait IndexDb extends java.io.Closeable {
    * Finds a template by id.  Returns None if nothing is found.
    *  BLOWS CHUNKS on error.
    */
-  def template(id: String): Option[TemplateMetadata]
+  def template(id: String): Option[IndexStoredTemplateMetadata]
   /**
    * Searchs for a template matching the query string, and returns all results.
    *  There may be a ton of results.
    *  SPEWS ON ERROR.
    */
-  def search(query: String, max: Int = 0): Iterable[TemplateMetadata]
+  def search(query: String, max: Int = 0): Iterable[IndexStoredTemplateMetadata]
   /** Returns *ALL* metadata in this repository. */
-  def metadata: Iterable[TemplateMetadata]
+  def metadata: Iterable[IndexStoredTemplateMetadata]
   // Note: Have to call this to safely clean the resource!
   /** Cleans up resources and handles. MUST BE CALLED BEFORE RE-OPENING THE DB. */
   def close(): Unit
@@ -35,7 +35,7 @@ trait IndexDb extends java.io.Closeable {
  */
 trait IndexWriter extends java.io.Closeable {
   /** Writes the template to our index db.  Blocks until done. SPEWS on error. */
-  def insert(template: TemplateMetadata): Unit
+  def insert(template: IndexStoredTemplateMetadata): Unit
   def close(): Unit
 }
 

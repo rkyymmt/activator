@@ -20,7 +20,18 @@ class ActionsTest {
     IO.write(buildSbtFile, "\nname \t:= \t\"Hello\"\n")
 
     object DummyCache extends TemplateCache {
-      val m = TemplateMetadata(id, "", "", 1, "", Seq.empty)
+      val m = TemplateMetadata(
+        IndexStoredTemplateMetadata(
+          id = id,
+          userConfig = UserDefinedTemplateMetadata(
+            name = "",
+            title = "",
+            description = "",
+            tags = Seq.empty),
+          timeStamp = 1L,
+          featured = true,
+          usageCount = None),
+        locallyCached = true)
       override val metadata = Future(Seq(m))
       override def template(id: String) =
         Future(Some(Template(m, Seq(

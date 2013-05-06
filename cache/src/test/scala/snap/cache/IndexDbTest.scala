@@ -33,19 +33,27 @@ trait IndexDbTest {
 
   // Hackery to ensure the database is opened closed.
   private var _db: IndexDb = null
-  val testData: Seq[TemplateMetadata] =
-    Seq(TemplateMetadata("ID",
-      "url-friendly-name",
-      "A human readable title.",
-      1L,
-      "A very long description; DELETE TABLE TEMPLATES; with SQL injection.",
-      Seq("Tag 1", "Tag 2", "tag3")),
-      TemplateMetadata("ID-2",
-        "url-friendly-name-2",
-        "A not so Human readable title.",
-        2L,
-        "A long description for fun, this one is the fun document.",
-        Seq("Tag 1", "Tag 4")))
+  val testData: Seq[IndexStoredTemplateMetadata] =
+    Seq(IndexStoredTemplateMetadata(
+      id = "ID",
+      userConfig = UserDefinedTemplateMetadata(
+        "url-friendly-name",
+        "A human readable title.",
+        "A very long description; DELETE TABLE TEMPLATES; with SQL injection.",
+        Seq("Tag 1", "Tag 2", "tag3")),
+      timeStamp = 1L,
+      featured = true,
+      usageCount = None),
+      IndexStoredTemplateMetadata(
+        id = "ID-2",
+        userConfig = UserDefinedTemplateMetadata(
+          "url-friendly-name-2",
+          "A human readable title.  AGAIN!",
+          "A very long description\n WITH mutliple lines and stuff.  This is not featured.\n",
+          Seq("Tag 1", "Tag 2", "tag3")),
+        timeStamp = 1L,
+        featured = false,
+        usageCount = None))
 
   @Before
   def preStart(): Unit = {

@@ -79,17 +79,22 @@ class DefaultTemplateCacheTest {
   }
 
   val template1 = TemplateMetadata(
-    id = "ID-1",
-    name = "test-template",
-    title = "A Testing Template",
-    timeStamp = 1L,
-    description = "A template that tests template existance.",
-    tags = Seq("test", "template"))
+    IndexStoredTemplateMetadata(
+      id = "ID-1",
+      timeStamp = 1L,
+      featured = true,
+      usageCount = None,
+      userConfig = UserDefinedTemplateMetadata(
+        name = "test-template",
+        title = "A Testing Template",
+        description = "A template that tests template existance.",
+        tags = Seq("test", "template"))),
+    locallyCached = true)
   def makeTestCache(dir: File): Unit = {
     val writer = LuceneIndexProvider.write(new File(dir, Constants.METADATA_INDEX_FILENAME))
     try {
 
-      writer.insert(template1)
+      writer.insert(template1.persistentConfig)
     } finally {
       writer.close()
     }
