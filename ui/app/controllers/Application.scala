@@ -72,7 +72,7 @@ object Application extends Controller {
       "template" -> text)(NewAppForm.apply)(NewAppForm.unapply))
 
   /** Reloads the model for the home page. */
-  private def homeModel = api.Templates.templateCache.metadata map { templates =>
+  private def homeModel = api.Templates.templateCache.featured map { templates =>
     HomeModel(
       userHome = ActivatorProperties.GLOBAL_USER_HOME,
       templates = templates.toSeq,

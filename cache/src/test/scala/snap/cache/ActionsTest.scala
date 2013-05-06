@@ -33,6 +33,7 @@ class ActionsTest {
           usageCount = None),
         locallyCached = true)
       override val metadata = Future(Seq(m))
+      override val featured: Future[Iterable[TemplateMetadata]] = metadata
       override def template(id: String) =
         Future(Some(Template(m, Seq(
           templateFile -> "installed-file",

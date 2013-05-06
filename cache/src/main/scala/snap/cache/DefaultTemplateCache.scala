@@ -27,6 +27,8 @@ class DefaultTemplateCache(
     (handler ? SearchTemplates(query)).mapTo[TemplateQueryResult].map(_.templates)
   def metadata: Future[Iterable[TemplateMetadata]] =
     (handler ? ListTemplates).mapTo[TemplateQueryResult].map(_.templates)
+  def featured: Future[Iterable[TemplateMetadata]] =
+    (handler ? ListFeaturedTemplates).mapTo[TemplateQueryResult].map(_.templates)
 }
 object DefaultTemplateCache {
   /** Creates a default template cache for us. */

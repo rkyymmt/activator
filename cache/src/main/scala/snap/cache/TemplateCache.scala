@@ -34,5 +34,6 @@ trait TemplateCache {
   def search(query: String): Future[Iterable[TemplateMetadata]]
   /** Returns all metadata we have for templates. */
   def metadata: Future[Iterable[TemplateMetadata]]
-
+  /** Returns all the metadata meant to be featured in the initial page. */
+  def featured: Future[Iterable[TemplateMetadata]]
 }

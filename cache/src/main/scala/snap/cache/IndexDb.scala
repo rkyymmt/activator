@@ -26,6 +26,8 @@ trait IndexDb extends java.io.Closeable {
   def search(query: String, max: Int = 0): Iterable[IndexStoredTemplateMetadata]
   /** Returns *ALL* metadata in this repository. */
   def metadata: Iterable[IndexStoredTemplateMetadata]
+  /** Returns all metadata with the flag of "featured" set to "true" */
+  def featured: Iterable[IndexStoredTemplateMetadata]
   // Note: Have to call this to safely clean the resource!
   /** Cleans up resources and handles. MUST BE CALLED BEFORE RE-OPENING THE DB. */
   def close(): Unit

@@ -15,12 +15,19 @@ trait IndexDbTest {
       assertEquals("Unable to find metadata in index.", Some(metadata), found)
     }
   }
-
+  @Test
   def testFindInList(): Unit = {
     val metadata = testData.head
     val lists = index.metadata
     val contained = lists.exists(_ == metadata)
     assertTrue("Unable to find metadata in index.", contained)
+  }
+
+  @Test
+  def testFindFeatured(): Unit = {
+    val featuredExpected = testData.filter(_.featured)
+    val featured = index.featured
+    assertEquals("Did not find all featured templates.", featuredExpected.toVector, featured.toVector)
   }
 
   @Test

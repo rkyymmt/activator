@@ -24,9 +24,11 @@ class TemplateCacheActor(provider: IndexDbProvider, location: File, remote: Remo
     case GetTutorial(id: String) => sender ! TutorialResult(getTutorial(id))
     case SearchTemplates(query, max) => sender ! TemplateQueryResult(searchTemplates(query, max))
     case ListTemplates => sender ! TemplateQueryResult(listTemplates)
+    case ListFeaturedTemplates => sender ! TemplateQueryResult(listFeaturedTemplates)
   }
 
   def listTemplates = fillMetadata(index.metadata)
+  def listFeaturedTemplates = fillMetadata(index.featured)
 
   def searchTemplates(query: String, max: Int): Iterable[TemplateMetadata] =
     fillMetadata(index.search(query, max))
@@ -102,6 +104,7 @@ object TemplateCacheActor {
   case class GetTutorial(id: String)
   case class SearchTemplates(query: String, max: Int = 0)
   case object ListTemplates
+  case object ListFeaturedTemplates
 
   case class TemplateResult(template: Option[Template])
   case class TemplateQueryResult(templates: Iterable[TemplateMetadata])

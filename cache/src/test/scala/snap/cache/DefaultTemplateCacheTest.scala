@@ -56,6 +56,14 @@ class DefaultTemplateCacheTest {
   }
 
   @Test
+  def getFeaturedMetadata(): Unit = {
+    val metadata =
+      Await.result(cache.featured, Duration(1, MINUTES))
+    val hasMetadata = metadata exists { _ == template1 }
+    assertTrue("Failed to find metadata!", hasMetadata)
+  }
+
+  @Test
   def search(): Unit = {
     val metadata =
       Await.result(cache.search("test"), Duration(1, MINUTES))
