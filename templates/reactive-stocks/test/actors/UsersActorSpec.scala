@@ -29,21 +29,13 @@ class UsersActorSpec extends TestkitExample with Specification with NoTimeConver
       // Set up a test probe to pass into the actor...
       val probe1 = TestProbe()
 
-      // Swap out the creator method with something that forwards the message through
-      // our probe here (children are created internal to the actor, so we can't just
-      // say "userActor.context.addChild" and touch it directly...)
+      // Create a child actor that points to a test probe
       class UsersActorWithTestProbe extends UsersActor {
-        override def getUserActorCreator(listen:Listen) = new akka.japi.Creator[Actor] {
-          def create() = new ProbeWrapper(probe1)
-        }
+        context.actorOf(Props(new ProbeWrapper(probe1)), symbol)
       }
 
       // create the actor under test
       val actor = system.actorOf(Props(new UsersActorWithTestProbe))
-
-      // Kick off the creation of the internal user actor (and test probe)...
-      val out = new StubOut()
-      actor ! Listen(uuid, out)
 
       // send off the stock update...
       val stockUpdate = StockUpdate(symbol, price)
