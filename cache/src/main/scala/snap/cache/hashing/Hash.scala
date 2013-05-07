@@ -20,7 +20,7 @@ object Hash {
   object sha512 extends DefaultImplicits("SHA-512")
   /** Default typeclasses for  hashing with MD5 */
   object md5 extends DefaultImplicits("MD5")
-  
+
   /** The default hash used in our system, currently. */
   val default = sha1
 }
@@ -50,8 +50,8 @@ class FileDigestHasher(alg: String) extends MessageDigestHasher[File](alg) {
   }
 }
 /** Helper to create hashes for user defined templates. */
-class UserDefinedTemplateMetadataHasher(alg: String) extends MessageDigestHasher[UserDefinedTemplateMetadata](alg) {
-  protected def updateDigest(user: UserDefinedTemplateMetadata, md: MessageDigest): Unit = {
+class UserDefinedTemplateMetadataHasher(alg: String) extends MessageDigestHasher[AuthorDefinedTemplateMetadata](alg) {
+  protected def updateDigest(user: AuthorDefinedTemplateMetadata, md: MessageDigest): Unit = {
     md.update(user.name.getBytes)
     md.update(user.title.getBytes)
     md.update(user.description.getBytes)

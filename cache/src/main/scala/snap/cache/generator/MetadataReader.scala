@@ -9,7 +9,7 @@ import java.io.File
  */
 trait MetadataReader {
   /** Reads the metadata file and returns the template metadata. */
-  def read(templateDir: File): Option[UserDefinedTemplateMetadata]
+  def read(templateDir: File): Option[AuthorDefinedTemplateMetadata]
 }
 object MetadataReader {
   implicit val default: MetadataReader = PropertiesFileMetadataReader
@@ -20,7 +20,7 @@ object PropertiesFileMetadataReader extends MetadataReader {
   // 1. pull id from the directory name?
   // 2. Pull timestamp from something else?
 
-  def read(metadataFile: File): Option[UserDefinedTemplateMetadata] = util.Try({
+  def read(metadataFile: File): Option[AuthorDefinedTemplateMetadata] = util.Try({
     // TODO - useful errors
     val props = new java.util.Properties
     val reader = new java.io.FileReader(metadataFile)
@@ -29,8 +29,8 @@ object PropertiesFileMetadataReader extends MetadataReader {
     propsToMeta(props)
   }).toOption
 
-  def propsToMeta(props: java.util.Properties): UserDefinedTemplateMetadata = {
-    UserDefinedTemplateMetadata(
+  def propsToMeta(props: java.util.Properties): AuthorDefinedTemplateMetadata = {
+    AuthorDefinedTemplateMetadata(
       name = props.getProperty("name"),
       title = props.getProperty("title"),
       description = props.getProperty("description"),

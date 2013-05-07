@@ -95,7 +95,7 @@ class DefaultTemplateCacheTest {
       timeStamp = 1L,
       featured = true,
       usageCount = None,
-      userConfig = UserDefinedTemplateMetadata(
+      userConfig = AuthorDefinedTemplateMetadata(
         name = "test-template",
         title = "A Testing Template",
         description = "A template that tests template existance.",
@@ -108,7 +108,7 @@ class DefaultTemplateCacheTest {
       timeStamp = 1L,
       featured = false,
       usageCount = None,
-      userConfig = UserDefinedTemplateMetadata(
+      userConfig = AuthorDefinedTemplateMetadata(
         name = "test-remote-template",
         title = "A Testing Template that is not dowloaded",
         description = "A template that tests template existentialism.",

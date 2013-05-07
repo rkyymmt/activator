@@ -80,7 +80,7 @@ object LuceneIndex {
     //val
     IndexStoredTemplateMetadata(
       id = id,
-      userConfig = UserDefinedTemplateMetadata(
+      userConfig = AuthorDefinedTemplateMetadata(
         name = name,
         title = title,
         description = desc,

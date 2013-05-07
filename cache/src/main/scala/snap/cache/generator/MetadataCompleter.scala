@@ -7,12 +7,12 @@ package generator
  *  for taking user-defined metadata and completing it with derived metadata.
  */
 trait MetadataCompleter {
-  def complete(user: UserDefinedTemplateMetadata): IndexStoredTemplateMetadata
+  def complete(user: AuthorDefinedTemplateMetadata): IndexStoredTemplateMetadata
 }
 
 object MetadataCompleter {
   implicit object default extends MetadataCompleter {
-    def complete(user: UserDefinedTemplateMetadata): IndexStoredTemplateMetadata =
+    def complete(user: AuthorDefinedTemplateMetadata): IndexStoredTemplateMetadata =
       IndexStoredTemplateMetadata(
         id = makeId(user),
         timeStamp = currentTimestamp,
@@ -25,7 +25,7 @@ object MetadataCompleter {
       System.currentTimeMillis
     }
     // To make a UUID, we just SHA the thing
-    private def makeId(user: UserDefinedTemplateMetadata): String = {
+    private def makeId(user: AuthorDefinedTemplateMetadata): String = {
       // Here we decide our hashing algorithm.
       import hashing.Hash.default._
       import hashing.hash

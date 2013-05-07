@@ -3,7 +3,7 @@ package snap.cache
 /**
  * This represents the metadata information that AUTHORS of Templates will create for us
  */
-case class UserDefinedTemplateMetadata(
+case class AuthorDefinedTemplateMetadata(
   name: String, // Url/CLI-friendly name of the template
   title: String, // Verbose and fun name of the template, used in GUI.
   description: String, // A long-winded description about what this template does.
@@ -16,7 +16,7 @@ case class UserDefinedTemplateMetadata(
  */
 case class IndexStoredTemplateMetadata(
   id: String,
-  userConfig: UserDefinedTemplateMetadata,
+  userConfig: AuthorDefinedTemplateMetadata,
   timeStamp: Long,
   featured: Boolean, // Display on the home page.
   usageCount: Option[Long] // Usage counts pulled from website.
