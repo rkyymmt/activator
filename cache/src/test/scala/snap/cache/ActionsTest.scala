@@ -23,7 +23,7 @@ class ActionsTest {
       val m = TemplateMetadata(
         IndexStoredTemplateMetadata(
           id = id,
-          userConfig = UserDefinedTemplateMetadata(
+          userConfig = AuthorDefinedTemplateMetadata(
             name = "",
             title = "",
             description = "",
