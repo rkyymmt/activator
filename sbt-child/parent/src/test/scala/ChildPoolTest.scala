@@ -89,6 +89,7 @@ class ChildPoolTest {
 
     system.stop(actor)
     system.shutdown()
+    system.awaitTermination()
   }
 
   class TestSbtDeathActor extends Actor {
@@ -181,5 +182,6 @@ class ChildPoolTest {
 
     system.stop(actor)
     system.shutdown()
+    system.awaitTermination()
   }
 }

@@ -85,6 +85,7 @@ class DefaultTemplateCacheTest {
   @After
   def tearDown() {
     system.shutdown()
+    system.awaitTermination()
     snap.IO delete cacheDir
     cacheDir = null
   }

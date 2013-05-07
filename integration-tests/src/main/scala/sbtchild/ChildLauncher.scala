@@ -48,5 +48,6 @@ class CanLaunchThroughSbtLauncher extends IntegrationTest {
     }
   } finally {
     system.shutdown()
+    system.awaitTermination()
   }
 }

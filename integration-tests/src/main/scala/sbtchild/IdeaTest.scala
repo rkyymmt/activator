@@ -46,5 +46,6 @@ class IdeaTest extends IntegrationTest {
 
   } finally {
     system.shutdown()
+    system.awaitTermination()
   }
 }
