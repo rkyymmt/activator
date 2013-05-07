@@ -1,10 +1,5 @@
 package snap
-package cache
 
-/**
- * A bare minimum hashing API so we can get better
- *  hashes than "Int" and Java/Scala's defaults.
- */
 package object hashing {
 
   private val HEX_CHARS = "0123456789abcdef".toCharArray
@@ -26,7 +21,14 @@ package object hashing {
     buf.toString
   }
 
-  def hash[T](t: T)(implicit hasher: Hash[T]): String =
-    hasher hash t
+  def hash[T](t: T)(implicit hash: Hash[T]): String = hash(t)
 
+  object files {
+    /** Default typeclasses for  hashing with SHA-1 */
+    object sha1 extends FileDigestHasher("SHA-1")
+    /** Default typeclasses for  hashing with SHA-512 */
+    object sha512 extends FileDigestHasher("SHA-512")
+    /** Default typeclasses for  hashing with MD5 */
+    object md5 extends FileDigestHasher("MD5")
+  }
 }

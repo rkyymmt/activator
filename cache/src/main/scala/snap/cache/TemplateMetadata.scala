@@ -9,6 +9,17 @@ case class AuthorDefinedTemplateMetadata(
   description: String, // A long-winded description about what this template does.
   tags: Seq[String] // A set of folksonomy tags describing what's in this template, used for searching.
   )
+object AuthorDefinedTemplateMetadata {
+  /** Default hash for generating ids. */
+  implicit object Hash extends snap.hashing.MessageDigestHasher[AuthorDefinedTemplateMetadata]("SHA-1") {
+    protected def updateDigest(t: AuthorDefinedTemplateMetadata, md: java.security.MessageDigest): Unit = {
+      md.update(t.name.getBytes)
+      md.update(t.title.getBytes)
+      md.update(t.description.getBytes)
+      md.update(t.tags.mkString(",").getBytes)
+    }
+  }
+}
 
 /**
  * This represents metadata information stored in the local template repository.  This includes all

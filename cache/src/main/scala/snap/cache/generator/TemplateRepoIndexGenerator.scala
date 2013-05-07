@@ -19,8 +19,7 @@ object TemplateRepoIndexGenerator {
     val indexDir = makeMetaDataIndex(localRepo)
     // Now we make the Zip file and the hash properties.
     val indexZipFile = makeMetadataZipFile(indexDir, new File(localRepo, Constants.METADATA_INDEX_FILENAME + ".zip"))
-    import hashing.Hash.default._
-    val hash = hashing.hash(indexZipFile)
+    val hash = snap.hashing.hash(indexZipFile)
     makeCachePropertiesFile(hash, new File(localRepo, Constants.CACHE_PROPS_FILENAME))
   }
 

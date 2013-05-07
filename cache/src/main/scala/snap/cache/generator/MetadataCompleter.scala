@@ -27,9 +27,7 @@ object MetadataCompleter {
     // To make a UUID, we just SHA the thing
     private def makeId(user: AuthorDefinedTemplateMetadata): String = {
       // Here we decide our hashing algorithm.
-      import hashing.Hash.default._
-      import hashing.hash
-      hash(user)
+      hashing.hash(user)
     }
   }
 }
