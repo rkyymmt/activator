@@ -1,21 +1,23 @@
 package actors
 
 import akka.actor.{Props, Actor}
-import utils.{Global, FakeStockQuote}
+import utils.{StockQuote, Global, FakeStockQuote}
 import java.util.Random
 import scala.collection.immutable.Queue
 
 class StockActor(symbol: String) extends Actor {
-  
-  // A random data set which uses FakeStockQuote.newPrice to get each data point
+
+  lazy val stockQuote : StockQuote = new FakeStockQuote
+
+  // A random data set which uses stockQuote.newPrice to get each data point
   var stockHistory: Queue[java.lang.Double] = {
-    lazy val initialPrices: Stream[java.lang.Double] = (new Random().nextDouble * 800) #:: initialPrices.map(previous => FakeStockQuote.newPrice(previous))
+    lazy val initialPrices: Stream[java.lang.Double] = (new Random().nextDouble * 800) #:: initialPrices.map(previous => stockQuote.newPrice(previous))
     initialPrices.take(50).to[Queue]
   }
-  
+
   def receive = {
     case FetchLatest =>
-      val newPrice = FakeStockQuote.newPrice(stockHistory.last.doubleValue())
+      val newPrice = stockQuote.newPrice(stockHistory.last.doubleValue())
       stockHistory = stockHistory.drop(1) :+ newPrice
       Global.usersActor ! StockUpdate(symbol, newPrice)
     case FetchHistory =>

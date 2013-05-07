@@ -12,6 +12,11 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import utils.Global
 
+/**
+ * Writing actors in Scala is easy.  Here, we're creating an actor that ties a user id
+ * to a websocket, so we can send relevant stock information to that user through the
+ * websocket.
+ */
 class UserActor(uuid: String, out: WebSocket.Out[JsonNode]) extends Actor {
 
   var stocks: Map[String, ActorRef] = Map.empty[String, ActorRef]

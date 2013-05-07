@@ -3,41 +3,24 @@ package actors
 import akka.actor._
 import akka.testkit._
 
-import org.codehaus.jackson.JsonNode
-
 import org.specs2.mutable._
 import org.specs2.time.NoTimeConversions
+import org.specs2.matcher._
 
-import play.mvc.WebSocket
+import org.codehaus.jackson.JsonNode
 
-import scala.concurrent._
 import scala.concurrent.duration._
 
-// Using http://blog.xebia.com/2012/10/01/testing-akka-with-specs2/
-/* A tiny class that can be used as a Specs2 'context'. */
-abstract class AkkaTestkitSpecs2Support extends TestKit(ActorSystem())
-with After
-with ImplicitSender {
-  // make sure we shut down the actor system after all tests have run
-  def after {
-    system.shutdown()
-  }
-}
+class UserActorSpec extends TestkitExample with Specification with NoTimeConversions  {
 
-
-class UserActorSpec extends Specification with NoTimeConversions {
-
-  sequential // forces all tests to be run sequentially
-
-  class StubOut() extends WebSocket.Out[JsonNode]() {
-    var expected:JsonNode = null
-
-    def write(node: JsonNode) {
-      expected = node
-    }
-
-    def close() {}
-  }
+  /*
+   * Running tests in parallel (which would ordinarily be the default) will work only if no
+   * shared resources are used (e.g. top-level actors with the same name or the
+   * system.eventStream).
+   *
+   * It's usually safer to run the tests sequentially.
+   */
+  sequential
 
   "A user actor receiving StockUpdate" should {
 
@@ -45,7 +28,7 @@ class UserActorSpec extends Specification with NoTimeConversions {
     val symbol = "ABC"
     val price = 123
 
-    "write out a stock that is in the map" in new AkkaTestkitSpecs2Support {
+    "write out a stock that is in the map" in {
       val out = new StubOut()
       val userActorRef = TestActorRef[UserActor](Props(new UserActor(uuid, out)))
       val userActor = userActorRef.underlyingActor
@@ -58,10 +41,13 @@ class UserActorSpec extends Specification with NoTimeConversions {
       userActor.receive(StockUpdate(symbol, price))
 
       // ...and expect it to be a JSON node.
-      out.expected should not beNull
+      val node = out.actual.toString
+      node must /("type" -> "stockupdate")
+      node must /("symbol" -> symbol)
+      node must /("price" -> price)
     }
 
-    "not write out a stock that is NOT in the map" in new AkkaTestkitSpecs2Support {
+    "not write out a stock that is NOT in the map" in {
       val out = new StubOut()
       val userActorRef = TestActorRef[UserActor](Props(new UserActor(uuid, out)))
       val userActor = userActorRef.underlyingActor
@@ -70,7 +56,7 @@ class UserActorSpec extends Specification with NoTimeConversions {
       userActor.receive(StockUpdate(symbol, price))
 
       // ...and expect null.
-      out.expected should beNull
+      out.actual must beNull
     }
   }
 
@@ -78,7 +64,7 @@ class UserActorSpec extends Specification with NoTimeConversions {
     val uuid = java.util.UUID.randomUUID.toString
     val symbol = "ABC"
 
-    "write out to a web socket" in new AkkaTestkitSpecs2Support {
+    "write out to a web socket" in {
       import utils.Global._
 
       // Do a straight integration test here...
@@ -88,9 +74,12 @@ class UserActorSpec extends Specification with NoTimeConversions {
 
       within (5 seconds) {
         userActorRef ! WatchStock(uuid, symbol)
-        expectNoMsg // block for 5 seconds
+        expectNoMsg() // block for 5 seconds
       }
-      out.expected should not beNull
+      // Check that the node exists.
+      val node = out.actual.toString
+      node must /("type" -> "stockhistory")
+      node must /("symbol" -> symbol)
     }
   }
 
@@ -99,7 +88,7 @@ class UserActorSpec extends Specification with NoTimeConversions {
     val uuid = java.util.UUID.randomUUID.toString
     val symbol = "ABC"
 
-    "remove the stock" in new AkkaTestkitSpecs2Support {
+    "remove the stock" in {
       val out = new StubOut()
 
       val userActorRef = TestActorRef[UserActor](Props(new UserActor(uuid, out)))
