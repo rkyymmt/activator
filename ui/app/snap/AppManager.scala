@@ -106,7 +106,7 @@ class AppCacheActor extends Actor with ActorLogging {
 
 sealed trait KeepAliveRequest
 case class RegisterKeepAlive(ref: ActorRef) extends KeepAliveRequest
-case object CheckForExit extends KeepAliveRequest
+case class CheckForExit(serial: Int) extends KeepAliveRequest
 
 // Note: we only CheckForExit on the transition from
 // 1 to 0 keep alives, so we do not exit just because
@@ -115,6 +115,9 @@ case object CheckForExit extends KeepAliveRequest
 // be opened.
 class KeepAliveActor extends Actor with ActorLogging {
   var keepAlives = Set.empty[ActorRef]
+  // this increments on keepAlives mutation, allowing us to decide
+  // whether a CheckForExit is still valid or should be dropped
+  var serial = 0
 
   override def receive = {
     case Terminated(ref) =>
@@ -122,12 +125,13 @@ class KeepAliveActor extends Actor with ActorLogging {
       if (keepAlives.contains(ref)) {
         log.debug("Removing ref from keep alives {}", ref)
         keepAlives -= ref
+        serial += 1
       } else {
         log.warning("Ref was not in the keep alives set {}", ref)
       }
       if (keepAlives.isEmpty) {
         log.debug("scheduling CheckForExit")
-        context.system.scheduler.scheduleOnce(60.seconds, self, CheckForExit)
+        context.system.scheduler.scheduleOnce(60.seconds, self, CheckForExit(serial))
       }
     case req: KeepAliveRequest => req match {
       case RegisterKeepAlive(ref) =>
@@ -136,13 +140,18 @@ class KeepAliveActor extends Actor with ActorLogging {
         } else {
           log.debug("Actor will keep us alive {}", ref)
           keepAlives += ref
+          serial += 1
           context.watch(ref)
         }
-      case CheckForExit =>
-        log.debug("checking for exit, keepAlives={}", keepAlives)
-        if (keepAlives.isEmpty) {
-          log.info("Activator doesn't seem to be open in any browser tabs, so shutting down.")
-          self ! PoisonPill
+      case CheckForExit(validitySerial) =>
+        if (validitySerial == serial) {
+          log.debug("checking for exit, keepAlives={}", keepAlives)
+          if (keepAlives.isEmpty) {
+            log.info("Activator doesn't seem to be open in any browser tabs, so shutting down.")
+            self ! PoisonPill
+          }
+        } else {
+          log.debug("Something changed since CheckForExit scheduled, disregarding")
         }
     }
   }
