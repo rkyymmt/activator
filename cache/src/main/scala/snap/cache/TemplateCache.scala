@@ -4,19 +4,8 @@ import snap.IO
 import activator.properties.ActivatorProperties
 import scala.concurrent.{ Future, Await }
 import scala.concurrent.duration._
-// TODO - This whole thing should use an abstraction file files, like "Source" or some such.
 
-// TODO - This may need more work.
-// TODO - We probably are on the limit of fields for a useful case-class....
-case class TemplateMetadata(
-  id: String,
-  name: String, // Web/Console friendly-name  Must be unique.
-  title: String, // Human readable name for website
-  timeStamp: Long, // A timestamp of when this guy was generated
-  description: String,
-  tags: Seq[String]) {
-  // TODO - update equality/hashcode to be based on ID
-}
+// TODO - This whole thing should use an abstraction file files, like "Source" or some such.
 
 /**
  * A mapping of the files included in this tutorial.

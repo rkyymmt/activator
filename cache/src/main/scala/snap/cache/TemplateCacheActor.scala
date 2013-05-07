@@ -26,10 +26,10 @@ class TemplateCacheActor(provider: IndexDbProvider, location: File, remote: Remo
     case ListTemplates => sender ! TemplateQueryResult(listTemplates)
   }
 
-  def listTemplates = index.metadata
+  def listTemplates = fillMetadata(index.metadata)
 
   def searchTemplates(query: String, max: Int): Iterable[TemplateMetadata] =
-    index.search(query, max)
+    fillMetadata(index.search(query, max))
 
   def getTutorial(id: String): Option[Tutorial] = {
     val tutorialDir = new java.io.File(getTemplateDirAndEnsureLocal(id), Constants.TUTORIAL_DIR)
@@ -54,15 +54,34 @@ class TemplateCacheActor(provider: IndexDbProvider, location: File, remote: Remo
           if !relative.isEmpty
           if !(relative startsWith Constants.TUTORIAL_DIR)
         } yield file -> relative
-        Some(Template(metadata, fileMappings))
+        val meta = TemplateMetadata(
+          persistentConfig = metadata,
+          locallyCached = true)
+        Some(Template(meta, fileMappings))
       case _ => None
     }
   }
 
+  private def fillMetadata(metadata: Iterable[IndexStoredTemplateMetadata]): Iterable[TemplateMetadata] =
+    metadata map { meta =>
+      val locallyCached = isTemplateCached(meta.id)
+      TemplateMetadata(persistentConfig = meta,
+        locallyCached = locallyCached)
+    }
+
+  private def templateLocation(id: String): File =
+    new java.io.File(location, id)
+  /**
+   * Determines if we've cached a template.
+   *  TODO - check other files?
+   */
+  private def isTemplateCached(id: String): Boolean =
+    templateLocation(id).exists
+
   private def getTemplateDirAndEnsureLocal(id: String): File = {
     // TODO - return a file that is friendly for having tons of stuff in it,
     // i.e. maybe we take the first N of the id and use that as a directory first.
-    remote.resolveTemplateTo(id, new java.io.File(location, id))
+    remote.resolveTemplateTo(id, templateLocation(id))
   }
 
   var index: IndexDb = null
