@@ -39,6 +39,7 @@ class ProcessActorTest {
     val result = Await.result(resultPromise.future, 3.seconds)
 
     system.shutdown()
+    system.awaitTermination()
 
     result
   }

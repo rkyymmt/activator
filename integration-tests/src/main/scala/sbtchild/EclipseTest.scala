@@ -47,5 +47,6 @@ class EclipseTest extends IntegrationTest {
       throw new AssertionError("No .classpath file created")
   } finally {
     system.shutdown()
+    system.awaitTermination()
   }
 }

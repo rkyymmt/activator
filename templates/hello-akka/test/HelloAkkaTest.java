@@ -20,6 +20,7 @@ public class HelloAkkaTest {
     @AfterClass
     public static void teardown() {
         system.shutdown();
+        system.awaitTermination();
     }
 
     @Test

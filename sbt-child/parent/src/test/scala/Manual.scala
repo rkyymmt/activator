@@ -45,5 +45,6 @@ object Main extends App {
     }
   } finally {
     system.shutdown()
+    system.awaitTermination()
   }
 }

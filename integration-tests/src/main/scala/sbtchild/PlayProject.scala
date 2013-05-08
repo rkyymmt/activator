@@ -48,5 +48,6 @@ class PlayProject extends IntegrationTest {
     }
   } finally {
     system.shutdown()
+    system.awaitTermination()
   }
 }

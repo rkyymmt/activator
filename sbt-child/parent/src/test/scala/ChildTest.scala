@@ -60,6 +60,7 @@ class ChildTest {
 
     } finally {
       system.shutdown()
+      system.awaitTermination()
     }
   }
 
@@ -135,6 +136,7 @@ class ChildTest {
 
     } finally {
       system.shutdown()
+      system.awaitTermination()
     }
   }
 
@@ -152,6 +154,7 @@ class ChildTest {
     // the test is that the child should die on its own so actor system shutdown should work
 
     system.shutdown()
+    system.awaitTermination()
   }
 
   @Test
@@ -175,6 +178,7 @@ class ChildTest {
 
     } finally {
       system.shutdown()
+      system.awaitTermination()
     }
   }
 
@@ -199,6 +203,7 @@ class ChildTest {
 
     } finally {
       system.shutdown()
+      system.awaitTermination()
     }
   }
 
@@ -223,6 +228,7 @@ class ChildTest {
 
     } finally {
       system.shutdown()
+      system.awaitTermination()
     }
   }
 
@@ -247,6 +253,7 @@ class ChildTest {
 
     } finally {
       system.shutdown()
+      system.awaitTermination()
     }
   }
 
@@ -271,6 +278,7 @@ class ChildTest {
 
     } finally {
       system.shutdown()
+      system.awaitTermination()
     }
   }
 
@@ -299,6 +307,7 @@ class ChildTest {
 
     } finally {
       system.shutdown()
+      system.awaitTermination()
     }
   }
 

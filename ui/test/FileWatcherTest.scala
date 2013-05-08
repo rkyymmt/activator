@@ -63,6 +63,7 @@ class FileWatcherTest {
 
     } finally {
       system.shutdown();
+      system.awaitTermination();
     }
   }
 }
