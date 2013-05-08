@@ -240,9 +240,9 @@ object IO {
     archive(sources.toSeq, outputZip, None)
 
   private def archive(sources: Seq[(File, String)], outputFile: File, manifest: Option[Manifest]) {
-    if (outputFile.isDirectory)
-      error("Specified output file " + outputFile + " is a directory.")
-    else {
+    if (outputFile.isDirectory) {
+      sys.error("Specified output file " + outputFile + " is a directory.")
+    } else {
       val outputDir = outputFile.getParentFile
       createDirectory(outputDir)
       withZipOutput(outputFile, manifest) { output =>
@@ -354,6 +354,20 @@ object IO {
       }
       read()
     } finally { if (close) in.close }
+  }
+
+  /**
+   * Creates a file at the given location if it doesn't exist.
+   * If the file already exists and `setModified` is true, this method sets the last modified time to the current time.
+   */
+  def touch(file: File, setModified: Boolean = true) {
+    val absFile = file.getAbsoluteFile
+    createDirectory(absFile.getParentFile)
+    val created = absFile.createNewFile()
+    if (created || absFile.isDirectory) ()
+    else if (setModified && !absFile.setLastModified(System.currentTimeMillis)) {
+      sys.error("Could not update last modified time for file " + absFile)
+    }
   }
 }
 

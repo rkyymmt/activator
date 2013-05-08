@@ -14,7 +14,7 @@ import akka.actor.Actor
  *
  * TODO - Add a manager in front of this actor that knows how to update the lucene index and reboot this guy.
  */
-class TemplateCacheActor(provider: IndexDbProvider, location: File, remote: RemoteTemplateRepository) extends Actor {
+class TemplateCacheActor(provider: IndexDbProvider, location: File, remote: RemoteTemplateRepository, autoUpdate: Boolean = true) extends Actor {
   import TemplateCacheActor._
 
   def receive: Receive = {
@@ -87,10 +87,20 @@ class TemplateCacheActor(provider: IndexDbProvider, location: File, remote: Remo
   }
 
   var index: IndexDb = null
+  var props: CacheProperties = null
 
   override def preStart(): Unit = {
     // Our index is underneath the cache location...
-    index = provider.open(new File(location, Constants.METADATA_INDEX_FILENAME))
+    props = new CacheProperties(new File(location, Constants.CACHE_PROPS_FILENAME))
+    // Here we check to see if we need to update the local cache.
+    val indexFile = new File(location, Constants.METADATA_INDEX_FILENAME)
+    if (autoUpdate && remote.hasNewIndex(props.cacheIndexHash)) {
+      val newHash = remote.resolveIndexTo(indexFile)
+      props.cacheIndexHash = newHash
+      props.save("Updating the local index.")
+    }
+    // Now we open the index file.
+    index = provider.open(indexFile)
   }
   override def postStop(): Unit = {
     if (index != null) {

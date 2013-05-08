@@ -47,7 +47,7 @@ object DefaultTemplateCache {
     // TODO - Implement me!
     def resolveTemplateTo(templateId: String, localDir: File): File = localDir
     def hasNewIndex(oldId: String): Boolean = false
-    def resolveIndexTo(indexDirOrFile: File): File = indexDirOrFile
+    def resolveIndexTo(indexDirOrFile: File): String = "DUMMY INDEX HASH"
   }
   /** The default cache directory, configured by builder properties. */
   def defaultCacheDir: File = (
