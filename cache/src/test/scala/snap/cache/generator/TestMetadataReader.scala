@@ -7,19 +7,19 @@ import org.junit._
 import java.io.File
 
 class TestMetadataReader {
-  val testMeta = UserDefinedTemplateMetadata(
+  val testMeta = AuthorDefinedTemplateMetadata(
     name = "reactive-stocks",
     title = "Reactive Stocks",
     description = """The Reactive Stocks application uses Java, Scala, Play Framework, and Akka to illustrate a reactive app.  The tutorial in this example will teach you the reactive basics including Reactive Composition and Reactive Push.""",
     tags = Seq("Sample", "java", "scala", "play framework", "akka", "reactive"))
 
-  val testMeta2 = UserDefinedTemplateMetadata(
+  val testMeta2 = AuthorDefinedTemplateMetadata(
     name = "hello-scala",
     title = "Hello Scala!",
     description = """Scala is a general purpose programming language designed to express common programming patterns in a concise, elegant, and type-safe way.  This very simple Scala application will get you started building and testing standalone Scala apps.  This app uses Scala 2.10 and ScalaTest.""",
     tags = Seq("Basics", "scala", "starter"))
 
-  private def saveMetaData(meta: UserDefinedTemplateMetadata, file: File): Unit = {
+  private def saveMetaData(meta: AuthorDefinedTemplateMetadata, file: File): Unit = {
     val props = new java.util.Properties
     props.put("name", meta.name)
     props.put("title", meta.title)

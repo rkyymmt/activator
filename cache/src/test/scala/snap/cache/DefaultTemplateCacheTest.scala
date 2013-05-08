@@ -53,6 +53,17 @@ class DefaultTemplateCacheTest {
       Await.result(cache.metadata, Duration(1, MINUTES))
     val hasMetadata = metadata exists { _ == template1 }
     assertTrue("Failed to find metadata!", hasMetadata)
+    val hasRemote = metadata exists { _ == nonLocalTemplate }
+    assertTrue("Failed to find non-local template!", hasRemote)
+  }
+
+  @Test
+  def getFeaturedMetadata(): Unit = {
+    val metadata =
+      Await.result(cache.featured, Duration(1, MINUTES))
+    val hasMetadata = metadata exists { _ == template1 }
+    assertTrue("Failed to find metadata!", hasMetadata)
+    assertFalse("Featured metadata has unfeatured template.", metadata.exists(_ == nonLocalTemplate))
   }
 
   @Test
@@ -84,17 +95,30 @@ class DefaultTemplateCacheTest {
       timeStamp = 1L,
       featured = true,
       usageCount = None,
-      userConfig = UserDefinedTemplateMetadata(
+      userConfig = AuthorDefinedTemplateMetadata(
         name = "test-template",
         title = "A Testing Template",
         description = "A template that tests template existance.",
         tags = Seq("test", "template"))),
     locallyCached = true)
+
+  val nonLocalTemplate = TemplateMetadata(
+    IndexStoredTemplateMetadata(
+      id = "ID-2",
+      timeStamp = 1L,
+      featured = false,
+      usageCount = None,
+      userConfig = AuthorDefinedTemplateMetadata(
+        name = "test-remote-template",
+        title = "A Testing Template that is not dowloaded",
+        description = "A template that tests template existentialism.",
+        tags = Seq("test", "template"))),
+    locallyCached = false)
   def makeTestCache(dir: File): Unit = {
     val writer = LuceneIndexProvider.write(new File(dir, Constants.METADATA_INDEX_FILENAME))
     try {
-
       writer.insert(template1.persistentConfig)
+      writer.insert(nonLocalTemplate.persistentConfig)
     } finally {
       writer.close()
     }

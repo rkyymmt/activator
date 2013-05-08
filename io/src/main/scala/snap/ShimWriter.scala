@@ -31,7 +31,7 @@ addSbtPlugin("com.typesafe.activator" % "sbt-shim-""" + name + """" % """" + ver
     tmp
   }
 
-  private lazy val sbtFileSha = Hashing.sha512(pluginSbtFile)
+  private lazy val sbtFileSha = hashing.files.sha512(pluginSbtFile)
 
   private def makeTarget(basedir: File): File =
     new File(new File(basedir, "project"), SHIM_FILE_NAME)
@@ -39,7 +39,7 @@ addSbtPlugin("com.typesafe.activator" % "sbt-shim-""" + name + """" % """" + ver
   // update the shim file ONLY if it already exists. Returns true if it makes a change.
   def updateIfExists(basedir: File): Boolean = {
     val target = makeTarget(basedir)
-    if (target.exists && Hashing.sha512(target) != sbtFileSha) {
+    if (target.exists && hashing.files.sha512(target) != sbtFileSha) {
       IO.copyFile(pluginSbtFile, target)
       true
     } else {
@@ -50,7 +50,7 @@ addSbtPlugin("com.typesafe.activator" % "sbt-shim-""" + name + """" % """" + ver
   // update the shim file EVEN IF it doesn't exist. Returns true if it makes a change.
   def ensureExists(basedir: File): Boolean = {
     val target = makeTarget(basedir)
-    if (target.exists && Hashing.sha512(target) == sbtFileSha) {
+    if (target.exists && hashing.files.sha512(target) == sbtFileSha) {
       false
     } else {
       IO.copyFile(pluginSbtFile, target)

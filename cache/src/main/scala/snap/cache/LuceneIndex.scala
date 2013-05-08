@@ -80,7 +80,7 @@ object LuceneIndex {
     //val
     IndexStoredTemplateMetadata(
       id = id,
-      userConfig = UserDefinedTemplateMetadata(
+      userConfig = AuthorDefinedTemplateMetadata(
         name = name,
         title = title,
         description = desc,
@@ -122,6 +122,9 @@ class LuceneIndex(dir: Directory) extends IndexDb {
 
   def template(id: String): Option[IndexStoredTemplateMetadata] =
     executeQuery(new TermQuery(new Term(FIELD_ID, id)), 1).headOption
+
+  def featured: Iterable[IndexStoredTemplateMetadata] =
+    executeQuery(new TermQuery(new Term(FIELD_FEATURED, FIELD_TRUE_VALUE)), reader.maxDoc)
 
   def search(query: String, max: Int): Iterable[IndexStoredTemplateMetadata] =
     executeQuery(parser parse query, max)

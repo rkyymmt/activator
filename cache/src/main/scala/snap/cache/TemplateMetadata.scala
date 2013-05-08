@@ -3,12 +3,23 @@ package snap.cache
 /**
  * This represents the metadata information that AUTHORS of Templates will create for us
  */
-case class UserDefinedTemplateMetadata(
+case class AuthorDefinedTemplateMetadata(
   name: String, // Url/CLI-friendly name of the template
   title: String, // Verbose and fun name of the template, used in GUI.
   description: String, // A long-winded description about what this template does.
   tags: Seq[String] // A set of folksonomy tags describing what's in this template, used for searching.
   )
+object AuthorDefinedTemplateMetadata {
+  /** Default hash for generating ids. */
+  implicit object Hash extends snap.hashing.MessageDigestHasher[AuthorDefinedTemplateMetadata]("SHA-1") {
+    protected def updateDigest(t: AuthorDefinedTemplateMetadata, md: java.security.MessageDigest): Unit = {
+      md.update(t.name.getBytes)
+      md.update(t.title.getBytes)
+      md.update(t.description.getBytes)
+      md.update(t.tags.mkString(",").getBytes)
+    }
+  }
+}
 
 /**
  * This represents metadata information stored in the local template repository.  This includes all
@@ -16,7 +27,7 @@ case class UserDefinedTemplateMetadata(
  */
 case class IndexStoredTemplateMetadata(
   id: String,
-  userConfig: UserDefinedTemplateMetadata,
+  userConfig: AuthorDefinedTemplateMetadata,
   timeStamp: Long,
   featured: Boolean, // Display on the home page.
   usageCount: Option[Long] // Usage counts pulled from website.

@@ -15,12 +15,19 @@ trait IndexDbTest {
       assertEquals("Unable to find metadata in index.", Some(metadata), found)
     }
   }
-
+  @Test
   def testFindInList(): Unit = {
     val metadata = testData.head
     val lists = index.metadata
     val contained = lists.exists(_ == metadata)
     assertTrue("Unable to find metadata in index.", contained)
+  }
+
+  @Test
+  def testFindFeatured(): Unit = {
+    val featuredExpected = testData.filter(_.featured)
+    val featured = index.featured
+    assertEquals("Did not find all featured templates.", featuredExpected.toVector, featured.toVector)
   }
 
   @Test
@@ -36,7 +43,7 @@ trait IndexDbTest {
   val testData: Seq[IndexStoredTemplateMetadata] =
     Seq(IndexStoredTemplateMetadata(
       id = "ID",
-      userConfig = UserDefinedTemplateMetadata(
+      userConfig = AuthorDefinedTemplateMetadata(
         "url-friendly-name",
         "A human readable title.",
         "A very long description; DELETE TABLE TEMPLATES; with SQL injection.",
@@ -46,7 +53,7 @@ trait IndexDbTest {
       usageCount = None),
       IndexStoredTemplateMetadata(
         id = "ID-2",
-        userConfig = UserDefinedTemplateMetadata(
+        userConfig = AuthorDefinedTemplateMetadata(
           "url-friendly-name-2",
           "A human readable title.  AGAIN!",
           "A very long description\n WITH mutliple lines and stuff.  This is not featured.\n",
