@@ -13,14 +13,16 @@ trait RemoteTemplateRepository {
 
   /**
    * Checks to see if there's a new index in the remote repository
-   * @param oldId - The old identifier for the index file.
+   * @param currentHash - The old identifier for the index file.
    */
-  def hasNewIndex(oldId: String): Boolean
+  def hasNewIndex(currentHash: String): Boolean
 
   /**
    * Resolves the new remote index file to the local index directory.
    * @param indexDirOrFile - The directory or file location where the new index
    *   should be written.
+   *
+   * @return The new hash of the index.
    */
-  def resolveIndexTo(indexDirOrFile: File): File
+  def resolveIndexTo(indexDirOrFile: File): String
 }
