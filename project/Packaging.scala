@@ -24,6 +24,9 @@ object Packaging {
   val makeBashScript = TaskKey[File]("make-bash-script")
   val makeBatScript = TaskKey[File]("make-bat-script")
 
+  val licenseFileUrl = SettingKey[String]("activator-license-url")
+  val licenseFileLocation = SettingKey[File]("activator-license-location")
+  val licenseFileDownloaded = TaskKey[File]("activator-license-downloaded")
   val makeReadmeHtml = TaskKey[File]("make-readme-html")
   val makeLicensesHtml = TaskKey[File]("make-licenses-html")
 
@@ -84,6 +87,7 @@ object Packaging {
     mappings in Universal <+= makeBatScript map (_ -> "activator.bat"),
     mappings in Universal <+= makeReadmeHtml map (_ -> "README.html"),
     mappings in Universal <+= makeLicensesHtml map (_ -> "LICENSE.html"),
+    mappings in Universal <+= licenseFileDownloaded map (file => file -> file.getName),
     mappings in Universal <++= localRepoCreated map { repo =>
       for {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
@@ -128,6 +132,19 @@ object Packaging {
       val output = to / "LICENSE.html"
       Markdown.makeHtml(template, output, title="Activator License")
       output
+    },
+    licenseFileUrl := "http://typesafe.com/public/legal/TypesafeSubscriptionAgreement-v1.pdf",
+    licenseFileLocation <<= (licenseFileUrl, target) apply { (url, tdir) =>
+      val asUrl = new java.net.URL(url)
+      // Grab File Name...
+      val fileName = asUrl.getPath.split("/").lastOption getOrElse sys.error("Bad License URL: " + asUrl)
+      tdir / fileName
+    },
+    licenseFileDownloaded <<= (licenseFileUrl, licenseFileLocation) map { (urlString, file) =>
+      if(!file.exists) {
+        IO.download(new java.net.URL(urlString), file)
+      } 
+      file
     }
   )
   
