@@ -10,10 +10,12 @@ import scala.concurrent.duration._
 import activator.properties.ActivatorProperties.ACTIVATOR_USER_HOME
 import java.io.FileOutputStream
 
+// these tests are all synchronized because they are testing
+// behavior of global state (RootConfig.user).
 class ConfigTest {
 
   @Test
-  def testUserConfig(): Unit = {
+  def testUserConfig(): Unit = synchronized {
     val rewritten = RootConfig.rewriteUser { old =>
       val appList = if (old.applications.exists(_.location.getPath == "foo"))
         old.applications
@@ -43,7 +45,7 @@ class ConfigTest {
   }
 
   @Test
-  def testAddingProjectName(): Unit = {
+  def testAddingProjectName(): Unit = synchronized {
     removeProjectName()
 
     val rewritten = RootConfig.rewriteUser { old =>
@@ -62,7 +64,7 @@ class ConfigTest {
   }
 
   @Test
-  def testRecoveringFromBrokenFile(): Unit = {
+  def testRecoveringFromBrokenFile(): Unit = synchronized {
     val file = new File(ACTIVATOR_USER_HOME(), "config.json")
     try {
       file.delete()
@@ -75,7 +77,7 @@ class ConfigTest {
 
       val e = try {
         RootConfig.user
-        throw new AssertionError("We expected to get an exception and not reach here")
+        throw new AssertionError("We expected to get an exception and not reach here (first time)")
       } catch {
         case e: Exception => e
       }
@@ -87,7 +89,7 @@ class ConfigTest {
 
       val e2 = try {
         RootConfig.user
-        throw new AssertionError("We expected to get an exception and not reach here")
+        throw new AssertionError("We expected to get an exception and not reach here (second time)")
       } catch {
         case e: Exception => e
       }
