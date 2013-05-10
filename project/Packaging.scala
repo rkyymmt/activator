@@ -24,8 +24,8 @@ object Packaging {
   val makeBashScript = TaskKey[File]("make-bash-script")
   val makeBatScript = TaskKey[File]("make-bat-script")
 
-  val licenseFileUrl = SettingKey[String]("actiavtor-license-url")
-  val licenseFileLocation = SettingKey[File]("actiavtor-license-location")
+  val licenseFileUrl = SettingKey[String]("activator-license-url")
+  val licenseFileLocation = SettingKey[File]("activator-license-location")
   val licenseFileDownloaded = TaskKey[File]("activator-license-downloaded")
   val makeReadmeHtml = TaskKey[File]("make-readme-html")
   val makeLicensesHtml = TaskKey[File]("make-licenses-html")
