@@ -115,27 +115,44 @@ class SbtTest {
     }
   }
 
+  private def printOnFail[T](thing: Any)(block: => T): T = {
+    try {
+      block
+    } catch {
+      case e: Throwable =>
+        System.err.println("failure: " + e.getClass.getName + ": " + e.getMessage)
+        System.err.println("failed on: " + thing)
+        throw e
+    }
+  }
+
   @Test
   def testRunChild(): Unit = {
     childTest(makeDummySbtProject, "runChild") { taskJson =>
-      assertEquals(JsString("RequestReceivedEvent"), taskJson \ "type")
-      // TODO somehow we need to test that the websocket gets a RunReponse
+      printOnFail(taskJson) {
+        assertEquals(JsString("RequestReceivedEvent"), taskJson \ "type")
+        // TODO somehow we need to test that the websocket gets a RunReponse
+      }
     }
   }
 
   @Test
   def testRunChildBrokenBuild(): Unit = {
     childTest(makeDummySbtProjectWithBrokenBuild, "runChildBrokenBuild") { taskJson =>
-      assertEquals(JsString("ErrorResponse"), taskJson \ "type")
-      assertEquals(JsString("sbt process never got in touch, so unable to handle request GenericRequest(true,run,Map())"), taskJson \ "error")
+      printOnFail(taskJson) {
+        assertEquals(JsString("ErrorResponse"), taskJson \ "type")
+        assertEquals(JsString("sbt process never got in touch, so unable to handle request GenericRequest(true,run,Map())"), taskJson \ "error")
+      }
     }
   }
 
   @Test
   def testRunChildMissingMain(): Unit = {
     childTest(makeDummySbtProjectWithNoMain, "runChildMissingMain") { taskJson =>
-      assertEquals(JsString("RequestReceivedEvent"), taskJson \ "type")
-      // TODO somehow we need to test that the websocket gets an ErrorResponse
+      printOnFail(taskJson) {
+        assertEquals(JsString("RequestReceivedEvent"), taskJson \ "type")
+        // TODO somehow we need to test that the websocket gets an ErrorResponse
+      }
     }
   }
 
