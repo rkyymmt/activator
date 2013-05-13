@@ -6,6 +6,10 @@ This software is licensed under the Typesafe Subscription Agreement.  It is free
 
 [http://typesafe.com/public/legal/TypesafeSubscriptionAgreement-v1.pdf](http://typesafe.com/public/legal/TypesafeSubscriptionAgreement-v1.pdf)
 
+Software Terms of Use:
+
+[http://typesafe.com/legal/softwareterms](http://typesafe.com/legal/softwareterms)
+
 
 # Third-Party Licenses
 
