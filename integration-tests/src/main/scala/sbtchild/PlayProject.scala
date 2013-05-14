@@ -21,7 +21,7 @@ class PlayProject extends IntegrationTest {
     makeDummyPlayProject(dir)
     val child = newSbtChild(dir)
     try {
-      implicit val timeout = Timeout(120.seconds)
+      implicit val timeout = Timeout(300.seconds)
       val name = Await.result(child ? protocol.NameRequest(sendEvents = false), timeout.duration) match {
         case protocol.NameResponse(n) => {
           n
