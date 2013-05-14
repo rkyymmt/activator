@@ -15,6 +15,11 @@ import akka.util.Timeout
 
 class ChildTest {
 
+  // this is ANNOYINGLY long if you're debugging tests by hand, but
+  // we don't want it to keep randomly failing.
+  // just edit it shorter locally if you are hitting it when coding.
+  implicit val timeout = Timeout(300.seconds)
+
   val testUtil = new TestUtil(scratchDir = new File("sbt-child/parent/target/scratch"))
 
   import testUtil._
@@ -44,8 +49,6 @@ class ChildTest {
   }
 
   private def requestTest(dummy: File)(sendRequest: (ActorRef, ActorContext) => Unit)(checkResults: Seq[protocol.Message] => Unit): Unit = {
-    implicit val timeout = Timeout(120.seconds)
-
     val system = ActorSystem("test-" + dummy.getName)
     try {
       val req = system.actorOf(Props(new TestRequestActor(dummy) {
@@ -111,8 +114,6 @@ class ChildTest {
 
   @Test
   def testTalkToChild(): Unit = {
-    implicit val timeout = Timeout(60.seconds)
-
     val dummy = makeDummySbtProject("talkToChild")
 
     val system = ActorSystem("test-talk-to-child")
@@ -159,8 +160,6 @@ class ChildTest {
 
   @Test
   def testRunChild(): Unit = {
-    implicit val timeout = Timeout(60.seconds)
-
     val dummy = makeDummySbtProject("runChild")
 
     val system = ActorSystem("test-run-child")
@@ -184,8 +183,6 @@ class ChildTest {
 
   @Test
   def testBrokenBuild(): Unit = {
-    implicit val timeout = Timeout(60.seconds)
-
     val dummy = makeDummySbtProjectWithBrokenBuild("brokenBuild")
 
     val system = ActorSystem("test-broken-build")
@@ -209,8 +206,6 @@ class ChildTest {
 
   @Test
   def testRunWithMissingMain(): Unit = {
-    implicit val timeout = Timeout(60.seconds)
-
     val dummy = makeDummySbtProjectWithNoMain("noMainRun")
 
     val system = ActorSystem("test-no-main-run")
@@ -234,8 +229,6 @@ class ChildTest {
 
   @Test
   def testDiscoverMissingMain(): Unit = {
-    implicit val timeout = Timeout(60.seconds)
-
     val dummy = makeDummySbtProjectWithNoMain("noMainDiscover")
 
     val system = ActorSystem("test-no-main-discover")
@@ -259,8 +252,6 @@ class ChildTest {
 
   @Test
   def testDiscoverMultipleMain(): Unit = {
-    implicit val timeout = Timeout(60.seconds)
-
     val dummy = makeDummySbtProjectWithMultipleMain("multiMainDiscover")
 
     val system = ActorSystem("test-multi-main-discover")
@@ -284,8 +275,6 @@ class ChildTest {
 
   @Test
   def testRunMultipleMain(): Unit = {
-    implicit val timeout = Timeout(60.seconds)
-
     val dummy = makeDummySbtProjectWithMultipleMain("runSelectingAMain")
 
     val system = ActorSystem("test-run-selecting-a-main")
