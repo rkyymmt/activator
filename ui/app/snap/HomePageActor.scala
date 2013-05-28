@@ -7,6 +7,7 @@ import java.io.File
 import akka.pattern.pipe
 import scala.util.control.NonFatal
 import scala.concurrent.Future
+import activator._
 
 // THE API for the HomePage actor.
 object HomePageActor {
@@ -78,7 +79,7 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
     // a chance of knowing what the error is.
     val installed: Future[ProcessResult[File]] =
       //TODO - Store template cache somehwere better...
-      snap.cache.Actions.cloneTemplate(
+      activator.cache.Actions.cloneTemplate(
         controllers.api.Templates.templateCache,
         template,
         appLocation,
@@ -99,9 +100,9 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
   def openExistingApplication(location: String): Unit = {
     log.debug(s"Looking for existing application at: $location")
     // TODO - Ensure timeout is ok...
-    val file = snap.Validating(new File(location)).validate(
-      snap.Validation.fileExists,
-      snap.Validation.isDirectory)
+    val file = Validating(new File(location)).validate(
+      Validation.fileExists,
+      Validation.isDirectory)
     if (file.isSuccess)
       self ! Respond(Status("Compiling project definition..."))
     else
@@ -123,11 +124,11 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
         }))
     }
     val response = id map {
-      case snap.ProcessSuccess(id) =>
+      case ProcessSuccess(id) =>
         log.debug(s"HomeActor: Found application id: $id")
         RedirectToApplication(id)
       // TODO - Return with form and flash errors?
-      case snap.ProcessFailure(errors) =>
+      case ProcessFailure(errors) =>
         log.warning(s"HomeActor: Failed to find application: ${errors map (_.msg) mkString "\n\t"}")
         BadRequest(request, errors map (_.msg))
     } recover {

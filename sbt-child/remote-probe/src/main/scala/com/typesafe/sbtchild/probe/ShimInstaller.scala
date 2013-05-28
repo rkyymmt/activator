@@ -2,10 +2,11 @@ package com.typesafe.sbtchild.probe
 
 import sbt._
 import activator.properties.ActivatorProperties._
+import com.typesafe.sbtchild.io.ShimWriter
 
 class ShimInstaller(val name: String) {
 
-  private val writer = new snap.ShimWriter(name, APP_VERSION)
+  private val writer = new ShimWriter(name, APP_VERSION)
 
   // true if the shim was freshly installed
   def ensure(state: State): Boolean = {

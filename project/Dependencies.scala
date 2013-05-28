@@ -7,9 +7,16 @@ object Dependencies {
   val sbtPluginVersion = "0.12"
   val sbtPluginScalaVersion = "2.9.2"
   val scalaVersion = "2.10.1"
-  val sbtSnapshotVersion = "0.13.0-20130427-052157"
+  val sbtSnapshotVersion = "0.13.0-M2"
   val luceneVersion = "4.2.1"
+  val templateCacheVersion = "1.0-6ee3bc38547c68dbb1a30fa257e1cba2685f9be2"
 
+
+  val activatorCommon      = "com.typesafe.activator" % "activator-common" % templateCacheVersion
+  val templateCache        = "com.typesafe.activator" % "activator-templates-cache" % templateCacheVersion
+
+
+  val sbtIo210             = "org.scala-sbt" % "io" % sbtSnapshotVersion
   val sbtLauncherInterface = "org.scala-sbt" % "launcher-interface" % sbtVersion
   val sbtMain              = "org.scala-sbt" % "main" % sbtVersion
   val sbtTheSbt            = "org.scala-sbt" % "sbt" % sbtVersion
