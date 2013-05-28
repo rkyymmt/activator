@@ -2,8 +2,7 @@ package activator
 
 import xsbti.{ AppMain, AppConfiguration }
 import activator.properties.ActivatorProperties.SCRIPT_NAME
-import snap.cache.Actions.cloneTemplate
-import snap.cache.DefaultTemplateCache
+import activator.cache.Actions.cloneTemplate
 import java.io.File
 import sbt.complete.{ Parser, Parsers }
 import scala.concurrent.Await
@@ -21,7 +20,9 @@ object ActivatorCli {
     // TODO - Configurable durations in some config file somewhere.
     val defaultDuration = Duration(6, SECONDS)
     implicit val timeout = akka.util.Timeout(defaultDuration)
-    val cache = DefaultTemplateCache(system)
+    // Create our default cache
+    // TODO - move this into a common shared location between CLI and GUI.
+    val cache = UICacheHelper.makeDefaultCache(system)
     // Get all possible names.
     // TODO - Drive this whole thing through futures, if we feel SAUCY enough, rather than waiting for results.
     val metadata = Await.result(cache.metadata, defaultDuration)

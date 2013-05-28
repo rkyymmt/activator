@@ -6,6 +6,7 @@ import java.awt.event._
 import javax.swing._
 import java.net.HttpURLConnection
 import java.net.URL
+import sbt.IO
 import com.typesafe.sbtchild.SbtChildLauncher
 import snap._
 import activator.properties.ActivatorProperties._
@@ -26,14 +27,14 @@ object PidDetector {
   private def previousPid(lock: GlobalLock): Option[String] =
     lock onBuilder {
       if (ACTIVATOR_PID_FILE.exists)
-        Option(snap.IO.slurp(ACTIVATOR_PID_FILE).trim) filterNot (_.isEmpty)
+        Option(IO.readLines(ACTIVATOR_PID_FILE).head) filterNot (_.isEmpty)
       else None
     }
 
   private def writeCurrentPid(lock: GlobalLock): Unit = {
     for (pid <- java.lang.management.ManagementFactory.getRuntimeMXBean.getName.split('@').headOption) {
       lock onBuilder {
-        snap.IO.write(ACTIVATOR_PID_FILE, pid, append = false)
+        IO.write(ACTIVATOR_PID_FILE, pid, append = false)
       }
     }
   }

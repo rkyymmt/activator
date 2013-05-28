@@ -44,7 +44,7 @@ object TheActivatorBuild extends Build {
 
   // These are the projects we want in the local repository we deploy.
   lazy val publishedSbtShimProjects = Set(playShimPlugin, eclipseShimPlugin, ideaShimPlugin, sbtUiInterface, defaultsShimPlugin)
-  lazy val publishedProjects: Seq[Project] = Seq(io, common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects
+  lazy val publishedProjects: Seq[Project] = Seq(ui, launcher, props, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects
 
   // basic project that gives us properties to use in other projects.
   lazy val props = (
@@ -52,23 +52,13 @@ object TheActivatorBuild extends Build {
     settings(Properties.makePropertyClassSetting(Dependencies.sbtVersion, Dependencies.scalaVersion):_*)
   )
 
-  lazy val io = (
-    ActivatorProject("io")
-    dependsOnRemote(junitInterface % "test", specs2 % "test")
+  // Helper for UI projects (CLI + GUI)
+  lazy val uiCommon = (
+    ActivatorProject("ui-common")
+    dependsOnRemote(templateCache)
+    dependsOn(props)
   )
 
-  lazy val common = (
-    ActivatorProject("common")
-    dependsOnRemote(junitInterface % "test", specs2 % "test")
-    dependsOn(io)
-  )
-
-  lazy val cache = (
-    ActivatorProject("cache")
-    dependsOn(props, common)
-    dependsOnRemote(junitInterface % "test", lucene, luceneAnalyzerCommon, luceneQueryParser, akkaActor)
-  )
-  
   lazy val sbtUiInterface = (
       SbtShimPlugin("ui-interface")
       settings(
@@ -91,14 +81,14 @@ object TheActivatorBuild extends Build {
     SbtChildProject("remote-probe")
     settings(Keys.scalaVersion := Dependencies.sbtPluginScalaVersion, Keys.scalaBinaryVersion <<= Keys.scalaVersion)
     dependsOnSource("../protocol")
-    dependsOnSource("../../io")
     dependsOn(props, sbtUiInterface % "provided")
     dependsOnRemote(
       sbtMain % "provided",
       sbtTheSbt % "provided",
       sbtIo % "provided",
       sbtLogging % "provided",
-      sbtProcess % "provided"
+      sbtProcess % "provided",
+      activatorCommon
     )
     settings(requiredJars(props, sbtUiInterface))
   )
@@ -156,9 +146,10 @@ object TheActivatorBuild extends Build {
     settings(Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
     dependsOnSource("../protocol")
     dependsOn(props)
-    dependsOn(common)
     dependsOnRemote(akkaActor,
-                    sbtLauncherInterface)
+                    sbtLauncherInterface,
+                    activatorCommon,
+                    sbtIo210)
     settings(configureSbtTest(Keys.test): _*)
     settings(configureSbtTest(Keys.testOnly): _*)
   )
@@ -172,7 +163,7 @@ object TheActivatorBuild extends Build {
       commonsIo, mimeUtil, slf4jLog4j,
       sbtLauncherInterface % "provided"
     )
-    dependsOn(props, cache, sbtDriver, common, sbtDriver % "test->test")
+    dependsOn(props, uiCommon, sbtDriver, sbtDriver % "test->test")
     settings(play.Project.playDefaultPort := 8888)
     // set up debug props for forked tests
     settings(configureSbtTest(Keys.test): _*)
@@ -219,7 +210,7 @@ object TheActivatorBuild extends Build {
   lazy val launcher = (
     ActivatorProject("launcher")
     dependsOnRemote(sbtLauncherInterface, sbtCompletion)
-    dependsOn(props, common, cache)
+    dependsOn(props, uiCommon)
   )
 
   // A hack project just for convenient IvySBT when resolving artifacts into new local repositories.
@@ -236,8 +227,8 @@ object TheActivatorBuild extends Build {
   lazy val it = (
       ActivatorProject("integration-tests")
       settings(integration.settings:_*)
-      dependsOnRemote(sbtLauncherInterface)
-      dependsOn(sbtDriver, props, cache)
+      dependsOnRemote(sbtLauncherInterface, sbtIo210)
+      dependsOn(sbtDriver, props)
       settings(
         com.typesafe.sbtidea.SbtIdeaPlugin.ideaIgnoreModule := true,
         Keys.publish := {}

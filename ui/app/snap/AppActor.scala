@@ -10,6 +10,7 @@ import akka.pattern._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.duration._
 import play.api.libs.json._
+import activator._
 
 sealed trait AppRequest
 

@@ -15,6 +15,7 @@ import scala.concurrent.duration._
 import play.api.libs.json.JsObject
 import java.util.concurrent.atomic.AtomicInteger
 import scala.util.control.NonFatal
+import activator._
 
 sealed trait AppCacheRequest
 

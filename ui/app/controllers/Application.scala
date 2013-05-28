@@ -6,8 +6,9 @@ import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import com.typesafe.sbtchild.SbtChildProcessMaker
 import play.api.libs.json.{ JsString, JsObject, JsArray, JsNumber, JsValue }
-import snap.{ RootConfig, AppConfig, AppManager, ProcessResult, Platform }
-import snap.cache.TemplateMetadata
+import snap.{ RootConfig, AppConfig, AppManager, Platform }
+import activator.ProcessResult
+import activator.cache.TemplateMetadata
 import activator.properties.ActivatorProperties
 import scala.util.control.NonFatal
 import scala.util.Try
@@ -54,8 +55,8 @@ object Application extends Controller {
   def index = Action {
     Async {
       AppManager.loadAppIdFromLocation(cwd) map {
-        case snap.ProcessSuccess(name) => Redirect(routes.Application.app(name))
-        case snap.ProcessFailure(errors) =>
+        case activator.ProcessSuccess(name) => Redirect(routes.Application.app(name))
+        case activator.ProcessFailure(errors) =>
           // TODO FLASH THE ERROR, BABY
           Redirect(routes.Application.forceHome)
       }
@@ -163,7 +164,7 @@ object Application extends Controller {
       hasLocalTutorial(app))
 
   def hasLocalTutorial(app: snap.App): Boolean = {
-    val tutorialConfig = new java.io.File(app.config.location, snap.cache.Constants.METADATA_FILENAME)
+    val tutorialConfig = new java.io.File(app.config.location, activator.cache.Constants.METADATA_FILENAME)
     tutorialConfig.exists
   }
 

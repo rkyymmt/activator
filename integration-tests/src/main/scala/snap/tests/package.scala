@@ -1,6 +1,7 @@
 package snap
 
 import activator.properties.ActivatorProperties._
+import sbt.IO
 
 // Helper methods for running tests.
 package object tests {
@@ -30,13 +31,13 @@ package object tests {
 
   /** Creates a dummy project we can run Activator against. */
   def makeDummySbtProject(dir: java.io.File): java.io.File = {
-    snap.IO.createDirectory(dir)
+    IO.createDirectory(dir)
     val project = new java.io.File(dir, "project")
-    snap.IO.createDirectory(project)
+    IO.createDirectory(project)
     val props = new java.io.File(project, "build.properties")
     createFile(props, "sbt.version=" + SBT_VERSION)
     val scalaSource = new java.io.File(dir, "src/main/scala")
-    snap.IO.createDirectory(scalaSource)
+    IO.createDirectory(scalaSource)
     val main = new java.io.File(scalaSource, "hello.scala")
     createFile(main, "object Main extends App { println(\"Hello World\") }\n")
     dir
