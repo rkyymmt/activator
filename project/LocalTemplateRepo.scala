@@ -37,10 +37,18 @@ object LocalTemplateRepo {
 
   def makeTemplateCache(targetDir: File, classpath: Keys.Classpath): File = {
     // TODO - We should check for staleness here...
-    if(!targetDir.exists) {
+    if(!targetDir.exists) try {
       IO createDirectory targetDir
       val cl = makeClassLoaderFor(classpath)
-            invokeTemplateCacheRepoMakerMain(cl, targetDir)
+      // Akka requires this crazy
+      val old = Thread.currentThread.getContextClassLoader
+      Thread.currentThread.setContextClassLoader(cl)
+      try invokeTemplateCacheRepoMakerMain(cl, targetDir)
+      finally Thread.currentThread.setContextClassLoader(old)
+    } catch {
+      case ex: Exception =>
+         IO delete targetDir
+         throw ex
     }
     targetDir
   }
