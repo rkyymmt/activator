@@ -33,6 +33,7 @@ case class ApplicationModel(
 case class HomeModel(
   userHome: String,
   templates: Seq[TemplateMetadata],
+  otherTemplateCount: Long,
   recentApps: Seq[AppConfig])
 
 // Data we get from the new application form.
@@ -73,10 +74,13 @@ object Application extends Controller {
       "template" -> text)(NewAppForm.apply)(NewAppForm.unapply))
 
   /** Reloads the model for the home page. */
-  private def homeModel = api.Templates.templateCache.featured map { templates =>
+  private def homeModel = api.Templates.templateCache.metadata map { templates =>
+    val tempSeq = templates.toSeq
+    val featured = tempSeq filter (_.featured)
     HomeModel(
       userHome = ActivatorProperties.GLOBAL_USER_HOME,
-      templates = templates.toSeq,
+      templates = featured,
+      otherTemplateCount = tempSeq.length,
       recentApps = RootConfig.user.applications)
   }
 

@@ -188,7 +188,7 @@ object TheActivatorBuild extends Build {
           sys.props("activator.template.cache") = templateCache.getAbsolutePath
           System.err.println("Updating sbt launch jar: " + sys.props("activator.sbt.launch.jar"))
           System.err.println("Remote probe classpath = " + sys.props("activator.remote.probe.classpath"))
-          System.err.println("Template chace = " + sys.props("activator.template.cache"))
+          System.err.println("Template cache = " + sys.props("activator.template.cache"))
           update
       }
     )

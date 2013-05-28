@@ -15,11 +15,14 @@ object UICacheHelper {
     // TODO - Config or ActiavtorProperties?
     val config = ConfigFactory.load()
     val remote = RemoteTemplateRepository(config)
-
+    val localCache = new File(ActivatorProperties.ACTIVATOR_TEMPLATE_CACHE)
+    val localSeed = Option(ActivatorProperties.ACTIVATOR_TEMPLATE_LOCAL_REPO) map (new File(_)) filter (_.isDirectory)
+    //println("Creating template cache @ " + localCache.getAbsolutePath)
+    //println("Local repo seed @ " + localSeed.map(_.getAbsolutePath))
     DefaultTemplateCache(
       actorFactory = actorFactory,
-      location = new File(ActivatorProperties.ACTIVATOR_TEMPLATE_CACHE),
+      location = localCache,
       remote = remote,
-      seedRepository = Option(ActivatorProperties.ACTIVATOR_TEMPLATE_LOCAL_REPO) map (new File(_)) filter (_.isDirectory))
+      seedRepository = localSeed)
   }
 }
