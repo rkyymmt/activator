@@ -44,7 +44,7 @@ object TheActivatorBuild extends Build {
 
   // These are the projects we want in the local repository we deploy.
   lazy val publishedSbtShimProjects = Set(playShimPlugin, eclipseShimPlugin, ideaShimPlugin, sbtUiInterface, defaultsShimPlugin)
-  lazy val publishedProjects: Seq[Project] = Seq(ui, launcher, props, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects
+  lazy val publishedProjects: Seq[Project] = Seq(ui, uiCommon, launcher, props, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects
 
   // basic project that gives us properties to use in other projects.
   lazy val props = (
