@@ -33,6 +33,7 @@
                         </div>
                     </article>
 		</div>
+		<div id="templatePage" class="hidden"></div>
 		<div id="homePage">
 			<article class="welcome">
 				<h1>Typesafe Activator</h1>
@@ -66,8 +67,10 @@
 	                        </li>
 	                    }
 	                    </ul>
-	                    <p id="template-count-text">Showing @model.templates.length of @model.otherTemplateCount</p>
-	                    <input type="submit" class="button" value="Create" id="newButton" disabled>
+	                    <div class="select">
+	                    	<input type="submit" class="button" value="Show all templates (@model.otherTemplateCount)" id="showButton">
+	                    	<input type="submit" class="button" value="Create" id="newButton" disabled>
+	                    </div>
 	                }
 	            </div>
 	            <div id="newAppLocationBrowser" class="subsection hidden"></div>
