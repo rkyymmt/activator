@@ -121,8 +121,11 @@ require([
 					if (!appNameInput.val())
 						appNameInput.val(appNameInput.attr('placeholder'));
 
+					// Now we find our sneaky saved template id.
+					var template = appTemplateName.attr('data-template-id');
 					var msg = formToJson(event.currentTarget);
 					msg.request = 'CreateNewApplication';
+					msg.template = template;
 					streams.send(msg);
 					toggleWorking();
 
@@ -171,31 +174,29 @@ require([
 				}
 			});
 			openFs.renderTo('#openAppLocationBrowser');
-			// TODO - Figure out what to do when selecting a new template is displayed
-			showTemplatesButton.on('click', function(event) {
-				event.preventDefault();
-				toggleSelectTemplateBrowser();
 
-			});
-			var showTemplateWidget = new TemplateList({
-				onTemplateSelected: function(template) {
-					toggleSelectTemplateBrowser();
-					alert('Selected template: ' + template.name)
-				}
-			});
-			showTemplateWidget.renderTo('#templatePage');
-			window.showTemplateWidget = showTemplateWidget;
-
-			// Register fancy radio button controls.
-			$('#new').on('click', 'li.template', function(event) {
-				// ???
-				$('input:radio', this).prop('checked',true);
-				var name = $('input', this).attr('data-snap-name-ref');
-				appTemplateName.val(name);
-				var dirname = name.replace(' ', '-').replace(/[^A-Za-z0-9_-]/g, '').toLowerCase();
+			// One method to handle template selection, regardless of popup.
+			function updateSelectedTemplate(template) {
+				appTemplateName.val(template.name);
+				// Set id for the template on a hidden attribute...
+				appTemplateName.attr('data-template-id', template.id)
+				var dirname = template.name.replace(' ', '-').replace(/[^A-Za-z0-9_-]/g, '').toLowerCase();
 				appNameInput.attr('placeholder', dirname);
 				updateAppLocation();
 				checkFormReady()
+			}
+
+			// Register fancy radio button controls.
+			$('#new').on('click', 'li.template', function(event) {
+				var template = {
+						name: $('input', this).attr('data-snap-name-ref'),
+						id: $('input', this).attr('value')
+				}
+				// TODO - Remove this bit here
+				$('input:radio', this).prop('checked',true);
+
+				// Now call the generic update selected template method.
+				updateSelectedTemplate(template);
 			})
 			.on('click', '#browseAppLocation', function(event) {
 				event.preventDefault();
@@ -205,6 +206,23 @@ require([
 				event.preventDefault();
 				toggleAppBrowser();
 			});
+
+			// TODO - Figure out what to do when selecting a new template is displayed
+			showTemplatesButton.on('click', function(event) {
+				event.preventDefault();
+				toggleSelectTemplateBrowser();
+
+			});
+			var showTemplateWidget = new TemplateList({
+				onTemplateSelected: function(template) {
+					toggleSelectTemplateBrowser();
+					// Telegate to generic "select template" method.
+					updateSelectedTemplate(template);
+				}
+			});
+			showTemplateWidget.renderTo('#templatePage');
+			window.showTemplateWidget = showTemplateWidget;
+
 			// TODO - Register file selection widget...
 			// Register fancy click and open app buttons
 			$('#open').on('click', 'li.recentApp', function(event) {
