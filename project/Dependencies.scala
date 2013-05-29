@@ -9,7 +9,7 @@ object Dependencies {
   val scalaVersion = "2.10.1"
   val sbtSnapshotVersion = "0.13.0-M2"
   val luceneVersion = "4.2.1"
-  val templateCacheVersion = "1.0-384498a3ea10558b3ad161560d1c543b51de8204"
+  val templateCacheVersion = "1.0-92796fc5e9f3af60d02a324fb6731a2190acb3f8"
 
 
   val activatorCommon      = "com.typesafe.activator" % "activator-common" % templateCacheVersion
