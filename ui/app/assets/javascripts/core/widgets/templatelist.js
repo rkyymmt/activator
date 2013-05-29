@@ -31,12 +31,16 @@ define(['text!./templatelist.html', 'vendors/knockout-2.2.1.debug', 'core/widget
 			return false;
 		}
 	}
+
 	var defaultSort = function(l,r) {
-		return l.name < r.name;
+		// locale based sorting.
+		var l_name = l && l.name || '';
+		var r_name = r && r.name || '';
+		return l.name.localeCompare(r_name);
 	};
 
 	var datePublishedSort = function(l,r) {
-		return l.timestamp < r.timestamp;
+		return l.timestamp - r.timestamp;
 	};
 
 	return utils.Class(Widget, {
