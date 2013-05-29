@@ -50,7 +50,7 @@ define(['text!./templatelist.html', 'vendors/knockout-2.2.1.debug', 'core/widget
 			self.sortFunctionName = ko.observable("byName");
 			self.sortFunction = ko.computed(function() {
 				switch(self.sortFunctionName()) {
-					case 'date':
+					case 'byDate':
 						return datePublishedSort;
 					default:
 						return defaultSort;
