@@ -15,6 +15,15 @@ import java.io.FileOutputStream
 class ConfigTest {
 
   @Test
+  def testUSerConfigAcceptance(): Unit = {
+    val accepted =
+      RootConfig.rewriteUser(_.copy(acceptedLicense = true))
+    Await.ready(accepted, 5.seconds)
+    val c = RootConfig.user
+    assertTrue("User should have acceptedLicense falg set to true", c.acceptedLicense)
+  }
+
+  @Test
   def testUserConfig(): Unit = synchronized {
     val rewritten = RootConfig.rewriteUser { old =>
       val appList = if (old.applications.exists(_.location.getPath == "foo"))
