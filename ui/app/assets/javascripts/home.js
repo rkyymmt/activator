@@ -19,8 +19,11 @@ require([
 			var acceptNoButton = $('#acceptNoButton');
 			acceptNoButton.on('click', function(e) {
 				e.preventDefault();
-				alert('You will be unable to use activator.\n'+
-						'Please close this webpage, stop the server and remove all activator software.')
+				if(confirm('You will be unable to use activator.\n'+
+						'Please close this webpage, stop the server and remove all activator software.')) {
+					// Note: this will only work on some browsers.
+					window.close();
+				}
 			});
 			acceptYesButton.on('click', function(e) {
 				// Tell the server we accepted.
