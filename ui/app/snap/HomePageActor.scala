@@ -53,6 +53,19 @@ object HomePageActor {
         "info" -> JsString(info)))
   }
   case class Respond(json: JsValue)
+
+  object LicenseAccepted {
+    def apply(): JsValue =
+      JsObject(Seq(
+        "response" -> JsString("LicenseAccepted")))
+    def unapply(in: JsValue): Boolean =
+      try {
+        if ((in \ "request").as[String] == "LicenseAccepted") true
+        else false
+      } catch {
+        case e: JsResultException => false
+      }
+  }
 }
 class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
 
@@ -63,6 +76,7 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
     case WebSocketActor.Ping(ping) => produce(WebSocketActor.Pong(ping.cookie))
     case OpenExistingApplication(msg) => openExistingApplication(msg.location)
     case CreateNewApplication(msg) => createNewApplication(msg.location, msg.templateId, msg.projectName)
+    case LicenseAccepted() => acceptLicense()
     case _ =>
       log.error(s"HomeActor: received unknown msg: $json")
       produce(BadRequest(json.toString, Seq("Could not parse JSON for request")))
@@ -72,6 +86,14 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
     case Respond(json) => produce(json)
   }
 
+  def acceptLicense(): Unit = {
+    import context.dispatcher
+    log.info("User is accepting the licensing terms.")
+    val work = for {
+      _ <- RootConfig.rewriteUser(_.copy(acceptedLicense = true))
+    } yield Respond(LicenseAccepted())
+    pipe(work) to self
+  }
   // Goes off and tries to create/load an application.
   def createNewApplication(location: String, template: String, projectName: Option[String]): Unit = {
     import context.dispatcher
