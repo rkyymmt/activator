@@ -17,8 +17,8 @@ object LocalTemplateRepo {
     localTemplateCacheCreated <<= (localTemplateCache, Keys.fullClasspath in Runtime, remoteTemplateCacheUri) map makeTemplateCache,
     scalaVersion := Dependencies.scalaVersion,
     libraryDependencies += Dependencies.templateCache,
-    // TODO - modify for release.
-    remoteTemplateCacheUri := "http://downloads.typesafe.com/typesafe-activator-test"
+    // TODO - Allow debug version for testing?
+    remoteTemplateCacheUri := "http://downloads.typesafe.com/typesafe-activator"
   )
   
   def invokeTemplateCacheRepoMakerMain(cl: ClassLoader, dir: File, uri: String): Unit =
