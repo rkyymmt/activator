@@ -14,6 +14,22 @@ require([
 	'core/widgets/templatelist'], function(streams, FileSelection, log, TemplateList) {
 		// Register handlers on the UI.
 		$(function() {
+			// Note: These only show up if we haven't accepted this license.
+			var acceptYesButton = $('#acceptYesButton');
+			var acceptNoButton = $('#acceptNoButton');
+			acceptNoButton.on('click', function(e) {
+				e.preventDefault();
+				alert('You will be unable to use activator.\n'+
+						'Please close this webpage, stop the server and remove all activator software.')
+			});
+			acceptYesButton.on('click', function(e) {
+				// Tell the server we accepted.
+				var event = {
+						request: 'LicenseAccepted'
+				};
+				console.log('Sending: ', event)
+				streams.send(event);
+			});
 			// Create log widget before we start recording websocket events...
 			var logs = new log.Log();
 			logs.renderTo($('#loading-logs'));
@@ -34,6 +50,9 @@ require([
 			streams.subscribe(function(event) {
 				// Handle all the remote events here...
 				switch(event.response) {
+					case 'LicenseAccepted':
+						$('#homePage, #licensePage').toggle();
+						break;
 					case 'Status':
 						logs.info(event.info);
 						break;

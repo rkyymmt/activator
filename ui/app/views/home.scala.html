@@ -25,6 +25,14 @@
 		</script>
 	</head>
 	<body class="">
+	    <div id="licensePage" class="@{if(model.acceptedLicense) "hidden" else ""}">
+	        <div class="acceptForm">
+	          <h1>Do you accept this agreement?</h1>
+			  <input type="submit" class="button" value="yes" id="acceptYesButton">
+	          <input type="submit" class="button" value="no" id="acceptNoButton">	          
+	        </div>
+        	<iframe src="/public/license/agreement.html"></iframe>
+	    </div>
 		<div id="workingPage" class="hidden">
                     <article class="welcome">
                         <h1>Your application is being opened!</h1>
@@ -34,7 +42,7 @@
                     </article>
 		</div>
 		<div id="templatePage" class="hidden"></div>
-		<div id="homePage">
+		<div id="homePage" class="@{if(!model.acceptedLicense) "hidden" else ""}">
 			<article class="welcome">
 				<h1>Typesafe Activator</h1>
 				<p>Build apps in a snap! Typesafe Activator is a local-running web application.  Create new apps from templates.  Browse &amp; edit code.  Run apps and tests.</p>
