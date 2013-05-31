@@ -39,7 +39,8 @@ object TheActivatorBuild extends Build {
     Project("template-repository", file("template-repository"))
     settings(LocalTemplateRepo.settings:_*)
     settings(Keys.publishLocal := {},
-             Keys.publish := {})
+             Keys.publish := {},
+             Keys.resolvers += typesafeIvyReleases)
   )
 
   // These are the projects we want in the local repository we deploy.
