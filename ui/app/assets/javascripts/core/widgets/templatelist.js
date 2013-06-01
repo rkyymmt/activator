@@ -20,15 +20,19 @@ define(['text!./templatelist.html', 'vendors/knockout-2.2.1.debug', 'core/widget
 			return '';
 		});
 		// TODO - put this on the tempalte class directly
-		self.hasTag = function(tagList) {
+		self.hasTags = function(tagList) {
+			var flags = {};
 			for(var i = 0; i < self.tags.length; ++i) {
 				for(var j = 0; j < tagList.length; ++j) {
 					if(self.tags[i] == tagList[j]) {
-						return true;
+						flags[tagList[j]] = true;
 					}
 				}
 			}
-			return false;
+			for(var j = 0; j < tagList.length; ++j) {
+				if(!flags[tagList[j]]) return false;
+			}
+			return true;
 		}
 	}
 
@@ -88,7 +92,7 @@ define(['text!./templatelist.html', 'vendors/knockout-2.2.1.debug', 'core/widget
 				var tags = self.selectedTags();
 				if(tags.length == 0) return templates;
 				return ko.utils.arrayFilter(templates, function(t) {
-					return t.hasTag(tags);
+					return t.hasTags(tags);
 				});
 			});
 			//  This uses our configured sorting function and filtered list

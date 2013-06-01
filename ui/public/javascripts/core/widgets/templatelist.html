@@ -1,7 +1,7 @@
 <div class="templatelist section">
 	<h3>Please Select a template:</h3>
 	<!-- TODO - this sort by should be a menu...? -->
-	<p>Sort by <input type="radio" name="templateSortOptions" data-bind="checked: sortFunctionName" value="byName"/>Name  <input type="radio" name="templateSortOptions" data-bind="checked: sortFunctionName" value="byDate"/>Date</p>
+	<p>Sort by <input type="radio" name="templateSortOptions" data-bind="checked: sortFunctionName" value="byName"/>Name  <input type="radio" name="templateSortOptions" data-bind="checked: sortFunctionName" value="byDate"/>Last Updated</p>
 	<ul data-bind="foreach: shownTemplates">
 		<li class="template" data-bind="click: $parent.selectTemplate">
 			<input type="radio" name="template" 
