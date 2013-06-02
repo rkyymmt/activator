@@ -100,9 +100,7 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
     val appLocation = new java.io.File(location)
     // a chance of knowing what the error is.
     val installed: Future[ProcessResult[File]] =
-      //TODO - Store template cache somehwere better...
-      activator.cache.Actions.cloneTemplate(
-        controllers.api.Templates.templateCache,
+      controllers.api.Templates.doCloneTemplate(
         template,
         appLocation,
         projectName) map (result => result map (_ => appLocation))
