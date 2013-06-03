@@ -1,4 +1,4 @@
-define(['text!./home.html', 'core/pluginapi' ], function(template, api){
+define(['text!./home.html', 'css!./home.css', 'core/pluginapi' ], function(template, css, api){
 
 	var ko = api.ko;
 
