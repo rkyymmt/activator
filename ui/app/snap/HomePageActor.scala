@@ -88,7 +88,7 @@ class HomePageActor extends WebSocketActor[JsValue] with ActorLogging {
 
   def acceptLicense(): Unit = {
     import context.dispatcher
-    log.info("User is accepting the licensing terms.")
+    log.debug("License terms were accepted.")
     val work = for {
       _ <- RootConfig.rewriteUser(_.copy(acceptedLicense = true))
     } yield Respond(LicenseAccepted())
