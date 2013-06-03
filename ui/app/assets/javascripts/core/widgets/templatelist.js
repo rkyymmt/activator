@@ -43,7 +43,7 @@ define(['text!./templatelist.html', 'vendors/knockout-2.2.1.debug', 'core/widget
 	};
 
 	var datePublishedSort = function(l,r) {
-		return l.timestamp - r.timestamp;
+		return r.timestamp - l.timestamp;
 	};
 
 	return utils.Class(Widget, {
