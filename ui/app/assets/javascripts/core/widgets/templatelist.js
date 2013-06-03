@@ -19,7 +19,6 @@ define(['text!./templatelist.html', 'vendors/knockout-2.2.1.debug', 'core/widget
 			}
 			return '';
 		});
-		// TODO - put this on the tempalte class directly
 		self.hasTags = function(tagList) {
 			var flags = {};
 			for(var i = 0; i < self.tags.length; ++i) {
@@ -55,6 +54,7 @@ define(['text!./templatelist.html', 'vendors/knockout-2.2.1.debug', 'core/widget
 			if(config.onTemplateSelected) self.onTemplateSelected = config.onTemplateSelected;
 			self.allTemplates = ko.observableArray([]);
 			self.load();
+			self.searchQuery = ko.observable('');
 			self.sortFunctionName = ko.observable("byName");
 			self.sortFunction = ko.computed(function() {
 				switch(self.sortFunctionName()) {
@@ -82,13 +82,28 @@ define(['text!./templatelist.html', 'vendors/knockout-2.2.1.debug', 'core/widget
 				}
 				return tagArray;
 			});
+			// We do the text search first on templates, because we have a delay from user input.
+			// This is fine for typing, but looks odd when used the the form selection panel.
+			self.searchedTemplates = ko.computed(function() {
+				var templates = self.allTemplates();
+				var search = self.searchQuery().toLowerCase();
+				if(search != '') {
+					return ko.utils.arrayFilter(templates, function(templates) {
+						// TODO - Search title or name?  The website currently uses
+						// the name when it describes what to type.
+						return templates.name.toLowerCase().indexOf(search) >= 0;
+					});
+				}
+				return templates;
+			}).extend({ throttle: 300 });
+
 			// this little bit of magic can filter the displayed templates
 			// by the tags they allow.
 			// Note: This may be slow for many templates.  We'll have to
 			// investigate and improve speed later.
 			self.selectedTags = ko.observableArray([]);
 			self.filteredTemplates = ko.computed(function() {
-				var templates = self.allTemplates();
+				var templates = self.searchedTemplates();
 				var tags = self.selectedTags();
 				if(tags.length == 0) return templates;
 				return ko.utils.arrayFilter(templates, function(t) {
