@@ -21,7 +21,8 @@ object TheActivatorBuild extends Build {
 
   val root = (
     Project("root", file("."))  // TODO - Oddities with clean..
-    aggregate((publishedProjects.map(_.project) ++ Seq(dist.project, it.project, localTemplateRepo.project)):_*)
+    aggregate((publishedProjects.map(_.project) ++ 
+              Seq(dist.project, it.project, localTemplateRepo.project, offlinetests.project)):_*)
     settings(
       // Stub out commands we run frequently but don't want them to really do anything.
       Keys.publish := {},
@@ -237,6 +238,15 @@ object TheActivatorBuild extends Build {
       )
   )
 
+  lazy val offlinetests = (
+    ActivatorProject("offline-tests")
+    settings(
+      Keys.publish := {},
+      Keys.publishLocal := {}
+    )
+    settings(offline.settings:_*)
+  )
+  
   lazy val dist = (
     ActivatorProject("dist")
     settings(Packaging.settings:_*)
