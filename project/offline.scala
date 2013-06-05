@@ -42,6 +42,8 @@ object offline {
         log.info(" [OFFLINETEST] "+name+" - " + (if(result) "SUCCESS" else "FAILURE"))
       }
       sys.error("Tests were unsucessful")
+    } else {
+      log.info("[OFFLINETEST] " + results.length + " tests successful.")
     }
     ()
   }

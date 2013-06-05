@@ -292,10 +292,10 @@ object TheActivatorBuild extends Build {
             playJava,
             scalatest,
             webjars,
-            //"org.webjars" % "webjars-play" % "2.1.0",
             webjarsBootstrap,
             //"org.webjars" % "bootstrap" % "2.1.1",
             webjarsFlot,
+            webjarsPlay,
             // WTF ANORM?
             "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.2.1",
             "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.1.2",
@@ -307,10 +307,15 @@ object TheActivatorBuild extends Build {
             "junit" % "junit-dep" % "4.8.2",
             "junit" % "junit" % "4.11",
             "com.novocode" % "junit-interface" % "0.7",
-            //"com.typesafe.akka" % "akka-actor_2.10" % "2.2-M3",
-            //"com.typesafe.akka" % "akka-testkit_2.10" % "2.2-M3",
+            
+            // Hipster akka required for the Java API.
+            // Remove when we consolidate akka versions.
+            "com.typesafe.akka" % "akka-actor_2.10" % "2.2-M3",
+            "com.typesafe.akka" % "akka-testkit_2.10" % "2.2-M3",
+            // Regular akka for normal folks
             akkaActor,
-            akkaSlf4j
+            akkaSlf4j,
+            akkaTestkit
         ),
       localRepoArtifacts ++=  Seq(
         playSbtPlugin,

@@ -30,6 +30,7 @@ object Dependencies {
   
   val akkaActor            = "com.typesafe.akka" % "akka-actor_2.10" % akkaVersion
   val akkaSlf4j            = "com.typesafe.akka" % "akka-slf4j_2.10" % akkaVersion
+  val akkaTestkit          = "com.typesafe.akka" % "akka-testkit_2.10" % akkaVersion
   
   val commonsIo            = "commons-io" % "commons-io" % "2.0.1"
 
@@ -71,6 +72,7 @@ object Dependencies {
   val webjars = "org.webjars" % "webjars-play" % "2.1.0-1"
   val webjarsBootstrap = "org.webjars" % "bootstrap" % "2.3.1"
   val webjarsFlot = "org.webjars" % "flot" % "0.8.0"
+  val webjarsPlay = "org.webjars" % "webjars-play" % "2.1.0"
   
   // Mini DSL
   // DSL for adding remote deps like local deps.
