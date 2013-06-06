@@ -3,11 +3,11 @@ import PlayProject._
 import Keys._
 
 object Dependencies {
-  val sbtVersion = "0.12.4-M1"
+  val sbtVersion = "0.12.4-RC2"
   val sbtPluginVersion = "0.12"
   val sbtPluginScalaVersion = "2.9.2"
   val scalaVersion = "2.10.1"
-  val sbtSnapshotVersion = "0.13.0-M2"
+  val sbtSnapshotVersion = "0.13.0-Beta2"
   val luceneVersion = "4.2.1"
   val templateCacheVersion = "1.0-4fb07a2cbeb0c88ade7943bcc1bc65ff6cdbbf0e"
   val playVersion = "2.1.1"

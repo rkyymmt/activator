@@ -40,7 +40,7 @@ object SbtSupport {
     sbtLaunchJarLocation <<= baseDirectory (_ / "target" / "sbt" / "sbt-launch.jar"),
     sbtLaunchJar <<= (sbtLaunchJarUrl, sbtLaunchJarLocation) map downloadFile,
     // TODO - pull jansi from Ivy.
-    jansiJarUrl := "http://repo.fusesource.com/nexus/content/groups/public/org/fusesource/jansi/jansi/1.7/jansi-1.7.jar",
+    jansiJarUrl := "http://search.maven.org/remotecontent?filepath=org/fusesource/jansi/jansi/1.7/jansi-1.7.jar",
     jansiJarLocation <<= baseDirectory (_ / "target" / "sbt" / "jansi.jar"),
     jansiJar <<= (jansiJarUrl, jansiJarLocation) map downloadFile
   )
