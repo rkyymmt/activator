@@ -85,7 +85,7 @@ require([
 			var appLocationInput = $('#newappLocation');
 			var homeDir = appLocationInput.attr('placeholder');
 			var appTemplateName = $('#newAppTemplateName');
-			var showTemplatesButton = $('#showButton');
+			var showTemplatesLink = $('#showLink');
 			var evilLocationStore = homeDir;
 			function updateAppLocation(location) {
 				if(location) {
@@ -230,11 +230,11 @@ require([
 			});
 
 			// TODO - Figure out what to do when selecting a new template is displayed
-			showTemplatesButton.on('click', function(event) {
+			showTemplatesLink.on('click', function(event) {
 				event.preventDefault();
 				toggleSelectTemplateBrowser();
-
 			});
+
 			var showTemplateWidget = new TemplateList({
 				onTemplateSelected: function(template) {
 					toggleSelectTemplateBrowser();
