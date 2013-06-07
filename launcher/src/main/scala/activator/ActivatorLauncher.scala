@@ -3,7 +3,7 @@ package activator
 import xsbti.{ AppMain, AppConfiguration }
 import activator.properties.ActivatorProperties._
 import java.io.File
-import snap.Sbt
+
 /** Expose for SBT launcher support. */
 class ActivatorLauncher extends AppMain {
 
