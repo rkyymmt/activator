@@ -66,17 +66,21 @@
 	                        <a href="#" id="browseAppLocation"></a>
 	                        <input type="text" id="newappLocation" name="location" placeholder="@model.userHome">
 	                    </fieldset>
-	                    <ul>
-	                    @model.templates.map { template =>
-	                        <li class="template">
-	                            <input type="radio" name="template" value="@template.id" data-snap-name-ref="@template.name">
-	                            <h3><span class="archetype">@template.tags.headOption.map(x=>s"[$x] ").getOrElse("")</span>@template.title</h3>
-	                            <p>@template.description</p>
-	                        </li>
-	                    }
-	                    </ul>
+	                    <div class="list-container">
+		                    <ul>
+		                    @model.templates.map { template =>
+		                        <li class="template">
+		                            <input type="radio" name="template" value="@template.id" data-snap-name-ref="@template.name">
+		                            <h3><span class="archetype">@template.tags.headOption.map(x=>s"[$x] ").getOrElse("")</span>@template.title</h3>
+		                            <p>@template.description</p>
+		                        </li>
+		                    }
+		                    </ul>
+		                    <div class="right">
+		                        <a href="#" id="showLink">Show all @model.otherTemplateCount templates</a>
+		                    </div>
+		                </div>
 	                    <div class="select">
-	                    	<input type="submit" class="button" value="Show all templates (@model.otherTemplateCount)" id="showButton">
 	                    	<input type="submit" class="button" value="Create" id="newButton" disabled>
 	                    </div>
 	                }

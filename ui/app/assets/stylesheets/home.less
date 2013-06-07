@@ -172,6 +172,8 @@ section {
     bottom: 20px;
   }
   ul {
+    position: absolute;
+    bottom: 135px;
   	right: 470px;
   	list-style: none;
     li {
@@ -236,9 +238,29 @@ form {
 }
 
 #newAppForm {
-	ul {
+	.list-container {
+	    position: absolute;
+	    left: 0px;
+	    right: 0px;
 		top: 200px;
-		bottom: 130px;
+		bottom: 80px;
+		ul {
+		    top: 0px;
+		    /* leave space for the link underneath */
+		    bottom: 30px;
+		}
+		/* this is the "show all" link */
+		.right {
+		    position: absolute;
+		    bottom: 0px;
+		    width: 100%;
+		    right: 20px;
+		    text-align: right;
+		    a, a:visited {
+		        font-size: 15px;
+		        color: #e25758;
+		    }
+		}
 	}
 }
 
@@ -264,13 +286,13 @@ form {
             width: 100%;
             height: auto;
             top: 65px;
-            bottom: 130px;
+            bottom: 135px;
         }
     }
     .select {
         position: absolute;
-        width: 100%;
-        bottom: 0;
+        width: 310px;
+        bottom: 0px;
     }
 }
 
