@@ -182,14 +182,12 @@ object Application extends Controller {
   def appTutorialFile(id: String, location: String) = Action { request =>
     Async {
       AppManager.loadApp(id) map { theApp =>
-        Logger.info("Loading tutorial for application: " + theApp.config.location)
         // If we're debugging locally, pull the local tutorial, otherwise redirect
         // to the templates tutorial file.
         if (hasLocalTutorial(theApp)) {
           // TODO - Don't hardcode tutorial directory name!
           val localTutorialDir = new File(theApp.config.location, "tutorial")
           val file = new File(localTutorialDir, location)
-          Logger.info("LOCAL TUTORIAL - Looking for local file: " + file.getAbsolutePath)
           if (file.exists) Ok sendFile file
           else NotFound
         } else theApp.templateID match {
