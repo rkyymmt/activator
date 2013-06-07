@@ -87,6 +87,10 @@ object Application extends Controller {
       recentApps = config.applications)
   }
 
+  def redirectToApp(id: String) = Action {
+    Redirect(routes.Application.app(id))
+  }
+
   /** Loads the homepage, with a blank new-app form. */
   def forceHome = Action { implicit request =>
     Async {
@@ -173,6 +177,33 @@ object Application extends Controller {
   def hasLocalTutorial(app: snap.App): Boolean = {
     val tutorialConfig = new java.io.File(app.config.location, activator.cache.Constants.METADATA_FILENAME)
     tutorialConfig.exists
+  }
+
+  def appTutorialFile(id: String, location: String) = Action { request =>
+    Async {
+      AppManager.loadApp(id) map { theApp =>
+        Logger.info("Loading tutorial for application: " + theApp.config.location)
+        // If we're debugging locally, pull the local tutorial, otherwise redirect
+        // to the templates tutorial file.
+        if (hasLocalTutorial(theApp)) {
+          // TODO - Don't hardcode tutorial directory name!
+          val localTutorialDir = new File(theApp.config.location, "tutorial")
+          val file = new File(localTutorialDir, location)
+          Logger.info("LOCAL TUTORIAL - Looking for local file: " + file.getAbsolutePath)
+          if (file.exists) Ok sendFile file
+          else NotFound
+        } else theApp.templateID match {
+          case Some(template) => Redirect(api.routes.Templates.tutorial(template, location))
+          case None => NotFound
+        }
+      } recover {
+        case e: Exception =>
+          // TODO we need to have an error message and "flash" it then
+          // display it on home screen
+          Logger.error("Failed to find tutorial app id " + id + ": " + e.getMessage(), e)
+          NotFound
+      }
+    }
   }
 
   val homeActorCount = new AtomicInteger(1)

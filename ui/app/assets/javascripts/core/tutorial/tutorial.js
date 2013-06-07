@@ -27,14 +27,8 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/plug
 	});
 
 	function getTutorial(config) {
-		if(serverAppModel && serverAppModel.hasLocalTutorial) {
-			config.data = {
-					location: serverAppModel.location + '/tutorial/index.html'
-			};
-			$.ajax("/api/local/show", config);
-		} else if (serverAppModel && serverAppModel.template && serverAppModel.template.id) {
-			$.ajax("/api/templates/"+serverAppModel.template.id+"/tutorial/index.html",config);
-		}
+		// With new api, we can hit all tutorial files directly via  a relative URI...
+		$.ajax("tutorial/index.html",config);
 	}
 
 	var Tutorial = api.Class(api.Widget, {
