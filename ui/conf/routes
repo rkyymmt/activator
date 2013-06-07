@@ -35,7 +35,9 @@ GET     /api/event/kill             controllers.api.Events.kill
 GET     /                            controllers.Application.index
 GET     /home                        controllers.Application.forceHome
 GET     /test                        controllers.Application.test
-GET     /app/*id                     controllers.Application.app(id)
+GET     /app/:id                     controllers.Application.redirectToApp(id)
+GET     /app/:id/                    controllers.Application.app(id)
+GET     /app/:id/tutorial/*location  controllers.Application.appTutorialFile(id, location)
 GET     /home/stream                 controllers.Application.homeStream
 
 # Map static resources from the /public folder to the /assets URL path

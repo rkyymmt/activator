@@ -66,7 +66,7 @@ require([
 						break;
 					case 'RedirectToApplication':
 						// NOTE - Comment this out if you want to debug showing logs!
-						window.location.href = window.location.href.replace('home', 'app/'+event.appId);
+						window.location.href = window.location.href.replace('home', 'app/'+event.appId+'/');
 						break;
 					default:
 						// Now check for log events...
