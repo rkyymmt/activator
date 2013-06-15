@@ -1,0 +1,22 @@
+<div class="templatelist section">
+	<h3>Please Select a template:</h3>
+	<!-- TODO - this sort by should be a menu...? -->
+	<p><input type="text" placeholder="Search By Name" data-bind="value: searchQuery, valueUpdate: 'afterkeydown'"/> Sort by <input type="radio" name="templateSortOptions" data-bind="checked: sortFunctionName" value="byName"/>Name  <input type="radio" name="templateSortOptions" data-bind="checked: sortFunctionName" value="byDate"/>Last Updated</p>
+	<ul data-bind="foreach: shownTemplates">
+		<li class="template" data-bind="click: $parent.selectTemplate">
+			<input type="radio" name="template" 
+			  data-bind="attr: { value: id, 'data-snap-name-ref': name }">
+			<h3>
+			  <span class="archetype" data-bind="text: archetype"></span>
+			  <span data-bind="text: title"></span>
+			</h3>
+			<p data-bind="text: description"></p>
+		</li>
+	</ul>
+	<div class="tagfilter">
+	  <p>Filter by tags:</p>
+	  <div data-bind="foreach: possibleTags">
+	    <p><input type="checkbox" data-bind="attr: { value: $data }, checked: $parent.selectedTags"/><span data-bind="text: $data"></span></p>
+	  </div>
+	</div>
+</div>

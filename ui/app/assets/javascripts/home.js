@@ -7,9 +7,32 @@ require([
 	'vendors/chain',
 	'vendors/keymage.min'
 ],function(){
-	require(['core/streams', 'core/widgets/fileselection', 'core/widgets/log'], function(streams, FileSelection, log) {
+	require([
+	'core/streams',
+	'core/widgets/fileselection',
+	'core/widgets/log',
+	'core/widgets/templatelist'], function(streams, FileSelection, log, TemplateList) {
 		// Register handlers on the UI.
 		$(function() {
+			// Note: These only show up if we haven't accepted this license.
+			var acceptYesButton = $('#acceptYesButton');
+			var acceptNoButton = $('#acceptNoButton');
+			acceptNoButton.on('click', function(e) {
+				e.preventDefault();
+				if(confirm('You will be unable to use activator.\n'+
+						'Please close this webpage, stop the server and remove all activator software.')) {
+					// Note: this will only work on some browsers.
+					window.close();
+				}
+			});
+			acceptYesButton.on('click', function(e) {
+				// Tell the server we accepted.
+				var event = {
+						request: 'LicenseAccepted'
+				};
+				console.log('Sending: ', event)
+				streams.send(event);
+			});
 			// Create log widget before we start recording websocket events...
 			var logs = new log.Log();
 			logs.renderTo($('#loading-logs'));
@@ -30,6 +53,9 @@ require([
 			streams.subscribe(function(event) {
 				// Handle all the remote events here...
 				switch(event.response) {
+					case 'LicenseAccepted':
+						$('#homePage, #licensePage').toggle();
+						break;
 					case 'Status':
 						logs.info(event.info);
 						break;
@@ -40,7 +66,7 @@ require([
 						break;
 					case 'RedirectToApplication':
 						// NOTE - Comment this out if you want to debug showing logs!
-						window.location.href = window.location.href.replace('home', 'app/'+event.appId);
+						window.location.href = window.location.href.replace('home', 'app/'+event.appId+'/');
 						break;
 					default:
 						// Now check for log events...
@@ -54,11 +80,12 @@ require([
 				}
 			});
 			// Save these lookups so we don't have to do them repeatedly.
+			var newButton = $('#newButton');
 			var appNameInput = $('#newappName');
 			var appLocationInput = $('#newappLocation');
 			var homeDir = appLocationInput.attr('placeholder');
 			var appTemplateName = $('#newAppTemplateName');
-			var newButton = $('#newButton');
+			var showTemplatesLink = $('#showLink');
 			var evilLocationStore = homeDir;
 			function updateAppLocation(location) {
 				if(location) {
@@ -116,8 +143,11 @@ require([
 					if (!appNameInput.val())
 						appNameInput.val(appNameInput.attr('placeholder'));
 
+					// Now we find our sneaky saved template id.
+					var template = appTemplateName.attr('data-template-id');
 					var msg = formToJson(event.currentTarget);
 					msg.request = 'CreateNewApplication';
+					msg.template = template;
 					streams.send(msg);
 					toggleWorking();
 
@@ -131,6 +161,9 @@ require([
 			};
 			function toggleAppBrowser() {
 				$('#openAppForm, #openAppLocationBrowser').toggle();
+			};
+			function toggleSelectTemplateBrowser() {
+				$('#homePage, #templatePage').toggle();
 			};
 			var fs = new FileSelection({
 				title: "Select location for new application",
@@ -163,16 +196,29 @@ require([
 				}
 			});
 			openFs.renderTo('#openAppLocationBrowser');
-			// Register fancy radio button controls.
-			$('#new').on('click', 'li.template', function(event) {
-				// ???
-				$('input:radio', this).prop('checked',true);
-				var name = $('input', this).attr('data-snap-name-ref');
-				appTemplateName.val(name);
-				var dirname = name.replace(' ', '-').replace(/[^A-Za-z0-9_-]/g, '').toLowerCase();
+
+			// One method to handle template selection, regardless of popup.
+			function updateSelectedTemplate(template) {
+				appTemplateName.val(template.name);
+				// Set id for the template on a hidden attribute...
+				appTemplateName.attr('data-template-id', template.id)
+				var dirname = template.name.replace(' ', '-').replace(/[^A-Za-z0-9_-]/g, '').toLowerCase();
 				appNameInput.attr('placeholder', dirname);
 				updateAppLocation();
 				checkFormReady()
+			}
+
+			// Register fancy radio button controls.
+			$('#new').on('click', 'li.template', function(event) {
+				var template = {
+						name: $('input', this).attr('data-snap-name-ref'),
+						id: $('input', this).attr('value')
+				}
+				// TODO - Remove this bit here
+				$('input:radio', this).prop('checked',true);
+
+				// Now call the generic update selected template method.
+				updateSelectedTemplate(template);
 			})
 			.on('click', '#browseAppLocation', function(event) {
 				event.preventDefault();
@@ -182,6 +228,23 @@ require([
 				event.preventDefault();
 				toggleAppBrowser();
 			});
+
+			// TODO - Figure out what to do when selecting a new template is displayed
+			showTemplatesLink.on('click', function(event) {
+				event.preventDefault();
+				toggleSelectTemplateBrowser();
+			});
+
+			var showTemplateWidget = new TemplateList({
+				onTemplateSelected: function(template) {
+					toggleSelectTemplateBrowser();
+					// Telegate to generic "select template" method.
+					updateSelectedTemplate(template);
+				}
+			});
+			showTemplateWidget.renderTo('#templatePage');
+			window.showTemplateWidget = showTemplateWidget;
+
 			// TODO - Register file selection widget...
 			// Register fancy click and open app buttons
 			$('#open').on('click', 'li.recentApp', function(event) {

@@ -19,10 +19,9 @@ import akka.util.Timeout
 import java.util.concurrent.TimeUnit
 import play.api.libs.iteratee._
 import snap.AppManager
-import snap.ProcessResult
-import snap.ProcessSuccess
-import snap.ProcessFailure
-import snap.ProcessSuccess
+import activator.ProcessResult
+import activator.ProcessSuccess
+import activator.ProcessFailure
 
 class SbtTest {
 

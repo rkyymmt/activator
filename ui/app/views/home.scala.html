@@ -25,6 +25,14 @@
 		</script>
 	</head>
 	<body class="">
+	    <div id="licensePage" class="@{if(model.acceptedLicense) "hidden" else ""}">
+	        <div class="acceptForm">
+	          <h1>To use Typesafe Activator, you must accept the license and subscription agreement.</h1>
+			  <input type="submit" class="button" value="Accept" id="acceptYesButton">
+	          <input type="submit" class="button" value="Close" id="acceptNoButton">	          
+	        </div>
+        	<iframe src="/public/license/agreement.html"></iframe>
+	    </div>
 		<div id="workingPage" class="hidden">
                     <article class="welcome">
                         <h1>Your application is being opened!</h1>
@@ -33,7 +41,8 @@
                         </div>
                     </article>
 		</div>
-		<div id="homePage">
+		<div id="templatePage" class="hidden"></div>
+		<div id="homePage" class="@{if(!model.acceptedLicense) "hidden" else ""}">
 			<article class="welcome">
 				<h1>Typesafe Activator</h1>
 				<p>Build apps in a snap! Typesafe Activator is a local-running web application.  Create new apps from templates.  Browse &amp; edit code.  Run apps and tests.</p>
@@ -57,16 +66,23 @@
 	                        <a href="#" id="browseAppLocation"></a>
 	                        <input type="text" id="newappLocation" name="location" placeholder="@model.userHome">
 	                    </fieldset>
-	                    <ul>
-	                    @model.templates.map { template =>
-	                        <li class="template">
-	                            <input type="radio" name="template" value="@template.id" data-snap-name-ref="@template.name">
-	                            <h3><span class="archetype">@template.tags.headOption.map(x=>s"[$x] ").getOrElse("")</span>@template.title</h3>
-	                            <p>@template.description</p>
-	                        </li>
-	                    }
-	                    </ul>
-	                    <input type="submit" class="button" value="Create" id="newButton" disabled>
+	                    <div class="list-container">
+		                    <ul>
+		                    @model.templates.map { template =>
+		                        <li class="template">
+		                            <input type="radio" name="template" value="@template.id" data-snap-name-ref="@template.name">
+		                            <h3><span class="archetype">@template.tags.headOption.map(x=>s"[$x] ").getOrElse("")</span>@template.title</h3>
+		                            <p>@template.description</p>
+		                        </li>
+		                    }
+		                    </ul>
+		                    <div class="right">
+		                        <a href="#" id="showLink">Show all @model.otherTemplateCount templates</a>
+		                    </div>
+		                </div>
+	                    <div class="select">
+	                    	<input type="submit" class="button" value="Create" id="newButton" disabled>
+	                    </div>
 	                }
 	            </div>
 	            <div id="newAppLocationBrowser" class="subsection hidden"></div>

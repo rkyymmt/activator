@@ -117,7 +117,7 @@ section {
     cursor: pointer;
 }
 
-#homePage {
+#homePage, #templatePage {
 	ul {
 		position: absolute;
 		background: #f5f5f5;
@@ -162,6 +162,30 @@ section {
 			}
 		}
 	}
+}
+#templatePage {
+  .templatelist {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    left: 20px;
+    bottom: 20px;
+  }
+  ul {
+    position: absolute;
+    bottom: 135px;
+  	right: 470px;
+  	list-style: none;
+    li {
+      list-style: none;
+    }
+  }
+  .tagfilter {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 430px;
+  }
 }
 
 form {
@@ -214,13 +238,33 @@ form {
 }
 
 #newAppForm {
-	ul {
+	.list-container {
+	    position: absolute;
+	    left: 0px;
+	    right: 0px;
 		top: 200px;
-		bottom: 70px;
+		bottom: 80px;
+		ul {
+		    top: 0px;
+		    /* leave space for the link underneath */
+		    bottom: 30px;
+		}
+		/* this is the "show all" link */
+		.right {
+		    position: absolute;
+		    bottom: 0px;
+		    width: 100%;
+		    right: 20px;
+		    text-align: right;
+		    a, a:visited {
+		        font-size: 15px;
+		        color: #e25758;
+		    }
+		}
 	}
 }
 
-#newButton, #openButton {
+#openButton {
     margin-left: -110px;
     position: absolute;
     left: 50%;
@@ -232,7 +276,7 @@ form {
     cursor: default;
 }
 
-#newAppLocationBrowser, #openAppLocationBrowser {
+#newAppLocationBrowser, #openAppLocationBrowser, #newAppForm {
     height: 100%;
     .fileselection {
         height: 100%;
@@ -242,13 +286,13 @@ form {
             width: 100%;
             height: auto;
             top: 65px;
-            bottom: 130px;
+            bottom: 135px;
         }
     }
     .select {
         position: absolute;
-        width: 100%;
-        bottom: 0;
+        width: 310px;
+        bottom: 0px;
     }
 }
 
@@ -306,4 +350,26 @@ div.logs {
 	li.info, li.stdout { border-color: #53cdec; }
 
 }
+
+
+
+#licensePage {
+	iframe {
+		background: white;
+		position: absolute;
+		right: 20px;
+		top: 20px;
+		min-width: 50%;
+		bottom: 20px;
+		height: 90%;
+   }
+   .acceptForm {
+		position: absolute;
+		top: 20px;
+		left: 20px;
+		height: 90%;
+		width: 40%;
+   }
+   height: 100%;
+   width: 100%;
 }

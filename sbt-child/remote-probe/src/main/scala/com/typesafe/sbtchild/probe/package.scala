@@ -4,6 +4,7 @@ import sbt.State
 import com.typesafe.sbt.ui._
 import com.typesafe.sbtchild.probe.DefaultsShim
 import com.typesafe.sbtchild.probe.PlaySupport
+import com.typesafe.sbtchild.io.ShimWriter
 
 package object probe {
 
@@ -42,7 +43,7 @@ package object probe {
 
   // returns true if we need to reboot (any changes were made)
   def installShims(state: State): Boolean = {
-    snap.ShimWriter.knownShims.foldLeft(false) { (sofar, name) =>
+    ShimWriter.knownShims.foldLeft(false) { (sofar, name) =>
       val installer = new ShimInstaller(name)
       val shouldInstall = shimFilters.get(name).getOrElse { state: State => true }
       if (shouldInstall(state))

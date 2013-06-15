@@ -3,16 +3,18 @@ package controllers.api
 import play.api._
 import play.api.mvc._
 import play.api.libs.json._
-import snap.cache.TemplateMetadata
+import activator._
+import activator.cache.TemplateMetadata
 import scala.util.control.NonFatal
 import scala.concurrent.duration._
+import scala.concurrent.Future
 
 object Templates extends Controller {
   // This will load our template cache and ensure all templates are available for the demo.
   // We should think of an alternative means of loading this in the future.
   // TODO - We should load timeout from configuration.
-  implicit val timeout = akka.util.Timeout(Duration(6, SECONDS))
-  val templateCache = snap.cache.DefaultTemplateCache(snap.Akka.system)
+  implicit val timeout = akka.util.Timeout(Duration(12, SECONDS))
+  val templateCache = activator.UICacheHelper.makeDefaultCache(snap.Akka.system)
 
   // Here's the JSON rendering of template metadata.
   implicit object Protocol extends Format[TemplateMetadata] {
@@ -54,14 +56,24 @@ object Templates extends Controller {
     }
   }
 
-  def cloneTemplate = Action(parse.json) { request =>
+  // this is not a controller method, also invoked by HomePageActor
+  def doCloneTemplate(templateId: String, location: java.io.File, name: Option[String]): Future[ProcessResult[Unit]] = {
+    import scala.concurrent.ExecutionContext.Implicits._
+    // for now, hardcode that we always filter metadata if it is NOT a templateTemplate, and
+    // never do if it is a templateTemplate. this may be a toggle in the UI somehow later.
+    templateCache.template(templateId) flatMap { templateOpt =>
+      activator.cache.Actions.cloneTemplate(templateCache, templateId, location, name,
+        filterMetadata = !templateOpt.map(_.metadata.templateTemplate).getOrElse(false))
+    }
+  }
 
+  def cloneTemplate = Action(parse.json) { request =>
     val location = new java.io.File((request.body \ "location").as[String])
     val templateid = (request.body \ "template").as[String]
     val name = (request.body \ "name").asOpt[String]
     Async {
       import scala.concurrent.ExecutionContext.Implicits._
-      val result = snap.cache.Actions.cloneTemplate(templateCache, templateid, location, name)
+      val result = doCloneTemplate(templateid, location, name)
       result.map(x => Ok(request.body)).recover {
         case e => NotAcceptable(e.getMessage)
       }

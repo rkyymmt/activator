@@ -9,32 +9,20 @@ object LocalTemplateRepo {
   val localTemplateSourceDirectory = SettingKey[File]("local-template-source-directory")
   val localTemplateCache = SettingKey[File]("local-template-cache")
   val localTemplateCacheCreated = TaskKey[File]("local-template-cache-created")
+  val remoteTemplateCacheUri = SettingKey[String]("remote-template-cache-uri")
   
   
   def settings: Seq[Setting[_]] = Seq(
-    localTemplateSourceDirectory <<= (baseDirectory in ThisBuild) apply (_ / "templates"),
     localTemplateCache <<= target(_ / "template-cache"),
-    localTemplateCacheCreated <<= (localTemplateSourceDirectory, localTemplateCache, 
-        Keys.fullClasspath in Runtime in TheActivatorBuild.cache) map makeTemplateCache
+    localTemplateCacheCreated <<= (localTemplateCache, Keys.fullClasspath in Runtime, remoteTemplateCacheUri) map makeTemplateCache,
+    scalaVersion := Dependencies.scalaVersion,
+    libraryDependencies += Dependencies.templateCache,
+    // TODO - Allow debug version for testing?
+    remoteTemplateCacheUri := "http://downloads.typesafe.com/typesafe-activator"
   )
   
-  def invokeTemplateCacheRepoMakerMain(cl: ClassLoader, arg: File): Unit =
-    invokeMainFor(cl, "snap.cache.generator.TemplateRepoIndexGenerator", Array(arg.getAbsolutePath))
-  
-  
-  // Loads the id from a template metadata file.
-  def loadId(repoDir: File, cl: ClassLoader): Option[String] = {
-    try {
-      val obj = cl.loadClass("snap.cache.generator.IdGenerator")
-      val maker = obj.getMethod("generateId", classOf[File])
-      val result = maker.invoke(null, repoDir)
-      Some(result.toString)
-    } catch {
-      case e: Exception => 
-        e.printStackTrace()
-        None
-    }
-  } 
+  def invokeTemplateCacheRepoMakerMain(cl: ClassLoader, dir: File, uri: String): Unit =
+    invokeMainFor(cl, "activator.templates.TemplateCacheSeedGenerator", Array("-remote", uri, dir.getAbsolutePath))
   
   private def makeClassLoaderFor(classpath: Keys.Classpath): java.net.URLClassLoader = {
     val jars = classpath map (_.data.toURL)
@@ -50,26 +38,20 @@ object LocalTemplateRepo {
     mainMethod.invoke(null, args)
   }
 
-  
-  def obtainLocalTemplates(sourceDir: File, targetDir: File, cl: ClassLoader): File = {
-    // TODO - we should be loading the templates and cache from the typesafe.com server here, but for
-	// now we're generating it locally.
-    for {
-      templateDir <- IO.listFiles(sourceDir) 
-      id <- loadId(templateDir, cl)
-      // TODO - Figure out the true structure (do we have intermediate dirs)
-      outDir = targetDir / id
-    } IO.copyDirectory(templateDir, outDir)
-    targetDir
-  }
-
-  def makeTemplateCache(sourceDir: File, targetDir: File, classpath: Keys.Classpath): File = {
-	// TODO - We should check for staleness here...
-    if(!targetDir.exists) {
-	  IO createDirectory targetDir
-	  val cl = makeClassLoaderFor(classpath)
-      obtainLocalTemplates(sourceDir, targetDir, cl)
-	  invokeTemplateCacheRepoMakerMain(cl, targetDir)
+  def makeTemplateCache(targetDir: File, classpath: Keys.Classpath, uri: String): File = {
+    // TODO - We should check for staleness here...
+    if(!targetDir.exists) try {
+      IO createDirectory targetDir
+      val cl = makeClassLoaderFor(classpath)
+      // Akka requires this crazy
+      val old = Thread.currentThread.getContextClassLoader
+      Thread.currentThread.setContextClassLoader(cl)
+      try invokeTemplateCacheRepoMakerMain(cl, targetDir, uri)
+      finally Thread.currentThread.setContextClassLoader(old)
+    } catch {
+      case ex: Exception =>
+         IO delete targetDir
+         throw ex
     }
     targetDir
   }

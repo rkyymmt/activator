@@ -66,6 +66,21 @@ body > header {
 			color: #758590;
 			font-size: 1em;
 			font-weight: 600;
+			&.active {
+				position: relative;
+				color: white;
+				&:after {
+					content: " ";
+					position: absolute;
+					bottom: 0;
+					left: 13px;
+					width: 0;
+					height: 0;
+					border-left: 8px solid transparent;
+					border-right: 8px solid transparent;
+					border-bottom: 8px solid #53cdec;
+				}
+			}
             .text {
                 display: inline-block;
             }
@@ -255,45 +270,6 @@ body.right-open {
             right: 50px;
         }
     }
-}
-
-#welcome-message {
-  width: 400px;
-  height: 200px;
-  margin-top: -100px;
-  margin-left: -200px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  border: 1px solid #666;
-  border-radius: 4px;
-  padding: 20px;
-  background-color: #fff;
-  box-shadow: 5px 5px 5px rgba(100, 100, 100, 0.2);
-  font-family: "HelveticaNeue-CondensedBold", "Open Sans Condensed", "Helvetica", sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  .title {
-    font-weight: bold;
-    font-size: 20px;
-  }
-  .shortcut {
-    background: rgb(54, 69, 80);
-    color: rgb(117, 133, 144);
-    letter-spacing: 0.12em;
-    border-radius: 2px;
-    padding: 0 4px;
-    white-space: nowrap;
-    font-weight: 600;
-    font-size: 1em;
-  }
-  .version-info {
-    text-align: center;
-    font-style: italic;
-    font-size: 0.8em;
-    color: #555555;
-    margin-top: 20px;
-  }
 }
 
 

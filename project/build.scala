@@ -21,7 +21,8 @@ object TheActivatorBuild extends Build {
 
   val root = (
     Project("root", file("."))  // TODO - Oddities with clean..
-    aggregate((publishedProjects.map(_.project) ++ Seq(dist.project, it.project, localTemplateRepo.project)):_*)
+    aggregate((publishedProjects.map(_.project) ++ 
+              Seq(dist.project, it.project, localTemplateRepo.project, offlinetests.project)):_*)
     settings(
       // Stub out commands we run frequently but don't want them to really do anything.
       Keys.publish := {},
@@ -39,12 +40,13 @@ object TheActivatorBuild extends Build {
     Project("template-repository", file("template-repository"))
     settings(LocalTemplateRepo.settings:_*)
     settings(Keys.publishLocal := {},
-             Keys.publish := {})
+             Keys.publish := {},
+             Keys.resolvers += typesafeIvyReleases)
   )
 
   // These are the projects we want in the local repository we deploy.
   lazy val publishedSbtShimProjects = Set(playShimPlugin, eclipseShimPlugin, ideaShimPlugin, sbtUiInterface, defaultsShimPlugin)
-  lazy val publishedProjects: Seq[Project] = Seq(io, common, ui, launcher, props, cache, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects
+  lazy val publishedProjects: Seq[Project] = Seq(ui, uiCommon, launcher, props, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects
 
   // basic project that gives us properties to use in other projects.
   lazy val props = (
@@ -52,23 +54,13 @@ object TheActivatorBuild extends Build {
     settings(Properties.makePropertyClassSetting(Dependencies.sbtVersion, Dependencies.scalaVersion):_*)
   )
 
-  lazy val io = (
-    ActivatorProject("io")
-    dependsOnRemote(junitInterface % "test", specs2 % "test")
+  // Helper for UI projects (CLI + GUI)
+  lazy val uiCommon = (
+    ActivatorProject("ui-common")
+    dependsOnRemote(templateCache)
+    dependsOn(props)
   )
 
-  lazy val common = (
-    ActivatorProject("common")
-    dependsOnRemote(junitInterface % "test", specs2 % "test")
-    dependsOn(io)
-  )
-
-  lazy val cache = (
-    ActivatorProject("cache")
-    dependsOn(props, common)
-    dependsOnRemote(junitInterface % "test", lucene, luceneAnalyzerCommon, luceneQueryParser, akkaActor)
-  )
-  
   lazy val sbtUiInterface = (
       SbtShimPlugin("ui-interface")
       settings(
@@ -91,14 +83,14 @@ object TheActivatorBuild extends Build {
     SbtChildProject("remote-probe")
     settings(Keys.scalaVersion := Dependencies.sbtPluginScalaVersion, Keys.scalaBinaryVersion <<= Keys.scalaVersion)
     dependsOnSource("../protocol")
-    dependsOnSource("../../io")
     dependsOn(props, sbtUiInterface % "provided")
     dependsOnRemote(
       sbtMain % "provided",
       sbtTheSbt % "provided",
       sbtIo % "provided",
       sbtLogging % "provided",
-      sbtProcess % "provided"
+      sbtProcess % "provided",
+      activatorCommon
     )
     settings(requiredJars(props, sbtUiInterface))
   )
@@ -156,9 +148,10 @@ object TheActivatorBuild extends Build {
     settings(Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
     dependsOnSource("../protocol")
     dependsOn(props)
-    dependsOn(common)
     dependsOnRemote(akkaActor,
-                    sbtLauncherInterface)
+                    sbtLauncherInterface,
+                    activatorCommon,
+                    sbtIo210)
     settings(configureSbtTest(Keys.test): _*)
     settings(configureSbtTest(Keys.testOnly): _*)
   )
@@ -172,7 +165,7 @@ object TheActivatorBuild extends Build {
       commonsIo, mimeUtil, slf4jLog4j,
       sbtLauncherInterface % "provided"
     )
-    dependsOn(props, cache, sbtDriver, common, sbtDriver % "test->test")
+    dependsOn(props, uiCommon, sbtDriver, sbtDriver % "test->test")
     settings(play.Project.playDefaultPort := 8888)
     // set up debug props for forked tests
     settings(configureSbtTest(Keys.test): _*)
@@ -195,9 +188,10 @@ object TheActivatorBuild extends Build {
           sys.props("activator.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
           sys.props("activator.remote.probe.classpath") = Path.makeString(probeCp.files)
           sys.props("activator.template.cache") = templateCache.getAbsolutePath
+          sys.props("activator.runinsbt") = "true"
           System.err.println("Updating sbt launch jar: " + sys.props("activator.sbt.launch.jar"))
           System.err.println("Remote probe classpath = " + sys.props("activator.remote.probe.classpath"))
-          System.err.println("Template chace = " + sys.props("activator.template.cache"))
+          System.err.println("Template cache = " + sys.props("activator.template.cache"))
           update
       }
     )
@@ -219,7 +213,7 @@ object TheActivatorBuild extends Build {
   lazy val launcher = (
     ActivatorProject("launcher")
     dependsOnRemote(sbtLauncherInterface, sbtCompletion)
-    dependsOn(props, common, cache)
+    dependsOn(props, uiCommon)
   )
 
   // A hack project just for convenient IvySBT when resolving artifacts into new local repositories.
@@ -236,14 +230,23 @@ object TheActivatorBuild extends Build {
   lazy val it = (
       ActivatorProject("integration-tests")
       settings(integration.settings:_*)
-      dependsOnRemote(sbtLauncherInterface)
-      dependsOn(sbtDriver, props, cache)
+      dependsOnRemote(sbtLauncherInterface, sbtIo210)
+      dependsOn(sbtDriver, props)
       settings(
         com.typesafe.sbtidea.SbtIdeaPlugin.ideaIgnoreModule := true,
         Keys.publish := {}
       )
   )
 
+  lazy val offlinetests = (
+    ActivatorProject("offline-tests")
+    settings(
+      Keys.publish := {},
+      Keys.publishLocal := {}
+    )
+    settings(offline.settings:_*)
+  )
+  
   lazy val dist = (
     ActivatorProject("dist")
     settings(Packaging.settings:_*)
@@ -277,47 +280,49 @@ object TheActivatorBuild extends Build {
             // For some reason, these are not resolving transitively correctly!
             "org.scala-lang" % "scala-compiler" % Dependencies.sbtPluginScalaVersion,
             "org.scala-lang" % "scala-compiler" % Dependencies.scalaVersion,
-            // TODO - Versions in Dependencies.scala
-            "net.java.dev.jna" % "jna" % "3.2.3",
-            "commons-codec" % "commons-codec" % "1.3",
-            "org.apache.httpcomponents" % "httpclient" % "4.0.1",
-            "com.google.guava" % "guava" % "11.0.2",
-            "xml-apis" % "xml-apis" % "1.0.b2",
+            // TODO - Why do we have to specify these?
+            jna,
+            jline,
+            jsch,
+            commonsCodec,
+            commonsHttpClient,
+            guava,
+            xmlApis,
             // USED BY templates. TODO - autofind these
-            "play" % "play-java_2.10" % "2.1.1",
-            "org.scalatest" % "scalatest_2.10" % "1.9.1",
-            "org.webjars" % "webjars-play" % "2.1.0-1",
-            "org.webjars" % "webjars-play" % "2.1.0",
-            "org.webjars" % "bootstrap" % "2.3.1",
-            "org.webjars" % "bootstrap" % "2.1.1",
-            "org.webjars" % "flot" % "0.8.0",
+            playJava,
+            scalatest,
+            webjars,
+            webjarsBootstrap,
+            //"org.webjars" % "bootstrap" % "2.1.1",
+            webjarsFlot,
+            webjarsPlay,
+            // WTF ANORM?
             "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.2.1",
             "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.1.2",
             "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.1.1",
             "org.avaje.ebeanorm" % "avaje-ebeanorm-agent" % "3.1.1",
             "org.avaje.ebeanorm" % "avaje-ebeanorm-agent" % "3.2.1",
-            "jline" % "jline" % "0.9.94",
+            
             "junit" % "junit" % "3.8.1",
             "junit" % "junit-dep" % "4.8.2",
             "junit" % "junit" % "4.11",
-            "com.jcraft" % "jsch" % "0.1.44-1",
+            "com.novocode" % "junit-interface" % "0.7",
+            
+            // Hipster akka required for the Java API.
+            // Remove when we consolidate akka versions.
             "com.typesafe.akka" % "akka-actor_2.10" % "2.2-M3",
             "com.typesafe.akka" % "akka-testkit_2.10" % "2.2-M3",
-            "com.typesafe.akka" % "akka-actor_2.10" % "2.1.2",
-            "com.typesafe.akka" % "akka-slf4j_2.10" % "2.1.2",
-            "com.novocode" % "junit-interface" % "0.7"
+            // Regular akka for normal folks
+            akkaActor,
+            akkaSlf4j,
+            akkaTestkit
         ),
-      localRepoArtifacts ++= {
-        val sbt = sbtPluginVersion
-        val scala = sbtPluginScalaVersion
-        Seq(
-          Defaults.sbtPluginExtra("com.typesafe.sbt" % "sbt-site" % "0.6.0", sbt, scala),
-          Defaults.sbtPluginExtra("com.typesafe" % "sbt-native-packager" % "0.4.3", sbt, scala),
-          Defaults.sbtPluginExtra("play" % "sbt-plugin" % "2.1.1", sbt, scala),
-          Defaults.sbtPluginExtra("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.0", sbt, scala),
-          Defaults.sbtPluginExtra("com.typesafe.sbt" % "sbt-pgp" % "0.8", sbt, scala)
-        )
-      },
+      localRepoArtifacts ++=  Seq(
+        playSbtPlugin,
+        eclipseSbtPlugin,
+        ideaSbtPlugin,
+        pgpPlugin
+      ),
       Keys.mappings in S3.upload <<= (Keys.packageBin in Universal, Keys.version) map { (zip, v) =>
         Seq(zip -> ("typesafe-activator/%s/typesafe-activator-%s.zip" format (v, v)))
       },

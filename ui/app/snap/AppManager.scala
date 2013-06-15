@@ -15,6 +15,7 @@ import scala.concurrent.duration._
 import play.api.libs.json.JsObject
 import java.util.concurrent.atomic.AtomicInteger
 import scala.util.control.NonFatal
+import activator._
 
 sealed trait AppCacheRequest
 
@@ -159,7 +160,10 @@ class KeepAliveActor extends Actor with ActorLogging {
   override def postStop() {
     log.debug("postStop")
     log.info("Exiting.")
-    System.exit(0)
+    // TODO - Not in debug mode
+    val debugMode = sys.props.get("activator.runinsbt").map(_ == "true").getOrElse(false)
+    if (!debugMode) System.exit(0)
+    else log.info("Would have killed activator if we weren't in debug mode.")
   }
 }
 

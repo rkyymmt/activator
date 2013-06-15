@@ -3,13 +3,21 @@ import PlayProject._
 import Keys._
 
 object Dependencies {
-  val sbtVersion = "0.12.4-M1"
+  val sbtVersion = "0.12.4-RC2"
   val sbtPluginVersion = "0.12"
   val sbtPluginScalaVersion = "2.9.2"
   val scalaVersion = "2.10.1"
-  val sbtSnapshotVersion = "0.13.0-20130427-052157"
+  val sbtSnapshotVersion = "0.13.0-Beta2"
   val luceneVersion = "4.2.1"
+  val templateCacheVersion = "1.0-4fb07a2cbeb0c88ade7943bcc1bc65ff6cdbbf0e"
+  val playVersion = "2.1.1"
+  val akkaVersion = "2.1.2"
 
+  val activatorCommon      = "com.typesafe.activator" % "activator-common" % templateCacheVersion
+  val templateCache        = "com.typesafe.activator" % "activator-templates-cache" % templateCacheVersion
+
+
+  val sbtIo210             = "org.scala-sbt" % "io" % sbtSnapshotVersion
   val sbtLauncherInterface = "org.scala-sbt" % "launcher-interface" % sbtVersion
   val sbtMain              = "org.scala-sbt" % "main" % sbtVersion
   val sbtTheSbt            = "org.scala-sbt" % "sbt" % sbtVersion
@@ -20,7 +28,9 @@ object Dependencies {
   // TODO - Don't use a snapshot version for this...
   val sbtCompletion           = "org.scala-sbt" % "completion" % sbtSnapshotVersion
   
-  val akkaActor            = "com.typesafe.akka" % "akka-actor_2.10" % "2.1.2"
+  val akkaActor            = "com.typesafe.akka" % "akka-actor_2.10" % akkaVersion
+  val akkaSlf4j            = "com.typesafe.akka" % "akka-slf4j_2.10" % akkaVersion
+  val akkaTestkit          = "com.typesafe.akka" % "akka-testkit_2.10" % akkaVersion
   
   val commonsIo            = "commons-io" % "commons-io" % "2.0.1"
 
@@ -29,12 +39,13 @@ object Dependencies {
   val slf4jLog4j           = "org.slf4j" % "slf4j-log4j12" % "1.6.6"
 
   val junitInterface       = "com.novocode" % "junit-interface" % "0.7"
-  val specs2               = "org.specs2" % "specs2_2.10" % "1.13"
+  //val specs2               = "org.specs2" % "specs2_2.10" % "1.13"
 
   // SBT plugins we have to shim
-  val playSbtPlugin        =  Defaults.sbtPluginExtra("play" % "sbt-plugin" % "2.1.1", sbtPluginVersion, sbtPluginScalaVersion)
-  val eclipseSbtPlugin     =  Defaults.sbtPluginExtra("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.1.2", sbtPluginVersion, sbtPluginScalaVersion)
+  val playSbtPlugin        =  Defaults.sbtPluginExtra("play" % "sbt-plugin" % playVersion, sbtPluginVersion, sbtPluginScalaVersion)
+  val eclipseSbtPlugin     =  Defaults.sbtPluginExtra("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.2.0", sbtPluginVersion, sbtPluginScalaVersion)
   val ideaSbtPlugin        =  Defaults.sbtPluginExtra("com.github.mpeltonen" % "sbt-idea" % "1.3.0", sbtPluginVersion, sbtPluginScalaVersion)
+  val pgpPlugin            =  Defaults.sbtPluginExtra("com.typesafe.sbt" % "sbt-pgp" % "0.8", sbtPluginVersion, sbtPluginScalaVersion)
 
 
   // Embedded databases / index
@@ -42,6 +53,27 @@ object Dependencies {
   val luceneAnalyzerCommon = "org.apache.lucene" % "lucene-analyzers-common" % luceneVersion
   val luceneQueryParser = "org.apache.lucene" % "lucene-queryparser" % luceneVersion
 
+  
+  
+  
+  // Dependencies that only show up in the local repository, and aren't automatically resolved for some reason:
+  val jna = "net.java.dev.jna" % "jna" % "3.2.3"
+  val jline = "jline" % "jline" % "0.9.94"
+  val jsch = "com.jcraft" % "jsch" % "0.1.44-1"
+  val commonsCodec = "commons-codec" % "commons-codec" % "1.3"
+  val commonsHttpClient = "org.apache.httpcomponents" % "httpclient" % "4.0.1"
+  val guava = "com.google.guava" % "guava" % "11.0.2"
+  val xmlApis = "xml-apis" % "xml-apis" % "1.0.b2"
+  
+  
+  // Used in Templates
+  val playJava = "play" % "play-java_2.10" % playVersion
+  val scalatest = "org.scalatest" % "scalatest_2.10" % "1.9.1"
+  val webjars = "org.webjars" % "webjars-play" % "2.1.0-1"
+  val webjarsBootstrap = "org.webjars" % "bootstrap" % "2.3.1"
+  val webjarsFlot = "org.webjars" % "flot" % "0.8.0"
+  val webjarsPlay = "org.webjars" % "webjars-play" % "2.1.0"
+  
   // Mini DSL
   // DSL for adding remote deps like local deps.
   implicit def p2remote(p: Project): RemoteDepHelper = new RemoteDepHelper(p)

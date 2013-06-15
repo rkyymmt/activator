@@ -6,8 +6,9 @@ import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import com.typesafe.sbtchild.SbtChildProcessMaker
 import play.api.libs.json.{ JsString, JsObject, JsArray, JsNumber, JsValue }
-import snap.{ RootConfig, AppConfig, AppManager, ProcessResult, Platform }
-import snap.cache.TemplateMetadata
+import snap.{ RootConfig, AppConfig, AppManager, Platform }
+import activator.ProcessResult
+import activator.cache.TemplateMetadata
 import activator.properties.ActivatorProperties
 import scala.util.control.NonFatal
 import scala.util.Try
@@ -31,7 +32,9 @@ case class ApplicationModel(
 
 case class HomeModel(
   userHome: String,
+  acceptedLicense: Boolean,
   templates: Seq[TemplateMetadata],
+  otherTemplateCount: Long,
   recentApps: Seq[AppConfig])
 
 // Data we get from the new application form.
@@ -54,8 +57,8 @@ object Application extends Controller {
   def index = Action {
     Async {
       AppManager.loadAppIdFromLocation(cwd) map {
-        case snap.ProcessSuccess(name) => Redirect(routes.Application.app(name))
-        case snap.ProcessFailure(errors) =>
+        case activator.ProcessSuccess(name) => Redirect(routes.Application.app(name))
+        case activator.ProcessFailure(errors) =>
           // TODO FLASH THE ERROR, BABY
           Redirect(routes.Application.forceHome)
       }
@@ -72,11 +75,20 @@ object Application extends Controller {
       "template" -> text)(NewAppForm.apply)(NewAppForm.unapply))
 
   /** Reloads the model for the home page. */
-  private def homeModel = api.Templates.templateCache.featured map { templates =>
+  private def homeModel = api.Templates.templateCache.metadata map { templates =>
+    val tempSeq = templates.toSeq
+    val featured = tempSeq filter (_.featured)
+    val config = RootConfig.user
     HomeModel(
       userHome = ActivatorProperties.GLOBAL_USER_HOME,
-      templates = templates.toSeq,
-      recentApps = RootConfig.user.applications)
+      acceptedLicense = config.acceptedLicense,
+      templates = featured,
+      otherTemplateCount = tempSeq.length,
+      recentApps = config.applications)
+  }
+
+  def redirectToApp(id: String) = Action {
+    Redirect(routes.Application.app(id))
   }
 
   /** Loads the homepage, with a blank new-app form. */
@@ -163,8 +175,33 @@ object Application extends Controller {
       hasLocalTutorial(app))
 
   def hasLocalTutorial(app: snap.App): Boolean = {
-    val tutorialConfig = new java.io.File(app.config.location, snap.cache.Constants.METADATA_FILENAME)
+    val tutorialConfig = new java.io.File(app.config.location, activator.cache.Constants.METADATA_FILENAME)
     tutorialConfig.exists
+  }
+
+  def appTutorialFile(id: String, location: String) = Action { request =>
+    Async {
+      AppManager.loadApp(id) map { theApp =>
+        // If we're debugging locally, pull the local tutorial, otherwise redirect
+        // to the templates tutorial file.
+        if (hasLocalTutorial(theApp)) {
+          // TODO - Don't hardcode tutorial directory name!
+          val localTutorialDir = new File(theApp.config.location, "tutorial")
+          val file = new File(localTutorialDir, location)
+          if (file.exists) Ok sendFile file
+          else NotFound
+        } else theApp.templateID match {
+          case Some(template) => Redirect(api.routes.Templates.tutorial(template, location))
+          case None => NotFound
+        }
+      } recover {
+        case e: Exception =>
+          // TODO we need to have an error message and "flash" it then
+          // display it on home screen
+          Logger.error("Failed to find tutorial app id " + id + ": " + e.getMessage(), e)
+          NotFound
+      }
+    }
   }
 
   val homeActorCount = new AtomicInteger(1)
