@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 import akka.actor.ActorSystem
 
 object ActivatorCli {
-  def apply(configuration: AppConfiguration): Int = try {
+  def apply(configuration: AppConfiguration): Int = try withContextClassloader {
     System.out.println()
     val name = getApplicationName()
     val system = ActorSystem()
@@ -49,6 +49,7 @@ object ActivatorCli {
   } catch {
     case e: Exception =>
       System.err.println(e.getMessage)
+      e.printStackTrace()
       1
   }
 
@@ -97,5 +98,12 @@ object ActivatorCli {
         case Left(e) => None
       }
     }
+  }
+  def withContextClassloader[A](f: => A): A = {
+    val current = Thread.currentThread
+    val old = current.getContextClassLoader
+    current setContextClassLoader getClass.getClassLoader
+    try f
+    finally current setContextClassLoader old
   }
 }
