@@ -3,9 +3,6 @@ import Keys._
 
 object SbtSupport {
   val sbtLaunchJarUrl = SettingKey[String]("sbt-launch-jar-url")
-  val jansiJarUrl = SettingKey[String]("jansi-jar-url")
-  val jansiJarLocation = SettingKey[File]("jansi-jar-location")
-  val jansiJar = TaskKey[File]("jansi-jar")
   val sbtLaunchJarLocation = SettingKey[File]("sbt-launch-jar-location")  
   val sbtLaunchJar = TaskKey[File]("sbt-launch-jar", "Resolves SBT launch jar")
 
@@ -38,11 +35,7 @@ object SbtSupport {
     // TODO - We use a milestone launcher for now...
     sbtLaunchJarUrl := currentDownloadUrl(Dependencies.sbtSnapshotVersion),
     sbtLaunchJarLocation <<= baseDirectory (_ / "target" / "sbt" / "sbt-launch.jar"),
-    sbtLaunchJar <<= (sbtLaunchJarUrl, sbtLaunchJarLocation) map downloadFile,
-    // TODO - pull jansi from Ivy.
-    jansiJarUrl := "http://search.maven.org/remotecontent?filepath=org/fusesource/jansi/jansi/1.7/jansi-1.7.jar",
-    jansiJarLocation <<= baseDirectory (_ / "target" / "sbt" / "jansi.jar"),
-    jansiJar <<= (jansiJarUrl, jansiJarLocation) map downloadFile
+    sbtLaunchJar <<= (sbtLaunchJarUrl, sbtLaunchJarLocation) map downloadFile
   )
 
   val settings: Seq[Setting[_]] = Seq(
