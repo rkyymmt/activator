@@ -41,10 +41,10 @@ object ActivatorBuild {
       "1.0" + (df format (new java.util.Date))
     }
 
-    def overideVersion = Option(sys.props("activator.version")) 
+    def overrideVersion = Option(sys.props("activator.version")) 
     
 	// Now we fall through the potential version numbers...
-    overideVersion  orElse releaseVersion orElse commitVersion getOrElse dateVersion 
+    overrideVersion  orElse releaseVersion orElse commitVersion getOrElse dateVersion 
   }
   
   def formatPrefs = {
