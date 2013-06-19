@@ -7,6 +7,20 @@ class GitRepository(val repo: Repository) {
   val porcelain = new PGit(repo)
 
   def headCommit = Option(repo.resolve("HEAD")) map (_.name)
+  
+  
+  def currentTags: Seq[String] = {
+    import collection.JavaConverters._
+    val list = porcelain.tagList.call().asScala
+    for {
+      hash <- headCommit.toSeq
+      tag <- list
+      taghash = tag.getObjectId.getName
+      if taghash == hash
+      ref = tag.getName
+      if ref startsWith "refs/tags/"
+    } yield ref drop 10
+  }
 }
 object jgit {
   /** Creates a new git instance from a base directory. */
