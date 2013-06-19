@@ -14,8 +14,17 @@ import java.io.FileOutputStream
 // behavior of global state (RootConfig.user).
 class ConfigTest {
 
+  @Before
+  def beforeEachTest(): Unit = {
+    val d = new File(ACTIVATOR_USER_HOME())
+    d.mkdirs()
+
+    if (!d.exists() || !d.isDirectory())
+      throw new Exception("failed to create " + d)
+  }
+
   @Test
-  def testUserConfigAcceptance(): Unit = {
+  def testUserConfigAcceptance(): Unit = synchronized {
     val accepted =
       RootConfig.rewriteUser(_.copy(acceptedLicense = true))
     Await.ready(accepted, 5.seconds)
