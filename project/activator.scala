@@ -5,16 +5,19 @@ import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 
 object ActivatorBuild {
+  val gitHeadCommit = SettingKey[Option[String]]("git-head-commit")
 
   def baseVersions: Seq[Setting[_]] = Seq(
-    version := {
-      // TODO - We don't want to have to run "reload" for new versions....
+    gitHeadCommit <<= (baseDirectory) apply { bd =>
+      jgit(bd).headCommit
+    },
+    version <<= gitHeadCommit apply { commitOpt =>
+      // TODO - Check to see if there were local file changes, and adapt timestamp appropriately...
       val df = new java.text.SimpleDateFormat("yyyyMMdd'T'HHmmss")
       df setTimeZone java.util.TimeZone.getTimeZone("GMT")
-      // TODO - Add git sha perhaps, because that might help with staleness...
-      val default = "1.0-" + (df format (new java.util.Date))
-      // TODO - Alternative way to release is desired....
-      // TODO - Should also track a binary ABI value...
+
+      val extra = commitOpt getOrElse (df format (new java.util.Date))
+      val default = "1.0-" + extra
       Option(sys.props("activator.version")) getOrElse default
     }
   )
