@@ -61,15 +61,30 @@ object RootConfig {
   private def loadUser = ConfigFile(new File(ACTIVATOR_USER_HOME(), "config.json"))
 
   // volatile because we read it unsynchronized. we don't care
-  // which one we get, just something sane.
-  @volatile private var userFuture = loadUser
+  // which one we get, just something sane. Also double-checked
+  // locking below requires volatile.
+  // this is an Option so we can make forceReload() defer reloading
+  // by setting to None and then going back to Some "on demand"
+  @volatile private var userFutureOption: Option[Future[ConfigFile]] = Some(loadUser)
 
   def forceReload(): Unit = {
-    userFuture = loadUser
+    // we want to ensure we reload the file next time, but
+    // avoid kicking off the reload now since we probably JUST
+    // discovered the file was broken.
+    userFutureOption = None
   }
 
   // get the current per-user configuration
   def user: RootConfig = try {
+    // double-checked locking
+    val userFuture = userFutureOption match {
+      case None => synchronized {
+        if (userFutureOption.isEmpty)
+          userFutureOption = Some(loadUser)
+        userFutureOption.get
+      }
+      case Some(f) => f
+    }
     // we use the evil Await because 99% of the time we expect
     // the Future to be completed already.
     Await.result(userFuture.map(_.config), 8 seconds)
@@ -92,9 +107,10 @@ object RootConfig {
       // note that the actual file-rewriting is NOT synchronized,
       // it is async. We're just synchronizing storing the Future
       // in our var so that no Future is "skipped"
-      userFuture = userFuture flatMap { configFile =>
+      val userFuture = userFutureOption.getOrElse(loadUser) flatMap { configFile =>
         ConfigFile.rewrite(configFile)(f)
       }
+      userFutureOption = Some(userFuture)
       userFuture map { _ => () }
     }
   }

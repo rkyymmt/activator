@@ -15,7 +15,7 @@ import java.io.FileOutputStream
 class ConfigTest {
 
   @Test
-  def testUSerConfigAcceptance(): Unit = {
+  def testUserConfigAcceptance(): Unit = {
     val accepted =
       RootConfig.rewriteUser(_.copy(acceptedLicense = true))
     Await.ready(accepted, 5.seconds)
@@ -93,9 +93,7 @@ class ConfigTest {
 
       assertTrue("got the expected exception on bad json", e.getMessage().contains("was expecting double"))
 
-      // delete the file... should now get one more error and then succeed
-      file.delete()
-
+      // bad json is still there, so things should still fail...
       val e2 = try {
         RootConfig.user
         throw new AssertionError("We expected to get an exception and not reach here (second time)")
@@ -104,6 +102,10 @@ class ConfigTest {
       }
 
       assertTrue("got the expected exception on bad json", e2.getMessage().contains("was expecting double"))
+
+      // delete the file... should now load the file fine
+      if (!file.delete())
+        throw new AssertionError("failed to delete " + file.getAbsolutePath())
 
       try {
         assertTrue("loaded an empty config after recovering from corrupt one", RootConfig.user.applications.isEmpty)
@@ -115,5 +117,12 @@ class ConfigTest {
       // to avoid weird failures on next run of the tests
       file.delete()
     }
+  }
+
+  @Test
+  def testRecoveringFromBrokenFileManyTimes(): Unit = synchronized {
+    // this is intended to reveal a race that we were seeing intermittently
+    for (_ <- 1 to 100)
+      testRecoveringFromBrokenFile()
   }
 }
