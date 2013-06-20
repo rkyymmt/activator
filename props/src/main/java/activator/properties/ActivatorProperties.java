@@ -105,14 +105,23 @@ public class ActivatorProperties {
     return lookupOr("activator.template.localrepo", defaultValue);
   }
 
+  public static String ACTIVATOR_LAUNCHER_JAR_NAME() {
+    String version = APP_VERSION();
+	if(version != null) {
+	  // TODO - synch this with build in some better fashion!
+	  return SCRIPT_NAME+"-launch-"+version+".jar";
+	}
+	return null;
+  }
+
   public static String ACTIVATOR_LAUNCHER_JAR() {
     String value = ACTIVATOR_HOME_FILENAME();
-    String version = APP_VERSION();
-    if(value != null && version != null) {
+    String jarname = ACTIVATOR_LAUNCHER_JAR_NAME();
+    if(value != null && jarname != null) {
       // TODO - synch this with build in some better fashion!
-      value = value+"/"+SCRIPT_NAME+"-launch-"+version+".jar";
+      return value+"/"+jarname;
     }
-    return value;
+    return null;
   }
 
   public static String ACTIVATOR_LAUNCHER_BAT() {

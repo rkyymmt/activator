@@ -62,8 +62,13 @@ object Templates extends Controller {
     // for now, hardcode that we always filter metadata if it is NOT a templateTemplate, and
     // never do if it is a templateTemplate. this may be a toggle in the UI somehow later.
     templateCache.template(templateId) flatMap { templateOpt =>
-      activator.cache.Actions.cloneTemplate(templateCache, templateId, location, name,
-        filterMetadata = !templateOpt.map(_.metadata.templateTemplate).getOrElse(false))
+      activator.cache.Actions.cloneTemplate(
+        templateCache,
+        templateId,
+        location,
+        name,
+        filterMetadata = !templateOpt.map(_.metadata.templateTemplate).getOrElse(false),
+        additionalFiles = UICacheHelper.scriptFilesForCloning)
     }
   }
 

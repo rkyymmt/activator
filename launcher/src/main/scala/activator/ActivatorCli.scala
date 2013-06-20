@@ -40,7 +40,15 @@ object ActivatorCli {
         System.out.println()
         import scala.concurrent.ExecutionContext.Implicits.global
         // TODO - Is this duration ok?
-        Await.result(cloneTemplate(cache, t.id, projectDir, Some(name), filterMetadata = !t.templateTemplate), Duration(5, MINUTES))
+        Await.result(
+          cloneTemplate(
+            cache,
+            t.id,
+            projectDir,
+            Some(name),
+            filterMetadata = !t.templateTemplate,
+            additionalFiles = UICacheHelper.scriptFilesForCloning),
+          Duration(5, MINUTES))
         printUsage(name, projectDir)
         0
       case _ =>
