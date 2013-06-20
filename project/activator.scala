@@ -115,8 +115,8 @@ object ActivatorBuild {
   )
 
 
-  def SbtChildProject(name: String): Project = (
-    Project("sbt-child-" + name, file("sbt-child") / name)
+  def SbtRemoteControlProject(name: String): Project = (
+    Project("sbt-rc-" + name, file("sbt-rc") / name)
     settings(activatorDefaults:_*)
   )
 

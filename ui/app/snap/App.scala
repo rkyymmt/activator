@@ -1,14 +1,14 @@
 package snap
 
 import akka.actor._
-import com.typesafe.sbtchild._
+import com.typesafe.sbtrc._
 import java.util.concurrent.atomic.AtomicInteger
 import activator.properties.ActivatorProperties
 import scala.util.control.NonFatal
 import java.net.URLEncoder
 
-class App(val config: AppConfig, val system: ActorSystem, val sbtMaker: SbtChildProcessMaker) {
-  val actor = system.actorOf(Props(new AppActor(config, sbtMaker)), name = "app-" + URLEncoder.encode(config.id, "UTF-8"))
+class App(val config: AppConfig, val system: ActorSystem, val sbtProcessLauncher: SbtProcessLauncher) {
+  val actor = system.actorOf(Props(new AppActor(config, sbtProcessLauncher)), name = "app-" + URLEncoder.encode(config.id, "UTF-8"))
 
   // TODO - this method is dangerous, as it hits the file system.
   // Figure out when it should initialize/run.

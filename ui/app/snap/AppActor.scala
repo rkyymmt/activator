@@ -1,6 +1,6 @@
 package snap
 
-import com.typesafe.sbtchild._
+import com.typesafe.sbtrc._
 import akka.actor._
 import java.io.File
 import java.util.UUID
@@ -26,13 +26,13 @@ sealed trait AppReply
 case class TaskActorReply(ref: ActorRef) extends AppReply
 case object WebSocketAlreadyUsed extends AppReply
 
-class AppActor(val config: AppConfig, val sbtMaker: SbtChildProcessMaker) extends Actor with ActorLogging {
+class AppActor(val config: AppConfig, val sbtProcessLauncher: SbtProcessLauncher) extends Actor with ActorLogging {
 
   AppManager.registerKeepAlive(self)
 
   def location = config.location
 
-  val childFactory = new DefaultSbtChildFactory(location, sbtMaker)
+  val childFactory = new DefaultSbtProcessFactory(location, sbtProcessLauncher)
   val sbts = context.actorOf(Props(new ChildPool(childFactory)), name = "sbt-pool")
   val socket = context.actorOf(Props(new AppSocketActor()), name = "socket")
   val watcher = context.actorOf(Props(new FileWatcher()), name = "watcher")

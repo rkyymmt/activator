@@ -3,7 +3,7 @@ package controllers.api
 import play.api.mvc.{ Action, Controller }
 import play.api.libs.json._
 import play.api.Play
-import com.typesafe.sbtchild._
+import com.typesafe.sbtrc._
 import play.api.mvc._
 import java.util.UUID
 import snap.AppManager
