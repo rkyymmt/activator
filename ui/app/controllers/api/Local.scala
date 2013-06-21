@@ -48,6 +48,8 @@ object Local extends Controller {
     case "rst" => "code"
     case "properties" => "code"
     case "bat" => "code"
+    case "xml" => "code"
+    case "json" => "code"
     // TODO - New "tail" viewer for logs?
     case "log" => "code"
 
