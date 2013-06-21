@@ -1,23 +1,35 @@
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.api.{Git => PGit}
+import org.eclipse.jgit.lib.Ref
 import sbt._
 
 class GitRepository(val repo: Repository) {
   val porcelain = new PGit(repo)
 
   def headCommit = Option(repo.resolve("HEAD")) map (_.name)
-  
-  
+
+  def tagHash(tag: Ref) = {
+    // Annotated (signed) and plain tags work differently,
+    // plain ones have the null PeeledObjectId
+    val peeled = repo.peel(tag)
+    val id =
+      if (peeled.getPeeledObjectId ne null)
+        peeled.getPeeledObjectId
+      else
+        peeled.getObjectId
+    id.getName
+  }
+
   def currentTags: Seq[String] = {
     import collection.JavaConverters._
     val list = porcelain.tagList.call().asScala
     for {
       hash <- headCommit.toSeq
-      tag <- list
-      taghash = tag.getObjectId.getName
+      unpeeledTag <- list
+      taghash = tagHash(unpeeledTag)
       if taghash == hash
-      ref = tag.getName
+      ref = unpeeledTag.getName
       if ref startsWith "refs/tags/"
     } yield ref drop 10
   }
