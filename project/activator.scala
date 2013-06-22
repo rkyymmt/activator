@@ -14,7 +14,8 @@ object ActivatorBuild {
       jgit(bd).headCommit
     },
     gitCurrentTags <<= (baseDirectory) apply { bd =>
-      jgit(bd).currentTags
+      // sort these descending
+      jgit(bd).currentTags.sorted.reverse
     },
     version <<= (gitHeadCommit, gitCurrentTags) apply makeVersion
   )
