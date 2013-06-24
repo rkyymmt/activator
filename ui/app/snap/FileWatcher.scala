@@ -3,7 +3,7 @@ package snap
 import akka.actor._
 import scala.concurrent.duration._
 import java.io.File
-import com.typesafe.sbtchild.EventSourceActor
+import com.typesafe.sbtrc.EventSourceActor
 import scala.annotation.tailrec
 import java.io.IOException
 

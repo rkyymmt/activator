@@ -1,7 +1,7 @@
 package snap
 
 import akka.actor._
-import com.typesafe.sbtchild._
+import com.typesafe.sbtrc._
 import play.api.libs.json._
 import JsonHelper._
 

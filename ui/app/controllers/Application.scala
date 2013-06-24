@@ -4,7 +4,6 @@ import play.api.mvc.{ Action, Controller, WebSocket }
 import java.io.File
 import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import com.typesafe.sbtchild.SbtChildProcessMaker
 import play.api.libs.json.{ JsString, JsObject, JsArray, JsNumber, JsValue }
 import snap.{ RootConfig, AppConfig, AppManager, Platform }
 import activator.ProcessResult

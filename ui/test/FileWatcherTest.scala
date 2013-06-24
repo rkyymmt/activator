@@ -15,7 +15,7 @@ import akka.util.Timeout
 
 class FileWatcherTest {
 
-  val testUtil = new com.typesafe.sbtchild.TestUtil(scratchDir = new File("ui/target/scratch"))
+  val testUtil = new com.typesafe.sbtrc.TestUtil(scratchDir = new File("ui/target/scratch"))
 
   import testUtil._
 

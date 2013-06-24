@@ -5,7 +5,7 @@ import java.io.File
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Promise
 import akka.pattern._
-import com.typesafe.sbtchild._
+import com.typesafe.sbtrc._
 import play.Logger
 import akka.util.Timeout
 import java.util.concurrent.TimeUnit
@@ -172,7 +172,7 @@ object AppManager {
   // this is supposed to be set by the main() launching the UI.
   // If not, we know we're running inside the build and we need
   // to use the default "Debug" version.
-  @volatile var sbtChildProcessMaker: SbtChildProcessMaker = DebugSbtChildProcessMaker
+  @volatile var sbtChildProcessMaker: SbtProcessLauncher = DebugSbtProcessLauncher
 
   private val keepAlive = snap.Akka.system.actorOf(Props(new KeepAliveActor), name = "keep-alive")
 
@@ -231,7 +231,7 @@ object AppManager {
     validated flatMapNested { location =>
       // NOTE -> We have to use the factory to ensure that shims are installed BEFORE we try to load the app.
       // While we should consolidate all sbt specific code, right now the child factory is the correct entry point.
-      val factory = new DefaultSbtChildFactory(location, sbtChildProcessMaker)
+      val factory = new DefaultSbtProcessFactory(location, sbtChildProcessMaker)
       // TODO - we should actually have ogging of this sucker
       factory.init(akka.event.NoLogging)
       val sbt = factory.newChild(snap.Akka.system)

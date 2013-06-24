@@ -46,7 +46,7 @@ object TheActivatorBuild extends Build {
 
   // These are the projects we want in the local repository we deploy.
   lazy val publishedSbtShimProjects = Set(playShimPlugin, eclipseShimPlugin, ideaShimPlugin, sbtUiInterface, defaultsShimPlugin)
-  lazy val publishedProjects: Seq[Project] = Seq(ui, uiCommon, launcher, props, sbtRemoteProbe, sbtDriver) ++ publishedSbtShimProjects
+  lazy val publishedProjects: Seq[Project] = Seq(ui, uiCommon, launcher, props, sbtRemoteController, sbtDriver) ++ publishedSbtShimProjects
 
   // basic project that gives us properties to use in other projects.
   lazy val props = (
@@ -79,8 +79,8 @@ object TheActivatorBuild extends Build {
   )
 
   // sbt-child process projects
-  lazy val sbtRemoteProbe = (
-    SbtChildProject("remote-probe")
+  lazy val sbtRemoteController = (
+    SbtRemoteControlProject("controller")
     settings(Keys.scalaVersion := Dependencies.sbtPluginScalaVersion, Keys.scalaBinaryVersion <<= Keys.scalaVersion)
     dependsOnSource("../protocol")
     dependsOn(props, sbtUiInterface % "provided")
@@ -128,12 +128,12 @@ object TheActivatorBuild extends Build {
     Keys.javaOptions in testKey <<= (
       SbtSupport.sbtLaunchJar,
       Keys.javaOptions in testKey,
-      requiredClasspath in sbtRemoteProbe,
-      Keys.compile in Compile in sbtRemoteProbe) map {
+      requiredClasspath in sbtRemoteController,
+      Keys.compile in Compile in sbtRemoteController) map {
       (launcher, oldOptions, probeCp, _) =>
         oldOptions ++ Seq("-Dactivator.sbt.no-shims=true",
                           "-Dactivator.sbt.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
-                          "-Dactivator.remote.probe.classpath=" + Path.makeString(probeCp.files)) ++
+                          "-Dactivator.remote.controller.classpath=" + Path.makeString(probeCp.files)) ++
       (if (verboseSbtTests)
         Seq("-Dakka.loglevel=DEBUG",
             "-Dakka.actor.debug.autoreceive=on",
@@ -144,7 +144,7 @@ object TheActivatorBuild extends Build {
     })
 
   lazy val sbtDriver = (
-    SbtChildProject("parent")
+    SbtRemoteControlProject("parent")
     settings(Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
     dependsOnSource("../protocol")
     dependsOn(props)
@@ -178,19 +178,19 @@ object TheActivatorBuild extends Build {
       Keys.update <<= (
           SbtSupport.sbtLaunchJar,
           Keys.update,
-          requiredClasspath in sbtRemoteProbe,
-          Keys.compile in Compile in sbtRemoteProbe,
+          requiredClasspath in sbtRemoteController,
+          Keys.compile in Compile in sbtRemoteController,
           // Note: This one should generally push all shim plugins.
           shimsPublished,
           LocalTemplateRepo.localTemplateCacheCreated in localTemplateRepo) map {
         (launcher, update, probeCp, _, _, templateCache) =>
           // We register the location after it's resolved so we have it for running play...
           sys.props("activator.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
-          sys.props("activator.remote.probe.classpath") = Path.makeString(probeCp.files)
+          sys.props("activator.remote.controller.classpath") = Path.makeString(probeCp.files)
           sys.props("activator.template.cache") = templateCache.getAbsolutePath
           sys.props("activator.runinsbt") = "true"
           System.err.println("Updating sbt launch jar: " + sys.props("activator.sbt.launch.jar"))
-          System.err.println("Remote probe classpath = " + sys.props("activator.remote.probe.classpath"))
+          System.err.println("Remote probe classpath = " + sys.props("activator.remote.controller.classpath"))
           System.err.println("Template cache = " + sys.props("activator.template.cache"))
           update
       }
