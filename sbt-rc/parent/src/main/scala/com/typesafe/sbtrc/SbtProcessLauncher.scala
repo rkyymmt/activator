@@ -16,16 +16,16 @@ trait SbtProcessLauncher {
 }
 
 /**
- * This class is able to create the command line for SbtChildProbe processes
- * using the launcher to discover the child probe.
+ * This class is able to create the command line for Sbt child processes
+ * using the launcher to discover the controller jars.
  *
  * @param configuration  The AppConfiguration passed to an application
- *                       via the SBT launcher.   We use this to lookup the probe jars.
+ *                       via the SBT launcher.   We use this to lookup the controller jars.
  */
 class DefaultSbtProcessLauncher(configuration: AppConfiguration) extends SbtProcessLauncher {
   // The launcher interface for resolving more STUFF
   private def launcher = configuration.provider.scalaProvider.launcher
-  // The Application for the child probe.  We can use this to get the classpath.
+  // The Application for the controller jars.  We can use this to get the classpath.
   private object probeApp extends ApplicationID {
     // TODO - Pull these constants from some build-generated properties or something.
     def groupID = "com.typesafe.activator"
