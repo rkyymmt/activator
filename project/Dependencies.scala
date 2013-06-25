@@ -10,6 +10,7 @@ object Dependencies {
   val sbtSnapshotVersion = "0.13.0-Beta2"
   val luceneVersion = "4.2.1"
   val templateCacheVersion = "1.0-af716b6259a60a51663e41ae079c5e6569df414b"
+  val sbtRcVersion = "1.0-24a164e2e6cdef9fe36864fd185a2f36bdc6ce7a"
   val playVersion = "2.1.1"
   val akkaVersion = "2.1.2"
 
@@ -24,6 +25,16 @@ object Dependencies {
   val sbtIo                = "org.scala-sbt" % "io" % sbtVersion
   val sbtLogging           = "org.scala-sbt" % "logging" % sbtVersion
   val sbtProcess           = "org.scala-sbt" % "process" % sbtVersion
+  
+  
+  // sbtrc projects
+  val sbtrcParent          = "com.typesafe.sbtrc" % "sbt-rc-parent" % sbtRcVersion
+  val sbtrcController      = "com.typesafe.sbtrc" % "sbt-rc-controller" % sbtRcVersion
+  val sbtshimDefaults      =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-shim-defaults" % sbtRcVersion, sbtPluginVersion, sbtPluginScalaVersion)
+  val sbtshimPlay          =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-shim-play" % sbtRcVersion, sbtPluginVersion, sbtPluginScalaVersion)
+  val sbtshimEclipse       =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-shim-eclipse" % sbtRcVersion, sbtPluginVersion, sbtPluginScalaVersion)
+  val sbtshimIdea          =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-shim-idea" % sbtRcVersion, sbtPluginVersion, sbtPluginScalaVersion)
+  
   
   // TODO - Don't use a snapshot version for this...
   val sbtCompletion           = "org.scala-sbt" % "completion" % sbtSnapshotVersion

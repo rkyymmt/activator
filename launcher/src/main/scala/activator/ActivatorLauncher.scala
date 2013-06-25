@@ -55,26 +55,8 @@ case class RebootToUI(configuration: AppConfiguration) extends xsbti.Reboot {
 }
 
 // Wrapper to reboot into SBT.
-// TODO - Generate this via the SBT build code, so the hardcoded SBT version
-// lives in one spot.
-// OR we can even detect the SBT version...
+// TODO - See if we can just read the configuration using the launcher or something...
 case class RebootToSbt(configuration: AppConfiguration, useArguments: Boolean = false) extends xsbti.Reboot {
-
-  // Loads the ui context jar so we can put it on the extra classpath.
-  private val uiContextClasspath: Array[File] = {
-    val launcher = configuration.provider.scalaProvider.launcher
-    // The Application for the child probe.  We can use this to get the classpath.
-    val uiPlugin = ApplicationID(
-      // TODO - Pull these constants from some build-generated properties or something.
-      groupID = "com.typesafe.activator",
-      name = "sbt-shim-ui-interface",
-      version = configuration.provider.id.version, // Cheaty way to get version
-      mainClass = "com.typesafe.sbt.ui.SbtUiPlugin",
-      mainComponents = Array[String](""))
-    //   This will resolve the uiContextJar artifact using our launcher and then
-    // give us the classpath
-    launcher.app(uiPlugin, SBT_SCALA_VERSION).mainClasspath
-  }
 
   val arguments = if (useArguments) configuration.arguments else Array.empty[String]
   val baseDirectory = configuration.baseDirectory
@@ -84,8 +66,7 @@ case class RebootToSbt(configuration: AppConfiguration, useArguments: Boolean = 
     name = "sbt",
     version = SBT_VERSION,
     mainClass = "sbt.xMain",
-    mainComponents = Array("xsbti", "extra"),
-    classpathExtra = uiContextClasspath)
+    mainComponents = Array("xsbti", "extra"))
 }
 
 // Helper class to make using ApplicationID in xsbti easier.
