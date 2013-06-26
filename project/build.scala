@@ -87,13 +87,17 @@ object TheActivatorBuild extends Build {
   
   // We use this to ensure all necessary shims are pubished before we run, so sbt can resolve them.
   lazy val shimsPublished = TaskKey[Unit]("sbt-shims-published")
+  lazy val SbtRcUIConfig = config("sbtrcui")
+  lazy val SbtRcControllerConfig = config("sbtrccontroller")
   lazy val ui = (
     ActivatorPlayProject("ui")
     dependsOnRemote(
       commonsIo, mimeUtil, slf4jLog4j,
       sbtLauncherInterface % "provided",
       sbtrcParent, 
-      sbtrcParent % "test->test"
+      sbtrcParent % "test->test",
+      sbtshimUiInterface % "sbtrcui->default(compile)",
+      sbtrcController % "sbtrccontroller->default(compile)"
     )
     dependsOn(props, uiCommon)
     settings(play.Project.playDefaultPort := 8888)
@@ -102,21 +106,26 @@ object TheActivatorBuild extends Build {
     //settings(configureSbtTest(Keys.testOnly): _*)
     // set up debug props for "run"
     settings(
-      // Here we hack so that we can see the sbt-rc classes...  
+      // Here we hack so that we can see the sbt-rc classes...
+      Keys.ivyConfigurations ++= Seq(SbtRcUIConfig, SbtRcControllerConfig),
+      
       Keys.update <<= (
           SbtSupport.sbtLaunchJar,
           Keys.update,
-          //requiredClasspath in sbtRemoteController,
-          //Keys.compile in Compile in sbtRemoteController,
           LocalTemplateRepo.localTemplateCacheCreated in localTemplateRepo) map {
-        (launcher, update, /*probeCp, _, _,*/ templateCache) =>
+        (launcher, update, templateCache) =>
+          // Now we read the controller classpath, and the UI classpath from the update report...
+          val uiClasspath = update.matching(configurationFilter(SbtRcUIConfig.name))
+          val controllerClasspath = update.matching(configurationFilter(SbtRcControllerConfig.name))
+		
           // We register the location after it's resolved so we have it for running play...
-          sys.props("activator.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
-          //sys.props("activator.remote.controller.classpath") = Path.makeString(probeCp.files)
+          sys.props("sbtrc.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
+          // The debug variant of the sbt finder automatically splits the ui + controller jars appart.
+          sys.props("sbtrc.controller.classpath") = Path.makeString(controllerClasspath ++ uiClasspath)
           sys.props("activator.template.cache") = templateCache.getAbsolutePath
           sys.props("activator.runinsbt") = "true"
-          System.err.println("Updating sbt launch jar: " + sys.props("activator.sbt.launch.jar"))
-          //System.err.println("Remote probe classpath = " + sys.props("activator.remote.controller.classpath"))
+          System.err.println("Updating sbt launch jar: " + sys.props("sbtrc.launch.jar"))
+          System.err.println("Remote probe classpath = " + sys.props("sbtrc.controller.classpath"))
           System.err.println("Template cache = " + sys.props("activator.template.cache"))
           update
       }

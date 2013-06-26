@@ -30,6 +30,7 @@ object Dependencies {
   // sbtrc projects
   val sbtrcParent          = "com.typesafe.sbtrc" % "sbt-rc-parent" % sbtRcVersion
   val sbtrcController      = "com.typesafe.sbtrc" % "sbt-rc-controller" % sbtRcVersion
+  val sbtshimUiInterface   = "com.typesafe.sbtrc" % "sbt-shim-ui-interface" % sbtRcVersion
   val sbtshimDefaults      =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-shim-defaults" % sbtRcVersion, sbtPluginVersion, sbtPluginScalaVersion)
   val sbtshimPlay          =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-shim-play" % sbtRcVersion, sbtPluginVersion, sbtPluginScalaVersion)
   val sbtshimEclipse       =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-shim-eclipse" % sbtRcVersion, sbtPluginVersion, sbtPluginScalaVersion)
