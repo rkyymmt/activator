@@ -25,12 +25,14 @@ realpath () {
 )
 }
 
+# TODO - Do we need to detect msys?
+
 # Uses uname to detect if we're in the odd cygwin environment.
 is_cygwin() {
   local os=$(uname -s)
   case "$os" in
-  CYGWIN*) return 0 ;;
-  *)  return 1 ;;
+    CYGWIN*) return 0 ;;
+    *)  return 1 ;;
   esac
 }
 
@@ -187,7 +189,8 @@ run() {
   #check for jline terminal fixes on cygwin
   if is_cygwin; then
     stty -icanon min 1 -echo > /dev/null 2>&1
-    addJava "-Djline.terminal=unix"
+    addJava "-Djline.terminal=jline.UnixTerminal"
+    addJava "-Dsbt.cygwin=true"
   fi
   # run sbt
   execRunner "$java_cmd" \
@@ -202,8 +205,8 @@ run() {
   local exit_code=$?
   if is_cygwin; then
     stty icanon echo > /dev/null 2>&1
-    exit $exit_code
   fi
+  exit $exit_code
 }
 
 # Loads a configuration file full of default command line options for this script.
