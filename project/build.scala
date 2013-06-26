@@ -62,19 +62,30 @@ object TheActivatorBuild extends Build {
 
   val verboseSbtTests = false
 
-  /*def configureSbtTest(testKey: Scoped) = Seq(
+  
+  
+  // Helpers to let us grab necessary sbt remote control artifacts, but not actually depend on them at
+  // runtime.
+  lazy val SbtRcUIConfig = config("sbtrcui")
+  lazy val SbtRcControllerConfig = config("sbtrccontroller")
+  def makeRemoteControllerClasspath(update: sbt.UpdateReport): String = {
+     val uiClasspath = update.matching(configurationFilter(SbtRcUIConfig.name))
+     val controllerClasspath = update.matching(configurationFilter(SbtRcControllerConfig.name))
+     Path.makeString(controllerClasspath ++ uiClasspath)
+  }
+  
+  def configureSbtTest(testKey: Scoped) = Seq(
     // set up embedded sbt for tests, we fork so we can set
     // system properties.
     Keys.fork in testKey := true,
     Keys.javaOptions in testKey <<= (
       SbtSupport.sbtLaunchJar,
       Keys.javaOptions in testKey,
-      requiredClasspath in sbtRemoteController,
-      Keys.compile in Compile in sbtRemoteController) map {
-      (launcher, oldOptions, probeCp, _) =>
-        oldOptions ++ Seq("-Dactivator.sbt.no-shims=true",
-                          "-Dactivator.sbt.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
-                          "-Dactivator.remote.controller.classpath=" + Path.makeString(probeCp.files)) ++
+      Keys.update) map {
+      (launcher, oldOptions, updateReport) =>
+        oldOptions ++ Seq("-Dsbtrc.no-shims=true",
+                          "-Dsbtrc.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
+                          "-Dsbtrc.controller.classpath=" + makeRemoteControllerClasspath(updateReport)) ++
       (if (verboseSbtTests)
         Seq("-Dakka.loglevel=DEBUG",
             "-Dakka.actor.debug.autoreceive=on",
@@ -82,28 +93,22 @@ object TheActivatorBuild extends Build {
             "-Dakka.actor.debug.lifecycle=on")
        else
          Seq.empty)
-    })*/
+    })
 
-  
-  // We use this to ensure all necessary shims are pubished before we run, so sbt can resolve them.
-  lazy val shimsPublished = TaskKey[Unit]("sbt-shims-published")
-  lazy val SbtRcUIConfig = config("sbtrcui")
-  lazy val SbtRcControllerConfig = config("sbtrccontroller")
   lazy val ui = (
     ActivatorPlayProject("ui")
     dependsOnRemote(
       commonsIo, mimeUtil, slf4jLog4j,
       sbtLauncherInterface % "provided",
-      sbtrcParent, 
-      sbtrcParent % "test->test",
+      sbtrcParent % "compile;test->test",
       sbtshimUiInterface % "sbtrcui->default(compile)",
       sbtrcController % "sbtrccontroller->default(compile)"
     )
     dependsOn(props, uiCommon)
     settings(play.Project.playDefaultPort := 8888)
     // set up debug props for forked tests
-    //settings(configureSbtTest(Keys.test): _*)
-    //settings(configureSbtTest(Keys.testOnly): _*)
+    settings(configureSbtTest(Keys.test): _*)
+    settings(configureSbtTest(Keys.testOnly): _*)
     // set up debug props for "run"
     settings(
       // Here we hack so that we can see the sbt-rc classes...
@@ -114,14 +119,10 @@ object TheActivatorBuild extends Build {
           Keys.update,
           LocalTemplateRepo.localTemplateCacheCreated in localTemplateRepo) map {
         (launcher, update, templateCache) =>
-          // Now we read the controller classpath, and the UI classpath from the update report...
-          val uiClasspath = update.matching(configurationFilter(SbtRcUIConfig.name))
-          val controllerClasspath = update.matching(configurationFilter(SbtRcControllerConfig.name))
-		
           // We register the location after it's resolved so we have it for running play...
           sys.props("sbtrc.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
           // The debug variant of the sbt finder automatically splits the ui + controller jars appart.
-          sys.props("sbtrc.controller.classpath") = Path.makeString(controllerClasspath ++ uiClasspath)
+          sys.props("sbtrc.controller.classpath") = makeRemoteControllerClasspath(update)
           sys.props("activator.template.cache") = templateCache.getAbsolutePath
           sys.props("activator.runinsbt") = "true"
           System.err.println("Updating sbt launch jar: " + sys.props("sbtrc.launch.jar"))
