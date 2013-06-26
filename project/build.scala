@@ -45,8 +45,7 @@ object TheActivatorBuild extends Build {
   )
 
   // These are the projects we want in the local repository we deploy.
-  lazy val publishedSbtShimProjects = Set(playShimPlugin, eclipseShimPlugin, ideaShimPlugin, sbtUiInterface, defaultsShimPlugin)
-  lazy val publishedProjects: Seq[Project] = Seq(ui, uiCommon, launcher, props, sbtRemoteController, sbtDriver) ++ publishedSbtShimProjects
+  lazy val publishedProjects: Seq[Project] = Seq(ui, uiCommon, launcher, props)
 
   // basic project that gives us properties to use in other projects.
   lazy val props = (
@@ -61,66 +60,20 @@ object TheActivatorBuild extends Build {
     dependsOn(props)
   )
 
-  lazy val sbtUiInterface = (
-      SbtShimPlugin("ui-interface")
-      settings(
-          Keys.scalaVersion := Dependencies.sbtPluginScalaVersion, 
-          Keys.scalaBinaryVersion <<= Keys.scalaVersion,
-          Keys.crossVersion := CrossVersion.Disabled,
-          Keys.projectID <<=  Keys.projectID apply { id =>
-            id.copy(extraAttributes = Map.empty)
-          })
-      dependsOnRemote(
-          sbtMain % "provided",
-          sbtTheSbt % "provided",
-          sbtIo % "provided",
-          sbtLogging % "provided",
-          sbtProcess % "provided")
-  )
-
-  // sbt-child process projects
-  lazy val sbtRemoteController = (
-    SbtRemoteControlProject("controller")
-    settings(Keys.scalaVersion := Dependencies.sbtPluginScalaVersion, Keys.scalaBinaryVersion <<= Keys.scalaVersion)
-    dependsOnSource("../protocol")
-    dependsOn(props, sbtUiInterface % "provided")
-    dependsOnRemote(
-      sbtMain % "provided",
-      sbtTheSbt % "provided",
-      sbtIo % "provided",
-      sbtLogging % "provided",
-      sbtProcess % "provided",
-      activatorCommon
-    )
-    settings(requiredJars(props, sbtUiInterface))
-  )
-
-  // SBT Shims
-  lazy val playShimPlugin = (
-    SbtShimPlugin("play")
-    dependsOn(sbtUiInterface)
-    dependsOnRemote(playSbtPlugin)
-  )
-
-  lazy val eclipseShimPlugin = (
-    SbtShimPlugin("eclipse")
-    dependsOn(sbtUiInterface)
-    dependsOnRemote(eclipseSbtPlugin)
-  )
-
-  lazy val ideaShimPlugin = (
-    SbtShimPlugin("idea")
-    dependsOn(sbtUiInterface)
-    dependsOnRemote(ideaSbtPlugin)
-  )
-
-  lazy val defaultsShimPlugin = (
-    SbtShimPlugin("defaults")
-    // TODO - can we just depend on all the other plugins so we only have one shim?
-  )
-
   val verboseSbtTests = false
 
+  
+  
+  // Helpers to let us grab necessary sbt remote control artifacts, but not actually depend on them at
+  // runtime.
+  lazy val SbtRcUIConfig = config("sbtrcui")
+  lazy val SbtRcControllerConfig = config("sbtrccontroller")
+  def makeRemoteControllerClasspath(update: sbt.UpdateReport): String = {
+     val uiClasspath = update.matching(configurationFilter(SbtRcUIConfig.name))
+     val controllerClasspath = update.matching(configurationFilter(SbtRcControllerConfig.name))
+     Path.makeString(controllerClasspath ++ uiClasspath)
+  }
+  
   def configureSbtTest(testKey: Scoped) = Seq(
     // set up embedded sbt for tests, we fork so we can set
     // system properties.
@@ -128,12 +81,11 @@ object TheActivatorBuild extends Build {
     Keys.javaOptions in testKey <<= (
       SbtSupport.sbtLaunchJar,
       Keys.javaOptions in testKey,
-      requiredClasspath in sbtRemoteController,
-      Keys.compile in Compile in sbtRemoteController) map {
-      (launcher, oldOptions, probeCp, _) =>
-        oldOptions ++ Seq("-Dactivator.sbt.no-shims=true",
-                          "-Dactivator.sbt.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
-                          "-Dactivator.remote.controller.classpath=" + Path.makeString(probeCp.files)) ++
+      Keys.update) map {
+      (launcher, oldOptions, updateReport) =>
+        oldOptions ++ Seq("-Dsbtrc.no-shims=true",
+                          "-Dsbtrc.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
+                          "-Dsbtrc.controller.classpath=" + makeRemoteControllerClasspath(updateReport)) ++
       (if (verboseSbtTests)
         Seq("-Dakka.loglevel=DEBUG",
             "-Dakka.actor.debug.autoreceive=on",
@@ -143,54 +95,38 @@ object TheActivatorBuild extends Build {
          Seq.empty)
     })
 
-  lazy val sbtDriver = (
-    SbtRemoteControlProject("parent")
-    settings(Keys.libraryDependencies <+= (Keys.scalaVersion) { v => "org.scala-lang" % "scala-reflect" % v })
-    dependsOnSource("../protocol")
-    dependsOn(props)
-    dependsOnRemote(akkaActor,
-                    sbtLauncherInterface,
-                    activatorCommon,
-                    sbtIo210)
-    settings(configureSbtTest(Keys.test): _*)
-    settings(configureSbtTest(Keys.testOnly): _*)
-  )
-
-  
-  // We use this to ensure all necessary shims are pubished before we run, so sbt can resolve them.
-  lazy val shimsPublished = TaskKey[Unit]("sbt-shims-published")
   lazy val ui = (
     ActivatorPlayProject("ui")
     dependsOnRemote(
       commonsIo, mimeUtil, slf4jLog4j,
-      sbtLauncherInterface % "provided"
+      sbtLauncherInterface % "provided",
+      sbtrcParent % "compile;test->test",
+      sbtshimUiInterface % "sbtrcui->default(compile)",
+      sbtrcController % "sbtrccontroller->default(compile)"
     )
-    dependsOn(props, uiCommon, sbtDriver, sbtDriver % "test->test")
+    dependsOn(props, uiCommon)
     settings(play.Project.playDefaultPort := 8888)
     // set up debug props for forked tests
     settings(configureSbtTest(Keys.test): _*)
     settings(configureSbtTest(Keys.testOnly): _*)
     // set up debug props for "run"
     settings(
-      // Here we hack the update process that play-run calls to set up everything we need for embedded sbt.
-      // Yes, it's a hack.  BUT we *love* hacks right?
-      shimsPublished <<= (publishedSbtShimProjects.toSeq map (project => Keys.publishLocal in project)).dependOn,
+      // Here we hack so that we can see the sbt-rc classes...
+      Keys.ivyConfigurations ++= Seq(SbtRcUIConfig, SbtRcControllerConfig),
+      
       Keys.update <<= (
           SbtSupport.sbtLaunchJar,
           Keys.update,
-          requiredClasspath in sbtRemoteController,
-          Keys.compile in Compile in sbtRemoteController,
-          // Note: This one should generally push all shim plugins.
-          shimsPublished,
           LocalTemplateRepo.localTemplateCacheCreated in localTemplateRepo) map {
-        (launcher, update, probeCp, _, _, templateCache) =>
+        (launcher, update, templateCache) =>
           // We register the location after it's resolved so we have it for running play...
-          sys.props("activator.sbt.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
-          sys.props("activator.remote.controller.classpath") = Path.makeString(probeCp.files)
+          sys.props("sbtrc.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
+          // The debug variant of the sbt finder automatically splits the ui + controller jars appart.
+          sys.props("sbtrc.controller.classpath") = makeRemoteControllerClasspath(update)
           sys.props("activator.template.cache") = templateCache.getAbsolutePath
           sys.props("activator.runinsbt") = "true"
-          System.err.println("Updating sbt launch jar: " + sys.props("activator.sbt.launch.jar"))
-          System.err.println("Remote probe classpath = " + sys.props("activator.remote.controller.classpath"))
+          System.err.println("Updating sbt launch jar: " + sys.props("sbtrc.launch.jar"))
+          System.err.println("Remote probe classpath = " + sys.props("sbtrc.controller.classpath"))
           System.err.println("Template cache = " + sys.props("activator.template.cache"))
           update
       }
@@ -230,8 +166,8 @@ object TheActivatorBuild extends Build {
   lazy val it = (
       ActivatorProject("integration-tests")
       settings(integration.settings:_*)
-      dependsOnRemote(sbtLauncherInterface, sbtIo210)
-      dependsOn(sbtDriver, props)
+      dependsOnRemote(sbtLauncherInterface, sbtIo210, sbtrcParent)
+      dependsOn(props)
       settings(
         com.typesafe.sbtidea.SbtIdeaPlugin.ideaIgnoreModule := true,
         Keys.publish := {}
@@ -262,18 +198,8 @@ object TheActivatorBuild extends Build {
         Resolver.url("sbt-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
       ),
       // TODO - Do this better - This is where we define what goes in the local repo cache.
-
-      localRepoArtifacts <++= (publishedProjects filterNot publishedSbtShimProjects map { ref =>
-        // The annoyance caused by cross-versioning.
-        (Keys.projectID in ref, Keys.scalaBinaryVersion in ref, Keys.scalaVersion in ref) apply {
-          (id, sbv, sv) =>
-            CrossVersion(sbv,sv)(id)
-        }
-      }).join,
-      localRepoArtifacts <++= (publishedSbtShimProjects.toSeq map { ref =>
-        (Keys.projectID in ref) apply { id =>
-            Defaults.sbtPluginExtra(id, sbtPluginVersion, sbtPluginScalaVersion)
-        }
+      localRepoArtifacts <++= (publishedProjects.toSeq map { ref =>
+        (Keys.projectID in ref) apply { id => id }
       }).join,
       localRepoArtifacts ++=
         Seq("org.scala-sbt" % "sbt" % Dependencies.sbtVersion,
@@ -315,7 +241,13 @@ object TheActivatorBuild extends Build {
             // Regular akka for normal folks
             akkaActor,
             akkaSlf4j,
-            akkaTestkit
+            akkaTestkit,
+            sbtrcParent,
+            sbtrcController,
+            sbtshimDefaults,
+            sbtshimPlay,
+            sbtshimEclipse,
+            sbtshimIdea
         ),
       localRepoArtifacts ++=  Seq(
         playSbtPlugin,

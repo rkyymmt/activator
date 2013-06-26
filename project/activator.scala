@@ -39,7 +39,7 @@ object ActivatorBuild {
     def dateVersion: String = {
       val df = new java.text.SimpleDateFormat("yyyyMMdd'T'HHmmss")
       df setTimeZone java.util.TimeZone.getTimeZone("GMT")
-      "1.0" + (df format (new java.util.Date))
+      baseVersion + "-" + (df format (new java.util.Date))
     }
 
     def overrideVersion = Option(sys.props("activator.version")) 
@@ -112,17 +112,6 @@ object ActivatorBuild {
   def ActivatorProject(name: String): Project = (
     Project("activator-" + name, file(name))
     settings(activatorDefaults:_*)
-  )
-
-
-  def SbtRemoteControlProject(name: String): Project = (
-    Project("sbt-rc-" + name, file("sbt-rc") / name)
-    settings(activatorDefaults:_*)
-  )
-
-  def SbtShimPlugin(name: String): Project = (
-    Project("sbt-shim-" + name, file("sbt-shim") / name)
-    settings(sbtShimPluginSettings:_*)
   )
 
   def ActivatorPlayProject(name: String): Project = (
