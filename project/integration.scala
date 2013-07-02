@@ -117,5 +117,5 @@ case class IntegrationContext(launchJar: File,
        |  ivy-home: %s/.ivy2
        |  checksums: ${sbt.checksums-sha1,md5}
        |  override-build-repos: ${sbt.override.build.repos-false}
-       |""".stripMargin format (scalaVersion, version, name, repository, cwd.getAbsolutePath, cwd.getAbsolutePath)
+       |""".stripMargin format (scalaVersion, version, name, repository, cleanUriFileString(cwd.getAbsolutePath), cwd.getAbsolutePath)
 }
