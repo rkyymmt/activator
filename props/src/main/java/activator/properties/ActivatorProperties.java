@@ -66,17 +66,24 @@ public class ActivatorProperties {
     return props.getProperty("sbt.scala.version");
   }
 
+  private static String cleanUriFileString(String file) {
+	  return file.replaceAll(" ", "%20");
+  }
+
   private static String uriToFilename(String uri) {
     try {
-      return new java.io.File(new java.net.URI(uri)).getAbsolutePath();
+      return new java.io.File(new java.net.URI(cleanUriFileString(uri))).getAbsolutePath();
     } catch(java.net.URISyntaxException ex) {
       // TODO - fix this error handling to not suck.
       throw new RuntimeException("BAD URI: " + uri);
+    } catch(java.lang.IllegalArgumentException ex) {
+      throw new RuntimeException("BAD URI: " + uri + "\n", ex);
     }
   }
 
   /** Returns the distribution home directory (or local project) as a URI string. */
   public static String ACTIVATOR_HOME_FILENAME() {
+	// TODO - We should probably remove all spaces and URI-ify the string first.
     return uriToFilename("file://" + ACTIVATOR_HOME());
   }
 

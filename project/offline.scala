@@ -86,7 +86,7 @@ object offline {
     IO.write(props,
 """
 [repositories]
-  activator-local: file://%s, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
-""" format(localIvyRepo.getCanonicalPath))
+  activator-local: %s, [organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]
+""" format(localIvyRepo.getCanonicalFile.toURI.toString))
   }
 }

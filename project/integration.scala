@@ -77,7 +77,8 @@ case class IntegrationContext(launchJar: File,
   }
   
   
-  
+  private def cleanUriFileString(file: String): String =
+	  file.replaceAll(" ", "%20")
   private def setup(name: String, cwd: File): ProcessBuilder = {
     val props = cwd / "sbt.boot.properties"
     IO.write(props, makePropertiesString(name, cwd))
@@ -87,7 +88,7 @@ case class IntegrationContext(launchJar: File,
     Process(Seq("java", 
         "-Dsbt.boot.properties=" + props.getAbsolutePath, 
         "-Dsbt.boot.directory=" + boot.getAbsolutePath, 
-        "-Dactivator.home=" +integrationHome.getAbsolutePath,
+        "-Dactivator.home=" +cleanUriFileString(integrationHome.getAbsolutePath),
         "-jar", 
         launchJar.getAbsolutePath), cwd)
   }
@@ -116,5 +117,5 @@ case class IntegrationContext(launchJar: File,
        |  ivy-home: %s/.ivy2
        |  checksums: ${sbt.checksums-sha1,md5}
        |  override-build-repos: ${sbt.override.build.repos-false}
-       |""".stripMargin format (scalaVersion, version, name, repository, cwd.getAbsolutePath, cwd.getAbsolutePath)
+       |""".stripMargin format (scalaVersion, version, name, cleanUriFileString(repository.getAbsolutePath), cleanUriFileString(cwd.getAbsolutePath), cwd.getAbsolutePath)
 }
