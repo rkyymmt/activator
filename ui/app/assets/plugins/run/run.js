@@ -137,7 +137,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 						var port = event.params.port;
 						var url = 'http://localhost:' + port;
 						var link = '<a href="'+url+'" target="_blank">' + url + '</a>';
-						self.status(link + ' - Play application started.');
+						self.status('<span>Up and running at ' + link + '</span>');
 					} else {
 						self.logModel.leftoverEvent(event);
 					}
