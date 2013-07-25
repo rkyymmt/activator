@@ -26,8 +26,8 @@ abstract class IntegrationTest extends DelayedInit with xsbti.AppMain {
     }
 
   private def cleanUriFileString(file: String): String =
-	  file.replaceAll(" ", "%20")
-    
+    file.replaceAll(" ", "%20")
+
   /** Return a process builder that will run SNAP in a directory with the given args. */
   final def run_activator(args: Seq[String], cwd: java.io.File): sys.process.ProcessBuilder = {
     // TODO - pass on all props...
