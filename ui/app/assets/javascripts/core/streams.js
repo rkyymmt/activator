@@ -170,7 +170,7 @@ define(function() {
 				type: WEB_SOCKET_CLOSED,
 				id: id
 			});
-		}, 1000);
+		}, 3000);
 	}
 
 	function onError(event) {
