@@ -102,5 +102,3 @@ Then run:
 # Issues
 
 If you run into staleness issues with a staged release of Activator, just run `reload` in SBT to regenerate the version number and then run `stage` again.   This should give you a new stable version of SNAP for the sbt-launcher so that the new code is used.   Should only be needed when doing integration tests.
-
-# Licensing?
