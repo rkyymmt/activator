@@ -7,7 +7,7 @@ import javax.swing._
 import java.net.HttpURLConnection
 import java.net.URL
 import sbt.IO
-import com.typesafe.sbtrc.DefaultSbtProcessLauncher
+import com.typesafe.sbtrc.launching.DefaultSbtProcessLauncher
 import snap._
 import activator.properties.ActivatorProperties._
 import xsbti.GlobalLock

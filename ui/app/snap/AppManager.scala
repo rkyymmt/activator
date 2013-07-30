@@ -5,7 +5,12 @@ import java.io.File
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Promise
 import akka.pattern._
-import com.typesafe.sbtrc._
+import com.typesafe.sbtrc.launching.{
+  SbtProcessLauncher,
+  DebugSbtProcessLauncher
+}
+import com.typesafe.sbtrc.DefaultSbtProcessFactory
+import com.typesafe.sbtrc.protocol
 import play.Logger
 import akka.util.Timeout
 import java.util.concurrent.TimeUnit

@@ -1,6 +1,7 @@
 package snap
 
 import com.typesafe.sbtrc._
+import com.typesafe.sbtrc.launching.SbtProcessLauncher
 import akka.actor._
 import java.io.File
 import java.util.UUID
