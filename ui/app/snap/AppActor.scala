@@ -15,6 +15,7 @@ import activator._
 sealed trait AppRequest
 
 case class GetTaskActor(id: String, description: String) extends AppRequest
+case object GetWebSocketCreated extends AppRequest
 case object CreateWebSocket extends AppRequest
 case class NotifyWebSocket(json: JsObject) extends AppRequest
 case object InitialTimeoutExpired extends AppRequest
@@ -25,6 +26,7 @@ sealed trait AppReply
 
 case class TaskActorReply(ref: ActorRef) extends AppReply
 case object WebSocketAlreadyUsed extends AppReply
+case class WebSocketCreatedReply(created: Boolean) extends AppReply
 
 class AppActor(val config: AppConfig, val sbtProcessLauncher: SbtProcessLauncher) extends Actor with ActorLogging {
 
@@ -57,13 +59,13 @@ class AppActor(val config: AppConfig, val sbtProcessLauncher: SbtProcessLauncher
   override def receive = {
     case Terminated(ref) =>
       if (ref == sbts) {
-        log.info("sbt pool terminated, killing AppActor")
+        log.info(s"sbt pool terminated, killing AppActor ${self.path.name}")
         self ! PoisonPill
       } else if (ref == socket) {
-        log.info("socket terminated, killing AppActor")
+        log.info(s"socket terminated, killing AppActor ${self.path.name}")
         self ! PoisonPill
       } else if (ref == watcher) {
-        log.info("watcher terminated, killing AppActor")
+        log.info(s"watcher terminated, killing AppActor ${self.path.name}")
         self ! PoisonPill
       } else {
         tasks.find { kv => kv._2 == ref } match {
@@ -83,6 +85,8 @@ class AppActor(val config: AppConfig, val sbtProcessLauncher: SbtProcessLauncher
         context.watch(task)
         log.debug("created task {} {}", taskId, task)
         sender ! TaskActorReply(task)
+      case GetWebSocketCreated =>
+        sender ! WebSocketCreatedReply(webSocketCreated)
       case CreateWebSocket =>
         log.debug("got CreateWebSocket")
         if (webSocketCreated) {
@@ -134,6 +138,15 @@ class AppActor(val config: AppConfig, val sbtProcessLauncher: SbtProcessLauncher
       case _ => false
     }
     hasType || hasTaskId;
+  }
+
+  override def preRestart(reason: Throwable, message: Option[Any]): Unit = {
+    super.preRestart(reason, message)
+    log.debug(s"preRestart, ${reason.getClass.getName}: ${reason.getMessage}, on $message")
+  }
+
+  override def postStop(): Unit = {
+    log.debug("postStop")
   }
 
   // this actor corresponds to one protocol.Request, and any
