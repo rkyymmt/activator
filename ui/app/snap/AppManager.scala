@@ -5,10 +5,7 @@ import java.io.File
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Promise
 import akka.pattern._
-import com.typesafe.sbtrc.launching.{
-  SbtProcessLauncher,
-  DebugSbtProcessLauncher
-}
+import com.typesafe.sbtrc.launching.SbtProcessLauncher
 import com.typesafe.sbtrc.DefaultSbtProcessFactory
 import com.typesafe.sbtrc.protocol
 import play.Logger
@@ -183,7 +180,7 @@ object AppManager {
   // this is supposed to be set by the main() launching the UI.
   // If not, we know we're running inside the build and we need
   // to use the default "Debug" version.
-  @volatile var sbtChildProcessMaker: SbtProcessLauncher = DebugSbtProcessLauncher
+  def sbtChildProcessMaker: SbtProcessLauncher = Global.sbtProcessLauncher
 
   private val keepAlive = snap.Akka.system.actorOf(Props(new KeepAliveActor), name = "keep-alive")
 
