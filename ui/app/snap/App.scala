@@ -1,7 +1,7 @@
 package snap
 
 import akka.actor._
-import com.typesafe.sbtrc._
+import com.typesafe.sbtrc.launching.SbtProcessLauncher
 import java.util.concurrent.atomic.AtomicInteger
 import activator.properties.ActivatorProperties
 import scala.util.control.NonFatal

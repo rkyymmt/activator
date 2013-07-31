@@ -7,7 +7,7 @@ import javax.swing._
 import java.net.HttpURLConnection
 import java.net.URL
 import sbt.IO
-import com.typesafe.sbtrc.DefaultSbtProcessLauncher
+import com.typesafe.sbtrc.launching.DefaultSbtProcessLauncher
 import snap._
 import activator.properties.ActivatorProperties._
 import xsbti.GlobalLock
@@ -100,7 +100,7 @@ class UIMain extends AppMain {
 
     if (!alreadyRunning) {
       // locate sbt details and store in a singleton
-      snap.AppManager.sbtChildProcessMaker = new DefaultSbtProcessLauncher(configuration)
+      Global.installSbtLauncher(new DefaultSbtProcessLauncher(configuration))
 
       // Start the Play app... (TODO - how do we know when we're done?)
       // TODO - Is this hack ok?

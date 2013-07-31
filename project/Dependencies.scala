@@ -10,7 +10,7 @@ object Dependencies {
   val sbtSnapshotVersion = "0.13.0-RC1"
   val luceneVersion = "4.2.1"
   val templateCacheVersion = "0.2.0"
-  val sbtRcVersion = "0.1.0"
+  val sbtRcVersion = "1.0-cbdf7b36e2511f1c525a10deda2016671fc5855d"
   val playVersion = "2.1.1"
   val akkaVersion = "2.1.2"
 
@@ -28,14 +28,15 @@ object Dependencies {
   
   
   // sbtrc projects
-  val sbtrcParent          = "com.typesafe.sbtrc" % "sbt-rc-parent" % sbtRcVersion
-  val sbtrcController      = "com.typesafe.sbtrc" % "sbt-rc-controller" % sbtRcVersion
-  val sbtshimUiInterface   = "com.typesafe.sbtrc" % "sbt-shim-ui-interface" % sbtRcVersion
-  val sbtshimDefaults      =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-shim-defaults" % sbtRcVersion, sbtPluginVersion, sbtPluginScalaVersion)
-  val sbtshimPlay          =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-shim-play" % sbtRcVersion, sbtPluginVersion, sbtPluginScalaVersion)
-  val sbtshimEclipse       =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-shim-eclipse" % sbtRcVersion, sbtPluginVersion, sbtPluginScalaVersion)
-  val sbtshimIdea          =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-shim-idea" % sbtRcVersion, sbtPluginVersion, sbtPluginScalaVersion)
+  val sbtrcRemoteController = "com.typesafe.sbtrc" % "sbt-rc-remote-controller" % sbtRcVersion
   
+  // Probes
+  val sbtrcProbe12           = "com.typesafe.sbtrc" % "sbt-rc-probe-0-12" % sbtRcVersion
+  val sbtshimUiInterface12   = "com.typesafe.sbtrc" % "sbt-rc-ui-interface-0-12" % sbtRcVersion
+  val sbtshimDefaults12      =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-rc-defaults-0-12" % sbtRcVersion, "0.12", "2.9.2")
+  val sbtshimPlay12          =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-rc-play-0-12" % sbtRcVersion, "0.12", "2.9.2")
+  val sbtshimEclipse12       =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-rc-eclipse-0-12" % sbtRcVersion, "0.12", "2.9.2")
+  val sbtshimIdea12          =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-rc-idea-0-12" % sbtRcVersion, "0.12", "2.9.2")
   
   // TODO - Don't use a snapshot version for this...
   val sbtCompletion           = "org.scala-sbt" % "completion" % sbtSnapshotVersion

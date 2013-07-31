@@ -66,12 +66,10 @@ object TheActivatorBuild extends Build {
   
   // Helpers to let us grab necessary sbt remote control artifacts, but not actually depend on them at
   // runtime.
-  lazy val SbtRcUIConfig = config("sbtrcui")
-  lazy val SbtRcControllerConfig = config("sbtrccontroller")
-  def makeRemoteControllerClasspath(update: sbt.UpdateReport): String = {
-     val uiClasspath = update.matching(configurationFilter(SbtRcUIConfig.name))
-     val controllerClasspath = update.matching(configurationFilter(SbtRcControllerConfig.name))
-     Path.makeString(controllerClasspath ++ uiClasspath)
+  lazy val SbtProbesConfig = config("sbtprobes")
+  def makeProbeClasspath(update: sbt.UpdateReport): String = {
+     val probeClasspath = update.matching(configurationFilter(SbtProbesConfig.name))
+     Path.makeString(probeClasspath)
   }
   
   def configureSbtTest(testKey: Scoped) = Seq(
@@ -85,7 +83,7 @@ object TheActivatorBuild extends Build {
       (launcher, oldOptions, updateReport) =>
         oldOptions ++ Seq("-Dsbtrc.no-shims=true",
                           "-Dsbtrc.launch.jar=" + launcher.getAbsoluteFile.getAbsolutePath,
-                          "-Dsbtrc.controller.classpath=" + makeRemoteControllerClasspath(updateReport)) ++
+                          "-Dsbtrc.controller.classpath=" + makeProbeClasspath(updateReport)) ++
       (if (verboseSbtTests)
         Seq("-Dakka.loglevel=DEBUG",
             "-Dakka.actor.debug.autoreceive=on",
@@ -100,9 +98,10 @@ object TheActivatorBuild extends Build {
     dependsOnRemote(
       commonsIo, mimeUtil, slf4jLog4j,
       sbtLauncherInterface % "provided",
-      sbtrcParent % "compile;test->test",
-      sbtshimUiInterface % "sbtrcui->default(compile)",
-      sbtrcController % "sbtrccontroller->default(compile)"
+      sbtrcRemoteController % "compile;test->test",
+      // Here we hack our probes into the UI project.
+      sbtrcProbe12 % "sbtprobes->default(compile)",
+      sbtshimUiInterface12 % "sbtprobes->default(compile)"
     )
     dependsOn(props, uiCommon)
     settings(play.Project.playDefaultPort := 8888)
@@ -112,7 +111,7 @@ object TheActivatorBuild extends Build {
     // set up debug props for "run"
     settings(
       // Here we hack so that we can see the sbt-rc classes...
-      Keys.ivyConfigurations ++= Seq(SbtRcUIConfig, SbtRcControllerConfig),
+      Keys.ivyConfigurations ++= Seq(SbtProbesConfig),
       
       Keys.update <<= (
           SbtSupport.sbtLaunchJar,
@@ -122,7 +121,7 @@ object TheActivatorBuild extends Build {
           // We register the location after it's resolved so we have it for running play...
           sys.props("sbtrc.launch.jar") = launcher.getAbsoluteFile.getAbsolutePath
           // The debug variant of the sbt finder automatically splits the ui + controller jars appart.
-          sys.props("sbtrc.controller.classpath") = makeRemoteControllerClasspath(update)
+          sys.props("sbtrc.controller.classpath") = makeProbeClasspath(update)
           sys.props("activator.template.cache") = templateCache.getAbsolutePath
           sys.props("activator.runinsbt") = "true"
           System.err.println("Updating sbt launch jar: " + sys.props("sbtrc.launch.jar"))
@@ -166,7 +165,7 @@ object TheActivatorBuild extends Build {
   lazy val it = (
       ActivatorProject("integration-tests")
       settings(integration.settings:_*)
-      dependsOnRemote(sbtLauncherInterface, sbtIo210, sbtrcParent)
+      dependsOnRemote(sbtLauncherInterface, sbtIo210, sbtrcRemoteController)
       dependsOn(props)
       settings(
         com.typesafe.sbtidea.SbtIdeaPlugin.ideaIgnoreModule := true,
@@ -242,12 +241,12 @@ object TheActivatorBuild extends Build {
             akkaActor,
             akkaSlf4j,
             akkaTestkit,
-            sbtrcParent,
-            sbtrcController,
-            sbtshimDefaults,
-            sbtshimPlay,
-            sbtshimEclipse,
-            sbtshimIdea
+            sbtrcRemoteController,
+            sbtrcProbe12,
+            sbtshimDefaults12,
+            sbtshimPlay12,
+            sbtshimEclipse12,
+            sbtshimIdea12
         ),
       localRepoArtifacts ++=  Seq(
         playSbtPlugin,

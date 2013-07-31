@@ -89,9 +89,10 @@ class SbtTest {
       }
     }
   }
-
-  private def childTest(projectMaker: String => File, projectName: String)(assertions: JsValue => Unit): Unit = {
-    val dummy = projectMaker(projectName)
+  // TODO - test on both versions of sbt...
+  private def childTest(projectMaker: (String, String) => File, projectName: String)(assertions: JsValue => Unit): Unit = {
+    // TODO - Pull sbt version from properties or something...
+    val dummy = projectMaker(projectName, "0.12")
 
     running(FakeApplication()) {
       val appId = loadAppIdFromLocation(dummy) match {
