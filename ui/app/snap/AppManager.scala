@@ -68,11 +68,17 @@ class AppCacheActor extends Actor with ActorLogging {
       case GetApp(id) =>
         appCache.get(id) match {
           case Some(f) =>
-            f.map(GotApp(_)).pipeTo(sender)
+            log.debug(s"returning existing app from app cache for $id")
+            f map { a =>
+              log.debug(s"existing app $a terminated=${a.actor.isTerminated}")
+              GotApp(a)
+            } pipeTo sender
           case None => {
             val appFuture: Future[snap.App] = RootConfig.user.applications.find(_.id == id) match {
               case Some(config) =>
-                Promise.successful(new snap.App(config, snap.Akka.system, AppManager.sbtChildProcessMaker)).future
+                val app = new snap.App(config, snap.Akka.system, AppManager.sbtChildProcessMaker)
+                log.debug(s"creating a new app for $id, $app")
+                Promise.successful(app).future
               case whatever =>
                 Promise.failed(new RuntimeException("No such app with id: '" + id + "'")).future
             }
@@ -195,6 +201,26 @@ object AppManager {
     implicit val timeout = Akka.longTimeoutThatIsAProblem
     (appCache ? GetApp(id)).map {
       case GotApp(app) => app
+    }
+  }
+
+  // This attempts to get a new, unused app actor and fails
+  // if it can only find one that's already in use after
+  // waiting for a little while.
+  def loadNeverConnectedApp(id: String): Future[snap.App] = {
+    Akka.retryOverMilliseconds(4000) {
+      loadApp(id) flatMap { app =>
+        implicit val timeout = akka.util.Timeout(5.seconds)
+        DeathReportingProxy.ask(Akka.system, app.actor, GetWebSocketCreated) map {
+          case WebSocketCreatedReply(created) =>
+            if (created) {
+              throw new Exception(s"app already connected to $app") // trigger a retry
+            } else {
+              Logger.debug(s"app looks shiny and new! $app")
+              app
+            }
+        }
+      }
     }
   }
 
