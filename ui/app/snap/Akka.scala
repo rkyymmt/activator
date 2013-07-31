@@ -8,6 +8,7 @@ import scala.concurrent.Promise
 import scala.concurrent.duration._
 import akka.pattern._
 import play.api.libs.json.JsValue
+import scala.util.{ Try, Success, Failure }
 
 // This guy stores the Akka we use for eventing.
 object Akka {
@@ -63,6 +64,7 @@ case object DeathReportTimedOut
 class DeathReportingProxy(val delegate: ActorRef)(implicit val timeout: akka.util.Timeout) extends Actor with ActorLogging {
 
   import context.dispatcher
+  import DeathReportingProxy.Internal._
 
   var originalSender: Option[ActorRef] = None
 
@@ -70,17 +72,6 @@ class DeathReportingProxy(val delegate: ActorRef)(implicit val timeout: akka.uti
 
   context.watch(delegate)
   context.system.scheduler.scheduleOnce(timeout.duration, self, DeathReportTimedOut)
-
-  // called from any thread
-  private def completeOurMission(self: ActorRef, sender: ActorRef, message: Any): Unit = {
-    sender ! message
-    self ! PoisonPill
-  }
-
-  // called from any thread
-  private def informOfDeath(self: ActorRef, sender: ActorRef): Unit = {
-    completeOurMission(self, sender, Status.Failure(new Exception(s"actor $delegate has terminated")))
-  }
 
   override def receive = {
 
@@ -98,16 +89,14 @@ class DeathReportingProxy(val delegate: ActorRef)(implicit val timeout: akka.uti
       if (terminated) {
         informOfDeath(self, context.sender)
       } else {
-        val f = (delegate ? message)
+        val f = delegate ? message
         val proxy = self
         val sender = context.sender
         originalSender = Some(sender)
-        f onSuccess {
-          case v =>
+        f onComplete {
+          case Success(v) =>
             completeOurMission(proxy, sender, v)
-        }
-        f onFailure {
-          case e: Throwable =>
+          case Failure(e) =>
             completeOurMission(proxy, sender, Status.Failure(e))
         }
       }
@@ -120,6 +109,19 @@ object DeathReportingProxy {
   def ask(factory: ActorRefFactory, recipient: ActorRef, message: Any)(implicit timeout: akka.util.Timeout): Future[Any] = {
     val proxy = factory.actorOf(Props(new DeathReportingProxy(recipient)), name = s"deathproxy-${count.getAndIncrement()}")
     akka.pattern.ask(proxy, message)
+  }
+
+  private[DeathReportingProxy] object Internal {
+    // called from any thread
+    def completeOurMission(self: ActorRef, sender: ActorRef, message: Any): Unit = {
+      sender ! message
+      self ! PoisonPill
+    }
+
+    // called from any thread
+    def informOfDeath(self: ActorRef, sender: ActorRef): Unit = {
+      completeOurMission(self, sender, Status.Failure(new Exception(s"actor $sender has terminated")))
+    }
   }
 }
 
