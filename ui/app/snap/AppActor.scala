@@ -38,7 +38,6 @@ class AppActor(val config: AppConfig, val sbtProcessLauncher: SbtProcessLauncher
   val childFactory = new DefaultSbtProcessFactory(location, sbtProcessLauncher)
   val sbts = context.actorOf(Props(new ChildPool(childFactory)), name = "sbt-pool")
   val socket = context.actorOf(Props(new AppSocketActor()), name = "socket")
-  val watcher = context.actorOf(Props(new FileWatcher()), name = "watcher")
   val projectWatcher = context.actorOf(Props(new ProjectWatcher(location, newSourcesSocket = socket, sbtPool = sbts)),
     name = "projectWatcher")
 
@@ -48,15 +47,11 @@ class AppActor(val config: AppConfig, val sbtProcessLauncher: SbtProcessLauncher
 
   context.watch(sbts)
   context.watch(socket)
-  context.watch(watcher)
   context.watch(projectWatcher)
 
   // we can stay alive due to socket connection (and then die with the socket)
   // or else we just die after being around a short time
   context.system.scheduler.scheduleOnce(2.minutes, self, InitialTimeoutExpired)
-
-  // get file watch notifications
-  watcher ! SubscribeFileChanges(self)
 
   override val supervisorStrategy = SupervisorStrategy.stoppingStrategy
 
@@ -67,9 +62,6 @@ class AppActor(val config: AppConfig, val sbtProcessLauncher: SbtProcessLauncher
         self ! PoisonPill
       } else if (ref == socket) {
         log.info(s"socket terminated, killing AppActor ${self.path.name}")
-        self ! PoisonPill
-      } else if (ref == watcher) {
-        log.info(s"watcher terminated, killing AppActor ${self.path.name}")
         self ! PoisonPill
       } else if (ref == projectWatcher) {
         log.info(s"projectWatcher terminated, killing AppActor ${self.path.name}")
@@ -120,12 +112,7 @@ class AppActor(val config: AppConfig, val sbtProcessLauncher: SbtProcessLauncher
           ref ! ForceStop
         }
       case UpdateSourceFiles(files) =>
-        watcher ! SetFilesToWatch(files)
-    }
-
-    case event: FileWatcherEvent => event match {
-      case FilesChanged =>
-        socket ! NotifyWebSocket(JsObject(Seq("type" -> JsString("FilesChanged"))))
+        projectWatcher ! SetSourceFilesRequest(files)
     }
   }
 
