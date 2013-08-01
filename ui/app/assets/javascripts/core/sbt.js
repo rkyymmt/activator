@@ -198,7 +198,6 @@ define(['./streams', './events', './utils'], function(streams, events, utils) {
 			}
 		},
 		messageHandler: function(event) {
-			console.log("got event in TaskPromise ", event);
 			if (event.type == 'TaskComplete') {
 				if (event.response.type == 'ErrorResponse') {
 					this.fail('error', event.response.error);
