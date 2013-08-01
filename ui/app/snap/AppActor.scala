@@ -39,6 +39,8 @@ class AppActor(val config: AppConfig, val sbtProcessLauncher: SbtProcessLauncher
   val sbts = context.actorOf(Props(new ChildPool(childFactory)), name = "sbt-pool")
   val socket = context.actorOf(Props(new AppSocketActor()), name = "socket")
   val watcher = context.actorOf(Props(new FileWatcher()), name = "watcher")
+  val projectWatcher = context.actorOf(Props(new ProjectWatcher(location, newSourcesSocket = socket, sbtPool = sbts)),
+    name = "projectWatcher")
 
   var webSocketCreated = false
 
@@ -47,6 +49,7 @@ class AppActor(val config: AppConfig, val sbtProcessLauncher: SbtProcessLauncher
   context.watch(sbts)
   context.watch(socket)
   context.watch(watcher)
+  context.watch(projectWatcher)
 
   // we can stay alive due to socket connection (and then die with the socket)
   // or else we just die after being around a short time
@@ -67,6 +70,9 @@ class AppActor(val config: AppConfig, val sbtProcessLauncher: SbtProcessLauncher
         self ! PoisonPill
       } else if (ref == watcher) {
         log.info(s"watcher terminated, killing AppActor ${self.path.name}")
+        self ! PoisonPill
+      } else if (ref == projectWatcher) {
+        log.info(s"projectWatcher terminated, killing AppActor ${self.path.name}")
         self ! PoisonPill
       } else {
         tasks.find { kv => kv._2 == ref } match {
