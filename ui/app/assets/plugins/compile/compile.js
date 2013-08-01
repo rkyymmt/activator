@@ -42,7 +42,17 @@ define(['text!./compile.html', 'core/pluginapi', 'core/widgets/log', 'css!./comp
 				}
 			});
 
-			self.reloadSources(null);
+			// we generally expect to get this event on startup, which
+			// will then cause us to reload sources, which will then
+			// trigger a FilesChanged which will trigger a compile.
+			api.events.subscribe(function(event) {
+				console.log("filtering event: ", event);
+				return event.type == 'SourcesMayHaveChanged';
+			},
+			function(event) {
+				console.log("Sources may have changed, reloading the list");
+				self.reloadSources(null);
+			});
 		},
 		update: function(parameters){
 		},

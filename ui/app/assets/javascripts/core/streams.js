@@ -107,7 +107,9 @@ define(function() {
 	}
 	// Internal method to handle receiving websocket events.
 	function receiveEvent(event) {
-		console.log("WS Event: ", event.data, event);
+		// suppress LogEvent due to noisiness
+		if (event.data.indexOf('"LogEvent"') < 0)
+			console.log("WS Event: ", event.data, event);
 		var obj = JSON.parse(event.data);
 		if ('response' in obj && obj.response == 'Pong') {
 			if (pendingPing !== null) {
