@@ -10,15 +10,15 @@ import play.api.libs.json._
 
 sealed trait ProjectWatcherRequest
 case object RescanProjectRequest extends ProjectWatcherRequest
+case class SetSourceFilesRequest(files: Set[File]) extends ProjectWatcherRequest
 
 sealed trait ProjectWatcherEvent
 
 // for the actual decision to recompile, we use the list of sources
 // retrieved from the sbt build, not just everything matching a glob
 // (which is what we find here). We use a poll in this actor to find
-// added and removed files. File changes are detected elsewhere; changes
-// to the build files are found by a child actor of this one, and changes
-// to the project sources are found by a child of the app actor.
+// added and removed files. File changes are detected by the two child
+// FileWatcher actors.
 // So this actor is responsible for:
 // - telling the client-side JS to reload sources from sbt
 // - telling its child actor to change the set of sbt build sources
@@ -47,25 +47,37 @@ class ProjectWatcher(val location: File, val newSourcesSocket: ActorRef, val sbt
   }
 
   private val sbtBuildWatcher = context.actorOf(Props(new FileWatcher()), name = "sbt-build-file-watcher")
+  private val sourcesWatcher = context.actorOf(Props(new FileWatcher()), name = "sources-watcher")
 
   context.watch(sbtBuildWatcher)
   sbtBuildWatcher ! SubscribeFileChanges(self)
+  context.watch(sourcesWatcher)
+  sourcesWatcher ! SubscribeFileChanges(self)
 
   override def receive = {
-    case Terminated(ref) if ref == sbtBuildWatcher =>
-      log.debug("sbt build watcher died, so we are too")
+    case Terminated(ref) if (ref == sbtBuildWatcher || ref == sourcesWatcher) =>
+      log.debug("child watcher {} died, so we are too", ref)
       self ! PoisonPill
 
     case req: ProjectWatcherRequest =>
       req match {
         case RescanProjectRequest =>
           rescan()
+        case SetSourceFilesRequest(files) =>
+          log.debug("Setting {} source files to watch", files.size)
+          sourcesWatcher ! SetFilesToWatch(files)
       }
 
     case event: FileWatcherEvent => event match {
-      case FilesChanged =>
-        // we need to reset all our sbts
-        sbtPool ! InvalidateSbtBuild
+      case FilesChanged(source) =>
+        if (source == sourcesWatcher) {
+          newSourcesSocket ! NotifyWebSocket(JsObject(Seq("type" -> JsString("FilesChanged"))))
+        } else if (source == sbtBuildWatcher) {
+          // we need to reset all our sbts
+          sbtPool ! InvalidateSbtBuild
+        } else {
+          log.warning("Unknown files changed notification from {}", source)
+        }
     }
   }
 
@@ -118,7 +130,8 @@ class ProjectWatcher(val location: File, val newSourcesSocket: ActorRef, val sbt
       val newContents = scanAnyDir(location)
       if (newContents != files) {
         if (newContents.buildSources != files.buildSources) {
-          sbtBuildWatcher ! SetFilesToWatch(newContents.buildSources.toSet)
+          log.debug("Setting {} sbt build files to watch", newContents.buildSources.size)
+          sbtBuildWatcher ! SetFilesToWatch(newContents.buildSources)
         }
         if (newContents.projectSources != files.projectSources) {
           // notify client to reload sources to watch and pick up new files

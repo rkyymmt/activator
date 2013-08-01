@@ -13,8 +13,10 @@ case class SubscribeFileChanges(ref: ActorRef) extends FileWatcherRequest
 case class UnsubscribeFileChanges(ref: ActorRef) extends FileWatcherRequest
 case object CheckTimeoutExpired extends FileWatcherRequest
 
-sealed trait FileWatcherEvent
-case object FilesChanged extends FileWatcherEvent
+sealed trait FileWatcherEvent {
+  def source: ActorRef
+}
+case class FilesChanged(source: ActorRef) extends FileWatcherEvent
 
 class FileWatcher extends EventSourceActor with ActorLogging {
 
@@ -52,7 +54,7 @@ class FileWatcher extends EventSourceActor with ActorLogging {
         reschedule()
 
       log.debug(s"Set of files has been modified, now watching ${files.size} files")
-      emitEvent(FilesChanged)
+      emitEvent(FilesChanged(self))
     } else {
       log.debug(s"Same ${replacements.size} files sent to FileWatcher, doing nothing")
     }
@@ -73,7 +75,7 @@ class FileWatcher extends EventSourceActor with ActorLogging {
 
       if (changed) {
         log.debug("File changes detected")
-        emitEvent(FilesChanged)
+        emitEvent(FilesChanged(self))
       }
 
       reschedule()
