@@ -180,4 +180,21 @@ object Local extends Controller {
         NotAcceptable(s"failed to create: $loc: ${e.getMessage}")
     }
   }
+
+  val renameForm = Form(tuple("location" -> text, "newName" -> text))
+  def renameFile = Action { implicit request =>
+    val (location, newName) = renameForm.bindFromRequest.get
+    val loc = Platform.fromClientFriendlyFilename(location)
+    val newLoc = new File(loc.getParentFile(), newName)
+    try {
+      import sbt.IO
+      IO.move(loc, newLoc)
+      Logger.debug(s"successful rename $loc to $newLoc")
+      Ok("")
+    } catch {
+      case NonFatal(e) =>
+        Logger.debug(s"failed to rename $loc to $newLoc: ${e.getClass.getName}: ${e.getMessage}")
+        NotAcceptable(s"failed to rename: $loc to $newLoc: ${e.getMessage}")
+    }
+  }
 }
