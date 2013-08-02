@@ -1,5 +1,12 @@
 <header>
 	<nav>
+        <dl class="dropdown">
+            <dt>+</dt>
+            <dd>
+                <a data-bind="click: newFile">New file</a>
+                <a data-bind="click: newFolder">New folder</a>
+            </dd>
+        </dl>
 		<dl class="dropdown">
             <dt>Open</dt>
             <dd>
@@ -15,15 +22,6 @@
 		<p class="wrap" data-bind="foreach: parts">
 			<span class="slash">/</span><a href="#" data-bind="text: name, attr: { href: url }"></a>
 		</p>
-        <!--
-        <dl class="dropdown" todo>
-            <dt>+</dt>
-            <dd>
-                <a href="#">New file</a>
-                <a href="#">New folder</a>
-            </dd>
-        </dl>
-        -->
 	</div>
 </header>
 <p style="display:none" data-bind="visible: isEmpty">Empty folder</p>
