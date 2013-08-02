@@ -114,10 +114,8 @@ object Application extends Controller {
     Async {
       // TODO - Different results of attempting to load the application....
       Logger.debug("Loading app for /app html page")
-      // we want a never-connected app here so that before we load the main application
-      // page on a browser reload, we wait for the old socket to close and kill the
-      // old app actor.
-      AppManager.loadNeverConnectedApp(id) map { theApp =>
+      // we kill off any previous browser tab
+      AppManager.loadTakingOverApp(id) map { theApp =>
         Logger.debug(s"loaded for html page: ${theApp}")
         Ok(views.html.application(getApplicationModel(theApp)))
       } recover {
