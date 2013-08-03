@@ -8,6 +8,7 @@ import snap.Platform
 import play.api.data._
 import play.api.data.Forms._
 import play.api.Logger
+import scala.util.control.NonFatal
 
 object Local extends Controller {
 
@@ -159,5 +160,41 @@ object Local extends Controller {
       IO.move(file, loc)
     }
     Ok(content)
+  }
+
+  val createFileForm = Form(tuple("location" -> text, "isDirectory" -> boolean))
+  def createFile = Action { implicit request =>
+    val (location, isDirectory) = createFileForm.bindFromRequest.get
+    val loc = Platform.fromClientFriendlyFilename(location)
+    try {
+      import sbt.IO
+      if (isDirectory)
+        IO.createDirectory(loc)
+      else
+        IO.write(loc, "")
+      Logger.debug(s"created $loc OK")
+      Ok("")
+    } catch {
+      case NonFatal(e) =>
+        Logger.debug(s"failed to create $loc: ${e.getClass.getName}: ${e.getMessage}")
+        NotAcceptable(s"failed to create: $loc: ${e.getMessage}")
+    }
+  }
+
+  val renameForm = Form(tuple("location" -> text, "newName" -> text))
+  def renameFile = Action { implicit request =>
+    val (location, newName) = renameForm.bindFromRequest.get
+    val loc = Platform.fromClientFriendlyFilename(location)
+    val newLoc = new File(loc.getParentFile(), newName)
+    try {
+      import sbt.IO
+      IO.move(loc, newLoc)
+      Logger.debug(s"successful rename $loc to $newLoc")
+      Ok("")
+    } catch {
+      case NonFatal(e) =>
+        Logger.debug(s"failed to rename $loc to $newLoc: ${e.getClass.getName}: ${e.getMessage}")
+        NotAcceptable(s"failed to rename: $loc to $newLoc: ${e.getMessage}")
+    }
   }
 }

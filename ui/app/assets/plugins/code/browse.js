@@ -13,6 +13,18 @@ define(['text!./browse.html', 'core/pluginapi'], function(template, api) {
 		});
 	}
 
+	function create(location, isDirectory) {
+		return $.ajax({
+			url: '/api/local/create',
+			type: 'PUT',
+			dataType: 'text',
+			data: {
+				location: location,
+				isDirectory: isDirectory
+			}
+		});
+	}
+
 	var Browser = api.Class(api.Widget, {
 		id: 'code-browser-view',
 		template: template,
@@ -65,6 +77,35 @@ define(['text!./browse.html', 'core/pluginapi'], function(template, api) {
 				console.log('Failed to open directory in browser: ', err)
 				alert('Failed to open directory.  This may be unsupported by your system.');
 			});
+		},
+		newSomething: function(isDirectory) {
+			var self = this;
+			var message;
+			if (isDirectory)
+				message = 'Name of folder to create:';
+			else
+				message = 'Name of file to create:';
+			var name = window.prompt(message);
+			if (typeof(name) == 'string' && name.length > 0) {
+				var full = this.directory().location + "/" + name;
+				console.log('Creating file or folder: ', full);
+				create(full, isDirectory).done(function () {
+					console.log('Success creating file or folder');
+					// reload (since we don't watch for changes...)
+					self.directory().loadInfo();
+				}).fail(function(err) {
+					console.log('Failed to create: ', err);
+					alert(err.responseText);
+				});
+			} else {
+				console.log('No name entered, got: ', name)
+			}
+		},
+		newFile: function() {
+			this.newSomething(false /* isDirectory */);
+		},
+		newFolder: function() {
+			this.newSomething(true /* isDirectory */);
 		}
 	});
 	return Browser;

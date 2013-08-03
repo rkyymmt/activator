@@ -206,17 +206,18 @@ object AppManager {
     }
   }
 
-  // This attempts to get a new, unused app actor and fails
-  // if it can only find one that's already in use after
-  // waiting for a little while.
-  def loadNeverConnectedApp(id: String): Future[snap.App] = {
+  // If the app actor is already in use, disconnect
+  // it and make a new one.
+  def loadTakingOverApp(id: String): Future[snap.App] = {
     Akka.retryOverMilliseconds(4000) {
       loadApp(id) flatMap { app =>
         implicit val timeout = akka.util.Timeout(5.seconds)
         DeathReportingProxy.ask(Akka.system, app.actor, GetWebSocketCreated) map {
           case WebSocketCreatedReply(created) =>
             if (created) {
-              throw new Exception(s"app already connected to $app") // trigger a retry
+              Logger.debug(s"browser tab already connected to $app, disconnecting it")
+              app.actor ! PoisonPill
+              throw new Exception("retry after killing app actor")
             } else {
               Logger.debug(s"app looks shiny and new! $app")
               app
