@@ -89,6 +89,12 @@ define(['core/pluginapi'], function(api) {
 			if (typeof(config.reloadParent) == 'function') {
 				self.reloadParent = config.reloadParent;
 			}
+			self.editClass = ko.computed(function() {
+				if (self.editing())
+					return "active-filename-editor";
+				else
+					return null;
+			});
 		},
 		reloadParent: function() {
 			// no-op default, usually overridden except for root dir
@@ -206,6 +212,8 @@ define(['core/pluginapi'], function(api) {
 		startEditing: function() {
 			this.editingText(this.name());
 			this.editing(true);
+			// select the name for replacement
+			$("." + this.editClass()).select();
 		},
 		onEditingChanged: function(newValue) {
 			var self = this;
