@@ -27,6 +27,7 @@ PUT     /api/local/save             controllers.api.Local.save
 GET     /api/local/open             controllers.api.Local.open(location)
 PUT     /api/local/create           controllers.api.Local.createFile
 PUT     /api/local/rename           controllers.api.Local.renameFile
+PUT     /api/local/delete           controllers.api.Local.deleteFile
 
 # Events API
 GET     /api/event/stream           controllers.api.Events.eventSource

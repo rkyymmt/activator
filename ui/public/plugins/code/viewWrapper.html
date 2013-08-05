@@ -1,6 +1,7 @@
 <!-- ko if: isFile() -->
 <header>
 	<nav>
+	    <button class="delete" data-bind="click: deleteFile">delete</button>
 		<button class="revert" data-bind="click: subView().load, enable: subView().isDirty">revert</button>
 		<button class="save" data-bind="click: subView().save, enable: subView().isDirty">save</button>
 	</nav>

@@ -12,6 +12,16 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 		});
 	}
 
+	function deleteFile(location) {
+		return $.ajax({
+			url: '/api/local/delete',
+			type: 'PUT',
+			data: {
+				location: location
+			}
+		});
+	}
+
 	// Default view for when we don't know which other to use.
 	var DefaultView = api.Class(api.Widget, {
 		id: 'code-default-view',
@@ -91,6 +101,19 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 		},
 		scrollToLine: function(line) {
 			this.subView().scrollToLine(line);
+		},
+		deleteFile: function() {
+			var self = this;
+			var result = window.confirm('Delete "' + self.file().name() + '"?');
+			if (result) {
+				deleteFile(self.file().location).done(function() {
+					console.log("deleted OK");
+					self.file().reloadParent();
+				}).fail(function(err) {
+					console.log("Failed to delete file: ", err);
+					alert('Failed to delete file: ' + err.responseText);
+				});
+			}
 		}
 	});
 
