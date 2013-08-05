@@ -197,4 +197,20 @@ object Local extends Controller {
         NotAcceptable(s"failed to rename: $loc to $newLoc: ${e.getMessage}")
     }
   }
+
+  val deleteForm = Form("location" -> text)
+  def deleteFile = Action { implicit request =>
+    val location = deleteForm.bindFromRequest.get
+    val loc = Platform.fromClientFriendlyFilename(location)
+    try {
+      import sbt.IO
+      IO.delete(loc)
+      Logger.debug(s"successful delete of $loc")
+      Ok("")
+    } catch {
+      case NonFatal(e) =>
+        Logger.debug(s"failed to delete $loc: ${e.getClass.getName}: ${e.getMessage}")
+        NotAcceptable(s"failed to delete '$loc': ${e.getMessage}")
+    }
+  }
 }
