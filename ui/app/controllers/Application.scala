@@ -33,7 +33,6 @@ case class ApplicationModel(
 
 case class HomeModel(
   userHome: String,
-  acceptedLicense: Boolean,
   templates: Seq[TemplateMetadata],
   otherTemplateCount: Long,
   recentApps: Seq[AppConfig])
@@ -82,7 +81,6 @@ object Application extends Controller {
     val config = RootConfig.user
     HomeModel(
       userHome = ActivatorProperties.GLOBAL_USER_HOME,
-      acceptedLicense = config.acceptedLicense,
       templates = featured,
       otherTemplateCount = tempSeq.length,
       recentApps = config.applications)

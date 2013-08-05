@@ -31,11 +31,9 @@ object AppConfig {
   }
 }
 
-case class RootConfig(applications: Seq[AppConfig], acceptedLicense: Boolean) {
+case class RootConfig(applications: Seq[AppConfig]) {
   def toJson: JsObject = {
-    JsObject(Seq(
-      "applications" -> JsArray(applications.map(_.toJson)),
-      "acceptedLicense" -> JsBoolean(acceptedLicense)))
+    JsObject(Seq("applications" -> JsArray(applications.map(_.toJson))))
   }
 }
 
@@ -50,12 +48,7 @@ object RootConfig {
       case whatever =>
         Nil
     }
-    val acceptedLicense = json \ ("acceptedLicense") match {
-      case JsBoolean(value) => value
-      // For backwards compatibility, assume no value = false.
-      case _ => false
-    }
-    RootConfig(applications, acceptedLicense)
+    RootConfig(applications)
   }
 
   private def loadUser = ConfigFile(new File(ACTIVATOR_USER_HOME(), "config.json"))
