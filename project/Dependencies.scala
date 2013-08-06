@@ -72,7 +72,7 @@ object Dependencies {
   val requirejs        = "org.webjars" % "requirejs" % "2.1.8"
   val jquery           = "org.webjars" % "jquery" % "2.0.3"
   val knockout         = "org.webjars" % "knockout" % "2.2.1"
-  val ace              = "org.webjars" % "ace" % "04.09.2013"
+  val ace              = "org.webjars" % "ace" % "07.31.2013"
   val requireCss       = "org.webjars" % "require-css" % "0.0.7-3"
   val requireText      = "org.webjars" % "requirejs-text" % "2.0.10"
   val keymage          = "org.webjars" % "keymage" % "1.0.1"
