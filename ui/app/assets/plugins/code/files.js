@@ -112,6 +112,8 @@ define(['core/pluginapi'], function(api) {
 			});
 			return self;
 		},
+		// note that 'config' may not contain all fields,
+		// in which case they should be left alone
 		updateWith: function(config) {
 			var self = this;
 			if(config.name) self.name(config.name);
@@ -120,41 +122,43 @@ define(['core/pluginapi'], function(api) {
 			if(config.isDirectory) self.isDirectory(config.isDirectory);
 			if(config.type) self.type(config.type);
 
-			// we build up the new child list in a temp array
-			// so we aren't constantly updating the UI as we
-			// fill in the list.
-			var newChildren = [];
-			var children = self.childLookup();
-			var newLookup = {};
-			$.each(config.children || [], function(idx, childConfig) {
-				if (children[childConfig.name]) {
-					children[childConfig.name].updateWith(childConfig);
-					newLookup[childConfig.name] = children[childConfig.name];
-				} else {
-					childConfig.reloadParent = self.reloadSelf;
-					var f = new FileModel(childConfig);
-					newChildren.push(f);
-					newLookup[childConfig.name] = f;
-				}
-			});
-
-			var oldChildren = self.children();
-			var withoutRemovedChildren = $.grep(oldChildren, function(child, idx) {
-				return (child.name() in newLookup);
-			});
-
-			if (newChildren.length > 0 || (withoutRemovedChildren.length < oldChildren.length)) {
-				var allChildren = withoutRemovedChildren.concat(newChildren);
-				allChildren.sort(function(a, b) {
-					if (a.isDirectory() && !b.isDirectory())
-						return -1;
-					else if (!a.isDirectory() && b.isDirectory())
-						return 1;
-					else
-						return a.name().localeCompare(b.name());
+			if ('children' in config) {
+				// we build up the new child list in a temp array
+				// so we aren't constantly updating the UI as we
+				// fill in the list.
+				var newChildren = [];
+				var children = self.childLookup();
+				var newLookup = {};
+				$.each(config.children || [], function(idx, childConfig) {
+					if (children[childConfig.name]) {
+						children[childConfig.name].updateWith(childConfig);
+						newLookup[childConfig.name] = children[childConfig.name];
+					} else {
+						childConfig.reloadParent = self.reloadSelf;
+						var f = new FileModel(childConfig);
+						newChildren.push(f);
+						newLookup[childConfig.name] = f;
+					}
 				});
-				// load all children to the UI at once.
-				self.children(allChildren);
+
+				var oldChildren = self.children();
+				var withoutRemovedChildren = $.grep(oldChildren, function(child, idx) {
+					return (child.name() in newLookup);
+				});
+
+				if (newChildren.length > 0 || (withoutRemovedChildren.length < oldChildren.length)) {
+					var allChildren = withoutRemovedChildren.concat(newChildren);
+					allChildren.sort(function(a, b) {
+						if (a.isDirectory() && !b.isDirectory())
+							return -1;
+						else if (!a.isDirectory() && b.isDirectory())
+							return 1;
+						else
+							return a.name().localeCompare(b.name());
+					});
+					// load all children to the UI at once.
+					self.children(allChildren);
+				}
 			}
 		},
 		loadContents: function() {
