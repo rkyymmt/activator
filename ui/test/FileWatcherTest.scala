@@ -45,7 +45,7 @@ class FileWatcherTest {
             // (does not on Linux)
             source.setLastModified(old + 1000)
             changeObserver = Some(sender)
-          case snap.FilesChanged =>
+          case snap.FilesChanged(ref) =>
             changeObserver.foreach(_ ! "changed")
         }
       }));
