@@ -67,6 +67,15 @@ object Dependencies {
   val luceneQueryParser = "org.apache.lucene" % "lucene-queryparser" % luceneVersion
 
   
+  // WebJars for the Activator UI
+  val webjarsPlay3     = "org.webjars" %% "webjars-play" % "2.1.0-3"
+  val requirejs        = "org.webjars" % "requirejs" % "2.1.8"
+  val jquery           = "org.webjars" % "jquery" % "2.0.3"
+  val knockout         = "org.webjars" % "knockout" % "2.2.1"
+  val ace              = "org.webjars" % "ace" % "04.09.2013"
+  val requireCss       = "org.webjars" % "require-css" % "0.0.7-3"
+  val requireText      = "org.webjars" % "requirejs-text" % "2.0.10"
+  val keymage          = "org.webjars" % "keymage" % "1.0.1"
   
   
   // Dependencies that only show up in the local repository, and aren't automatically resolved for some reason:
@@ -82,7 +91,7 @@ object Dependencies {
   // Used in Templates
   val playJava = "play" % "play-java_2.10" % playVersion
   val scalatest = "org.scalatest" % "scalatest_2.10" % "1.9.1"
-  val webjars = "org.webjars" % "webjars-play" % "2.1.0-1"
+  val webjarsPlay1 = "org.webjars" % "webjars-play" % "2.1.0-1"
   val webjarsBootstrap = "org.webjars" % "bootstrap" % "2.3.1"
   val webjarsFlot = "org.webjars" % "flot" % "0.8.0"
   val webjarsPlay = "org.webjars" % "webjars-play" % "2.1.0"

@@ -16,6 +16,7 @@
 		<title>Typesafe Activator</title>
 		<script type="text/javascript">
 		window.wsUrl = '@routes.Application.connectApp(model.id).webSocketURL()';
+        // todo: use Play JSON to do this
 		window.serverAppModel = {
       name: @Html(jsEscape(model.name)),
       id: @Html(jsEscape(model.id)),
@@ -30,8 +31,7 @@
       }
     };
 		</script>
-		<script data-main="/public/javascripts/bootstrap.js" type="text/javascript" src="/public/javascripts/vendors/require.min.js"></script>
-		<script type="text/javascript" src="/public/javascripts/application.js"></script>
+		<script data-main='@routes.Assets.at("javascripts/application.js")' type='text/javascript' src='@routes.WebJarAssets.requirejs()'></script>
 		<link rel="stylesheet" media="screen" href="/public/stylesheets/main.css">
 		<link rel="shortcut icon" type="image/png" href="/public/images/favicon.png">
 

@@ -8,8 +8,7 @@
 		<script type="text/javascript">
 			window.wsUrl = '@routes.Application.homeStream.webSocketURL()';
 		</script>
-		<script data-main="/public/javascripts/bootstrap.js" type="text/javascript" src="/public/javascripts/vendors/require.min.js"></script>
-		<script type="text/javascript" src="/public/javascripts/home.js"></script>
+		<script data-main='@routes.Assets.at("javascripts/home.js")' type='text/javascript' src='@routes.WebJarAssets.requirejs()'></script>
 		<link rel="stylesheet" media="screen" href="/public/stylesheets/home.css">
 		<link rel="shortcut icon" type="image/png" href="/public/images/favicon.png">
 		<script>

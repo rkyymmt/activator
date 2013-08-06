@@ -1,4 +1,4 @@
-define(['text!./log.html', 'vendors/knockout-2.2.1.debug', 'core/widget', 'core/utils', 'core/markers'], function(template, ko, Widget, utils, markers){
+define(['text!./log.html', 'webjars!knockout', 'core/widget', 'core/utils', 'core/markers'], function(template, ko, Widget, utils, markers){
 
 	// TODO we should move both the ANSI stripping and the heuristic
 	// parseLogLevel to the server side. We could also use

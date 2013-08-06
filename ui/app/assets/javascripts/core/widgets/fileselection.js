@@ -1,4 +1,4 @@
-define(['css!./fileselection.css', 'text!./fileselection.html', 'vendors/knockout-2.2.1.debug', 'core/widget', 'core/utils'], function(css, template, ko, Widget, utils) {
+define(['css!./fileselection.css', 'text!./fileselection.html', 'webjars!knockout', 'core/widget', 'core/utils'], function(css, template, ko, Widget, utils) {
 
 	function browse(location) {
 		return $.ajax({

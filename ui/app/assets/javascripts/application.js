@@ -1,11 +1,25 @@
+require.config({
+	baseUrl:	'/public',
+	// hack for now due to problem loading plugin loaders from a plugin loader
+	map: {
+		'*': {
+			'css': '../../webjars/require-css/0.0.7/css',
+			'text': '../../webjars/requirejs-text/2.0.10/text'
+		}
+	},
+	paths: {
+		core:		'javascripts/core',
+		plugins:	'plugins'
+	}
+});
+
 require([
 	// Vendors
-	'vendors/text',
-	'vendors/css',
-	'vendors/jquery-2.0.0b1',
-	'vendors/chain',
-	'vendors/keymage.min',
-	'vendors/knockout-2.2.1.debug'
+	'../../webjars/requirejs-text/2.0.10/text',
+	'../../webjars/require-css/0.0.7/css',
+	'webjars!jquery',
+	'webjars!knockout',
+	'webjars!keymage'
 ],function() {
 	require(['core/templates'], function() {
 	require([

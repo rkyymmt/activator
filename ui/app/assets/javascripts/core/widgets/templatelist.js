@@ -1,4 +1,4 @@
-define(['text!./templatelist.html', 'vendors/knockout-2.2.1.debug', 'core/widget', 'core/utils'], function(template, ko, Widget, utils) {
+define(['text!./templatelist.html', 'webjars!knockout', 'core/widget', 'core/utils'], function(template, ko, Widget, utils) {
 
 	function getlist() {
 		return $.ajax({

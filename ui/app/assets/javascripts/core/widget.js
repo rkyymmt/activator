@@ -1,4 +1,4 @@
-define(['vendors/knockout-2.2.1.debug','./utils', './templates'], function(ko, utils, templates) {
+define(['webjars!knockout','./utils', './templates'], function(ko, utils, templates) {
 
 // base class for widgets, with convenience.
 //All widget classes should support the following static fields:

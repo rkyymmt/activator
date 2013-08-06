@@ -1,7 +1,7 @@
 define([
-	'vendors/knockout-2.2.1.debug',
+	'webjars!knockout',
 	'./sbt',
-	'vendors/keymage.min',
+	'webjars!keymage',
 	'./utils',
 	'./events',
 	'./widget',
