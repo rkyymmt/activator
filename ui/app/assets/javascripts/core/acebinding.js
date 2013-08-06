@@ -1,6 +1,6 @@
 define([
-	'vendors/knockout-2.2.1.debug',
-	'vendors/ace/ace',
+	'webjars!knockout',
+	'webjars!ace',
 	'./markers'],
 	function(ko, ignore_ace, markers) {
 

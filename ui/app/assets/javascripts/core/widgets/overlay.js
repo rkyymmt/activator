@@ -1,4 +1,4 @@
-define(['css!./overlay.css', 'text!./overlay.html', 'vendors/knockout-2.2.1.debug', 'core/widget', 'core/utils'], function(css, template, ko, Widget, utils){
+define(['css!./overlay.css', 'text!./overlay.html', 'webjars!knockout', 'core/widget', 'core/utils'], function(css, template, ko, Widget, utils){
 
 	var Overlay = utils.Class(Widget, {
 		id: 'overlay-widget',

@@ -4,44 +4,46 @@
 # TODO: Do we need the Builder ABI version in the URL?
 
 # Templates
-GET     /api/templates/list                     controllers.api.Templates.list
-POST    /api/templates/clone                    controllers.api.Templates.cloneTemplate
-GET     /api/templates/:id/tutorial/*location	controllers.api.Templates.tutorial(id, location)
+GET         /api/templates/list                          controllers.api.Templates.list
+POST        /api/templates/clone                         controllers.api.Templates.cloneTemplate
+GET         /api/templates/:id/tutorial/*location        controllers.api.Templates.tutorial(id, location)
 
 # Operations on an app
 # TODO: Should these take the app location as a request parameter?
-GET     /api/app/history            controllers.Application.getHistory
-GET     /api/app/connect/*id        controllers.Application.connectApp(id)
+GET         /api/app/history                             controllers.Application.getHistory
+GET         /api/app/connect/*id                         controllers.Application.connectApp(id)
 
 # sbt things
-POST    /api/sbt/task               controllers.api.Sbt.task
-POST    /api/sbt/killTask           controllers.api.Sbt.killTask
-POST    /api/sbt/watchSources       controllers.api.Sbt.watchSources
+POST        /api/sbt/task                                controllers.api.Sbt.task
+POST        /api/sbt/killTask                            controllers.api.Sbt.killTask
+POST        /api/sbt/watchSources                        controllers.api.Sbt.watchSources
 
 # Local system operations
-GET     /api/local/env              controllers.api.Local.getEnv
-GET     /api/local/browse           controllers.api.Local.browse(location)
-GET     /api/local/browseRoots      controllers.api.Local.browseRoots
-GET     /api/local/show             controllers.api.Local.show(location)
-PUT     /api/local/save             controllers.api.Local.save
-GET     /api/local/open             controllers.api.Local.open(location)
-PUT     /api/local/create           controllers.api.Local.createFile
-PUT     /api/local/rename           controllers.api.Local.renameFile
-PUT     /api/local/delete           controllers.api.Local.deleteFile
+GET         /api/local/env                               controllers.api.Local.getEnv
+GET         /api/local/browse                            controllers.api.Local.browse(location)
+GET         /api/local/browseRoots                       controllers.api.Local.browseRoots
+GET         /api/local/show                              controllers.api.Local.show(location)
+PUT         /api/local/save                              controllers.api.Local.save
+GET         /api/local/open                              controllers.api.Local.open(location)
+PUT         /api/local/create                            controllers.api.Local.createFile
+PUT         /api/local/rename                            controllers.api.Local.renameFile
+PUT         /api/local/delete                            controllers.api.Local.deleteFile
 
 # Events API
-GET     /api/event/stream           controllers.api.Events.eventSource
-GET     /api/event/test             controllers.api.Events.test
-GET     /api/event/kill             controllers.api.Events.kill
+GET         /api/event/stream                            controllers.api.Events.eventSource
+GET         /api/event/test                              controllers.api.Events.test
+GET         /api/event/kill                              controllers.api.Events.kill
 
 # Base flow ->  Select Template -> Running Application.
-GET     /                            controllers.Application.index
-GET     /home                        controllers.Application.forceHome
-GET     /test                        controllers.Application.test
-GET     /app/:id                     controllers.Application.redirectToApp(id)
-GET     /app/:id/                    controllers.Application.app(id)
-GET     /app/:id/tutorial/*location  controllers.Application.appTutorialFile(id, location)
-GET     /home/stream                 controllers.Application.homeStream
+GET         /                                            controllers.Application.index
+GET         /home                                        controllers.Application.forceHome
+GET         /test                                        controllers.Application.test
+GET         /app/:id                                     controllers.Application.redirectToApp(id)
+GET         /app/:id/                                    controllers.Application.app(id)
+GET         /app/:id/tutorial/*location                  controllers.Application.appTutorialFile(id, location)
+GET         /home/stream                                 controllers.Application.homeStream
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /public/*file               controllers.Assets.at(path="/public", file)
+GET         /public/*file                                controllers.Assets.at(path="/public", file)
+GET         /webjars/requirejs-loader.js                 controllers.WebJarAssets.requirejs
+GET         /webjars/*file                               controllers.WebJarAssets.at(file)

@@ -96,6 +96,7 @@ object TheActivatorBuild extends Build {
   lazy val ui = (
     ActivatorPlayProject("ui")
     dependsOnRemote(
+      webjarsPlay3, requirejs, jquery, knockout, ace, requireCss, requireText, keymage,
       commonsIo, mimeUtil, slf4jLog4j,
       sbtLauncherInterface % "provided",
       sbtrcRemoteController % "compile;test->test",
@@ -112,7 +113,6 @@ object TheActivatorBuild extends Build {
     settings(
       // Here we hack so that we can see the sbt-rc classes...
       Keys.ivyConfigurations ++= Seq(SbtProbesConfig),
-      
       Keys.update <<= (
           SbtSupport.sbtLaunchJar,
           Keys.update,
@@ -216,11 +216,11 @@ object TheActivatorBuild extends Build {
             // USED BY templates. TODO - autofind these
             playJava,
             scalatest,
-            webjars,
+            webjarsPlay,
             webjarsBootstrap,
             //"org.webjars" % "bootstrap" % "2.1.1",
             webjarsFlot,
-            webjarsPlay,
+            webjarsPlay1,
             // WTF ANORM?
             "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.2.1",
             "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.1.2",

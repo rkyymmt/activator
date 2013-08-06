@@ -1,5 +1,5 @@
 // track annotations for files where both editors and logs can see them
-define(['vendors/knockout-2.2.1.debug'], function(ko) {
+define(['webjars!knockout'], function(ko) {
 
 	// { filename : [ { owner: ownerId, line: line, kind: kind, message: message } ] }
 	var fileMarkers = {};
