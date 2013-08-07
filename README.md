@@ -1,8 +1,10 @@
-# Activator
+# Typesafe Activator
 
 This project aims to be the snappiest snaptastic snapster you've every snapping laid eyes on!  And by that, we mean it builds stuff.
 
-# How to build
+For more information on using Activator, visit: [http://typesafe.com/activator](http://typesafe.com/activator)
+
+# Activator Developer Documentation
 
 This project uses [SBT 0.12](http://scala-sbt.org).   Make sure you have an SBT launcher, and run it in the checked out directory.
 
