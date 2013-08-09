@@ -200,59 +200,47 @@ object TheActivatorBuild extends Build {
       localRepoArtifacts <++= (publishedProjects.toSeq map { ref =>
         (Keys.projectID in ref) apply { id => id }
       }).join,
-      localRepoArtifacts ++=
-        Seq("org.scala-sbt" % "sbt" % Dependencies.sbtVersion,
-            // For some reason, these are not resolving transitively correctly!
-            "org.scala-lang" % "scala-compiler" % Dependencies.sbtPluginScalaVersion,
-            "org.scala-lang" % "scala-compiler" % Dependencies.scalaVersion,
-            // TODO - Why do we have to specify these?
-            jna,
-            jline,
-            jsch,
-            commonsCodec,
-            commonsHttpClient,
-            guava,
-            xmlApis,
-            // USED BY templates. TODO - autofind these
-            playJava,
-            scalatest,
-            webjarsPlay,
-            webjarsBootstrap,
-            //"org.webjars" % "bootstrap" % "2.1.1",
-            webjarsFlot,
-            webjarsPlay1,
-            // WTF ANORM?
-            "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.2.1",
-            "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.1.2",
-            "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.1.1",
-            "org.avaje.ebeanorm" % "avaje-ebeanorm-agent" % "3.1.1",
-            "org.avaje.ebeanorm" % "avaje-ebeanorm-agent" % "3.2.1",
-            
-            "junit" % "junit" % "3.8.1",
-            "junit" % "junit-dep" % "4.8.2",
-            "junit" % "junit" % "4.11",
-            "com.novocode" % "junit-interface" % "0.7",
-            
-            // Hipster akka required for the Java API.
-            // Remove when we consolidate akka versions.
-            "com.typesafe.akka" % "akka-actor_2.10" % "2.2-M3",
-            "com.typesafe.akka" % "akka-testkit_2.10" % "2.2-M3",
-            // Regular akka for normal folks
-            akkaActor,
-            akkaSlf4j,
-            akkaTestkit,
-            sbtrcRemoteController,
-            sbtrcProbe12,
-            sbtshimDefaults12,
-            sbtshimPlay12,
-            sbtshimEclipse12,
-            sbtshimIdea12
-        ),
-      localRepoArtifacts ++=  Seq(
+      localRepoArtifacts ++= Seq(
+        
+        // base dependencies
+        "org.scala-sbt" % "sbt" % Dependencies.sbtVersion,
+        "org.scala-lang" % "scala-compiler" % Dependencies.sbtPluginScalaVersion,
+        "org.scala-lang" % "scala-compiler" % Dependencies.scalaVersion,
+      
+        // sbt stuff
+        sbtrcRemoteController,
+        sbtrcProbe12,
+        sbtshimDefaults12,
+        sbtshimPlay12,
+        sbtshimEclipse12,
+        sbtshimIdea12,
+  
+        // sbt plugins
         playSbtPlugin,
         eclipseSbtPlugin,
         ideaSbtPlugin,
-        pgpPlugin
+        pgpPlugin,
+  
+  
+        // featured template deps
+        // note: do not use %% here
+        "org.scalatest" % "scalatest_2.10" % "1.9.1",
+        "com.typesafe.akka" % "akka-actor_2.10" % "2.2.0",
+        "com.typesafe.akka" % "akka-testkit_2.10" % "2.2.0",
+        "org.scalatest" % "scalatest_2.10" % "1.9.1",
+        "junit" % "junit" % "4.11",
+        "com.novocode" % "junit-interface" % "0.7",
+        "org.webjars" % "webjars-play_2.10" % "2.1.0-3",
+        "org.webjars" % "bootstrap" % "2.3.1",
+        "org.webjars" % "flot" % "0.8.0",
+        "play" % "play-java_2.10" % "2.1.3",
+        "play" % "play-test_2.10" % "2.1.3",
+      
+        // failed transatives
+        "junit" % "junit" % "3.8.1",
+        "com.jcraft" % "jsch" % "0.1.44-1",
+        "jline" % "jline" % "0.9.94",
+        "com.typesafe.akka" % "akka-slf4j_2.10" % "2.2.0"
       ),
       Keys.mappings in S3.upload <<= (Keys.packageBin in Universal, Keys.version) map { (zip, v) =>
         Seq(zip -> ("typesafe-activator/%s/typesafe-activator-%s.zip" format (v, v)))

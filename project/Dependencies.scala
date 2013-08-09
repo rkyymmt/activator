@@ -3,15 +3,15 @@ import PlayProject._
 import Keys._
 
 object Dependencies {
-  val sbtVersion = "0.12.4-RC2"
+  val sbtVersion = "0.12.4"
   val sbtPluginVersion = "0.12"
   val sbtPluginScalaVersion = "2.9.2"
-  val scalaVersion = "2.10.1"
+  val scalaVersion = "2.10.2"
   val sbtSnapshotVersion = "0.13.0-RC1"
   val luceneVersion = "4.2.1"
   val templateCacheVersion = "0.2.0"
   val sbtRcVersion = "0.2.0"
-  val playVersion = "2.1.1"
+  val playVersion = "2.1.3"
   val akkaVersion = "2.1.2"
 
   val activatorCommon      = "com.typesafe.activator" % "activator-common" % templateCacheVersion
@@ -76,25 +76,7 @@ object Dependencies {
   val requireCss       = "org.webjars" % "require-css" % "0.0.7-3"
   val requireText      = "org.webjars" % "requirejs-text" % "2.0.10"
   val keymage          = "org.webjars" % "keymage" % "1.0.1"
-  
-  
-  // Dependencies that only show up in the local repository, and aren't automatically resolved for some reason:
-  val jna = "net.java.dev.jna" % "jna" % "3.2.3"
-  val jline = "jline" % "jline" % "0.9.94"
-  val jsch = "com.jcraft" % "jsch" % "0.1.44-1"
-  val commonsCodec = "commons-codec" % "commons-codec" % "1.3"
-  val commonsHttpClient = "org.apache.httpcomponents" % "httpclient" % "4.0.1"
-  val guava = "com.google.guava" % "guava" % "11.0.2"
-  val xmlApis = "xml-apis" % "xml-apis" % "1.0.b2"
-  
-  
-  // Used in Templates
-  val playJava = "play" % "play-java_2.10" % playVersion
-  val scalatest = "org.scalatest" % "scalatest_2.10" % "1.9.1"
-  val webjarsPlay1 = "org.webjars" % "webjars-play" % "2.1.0-1"
-  val webjarsBootstrap = "org.webjars" % "bootstrap" % "2.3.1"
-  val webjarsFlot = "org.webjars" % "flot" % "0.8.0"
-  val webjarsPlay = "org.webjars" % "webjars-play" % "2.1.0"
+
   
   // Mini DSL
   // DSL for adding remote deps like local deps.
