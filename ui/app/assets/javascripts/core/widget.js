@@ -50,6 +50,16 @@ ko.bindingHandlers.snapView = {
 		update: function(element, valueAccessor) {
 			// TODO - figure out if we need to unwrap, rather than trust we don't
 			var widget = valueAccessor();
+
+			// without this optimization, we constantly re-render huge templates
+			// such as all the log lines. Surely this is a hack and the wrong fix,
+			// but not sure how to do it properly. Why is knockout calling
+			// update() when the observable's value is unchanged?
+			if ('__oldElem' in widget && element === widget.__oldElem) {
+				return;
+			}
+			widget.__oldElem = element;
+
 			// TODO - Find a way to load in replace children vs. replace element mode, and
 			// get rid of snapViewReplace binding.
 			var opts = {
@@ -59,7 +69,7 @@ ko.bindingHandlers.snapView = {
 		}
 };
 
-// This guy has the template replace the element, rather than embedd inside the children.
+// This guy has the template replace the element, rather than embed inside the children.
 ko.bindingHandlers.snapViewReplace = {
 		init: function(element, valueAccessor) {
 			return { 'controlsDescendantBindings': true };
