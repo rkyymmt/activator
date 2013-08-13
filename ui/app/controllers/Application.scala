@@ -6,7 +6,7 @@ import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.libs.json.{ JsString, JsObject, JsArray, JsNumber, JsValue }
+import play.api.libs.json._
 import snap.{ RootConfig, AppConfig, AppManager, Platform, DeathReportingProxy }
 import activator.ProcessResult
 import activator.cache.TemplateMetadata
@@ -20,6 +20,9 @@ import play.api.Mode
 import akka.pattern._
 import snap.CloseWebSocket
 import java.util.concurrent.atomic.AtomicInteger
+import play.api.libs.json.JsArray
+import scala.Some
+import activator.cache.TemplateMetadata
 
 case class ApplicationModel(
   id: String,
@@ -29,6 +32,10 @@ case class ApplicationModel(
   template: Option[String],
   recentApps: Seq[AppConfig],
   hasLocalTutorial: Boolean) {
+}
+
+object ApplicationModel {
+  implicit val writes = Json.writes[ApplicationModel]
 }
 
 case class HomeModel(
@@ -47,8 +54,6 @@ case class FromLocationForm(location: String)
 
 // Here is where we detect if we're running at a given project...
 object Application extends Controller {
-
-  def jsEscape(s: String): String = "\"" + org.apache.commons.lang3.StringEscapeUtils.escapeEcmaScript(s) + "\""
 
   /**
    * Our index page.  Either we load an app from the CWD, or we direct
@@ -173,7 +178,7 @@ object Application extends Controller {
 
   /** List all the applications in our history as JSON. */
   def getHistory = Action { request =>
-    Ok(JsArray(RootConfig.user.applications.map(_.toJson)))
+    Ok(Json.toJson(RootConfig.user.applications))
   }
 
   /**

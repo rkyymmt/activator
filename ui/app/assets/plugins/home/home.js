@@ -5,7 +5,7 @@ define(['text!./home.html', 'css!./home.css', 'core/pluginapi' ], function(templ
 	var homePage = api.PluginWidget({
 		id: 'home-page-screen',
 		template: template,
-		appVersion: window.serverAppModel.appVersion,
+		appVersion: window.serverAppVersion,
 		init: function(config) {
 			var self = this;
 			self.newsHtml = ko.observable('<div></div>');
@@ -13,7 +13,7 @@ define(['text!./home.html', 'css!./home.css', 'core/pluginapi' ], function(templ
 		},
 		loadNews: function() {
 			var areq = {
-					url: "http://downloads.typesafe.com/typesafe-activator/" + window.serverAppModel.appVersion + "/news.js",
+					url: "http://downloads.typesafe.com/typesafe-activator/" + window.serverAppVersion + "/news.js",
 					type: 'GET',
 					// this is hardcoded for now since our server is just static files
 					// so can't respect a ?callback= query param.

@@ -1,4 +1,4 @@
-define(window.serverAppModel.pluginIds, function() {
+define(window.serverAppModel.plugins, function() {
 	var plugins = [].slice.call(arguments);
 	var result = {};
 	$.each(plugins, function(idx, plugin) {

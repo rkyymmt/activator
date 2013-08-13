@@ -1,10 +1,5 @@
 package snap
 
-// for Play's JsValue.as[] implicits
-import language.higherKinds
-// for the "5 seconds" duration syntax
-import language.postfixOps
-
 import play.api.libs.json._
 import scala.concurrent._
 import ExecutionContext.Implicits.global
@@ -12,44 +7,36 @@ import java.io._
 import activator.properties.ActivatorProperties.ACTIVATOR_USER_HOME
 import scala.concurrent.duration._
 import sbt.IO
+import play.api.libs.json.JsString
+import scala.Some
+import play.api.libs.json.JsObject
 
-case class AppConfig(location: File, id: String, cachedName: Option[String] = None) {
-  def toJson: JsObject = {
-    val locationField = "location" -> JsString(location.getPath)
-    val idField = "id" -> JsString(id)
-    val nameFieldOption = cachedName.map({ name => "name" -> JsString(name) })
-    JsObject(Seq(idField, locationField) ++ nameFieldOption.toSeq)
-  }
-}
+case class AppConfig(location: File, id: String, cachedName: Option[String] = None)
 
 object AppConfig {
-  def apply(json: JsObject): AppConfig = {
-    val location = (json \ "location").as[String]
-    val id = (json \ "id").as[String]
-    val nameOption = (json \ "name").asOpt[String]
-    AppConfig(new File(location), id, nameOption)
+  import play.api.data.validation.ValidationError
+
+  implicit object FileWrites extends Writes[File] {
+    def writes(file: File) = JsString(file.getPath)
   }
+
+  implicit val writes = Json.writes[AppConfig]
+
+  implicit object FileReads extends Reads[File] {
+    def reads(json: JsValue) = json match {
+      case JsString(path) => JsSuccess(new File(path))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("validate.error.expected.jsstring"))))
+    }
+  }
+
+  implicit val reads = Json.reads[AppConfig]
 }
 
-case class RootConfig(applications: Seq[AppConfig]) {
-  def toJson: JsObject = {
-    JsObject(Seq("applications" -> JsArray(applications.map(_.toJson))))
-  }
-}
+case class RootConfig(applications: Seq[AppConfig])
 
 object RootConfig {
-  def apply(json: JsObject): RootConfig = {
-    val applications = json \ ("applications") match {
-      case JsArray(list) =>
-        list.map({
-          case o: JsObject => AppConfig(o)
-          case whatever => throw new Exception("invalid JSON for project: " + whatever)
-        })
-      case whatever =>
-        Nil
-    }
-    RootConfig(applications)
-  }
+  implicit val writes = Json.writes[RootConfig]
+  implicit val reads = Json.reads[RootConfig]
 
   private def loadUser = ConfigFile(new File(ACTIVATOR_USER_HOME(), "config.json"))
 
@@ -80,7 +67,7 @@ object RootConfig {
     }
     // we use the evil Await because 99% of the time we expect
     // the Future to be completed already.
-    Await.result(userFuture.map(_.config), 8 seconds)
+    Await.result(userFuture.map(_.config), 8.seconds)
   } catch {
     case e: Exception =>
       // retry next time
@@ -109,9 +96,8 @@ object RootConfig {
   }
 }
 
-private[snap] class ConfigFile(val file: File, json: JsObject) {
-  val config = RootConfig(json)
-
+private[snap] class ConfigFile(val file: File, json: JsValue) {
+  val config = json.as[RootConfig]
 }
 
 private[snap] object ConfigFile {
@@ -132,12 +118,12 @@ private[snap] object ConfigFile {
       new ConfigFile(file, obj)
     } recover {
       case e: FileNotFoundException =>
-        new ConfigFile(file, JsObject(Seq.empty))
+        new ConfigFile(file, Json.toJson(RootConfig(Seq.empty[AppConfig])))
     }
   }
 
   def rewrite(configFile: ConfigFile)(f: RootConfig => RootConfig): Future[ConfigFile] = {
-    val newJson = f(configFile.config).toJson
+    val newJson = Json.toJson(f(configFile.config))
 
     future {
       // we parse the json we create back before doing any IO, as a sanity check
