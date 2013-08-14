@@ -3,25 +3,15 @@ package controllers
 import play.api.mvc.{ Action, Controller, WebSocket }
 import java.io.File
 import scala.concurrent.Future
-import scala.concurrent.Promise
-import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import snap.{ RootConfig, AppConfig, AppManager, Platform, DeathReportingProxy }
-import activator.ProcessResult
-import activator.cache.TemplateMetadata
 import activator.properties.ActivatorProperties
-import scala.util.control.NonFatal
-import scala.util.Try
 import play.Logger
-import play.api.libs.iteratee.{ Iteratee, Enumerator, Concurrent, Input }
+import play.api.libs.iteratee.{ Iteratee, Enumerator }
 import play.api.Play
 import play.api.Mode
-import akka.pattern._
-import snap.CloseWebSocket
 import java.util.concurrent.atomic.AtomicInteger
-import play.api.libs.json.JsArray
-import scala.Some
 import activator.cache.TemplateMetadata
 
 case class ApplicationModel(

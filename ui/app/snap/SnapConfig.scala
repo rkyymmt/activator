@@ -7,9 +7,6 @@ import java.io._
 import activator.properties.ActivatorProperties.ACTIVATOR_USER_HOME
 import scala.concurrent.duration._
 import sbt.IO
-import play.api.libs.json.JsString
-import scala.Some
-import play.api.libs.json.JsObject
 
 case class AppConfig(location: File, id: String, cachedName: Option[String] = None)
 
