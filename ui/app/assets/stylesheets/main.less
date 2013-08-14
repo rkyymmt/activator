@@ -124,6 +124,7 @@ body > header {
 	height: 50px;
 	background: url(/public/images/typesafe.png);
 	background-size: 50px;
+	border-left: solid 2px #29353e;
 	text-indent: -99em;
 	overflow: hidden;
 }
@@ -167,10 +168,11 @@ body > aside {
 #switch {
 	position: absolute;
 	top: 0;
-	right: 52px;
+	right: 102px;
 	height: 50px;
-	width: 398px;
-	background: #e25758;
+	width: 350px;
+	background: #354551;
+	border-left: solid 2px #29353e;
 	.label {
 		white-space: nowrap;
 		display: block;
@@ -188,22 +190,13 @@ body > aside {
 		text-align: center;
 		vertical-align: middle;
 	}
-	&.open:after {
-		content: " ";
-		position: fixed;
-		top: 0;
-		left: 0;
-		bottom: 0;
-		right: 0;
-		z-index: 9990;
-	}
 
 	> div {
 		display: none;
 		position: fixed;
 		top: 50px;
-		right: 52px;
-		width: 398px;
+		right: 0px;
+		width: 450px;
 		height: 300px;
 		background: #fff;
 		z-index: 9999;
@@ -239,6 +232,40 @@ body > aside {
             }
         }
     }
+}
+
+#user {
+	position: absolute;
+	top: 0;
+	right: 52px;
+	height: 50px;
+	width: 50px;
+	background: #354551;
+	border-left: solid 2px #29353e;
+	> button {
+		cursor: pointer;
+		width: 50px;
+		height: 50px;
+		background: url(/public/images/user.png);
+		background-size: 50px;
+		border: none;
+	}
+	> iframe {
+		display: none;
+		position: fixed;
+		top: 50px;
+		right: 0px;
+		width: 450px;
+		height: 300px;
+		background: #fff;
+		z-index: 9999;
+		box-shadow: 3px 3px 4px rgba(0,0,0,.2);
+		.clear-after();
+		overflow: auto;
+	}
+	&.open > iframe {
+		display: block;
+	}
 }
 
 #wrapper {
