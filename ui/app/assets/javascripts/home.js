@@ -19,8 +19,26 @@ require([
 	'../../webjars/require-css/0.0.7/css',
 	'webjars!jquery',
 	'webjars!knockout',
-	'webjars!keymage'
-],function(){
+	'webjars!keymage',
+	'core/visibility'
+],function() {
+
+	if (!document[hidden]) {
+		startApp()
+	}
+	else {
+		addEventListener(visibilityChange, handleVisibilityChange, false)
+	}
+})
+
+var handleVisibilityChange = function() {
+	if (!document[hidden]) {
+		startApp()
+		removeEventListener(visibilityChange, handleVisibilityChange)
+	}
+}
+
+var startApp = function() {
 	require([
 	'core/streams',
 	'core/widgets/fileselection',
@@ -246,4 +264,4 @@ require([
 			})
 		});
 	})
-})
+}

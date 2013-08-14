@@ -107,15 +107,14 @@ object Application extends Controller {
     Async {
       // TODO - Different results of attempting to load the application....
       Logger.debug("Loading app for /app html page")
-      // we kill off any previous browser tab
-      AppManager.loadTakingOverApp(id) map { theApp =>
+      AppManager.loadApp(id).map { theApp =>
         Logger.debug(s"loaded for html page: ${theApp}")
         Ok(views.html.application(getApplicationModel(theApp)))
       } recover {
         case e: Exception =>
           // TODO we need to have an error message and "flash" it then
           // display it on home screen
-          Logger.error("Failed to load app id " + id + ": " + e.getMessage(), e)
+          Logger.error("Failed to load app id " + id + ": " + e.getMessage())
           Redirect(routes.Application.forceHome)
       }
     }
@@ -156,14 +155,17 @@ object Application extends Controller {
    */
   def connectApp(id: String) = WebSocket.async[JsValue] { request =>
     Logger.debug("Connect request for app id: " + id)
-    val streamsFuture = snap.Akka.retryOverMilliseconds(2000)(connectionStreams(id))
+    // we kill off any previous browser tab
+    AppManager.loadTakingOverApp(id) flatMap { theApp =>
+      val streamsFuture = snap.Akka.retryOverMilliseconds(2000)(connectionStreams(id))
 
-    streamsFuture onFailure {
-      case e: Throwable =>
-        Logger.warn(s"Giving up on opening websocket")
+      streamsFuture onFailure {
+        case e: Throwable =>
+          Logger.warn(s"Giving up on opening websocket")
+      }
+
+      streamsFuture
     }
-
-    streamsFuture
   }
 
   /** List all the applications in our history as JSON. */
