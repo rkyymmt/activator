@@ -1,13 +1,12 @@
 @(model: controllers.ApplicationModel)(implicit request: RequestHeader)
 
 @import activator.properties.ActivatorProperties
-@import controllers.Application.jsEscape
+@import play.api.libs.json.Json
 
 @name(app: snap.AppConfig) = {
   @app.cachedName.getOrElse(app.id)
 }
 @className(app: snap.AppConfig) = {@if(app.cachedName.getOrElse(app.id) == model.name) {default} else {}}
-
 
 <!DOCTYPE html>
 <html>
@@ -16,20 +15,9 @@
 		<title>Typesafe Activator</title>
 		<script type="text/javascript">
 		window.wsUrl = '@routes.Application.connectApp(model.id).webSocketURL()';
-        // todo: use Play JSON to do this
-		window.serverAppModel = {
-      name: @Html(jsEscape(model.name)),
-      id: @Html(jsEscape(model.id)),
-      appVersion: @Html(jsEscape(ActivatorProperties.APP_VERSION)),
-      pluginIds:  [ @Html(model.plugins.map(jsEscape(_)).mkString(", ")) ],
-      hasLocalTutorial: @model.hasLocalTutorial,
-      location: @Html(jsEscape(model.location))
-      @for(id <- model.template) {
-        ,template: {
-            id: @Html(jsEscape(id))
-        }
-      }
-    };
+		@* The @Html thing prevents the Json from being escaped *@
+		window.serverAppModel = @Html(Json.toJson(model).toString())
+		window.serverAppVersion = "@ActivatorProperties.APP_VERSION"
 		</script>
 		<script data-main='@routes.Assets.at("javascripts/application.js")' type='text/javascript' src='@routes.WebJarAssets.requirejs()'></script>
 		<link rel="stylesheet" media="screen" href="/public/stylesheets/main.css">
