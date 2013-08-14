@@ -120,6 +120,53 @@ class ConfigTest {
   }
 
   @Test
+  def testRecoveringFromEmptyJsonFile(): Unit = synchronized {
+    val file = new File(ACTIVATOR_USER_HOME(), "config.json")
+    try {
+      file.delete()
+
+      val stream = new FileOutputStream(file)
+      stream.write("{}".getBytes())
+      stream.close()
+
+      RootConfig.forceReload()
+
+      val e = try {
+        RootConfig.user
+        throw new AssertionError("We expected to get an exception and not reach here (first time)")
+      } catch {
+        case e: Exception => e
+      }
+
+      assertTrue("got the expected exception on bad json", e.getMessage().contains("validate.error.missing-path"))
+
+      // bad json is still there, so things should still fail...
+      val e2 = try {
+        RootConfig.user
+        throw new AssertionError("We expected to get an exception and not reach here (second time)")
+      } catch {
+        case e: Exception => e
+      }
+
+      assertTrue("got the expected exception on bad json", e2.getMessage().contains("validate.error.missing-path"))
+
+      // delete the file... should now load the file fine
+      if (!file.delete())
+        throw new AssertionError("failed to delete " + file.getAbsolutePath())
+
+      try {
+        assertTrue("loaded an empty config after recovering from corrupt one", RootConfig.user.applications.isEmpty)
+      } catch {
+        case e: Exception =>
+          throw new AssertionError("should not have had an error loading empty config", e)
+      }
+    } finally {
+      // to avoid weird failures on next run of the tests
+      file.delete()
+    }
+  }
+
+  @Test
   def testRecoveringFromBrokenFileManyTimes(): Unit = synchronized {
     // this is intended to reveal a race that we were seeing intermittently
     for (_ <- 1 to 100)
