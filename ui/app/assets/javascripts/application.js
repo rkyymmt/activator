@@ -19,16 +19,34 @@ require([
 	'../../webjars/require-css/0.0.7/css',
 	'webjars!jquery',
 	'webjars!knockout',
-	'webjars!keymage'
+	'webjars!keymage',
+	'core/visibility'
 ],function() {
-	require(['core/templates'], function() {
-	require([
-		'core/effects',
-		// Core
-		'core/utils',
-		'core/sbt'
-	], function() {
-		require(['core/snap'])
-	})
-	})
+
+	if (!document[hidden]) {
+		startApp()
+	}
+	else {
+		addEventListener(visibilityChange, handleVisibilityChange, false)
+	}
 })
+
+var handleVisibilityChange = function() {
+	if (!document[hidden]) {
+		startApp()
+		removeEventListener(visibilityChange, handleVisibilityChange)
+	}
+}
+
+var startApp = function() {
+	require(['core/templates'], function() {
+		require([
+			'core/effects',
+			// Core
+			'core/utils',
+			'core/sbt'
+		], function() {
+			require(['core/snap'])
+		})
+	})
+}
