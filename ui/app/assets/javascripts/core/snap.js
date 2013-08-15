@@ -19,7 +19,9 @@ define(['./plugin', './router', './pluginapi', './navigation', './tutorial/tutor
 			// TODO - This should be observable and we get notified of changes by sbt....
 			appName: window.serverAppModel.name ? window.serverAppModel.name : window.serverAppModel.id,
 			pageTitle: ko.observable(),
-			activeWidget: api.activeWidget
+			activeWidget: api.activeWidget,
+			// TODO load last value from somewhere until we get a message from the iframe
+			signedIn: ko.observable(false)
 		},
 		plugins: plugins,
 		router: router,
@@ -44,5 +46,27 @@ define(['./plugin', './router', './pluginapi', './navigation', './tutorial/tutor
 	};
 	// TODO - Don't bleed into the window.
 	window.model = model.init();
+
+	var receiveMessage = function(event) {
+		if (event.origin !== "http://localhost:9000") { // TODO change to typesafe.com
+			console.log("receiveMessage: Ignoring message ", event);
+		} else {
+			var obj = JSON.parse(event.data);
+			if ('signedIn' in obj && typeof(obj.signedIn) == 'boolean') {
+				console.log("receiveMessage: signedIn=", obj.signedIn);
+				model.snap.signedIn(obj.signedIn);
+			} else {
+				console.log("receiveMessage: did not understand message ", event, " parsed ", obj);
+			}
+		}
+	}
+
+	window.addEventListener("message", receiveMessage, false);
+
+	// there is a race if the child iframe sent the message before we added that listener.
+	// so we ask the iframe to resend. If the iframe is not started up yet, then this
+	// won't do anything but the iframe will send automatically when it starts up.
+	$('#loginIFrame').get(0).contentWindow.postMessage('{ "pleaseResendSignedIn" : true }', '*');
+
 	return model;
 });
