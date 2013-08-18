@@ -182,19 +182,29 @@ class UIMain extends AppMain {
 
   // TODO - Is it ok to use swing?  We can detect that actually....
   def showError(errorMsg: String): Unit = {
-    // create and configure a text area - fill it with exception text.
-    val textArea = new JTextArea
-    textArea setFont new Font("Sans-Serif", Font.PLAIN, 16)
-    textArea setEditable false
-    textArea setText errorMsg
-    textArea setLineWrap true
+    val isHeadless = try {
+      GraphicsEnvironment.isHeadless
+    } catch {
+      case _: Exception => true
+    }
 
-    // stuff it in a scrollpane with a controlled size.
-    val scrollPane = new JScrollPane(textArea)
-    scrollPane setPreferredSize new Dimension(350, 150)
+    if (isHeadless)
+      System.err.println(errorMsg)
+    else {
+      // create and configure a text area - fill it with exception text.
+      val textArea = new JTextArea
+      textArea setFont new Font("Sans-Serif", Font.PLAIN, 16)
+      textArea setEditable false
+      textArea setText errorMsg
+      textArea setLineWrap true
 
-    // pass the scrollpane to the joptionpane.
-    JOptionPane.showMessageDialog(null, scrollPane, "O SNAP!", JOptionPane.ERROR_MESSAGE)
+      // stuff it in a scrollpane with a controlled size.
+      val scrollPane = new JScrollPane(textArea)
+      scrollPane setPreferredSize new Dimension(350, 150)
+
+      // pass the scrollpane to the joptionpane.
+      JOptionPane.showMessageDialog(null, scrollPane, "O SNAP!", JOptionPane.ERROR_MESSAGE)
+    }
   }
   // Wrapper to return exit codes.
   case class Exit(val code: Int) extends xsbti.Exit
