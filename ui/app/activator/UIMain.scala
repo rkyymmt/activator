@@ -180,7 +180,6 @@ class UIMain extends AppMain {
     finally current setContextClassLoader old
   }
 
-  // TODO - Is it ok to use swing?  We can detect that actually....
   def showError(errorMsg: String): Unit = {
     val isHeadless = try {
       GraphicsEnvironment.isHeadless
