@@ -48,7 +48,7 @@ define(['./plugin', './router', './pluginapi', './navigation', './tutorial/tutor
 	window.model = model.init();
 
 	var receiveMessage = function(event) {
-		if (event.origin !== "http://localhost:9000") { // TODO change to typesafe.com
+		if (event.origin !== "https://typesafe.com") { // TODO change to typesafe.com
 			console.log("receiveMessage: Ignoring message ", event);
 		} else {
 			var obj = JSON.parse(event.data);
