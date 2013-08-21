@@ -21,11 +21,23 @@ define(function(css, template){
 		// This allows us to select previously opened applications.
 		$('#switch').click(function(e){
 			e.preventDefault();
+			// close the user overlay
+			$("#user").removeClass("open");
+			// open the app selector overlay
 			$(this).toggleClass("open");
 			if(e.target.href && (window.location.href != e.target.href)) {
 				// We clicked a link, let's go to it.
 				window.location.href = e.target.href;
 			}
+		})
+
+		// Open / Close User / Login Overlay
+		$('#user').click(function(e){
+			e.preventDefault();
+			// close the app selector overlay
+			$("#switch").removeClass("open");
+			// open the user overlay
+			$(this).toggleClass("open");
 		})
 		// -------------------------
 	}
