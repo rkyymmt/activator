@@ -65,6 +65,12 @@
             <div id="user">
                 <button></button>
                 <iframe id="loginIFrame" src="https://typesafe.com/account/activator/frame"></iframe>
+                <div class="tooltip" data-bind="visible: snap.showUserTooltip">
+                    <a data-bind="click: snap.closeUserTooltip">X</a>
+                    <p>
+                    Log in to your free typesafe.com account to run your app under Typesafe Console.
+                    </p>
+                </div>
             </div>
 			<a href="@routes.Application.forceHome()" id="typesafe">Typesafe</a>
 		</header>

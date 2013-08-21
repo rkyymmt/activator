@@ -13,7 +13,9 @@ define(['./plugin', './router', './pluginapi', './navigation', './tutorial/tutor
 		}
 	});
 
-	// Model for the whole app view
+	// Model for the whole app view; created in two parts
+	// so that this first part is available during construction
+	// of the second part.
 	var model = {
 		snap: {
 			// TODO - This should be observable and we get notified of changes by sbt....
@@ -21,8 +23,18 @@ define(['./plugin', './router', './pluginapi', './navigation', './tutorial/tutor
 			pageTitle: ko.observable(),
 			activeWidget: api.activeWidget,
 			// TODO load last value from somewhere until we get a message from the iframe
-			signedIn: ko.observable(false)
-		},
+			signedIn: ko.observable(false),
+			showUserTooltip: ko.observable(false),
+			closeUserTooltip: function() {
+				model.snap.showUserTooltip(false);
+			}
+		}
+	};
+	// TODO might be nice to avoid this global variable.
+	window.model = model;
+
+	// Model for the whole app view
+	$.extend(model, {
 		plugins: plugins,
 		router: router,
 		// This is the initialization of the application...
@@ -39,13 +51,11 @@ define(['./plugin', './router', './pluginapi', './navigation', './tutorial/tutor
 			self.router.init();
 			ko.applyBindings(self, window.body);
 			navigation.init();
-			return self;
 		},
 		api: api,
 		tutorial: new Tutorial()
-	};
-	// TODO - Don't bleed into the window.
-	window.model = model.init();
+	});
+	model.init();
 
 	var receiveMessage = function(event) {
 		if (event.origin !== "https://typesafe.com") { // TODO change to typesafe.com

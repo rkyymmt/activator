@@ -266,6 +266,26 @@ body > aside {
 	&.open > iframe {
 		display: block;
 	}
+	> .tooltip {
+	   position: fixed;
+	   padding: 10px;
+	   top: 60px;
+	   width: 450px;
+	   right: 50px;
+	   background: #E25758;
+	   color: #fff;
+	   z-index: 9999;
+       .clear-after();
+       overflow: auto;
+       > a {
+           display: block;
+           width: 450px;
+           float: right;
+           clear: both;
+           text-align: right;
+           padding-bottom: 10px;
+       }
+	}
 }
 
 #wrapper {
