@@ -5,15 +5,16 @@
 				<dt>options</dt>
 				<dd>
 					<input type="checkbox" id="reloadOnChange" class="styled dark" data-bind="checked: rerunOnBuild"><label for="reloadOnChange"><span></span>Re-run on successful build</label>
+					<input type="checkbox" id="inTypesafeConsole" class="styled dark" data-bind="checked: runInConsole"><label for="inTypesafeConsole"><span></span>Run in Typesafe Console</label>
 				</dd>
 			</dl>
 			<button class="start" data-bind="text: startStopLabel, click: startStopButtonClicked"></button>
-			<span data-bind="visible: !haveMainClass()">(no main class)</span>
-			<span data-bind="visible: haveMainClass">Main class: <select data-bind="options: mainClasses, value: currentMainClass"></select></span>
+			<span data-bind="visible: !haveMainClass() && !runInConsole()">(no main class)</span>
+			<span data-bind="visible: haveMainClass() && !runInConsole()">Main class: <select data-bind="options: mainClasses, value: currentMainClass"></select></span>
 			<button class="restart" data-bind="enable: haveActiveTask() && !restartPending(), click: restartButtonClicked">Restart</button>
 		</nav>
 		<h1>Run</h1>
-		<p class="subheader" data-bind="html: status"></p>
+		<p class="subheader" data-bind="html: fullStatus"></p>
 	</header>
 	<section class="wrapper">
 	    <div class="output">

@@ -26,6 +26,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 					return "Start";
 			}, this);
 			this.rerunOnBuild = ko.observable(true);
+			this.runInConsole = ko.observable(false);
 			this.restartPending = ko.observable(false);
 
 			api.events.subscribe(function(event) {
@@ -39,7 +40,24 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 			this.logScroll = this.logModel.findScrollState();
 			this.outputModel = new log.Log();
 			this.outputScroll = this.outputModel.findScrollState();
+			this.playAppLink = ko.observable('');
+			this.playAppStarted = ko.computed(function() { return this.haveActiveTask() && this.playAppLink() != ''; }, this);
+			this.atmosLink = ko.observable('');
+			this.atmosStarted = ko.computed(function() { return this.haveActiveTask() && this.atmosLink() != ''; }, this);
 			this.status = ko.observable('Application is stopped.');
+			this.fullStatus = ko.computed(function() {
+				var links = '';
+				if (this.playAppStarted()) {
+					links = links + '<a href="' + this.playAppLink() + '" target="_blank">Up and running at ' + this.playAppLink() + '</a>';
+				}
+				if (this.atmosStarted()) {
+					links = links + ' <a href="' + this.atmosLink() + '" target="_blank">Typesafe Console</a>'
+				}
+				if (links != '')
+					return links + ' ' + this.status();
+				else
+					return this.status();
+			}, this);
 		},
 		update: function(parameters){
 		},
@@ -88,6 +106,8 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 		doAfterRun: function() {
 			var self = this;
 			self.activeTask("");
+			self.playAppLink("");
+			self.atmosLink("");
 			if (self.restartPending()) {
 				self.doRun(false); // false=!triggeredByBuild
 			}
@@ -112,7 +132,12 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 			self.restartPending(false);
 
 			var task = null;
-			if (self.haveMainClass()) {
+			// TODO remove "false &&" once we have the atmos:run in backend
+			// also I think we should have atmos:run-main in the atmos plugin
+			// now, right?
+			if (false && self.runInConsole()) {
+				task = { task: 'atmos:run' }
+			} else if (self.haveMainClass()) {
 				task = { task: 'run-main', params: { mainClass: self.currentMainClass() } };
 			} else {
 				task = { task: 'run' }
@@ -136,8 +161,9 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 					} else if (event.id == 'playServerStarted') {
 						var port = event.params.port;
 						var url = 'http://localhost:' + port;
-						var link = '<a href="'+url+'" target="_blank">' + url + '</a>';
-						self.status('<span>Up and running at ' + link + '</span>');
+						self.playAppLink(url);
+					} else if (event.id == 'atmosStarted') {
+						self.atmosLink(event.params.uri);
 					} else {
 						self.logModel.leftoverEvent(event);
 					}
@@ -196,10 +222,16 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 		onPreDeactivate: function() {
 			this.logScroll = this.logModel.findScrollState();
 			this.outputScroll = this.outputModel.findScrollState();
+			console.log("Hiding user tooltip on leaving run");
+			window.model.snap.showUserTooltip(false);
 		},
 		onPostActivate: function() {
 			this.logModel.applyScrollState(this.logScroll);
 			this.outputModel.applyScrollState(this.outputScroll);
+			if (!window.model.snap.signedIn()) {
+				console.log("showing user tooltip due to activating run plugin");
+				window.model.snap.showUserTooltip(true);
+			}
 		}
 	});
 

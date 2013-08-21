@@ -38,6 +38,9 @@ define(function(css, template){
 			$("#switch").removeClass("open");
 			// open the user overlay
 			$(this).toggleClass("open");
+			// this is a hack, but so is this entire navigation.js file.
+			// TODO use knockout!
+			window.model.snap.closeUserTooltip();
 		})
 		// -------------------------
 	}
