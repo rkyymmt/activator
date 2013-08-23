@@ -9,8 +9,8 @@
 				</dd>
 			</dl>
 			<button class="start" data-bind="text: startStopLabel, click: startStopButtonClicked"></button>
-			<span data-bind="visible: !haveMainClass() && !runInConsole()">(no main class)</span>
-			<span data-bind="visible: haveMainClass() && !runInConsole()">Main class: <select data-bind="options: mainClasses, value: currentMainClass"></select></span>
+			<span data-bind="visible: !haveMainClass()">(no main class)</span>
+			<span data-bind="visible: haveMainClass()">Main class: <select data-bind="options: mainClasses, value: currentMainClass"></select></span>
 			<button class="restart" data-bind="enable: haveActiveTask() && !restartPending(), click: restartButtonClicked">Restart</button>
 		</nav>
 		<h1>Run</h1>
