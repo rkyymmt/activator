@@ -58,12 +58,8 @@ public class ActivatorProperties {
     return props.getProperty("app.scala.version");
   }
 
-  public static String SBT_VERSION() {
-    return props.getProperty("sbt.version");
-  }
-
-  public static String SBT_SCALA_VERSION() {
-    return props.getProperty("sbt.scala.version");
+  public static String SBT_DEFAULT_VERSION() {
+    return props.getProperty("sbt.default.version");
   }
 
   private static String cleanUriFileString(String file) {

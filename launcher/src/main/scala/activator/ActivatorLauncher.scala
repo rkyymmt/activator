@@ -39,13 +39,18 @@ class ActivatorLauncher extends AppMain {
     Exit(2)
   }
 }
+/**
+ * If we're rebooting into a non-cross-versioned app, we can leave off the scala
+ *  version declaration, and Ivy will figure it out for us.
+ */
+trait AutoScalaReboot extends xsbti.Reboot {
+  def scalaVersion = null
+}
+
 // Wrapper to return the UI application.
-// TODO - Generate this via SBT code, so the hard-coded settings come
-// from the build.
-case class RebootToUI(configuration: AppConfiguration) extends xsbti.Reboot {
+case class RebootToUI(configuration: AppConfiguration) extends AutoScalaReboot {
   val arguments = Array.empty[String]
   val baseDirectory = configuration.baseDirectory
-  val scalaVersion = APP_SCALA_VERSION
   val app = ApplicationID(
     groupID = configuration.provider.id.groupID,
     // TODO - Pull this string from somewhere else so it's only configured in the build?
@@ -55,20 +60,36 @@ case class RebootToUI(configuration: AppConfiguration) extends xsbti.Reboot {
 }
 
 // Wrapper to reboot into SBT.
-// TODO - See if we can just read the configuration using the launcher or something...
-case class RebootToSbt(configuration: AppConfiguration, useArguments: Boolean = false) extends xsbti.Reboot {
+// TODO - See if we can just read the configuration from the boot properties of sbt itself...
+// TODO - This doesn't handle sbt < 0.12
+case class RebootToSbt(configuration: AppConfiguration, useArguments: Boolean = false) extends AutoScalaReboot {
 
   val arguments = if (useArguments) configuration.arguments else Array.empty[String]
   val baseDirectory = configuration.baseDirectory
-  val scalaVersion = SBT_SCALA_VERSION
   val app = ApplicationID(
     groupID = "org.scala-sbt",
     name = "sbt",
-    version = SBT_VERSION,
+    // TODO - Pull sbt version from file...
+    version = RebootToSbt.determineSbtVersion(baseDirectory),
     mainClass = "sbt.xMain",
     mainComponents = Array("xsbti", "extra"))
 }
+object RebootToSbt {
+  def determineSbtVersion(baseDirectory: File): String = {
+    try {
+      val buildPropsFile = new java.io.File(baseDirectory, "project/build.properties")
+      val props = new java.util.Properties
+      sbt.IO.load(props, buildPropsFile)
+      props.getProperty("sbt.version", SBT_DEFAULT_VERSION)
+    } catch {
+      case e: java.io.IOException =>
+        // TODO - Should we error out here, or just default?  For now, just default....
+        System.err.println("WARNING:  Could not read build.properties file.  Defaulting sbt version to " + SBT_DEFAULT_VERSION + ".  \n  Reason: " + e.getMessage)
+        SBT_DEFAULT_VERSION
+    }
 
+  }
+}
 // Helper class to make using ApplicationID in xsbti easier.
 case class ApplicationID(
   groupID: String,
