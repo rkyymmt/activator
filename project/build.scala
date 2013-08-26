@@ -102,7 +102,9 @@ object TheActivatorBuild extends Build {
       sbtrcRemoteController % "compile;test->test",
       // Here we hack our probes into the UI project.
       sbtrcProbe12 % "sbtprobes->default(compile)",
-      sbtshimUiInterface12 % "sbtprobes->default(compile)"
+      sbtshimUiInterface12 % "sbtprobes->default(compile)",
+      sbtrcProbe13 % "sbtprobes->default(compile)",
+      sbtshimUiInterface13 % "sbtprobes->default(compile)"
     )
     dependsOn(props, uiCommon)
     settings(play.Project.playDefaultPort := 8888)

@@ -13,14 +13,14 @@ object Properties {
     }
   }
 
-  def makePropertyClassSetting(sbtVersion: String, scalaVersion: String): Seq[Setting[_]] = Seq(
+  def makePropertyClassSetting(sbtDefaultVersion: String, scalaVersion: String): Seq[Setting[_]] = Seq(
     resourceGenerators in Compile <+= makePropertiesSource,
     makePropertiesSource <<= (version, resourceManaged in Compile, compile in Compile) map { (v, dir, analysis) =>
       val parent= dir / "activator" / "properties"
       IO createDirectory parent
       val target = parent / "activator.properties"
 
-      writeIfChanged(target, makeJavaPropertiesString(v, sbtVersion, scalaVersion))
+      writeIfChanged(target, makeJavaPropertiesString(v, sbtDefaultVersion, scalaVersion))
 
       Seq(target)
     }
@@ -33,21 +33,12 @@ object Properties {
   }
   
 
-  def makeJavaPropertiesString(version: String, sbtVersion: String, scalaVersion: String): String =
+  def makeJavaPropertiesString(version: String, sbtDefaultVersion: String, scalaVersion: String): String =
     """|app.version=%s
-       |sbt.version=%s
-       |sbt.scala.version=%s
+       |sbt.default.version=%s
        |app.scala.version=%s
        |sbt.Xmx=512M
        |sbt.PermSize=128M
-       |""".stripMargin format (version, sbtVersion, sbtScalaVersion(sbtVersion), scalaVersion)
-  
-  
-  def sbtScalaVersion(sbtVersion: String): String =
-    (sbtVersion split "[\\.\\-]" take 3) match {
-      case Array("0", "12", _) => "2.9.2"
-      case Array("0", "13", _) => "2.10.0"
-      case _                   => "2.9.1"
-    }
+       |""".stripMargin format (version, sbtDefaultVersion, scalaVersion)
   
 }

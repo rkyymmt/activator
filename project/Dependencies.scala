@@ -7,10 +7,10 @@ object Dependencies {
   val sbtPluginVersion = "0.12"
   val sbtPluginScalaVersion = "2.9.2"
   val scalaVersion = "2.10.2"
-  val sbtSnapshotVersion = "0.13.0-RC1"
+  val sbtSnapshotVersion = "0.13.0"
   val luceneVersion = "4.2.1"
   val templateCacheVersion = "0.2.0"
-  val sbtRcVersion = "0.2.0"
+  val sbtRcVersion = "1.0-69b6fda4586152a817c4da723f51e89634cf0c55"
   val playVersion = "2.1.3"
   val akkaVersion = "2.1.2"
 
@@ -31,6 +31,9 @@ object Dependencies {
   val sbtrcRemoteController = "com.typesafe.sbtrc" % "sbt-rc-remote-controller" % sbtRcVersion
   
   // Probes
+  val sbtrcProbe13           = "com.typesafe.sbtrc" % "sbt-rc-probe-0-13" % sbtRcVersion
+  val sbtshimUiInterface13   = "com.typesafe.sbtrc" % "sbt-rc-ui-interface-0-13" % sbtRcVersion
+
   val sbtrcProbe12           = "com.typesafe.sbtrc" % "sbt-rc-probe-0-12" % sbtRcVersion
   val sbtshimUiInterface12   = "com.typesafe.sbtrc" % "sbt-rc-ui-interface-0-12" % sbtRcVersion
   val sbtshimDefaults12      =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-rc-defaults-0-12" % sbtRcVersion, "0.12", "2.9.2")
