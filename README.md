@@ -56,7 +56,7 @@ or just
 
 *Note: just stage will also run `activator-ui/stage`*
 
-Generates a distribution in the `dist/target/stage` directory.  This will use a launcher version based on the current git commit id.  To rebuild a new launcher remove your `~/.activator` directory.
+Generates a distribution in the `dist/target/stage` directory.  This will use a launcher version based on the current git commit id.  To rebuild a new launcher remove your `~/.sbt/boot/scala-*/com.typesafe.activator` directory.
 
 ## Building the Distribution
 
