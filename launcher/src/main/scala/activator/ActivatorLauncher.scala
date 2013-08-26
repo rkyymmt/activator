@@ -80,12 +80,12 @@ object RebootToSbt {
       val buildPropsFile = new java.io.File(baseDirectory, "project/build.properties")
       val props = new java.util.Properties
       sbt.IO.load(props, buildPropsFile)
-      props.getProperty("sbt.version", SBT_VERSION)
+      props.getProperty("sbt.version", SBT_DEFAULT_VERSION)
     } catch {
       case e: java.io.IOException =>
         // TODO - Should we error out here, or just default?  For now, just default....
-        System.err.println("WARNING:  Could not read build.properties file.  Defaulting sbt version.  \n  Reason: " + e.getMessage)
-        SBT_VERSION
+        System.err.println("WARNING:  Could not read build.properties file.  Defaulting sbt version to " + SBT_DEFAULT_VERSION + ".  \n  Reason: " + e.getMessage)
+        SBT_DEFAULT_VERSION
     }
 
   }
