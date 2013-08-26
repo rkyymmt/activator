@@ -135,7 +135,7 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 			// TODO remove "false &&" once we have the atmos:run in backend
 			// also I think we should have atmos:run-main in the atmos plugin
 			// now, right?
-			if (false && self.runInConsole()) {
+			if (self.runInConsole()) {
 				task = { task: 'atmos:run' }
 			} else if (self.haveMainClass()) {
 				task = { task: 'run-main', params: { mainClass: self.currentMainClass() } };
