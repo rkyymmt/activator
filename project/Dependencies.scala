@@ -31,6 +31,9 @@ object Dependencies {
   val sbtrcRemoteController = "com.typesafe.sbtrc" % "sbt-rc-remote-controller" % sbtRcVersion
   
   // Probes
+  val sbtrcProbe13           = "com.typesafe.sbtrc" % "sbt-rc-probe-0-13" % sbtRcVersion
+  val sbtshimUiInterface13   = "com.typesafe.sbtrc" % "sbt-rc-ui-interface-0-13" % sbtRcVersion
+
   val sbtrcProbe12           = "com.typesafe.sbtrc" % "sbt-rc-probe-0-12" % sbtRcVersion
   val sbtshimUiInterface12   = "com.typesafe.sbtrc" % "sbt-rc-ui-interface-0-12" % sbtRcVersion
   val sbtshimDefaults12      =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-rc-defaults-0-12" % sbtRcVersion, "0.12", "2.9.2")
