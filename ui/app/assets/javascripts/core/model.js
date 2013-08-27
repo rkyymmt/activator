@@ -12,7 +12,12 @@ define(['./pluginapi'], function(api) {
 			pageTitle: ko.observable(),
 			activeWidget: api.activeWidget,
 			// TODO load last value from somewhere until we get a message from the iframe
-			signedIn: ko.observable(false)
+			signedIn: ko.observable(false),
+			app: {
+				hasAkka: ko.observable(false),
+				hasPlay: ko.observable(false),
+				hasConsole: ko.observable(false)
+			}
 		}
 	};
 
