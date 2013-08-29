@@ -5,20 +5,27 @@
 				<dt>options</dt>
 				<dd>
 					<input type="checkbox" id="reloadOnChange" class="styled dark" data-bind="checked: rerunOnBuild"><label for="reloadOnChange"><span></span>Re-run on successful build</label>
-					<input type="checkbox" id="inTypesafeConsole" class="styled dark" data-bind="checked: runInConsole"><label for="inTypesafeConsole"><span></span>Run in Typesafe Console</label>
 				</dd>
 			</dl>
 			<button class="start" data-bind="text: startStopLabel, click: startStopButtonClicked"></button>
-			<span data-bind="visible: !haveMainClass()">(no main class)</span>
+			<!--<span data-bind="visible: !haveMainClass()">(no main class)</span>-->
 			<span data-bind="visible: haveMainClass()">Main class: <select data-bind="options: mainClasses, value: currentMainClass"></select></span>
 			<button class="restart" data-bind="enable: haveActiveTask() && !restartPending(), click: restartButtonClicked">Restart</button>
 		</nav>
 		<h1>Run</h1>
-		<p class="subheader" data-bind="html: fullStatus"></p>
+		<div class="subheader">
+            <p data-bind="text: status"></p>
+            <p data-bind="visible: playAppStarted">Open the app: <a data-bind="attr: {href: playAppLink}, text: playAppLink" target="_blank"></a></p>
+            <div data-bind="visible: atmosCompatible">
+                <span data-bind="visible: atmosDisabled">Typesafe Console: Disabled <button data-bind="click: enableAtmos">Start Console</button></span>
+                <span data-bind="visible: atmosStarted">Typesafe Console: Enabled <a data-bind="attr: {href: atmosLink}, text: atmosLink" target="_blank"></a> <button data-bind="click: disableAtmos">Start Console</button></span>
+                <span data-bind="visible: userNotSignedIn">Typesafe Console: Disabled <button data-bind="click: showLogin">Sign-in to enable</button></span>
+            </div>
+		</div>
 	</header>
 	<section class="wrapper">
 	    <div class="output">
-		    <div data-bind="snapView: outputModel" class="runapp"'>
+		    <div data-bind="snapView: outputModel" class="runapp">
 		    </div>
 		</div>
 		<div class="logs">

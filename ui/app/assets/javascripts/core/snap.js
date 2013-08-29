@@ -1,5 +1,5 @@
 // Sort of MVC (Module, Grid, Router)
-define(['./plugin', './router', './pluginapi', './navigation', './tutorial/tutorial', './streams'], function(plugins, router, api, navigation, Tutorial, streams) {
+define(['./model', './plugin', './router', './pluginapi', './navigation', './tutorial/tutorial', './streams'], function(model, plugins, router, api, navigation, Tutorial, streams) {
 
 	var ko = api.ko;
 
@@ -12,26 +12,6 @@ define(['./plugin', './router', './pluginapi', './navigation', './tutorial/tutor
 			return event.type == streams.WEB_SOCKET_CLOSED;
 		}
 	});
-
-	// Model for the whole app view; created in two parts
-	// so that this first part is available during construction
-	// of the second part.
-	var model = {
-		snap: {
-			// TODO - This should be observable and we get notified of changes by sbt....
-			appName: window.serverAppModel.name ? window.serverAppModel.name : window.serverAppModel.id,
-			pageTitle: ko.observable(),
-			activeWidget: api.activeWidget,
-			// TODO load last value from somewhere until we get a message from the iframe
-			signedIn: ko.observable(false),
-			showUserTooltip: ko.observable(false),
-			closeUserTooltip: function() {
-				model.snap.showUserTooltip(false);
-			}
-		}
-	};
-	// TODO might be nice to avoid this global variable.
-	window.model = model;
 
 	// Model for the whole app view
 	$.extend(model, {

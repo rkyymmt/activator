@@ -1,17 +1,23 @@
 /*
-test
+run
 */
 .run .subheader {
-	>a {
-		display: block;
-		float: left;
-		padding: 0 15px;
-    }
+  span {
+    float: right;
+  }
+  p {
+    display: inline-block;
     a {
-		&.active {
-			background: #fff;
-		}
-	}
+      color: #fff;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  }
+  div {
+    display: inline-block;
+    float: right;
+  }
 }
 .run .wrapper {
 	background: #fff;
