@@ -1,5 +1,5 @@
 // Sort of MVC (Module, Grid, Router)
-define(['./model', './plugin', './router', './pluginapi', './navigation', './tutorial/tutorial', './streams'], function(model, plugins, router, api, navigation, Tutorial, streams) {
+define(['./model', './pluginapi', './streams', './plugin'], function(model, api, streams, plugins) {
 
 	var ko = api.ko;
 
@@ -13,29 +13,8 @@ define(['./model', './plugin', './router', './pluginapi', './navigation', './tut
 		}
 	});
 
-	// Model for the whole app view
-	$.extend(model, {
-		plugins: plugins,
-		router: router,
-		// This is the initialization of the application...
-		init: function() {
-			var self = this;
-			self.widgets = [];
-			// TODO - initialize plugins in a better way perhaps...
-			$.each(self.plugins.list, function(idx,plugin) {
-				self.router.registerRoutes(plugin.routes);
-				$.each(plugin.widgets, function(idx, widget) {
-					self.widgets.push(widget);
-				});
-			});
-			self.router.init();
-			ko.applyBindings(self, window.body);
-			navigation.init();
-		},
-		api: api,
-		tutorial: new Tutorial()
-	});
-	model.init();
+	// Init model for the whole app view
+	model.init(plugins);
 
 	var receiveMessage = function(event) {
 		if (event.origin !== "https://typesafe.com") { // TODO change to typesafe.com
