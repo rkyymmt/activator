@@ -283,9 +283,6 @@ elif [[ ! "$java_version" > "1.6" ]]; then
   exit 1
 fi
 
-
-# if configuration files exist, prepend their contents to $@ so it can be processed by this runner
-
 # if configuration files exist, prepend their contents to the java args so it can be processed by this runner
 if [[ -f "$java_opts_config" ]]; then
   config_opts=$(loadConfigFile "$java_opts_config")
@@ -293,10 +290,6 @@ if [[ -f "$java_opts_config" ]]; then
   do
     addJava "$item"
   done
-else
-  # We always create the file, so users can find it.
-  # TODO - Include a default?
-  touch $java_opts_config
 fi
 
 run "$@"
