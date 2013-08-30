@@ -43,7 +43,7 @@ define(['core/model', 'text!./run.html', 'core/pluginapi', 'core/widgets/log', '
 			this.playAppLink = ko.observable('');
 			this.playAppStarted = ko.computed(function() { return this.haveActiveTask() && this.playAppLink() != ''; }, this);
 			this.atmosLink = ko.observable('');
-			this.atmosCompatible = ko.observable(true); // todo: get from server
+			this.atmosCompatible = model.snap.app.hasConsole;
 			this.runningWithAtmos = ko.computed(function() {
 				return this.haveActiveTask() && this.atmosLink() != '';
 			}, this);
