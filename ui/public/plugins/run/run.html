@@ -19,7 +19,7 @@
             <div data-bind="visible: atmosCompatible">
                 <span data-bind="visible: atmosDisabled">Typesafe Console: Disabled <button data-bind="click: enableAtmos">Start Console</button></span>
                 <span data-bind="visible: atmosStarted">Typesafe Console: Enabled <a data-bind="attr: {href: atmosLink}, text: atmosLink" target="_blank"></a> <button data-bind="click: disableAtmos">Start Console</button></span>
-                <span data-bind="visible: userNotSignedIn">Typesafe Console: Disabled <button data-bind="click: showLogin">Sign-in to enable</button></span>
+                <span data-bind="visible: userNotSignedIn">Typesafe Console: Disabled <button class="do-pop-over" data-bind="click: showLogin">Sign-in to enable</button></span>
             </div>
 		</div>
 	</header>

@@ -45,7 +45,7 @@ define(['core/model', 'text!./run.html', 'core/pluginapi', 'core/widgets/log', '
 			this.atmosLink = ko.observable('');
 			this.atmosCompatible = ko.observable(true); // todo: get from server
 			this.atmosStarted = ko.computed(function() {
-				return model.snap.signedIn() && this.haveActiveTask() && this.atmosLink() != '';
+				return this.haveActiveTask() && this.atmosLink() != '';
 			}, this);
 			this.atmosDisabled = ko.computed(function() {
 				return model.snap.signedIn() && this.playAppStarted() && !this.atmosStarted();

@@ -48,7 +48,7 @@
 				</ul>
 			</nav>
 			<div id="switch">
-				<span class="label" data-bind="text: snap.appName"></span>
+				<span class="label do-pop-over" data-bind="text: snap.appName"></span>
 				<div>
 					<ul>
                         <li class="newApp" onclick="window.location='@routes.Application.forceHome'" style="cursor: hand; cursor: pointer;">
@@ -63,7 +63,7 @@
 				</div>
 			</div>
             <div id="user">
-                <button></button>
+                <button class="do-pop-over"></button>
                 <iframe id="loginIFrame" src="https://typesafe.com/account/activator/frame"></iframe>
             </div>
 			<a href="@routes.Application.forceHome()" id="typesafe">Typesafe</a>

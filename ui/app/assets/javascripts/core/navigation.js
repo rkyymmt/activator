@@ -38,7 +38,6 @@ define(['./model'], function(model) {
 			$("#switch").removeClass("open");
 			// open the user overlay
 			$(this).toggleClass("open");
-			// this is a hack, but so is this entire navigation.js file.
 		})
 
 		// Close Pop-Overs on outside clicks
@@ -46,8 +45,8 @@ define(['./model'], function(model) {
 			var d = $(event.target)
 
 			// don't close if the user is clicking:
-			// an open pop-over or the user pop-over opener or the switch pop-over opener
-			if (!(d.hasClass("open") || $('#user').has(d).length || $('#user').is(d) || $('#switch').has(d).length || d.is($('#switch')))) {
+			// an open pop-over or something with a do-pop-over class
+			if (!(d.hasClass("open") || d.hasClass("do-pop-over"))) {
 				$(".open").removeClass("open")
 			}
 		})
