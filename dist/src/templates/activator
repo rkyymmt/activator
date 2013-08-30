@@ -47,6 +47,15 @@ cygwinpath() {
   fi
 }
 
+userhome() {
+  if is_cygwin; then
+    # This brings tears to the eyes.
+    echo "$USERPROFILE"
+  else
+    echo "$(eval "echo ~$USERNAME")"
+  fi
+}
+
 # Make something URI friendly
 make_url() {
   url="$1"
@@ -255,9 +264,8 @@ ${{template_declares}}
 declare -r app_launcher="${activator_home}/activator-launch-${app_version}.jar"
 declare -r script_name=activator
 declare -r java_cmd=$(get_java_cmd)
-# TODO - Check this on cygwin before calling it a day.
 declare -r user_home_dir=$(eval "echo ~$USERNAME")
-declare -r activator_user_home_dir="${user_home_dir}/.activator"
+declare -r activator_user_home_dir="$(userhome)/.activator"
 declare -r java_opts_config="${activator_user_home_dir}/activatorconfig.txt"
 
 # Now check to see if it's a good enough version
