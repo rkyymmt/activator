@@ -279,7 +279,7 @@ define(['text!./log.html', 'webjars!knockout', 'core/widget', 'core/utils', 'cor
 			}
 		},
 		leftoverEvent: function(event) {
-			if (event.type == 'RequestReceivedEvent' || event.type == 'Started') {
+			if (event.type == 'RequestReceivedEvent' || event.type == 'Started' || event.type == 'TaskComplete') {
 				// not interesting
 			} else {
 				this.warn("ignored event: " + JSON.stringify(event));

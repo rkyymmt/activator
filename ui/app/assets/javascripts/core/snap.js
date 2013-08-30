@@ -31,15 +31,6 @@ define(['./model', './plugin', './router', './pluginapi', './navigation', './tut
 			self.router.init();
 			ko.applyBindings(self, window.body);
 			navigation.init();
-			// Fill out sbt project inspection data.
-			api.sbt.runTask({
-				task: 'name',
-				success: function(result) {
-					model.snap.app.hasAkka(result.params.hasAkka);
-					model.snap.app.hasPlay(result.params.hasPlay);
-					model.snap.app.hasConsole(result.params.hasConsole);
-				}
-			})
 		},
 		api: api,
 		tutorial: new Tutorial()
