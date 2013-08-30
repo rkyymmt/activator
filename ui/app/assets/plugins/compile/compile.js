@@ -1,4 +1,4 @@
-define(['text!./compile.html', 'core/pluginapi', 'core/widgets/log', 'css!./compile.css'], function(template, api, log){
+define(['text!./compile.html', 'core/pluginapi', 'core/widgets/log', 'core/model', 'css!./compile.css'], function(template, api, log, model){
 
 	var ko = api.ko;
 	var sbt = api.sbt;
@@ -56,6 +56,51 @@ define(['text!./compile.html', 'core/pluginapi', 'core/widgets/log', 'css!./comp
 		},
 		update: function(parameters){
 		},
+		logEvent: function(event) {
+			if (this.logModel.event(event)) {
+				// logged already
+			} else {
+				this.logModel.leftoverEvent(event);
+			}
+		},
+		reloadProjectInfoThenCompile: function() {
+			var self = this;
+
+			self.logModel.info("Loading details of this project...");
+
+			self.status(api.STATUS_BUSY);
+			var taskId = api.sbt.runTask({
+				task: 'name',
+				onmessage: function(event) {
+					console.log("event from name task ", event);
+					self.logEvent(event);
+				},
+				success: function(result) {
+					console.log("name task results ", result);
+					self.activeTask("");
+
+					var app = model.snap.app;
+					app.name(result.params.name);
+					app.hasAkka(result.params.hasAkka !== false);
+					app.hasPlay(result.params.hasPlay !== false);
+					app.hasConsole(result.params.hasConsole !== false);
+
+					self.logModel.debug("name=" + app.name() +
+							" hasAkka=" + app.hasAkka() +
+							" hasPlay=" + app.hasPlay() +
+							" hasConsole=" + app.hasConsole());
+
+					self.compileAfterReloadProjectInfo();
+				},
+				failure: function(status, message) {
+					console.log("loading project info failed", message);
+					self.activeTask("");
+					self.logModel.warn("Failed to load project details: " + message);
+					self.status(api.STATUS_ERROR);
+				}
+			});
+			self.activeTask(taskId);
+		},
 		// after = optional
 		reloadSources: function(after) {
 			var self = this;
@@ -66,7 +111,7 @@ define(['text!./compile.html', 'core/pluginapi', 'core/widgets/log', 'css!./comp
 			sbt.watchSources({
 				onmessage: function(event) {
 					console.log("event watching sources", event);
-					self.logModel.event(event);
+					self.logEvent(event);
 				},
 				success: function(data) {
 					console.log("watching sources result", data);
@@ -108,26 +153,24 @@ define(['text!./compile.html', 'core/pluginapi', 'core/widgets/log', 'css!./comp
 				});
 			}
 		},
-		doCompile: function() {
+		compileAfterReloadProjectInfo: function() {
 			var self = this;
-			if (self.haveActiveTask()) {
-				console.log("Attempt to compile with a compile already active, will recompile again when we finish");
-				self.needCompile(true);
+
+			if (self.needCompile()) {
+				// asked to restart while loading the project info; so bail out here
+				// without starting the actual compile task.
+				self.logModel.info('Recompile requested.');
+				self.afterCompile(false);
 				return;
 			}
 
 			self.status(api.STATUS_BUSY);
-			self.logModel.clear();
 			self.logModel.info("Compiling...");
 			var task = { task: 'compile' };
 			var taskId = sbt.runTask({
 				task: task,
 				onmessage: function(event) {
-					if (self.logModel.event(event)) {
-						// logged already
-					} else {
-						self.logModel.leftoverEvent(event);
-					}
+					self.logEvent(event);
 				},
 				success: function(data) {
 					console.log("compile result: ", data);
@@ -147,6 +190,18 @@ define(['text!./compile.html', 'core/pluginapi', 'core/widgets/log', 'css!./comp
 				}
 			});
 			self.activeTask(taskId);
+		},
+		// this does reload project info task, compile task, then watch sources task.
+		doCompile: function() {
+			var self = this;
+			if (self.haveActiveTask()) {
+				console.log("Attempt to compile with a compile already active, will recompile again when we finish");
+				self.needCompile(true);
+				return;
+			}
+
+			self.logModel.clear();
+			self.reloadProjectInfoThenCompile();
 		},
 		startStopButtonClicked: function(self) {
 			console.log("Start/stop compile was clicked");

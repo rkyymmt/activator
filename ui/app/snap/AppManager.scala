@@ -273,7 +273,7 @@ object AppManager {
         })), name = "request-manager-" + requestManagerCount.getAndIncrement())
       val resultFuture: Future[ProcessResult[AppConfig]] =
         (requestManager ? protocol.NameRequest(sendEvents = true)) map {
-          case protocol.NameResponse(name) => {
+          case protocol.NameResponse(name, _) => {
             Logger.info("sbt told us the name is: '" + name + "'")
             name
           }
