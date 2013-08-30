@@ -5,9 +5,9 @@ define([
 	'./utils',
 	'./events',
 	'./widget',
-	'./acebinding'],
-	function(ko, sbt, key, utils, events, Widget, acebinding) {
-
+	'./acebinding',
+	'./model'],
+	function(ko, sbt, key, utils, events, Widget, acebinding, model) {
 	var STATUS_DEFAULT = 'default';
 	var STATUS_BUSY = 'busy';
 	var STATUS_ERROR = 'error;'
@@ -87,7 +87,7 @@ define([
 			}, this);
 
 			this.active = ko.computed(function() {
-				return activeWidget() == this.widgets[0].id;
+				return model.snap.activeWidget() == this.widgets[0].id;
 			}, this);
 
 			// validate widgets and set their key scope
@@ -101,13 +101,7 @@ define([
 	});
 
 	function findWidget(id) {
-		if (!('model' in window)) {
-			// this most likely means we are setting the active widget
-			// from inside model.init() ...
-			return null;
-		}
-
-		var matches = $.grep(window.model.widgets, function(w) { return w.id === id; });
+		var matches = $.grep(model.widgets, function(w) { return w.id === id; });
 		if (matches.length == 0) {
 			return null;
 		} else {
@@ -115,7 +109,6 @@ define([
 		}
 	}
 
-	var activeWidget = ko.observable("");
 	function setActiveWidget(widget) {
 		var newId = null;
 		if (typeof(widget) == 'string') {
@@ -126,7 +119,7 @@ define([
 			throw new Error("need a widget id not " + widget);
 		}
 
-		var oldId = activeWidget();
+		var oldId = model.snap.activeWidget();
 
 		if (newId == oldId)
 			return;  // no change
@@ -149,7 +142,7 @@ define([
 			oldWidget.onPreDeactivate();
 		}
 
-		activeWidget(newId);
+		model.snap.activeWidget(newId);
 
 		newWidget.onPostActivate();
 		newWidget.installKeybindings();
@@ -164,7 +157,7 @@ define([
 		PluginWidget: PluginWidget,
 		Plugin: Plugin,
 		// TODO - should this be non-public?
-		activeWidget: activeWidget,
+		activeWidget: model.snap.activeWidget,
 		setActiveWidget: setActiveWidget,
 		events: events,
 		STATUS_DEFAULT: STATUS_DEFAULT,

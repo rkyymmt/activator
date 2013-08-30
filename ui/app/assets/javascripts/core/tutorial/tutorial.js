@@ -1,8 +1,7 @@
-define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/pluginapi'], function(css, template, pageTemplate, api){
+define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'webjars!knockout', 'core/utils', 'core/widget'], function(css, template, pageTemplate, ko, utils, Widget) {
 
-	var ko = api.ko;
 
-	var Page = api.Class(api.Widget, {
+	var Page = utils.Class(Widget, {
 		id: 'page-widget',
 		template: pageTemplate,
 		init: function(parameters) {
@@ -31,7 +30,7 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'core/plug
 		$.ajax("tutorial/index.html",config);
 	}
 
-	var Tutorial = api.Class(api.Widget, {
+	var Tutorial = utils.Class(Widget, {
 		id: 'tutorial-widget',
 		template: template,
 		init: function(parameters) {
