@@ -13,23 +13,7 @@ require.config({
 	}
 });
 
-require([
-	// Vendors
-	'../../webjars/requirejs-text/2.0.10/text',
-	'../../webjars/require-css/0.0.7/css',
-	'webjars!jquery',
-	'webjars!knockout',
-	'webjars!keymage',
-	'core/visibility'
-],function() {
-	if (!document[hidden]) {
-		startApp()
-	}
-	else {
-		addEventListener(visibilityChange, handleVisibilityChange, false)
-	}
-})
-
+// Global event handlers to initialize us.
 var handleVisibilityChange = function() {
 	if (!document[hidden]) {
 		startApp()
@@ -49,3 +33,20 @@ var startApp = function() {
 		})
 	})
 }
+
+require([
+	// Vendors
+	'../../webjars/requirejs-text/2.0.10/text',
+	'../../webjars/require-css/0.0.7/css',
+	'webjars!jquery',
+	'webjars!knockout',
+	'webjars!keymage',
+	'core/visibility'
+],function() {
+	if (!document[hidden]) {
+		startApp()
+	}
+	else {
+		addEventListener(visibilityChange, handleVisibilityChange, false)
+	}
+})
