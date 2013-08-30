@@ -87,7 +87,7 @@ define([
 			}, this);
 
 			this.active = ko.computed(function() {
-				return activeWidget() == this.widgets[0].id;
+				return model.snap.activeWidget() == this.widgets[0].id;
 			}, this);
 
 			// validate widgets and set their key scope
@@ -109,7 +109,6 @@ define([
 		}
 	}
 
-	var activeWidget = model.snap.activeWidget;
 	function setActiveWidget(widget) {
 		var newId = null;
 		if (typeof(widget) == 'string') {
@@ -120,7 +119,7 @@ define([
 			throw new Error("need a widget id not " + widget);
 		}
 
-		var oldId = activeWidget();
+		var oldId = model.snap.activeWidget();
 
 		if (newId == oldId)
 			return;  // no change
@@ -143,7 +142,7 @@ define([
 			oldWidget.onPreDeactivate();
 		}
 
-		activeWidget(newId);
+		model.snap.activeWidget(newId);
 
 		newWidget.onPostActivate();
 		newWidget.installKeybindings();
@@ -158,7 +157,7 @@ define([
 		PluginWidget: PluginWidget,
 		Plugin: Plugin,
 		// TODO - should this be non-public?
-		activeWidget: activeWidget,
+		activeWidget: model.snap.activeWidget,
 		setActiveWidget: setActiveWidget,
 		events: events,
 		STATUS_DEFAULT: STATUS_DEFAULT,
