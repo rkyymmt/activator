@@ -1,4 +1,4 @@
-define(function(css, template){
+define(['./model'], function(model) {
 
 	function init(){
 		// TOOGLE NAV PAN ----------
@@ -38,9 +38,17 @@ define(function(css, template){
 			$("#switch").removeClass("open");
 			// open the user overlay
 			$(this).toggleClass("open");
-			// this is a hack, but so is this entire navigation.js file.
-			// TODO use knockout!
-			window.model.snap.closeUserTooltip();
+		})
+
+		// Close Pop-Overs on outside clicks
+		$('body').click(function(e) {
+			var d = $(event.target)
+
+			// don't close if the user is clicking:
+			// an open pop-over or something with a do-pop-over class
+			if (!(d.hasClass("open") || d.hasClass("do-pop-over"))) {
+				$(".open").removeClass("open")
+			}
 		})
 		// -------------------------
 	}

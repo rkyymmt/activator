@@ -1,4 +1,4 @@
-define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'], function(template, api, log, css){
+define(['core/model', 'text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'], function(model, template, api, log, css){
 
 	var ko = api.ko;
 	var sbt = api.sbt;
@@ -43,21 +43,23 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 			this.playAppLink = ko.observable('');
 			this.playAppStarted = ko.computed(function() { return this.haveActiveTask() && this.playAppLink() != ''; }, this);
 			this.atmosLink = ko.observable('');
-			this.atmosStarted = ko.computed(function() { return this.haveActiveTask() && this.atmosLink() != ''; }, this);
-			this.status = ko.observable('Application is stopped.');
-			this.fullStatus = ko.computed(function() {
-				var links = '';
-				if (this.playAppStarted()) {
-					links = links + '<a href="' + this.playAppLink() + '" target="_blank">Up and running at ' + this.playAppLink() + '</a>';
-				}
-				if (this.atmosStarted()) {
-					links = links + ' <a href="' + this.atmosLink() + '" target="_blank">Typesafe Console</a>'
-				}
-				if (links != '')
-					return links + ' ' + this.status();
-				else
-					return this.status();
+			this.atmosCompatible = model.snap.app.hasConsole;
+			this.runningWithAtmos = ko.computed(function() {
+				return this.haveActiveTask() && this.atmosLink() != '';
 			}, this);
+			this.runningWithoutAtmos = ko.computed(function() {
+				return this.haveActiveTask() && this.atmosLink() == '';
+			}, this);
+			this.notRunningAndNotSignedIn = ko.computed(function() {
+				return !this.haveActiveTask() && !model.snap.signedIn();
+			}, this);
+			this.notRunningAndSignedInAndAtmosEnabled = ko.computed(function() {
+				return !this.haveActiveTask() && this.runInConsole() && model.snap.signedIn();
+			}, this);
+			this.notRunningAndSignedInAndAtmosDisabled = ko.computed(function() {
+				return !this.haveActiveTask() && !this.runInConsole() && model.snap.signedIn();
+			}, this);
+			this.status = ko.observable('Application is stopped.');
 		},
 		update: function(parameters){
 		},
@@ -215,24 +217,38 @@ define(['text!./run.html', 'core/pluginapi', 'core/widgets/log', 'css!./run.css'
 				self.doRun(false); // false=!triggeredByBuild
 			}
 		},
+		doRestart: function() {
+			this.doStop();
+			this.restartPending(true);
+		},
 		restartButtonClicked: function(self) {
 			console.log("Restart was clicked");
-			self.doStop();
-			self.restartPending(true);
+			self.doRestart();
 		},
 		onPreDeactivate: function() {
 			this.logScroll = this.logModel.findScrollState();
 			this.outputScroll = this.outputModel.findScrollState();
-			console.log("Hiding user tooltip on leaving run");
-			window.model.snap.showUserTooltip(false);
 		},
 		onPostActivate: function() {
 			this.logModel.applyScrollState(this.logScroll);
 			this.outputModel.applyScrollState(this.outputScroll);
-			if (!window.model.snap.signedIn()) {
-				console.log("showing user tooltip due to activating run plugin");
-				window.model.snap.showUserTooltip(true);
-			}
+		},
+		restartWithAtmos: function(self) {
+			this.runInConsole(true);
+			this.doRestart();
+		},
+		restartWithoutAtmos: function(self) {
+			this.runInConsole(false);
+			this.doRestart();
+		},
+		enableAtmos: function(self) {
+			this.runInConsole(true);
+		},
+		disableAtmos: function(self) {
+			this.runInConsole(false);
+		},
+		showLogin: function(self) {
+			$('#user').addClass("open");
 		}
 	});
 

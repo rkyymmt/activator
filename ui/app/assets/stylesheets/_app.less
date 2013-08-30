@@ -14,7 +14,6 @@
 article .wrapper {
 	overflow: auto;
 	position: absolute;
-	padding: 0 0 20px;
 	top: 100px;
 	left: 0;
 	right: 0;
@@ -22,11 +21,6 @@ article .wrapper {
 }
 
 article header {
-	height: 100px;
-	//background: #53cdec;
-	//background: #384046;
-	//color: white;
-	background: #fff;
 	background: #53cdec;
 	color: white;
 }
@@ -47,9 +41,14 @@ article h1 a:hover {
 }
 
 article header nav {
-	float: right;
-	padding: 15px 10px;
-	a, button, dt {
+  float: right;
+  line-height: 60px;
+  height: 60px;
+}
+
+article header {
+	button, dt {
+        line-height: normal;
 		background: none;
 		color: #fff;
 		display: inline-block;
@@ -70,6 +69,7 @@ article header nav {
 		}
 	}
 	dl.dropdown {
+        line-height: normal;
 		position: relative;
 		display: inline-block;
 		&.active dt {
@@ -145,8 +145,6 @@ article header nav {
 article header .subheader {
 	background: #46BCD9;
 	color: #246C7E;
-	position: absolute;
-	top: 60px;
 	left: 0;
 	right: 0;
 	z-index: 9;
