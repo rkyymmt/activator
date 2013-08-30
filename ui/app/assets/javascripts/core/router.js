@@ -1,6 +1,4 @@
-define(['./pluginapi'], function(api) {
-	var ko = api.ko;
-
+define(['webjars!knockout'], function(ko) {
 	// Decomposed url in an array
 	var breadcrumbs = [];
 

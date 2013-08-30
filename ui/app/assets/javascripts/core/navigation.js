@@ -1,4 +1,4 @@
-define(['./model'], function(model) {
+define([], function() {
 
 	function init(){
 		// TOOGLE NAV PAN ----------

@@ -1,18 +1,14 @@
-define(['./pluginapi', './router', './tutorial/tutorial', './navigation'], function(api, router, Tutorial, navigation) {
-
-	var ko = api.ko;
-
+define(['webjars!knockout', './router', './tutorial/tutorial'], function(ko, router, Tutorial) {
 	// Model for the whole app view; created in two parts
 	// so that this first part is available during construction
 	// of the second part.
-	var model = {
-		api: api,
+	return {
 		plugins: null, // filled in by init
 		router: router,
 		tutorial: new Tutorial(),
 		snap: {
+			activeWidget: ko.observable(""),
 			pageTitle: ko.observable(),
-			activeWidget: api.activeWidget,
 			// TODO load last value from somewhere until we get a message from the iframe
 			signedIn: ko.observable(false),
 			app: {
@@ -36,9 +32,6 @@ define(['./pluginapi', './router', './tutorial/tutorial', './navigation'], funct
 			});
 			self.router.init();
 			ko.applyBindings(self, window.body);
-			navigation.init();
 		}
 	};
-
-	return model;
 });

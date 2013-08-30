@@ -5,9 +5,9 @@ define([
 	'./utils',
 	'./events',
 	'./widget',
-	'./acebinding'],
-	function(ko, sbt, key, utils, events, Widget, acebinding) {
-
+	'./acebinding',
+	'./model'],
+	function(ko, sbt, key, utils, events, Widget, acebinding, model) {
 	var STATUS_DEFAULT = 'default';
 	var STATUS_BUSY = 'busy';
 	var STATUS_ERROR = 'error;'
@@ -101,13 +101,7 @@ define([
 	});
 
 	function findWidget(id) {
-		if (!('model' in window)) {
-			// this most likely means we are setting the active widget
-			// from inside model.init() ...
-			return null;
-		}
-
-		var matches = $.grep(window.model.widgets, function(w) { return w.id === id; });
+		var matches = $.grep(model.widgets, function(w) { return w.id === id; });
 		if (matches.length == 0) {
 			return null;
 		} else {
@@ -115,7 +109,7 @@ define([
 		}
 	}
 
-	var activeWidget = ko.observable("");
+	var activeWidget = model.snap.activeWidget;
 	function setActiveWidget(widget) {
 		var newId = null;
 		if (typeof(widget) == 'string') {
