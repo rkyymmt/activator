@@ -83,7 +83,9 @@ define(['text!./compile.html', 'core/pluginapi', 'core/widgets/log', 'core/model
 					app.name(result.params.name);
 					app.hasAkka(result.params.hasAkka === true);
 					app.hasPlay(result.params.hasPlay === true);
-					app.hasConsole(result.params.hasConsole === true);
+					// Console is always disabled just for the next release,
+					// then take this hack out.
+					app.hasConsole(false); // result.params.hasConsole === true);
 
 					self.logModel.debug("name=" + app.name() +
 							" hasAkka=" + app.hasAkka() +
