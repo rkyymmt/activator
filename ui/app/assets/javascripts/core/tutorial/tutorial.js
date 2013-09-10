@@ -107,8 +107,10 @@ define(['css!./tutorial', 'text!./tutorial.html', 'text!./page.html', 'webjars!k
 			if (item) {
 				console.log("selecting page " + item.index + ": " + item.title);
 				this.currentPage(item);
-				// restore the page's scroll position
-				$(this.node).find('article')[0].scrollTop = item.lastScrollTop;
+				// restore the page's scroll position, if we've even been rendered (may not have been)
+				if (this.node !== null) {
+					$(this.node).find('article')[0].scrollTop = item.lastScrollTop;
+				}
 			} else if (item === null) {
 				console.log("unselecting all pages");
 				this.currentPage(null);
