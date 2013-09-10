@@ -81,9 +81,9 @@ define(['text!./compile.html', 'core/pluginapi', 'core/widgets/log', 'core/model
 
 					var app = model.snap.app;
 					app.name(result.params.name);
-					app.hasAkka(result.params.hasAkka !== false);
-					app.hasPlay(result.params.hasPlay !== false);
-					app.hasConsole(result.params.hasConsole !== false);
+					app.hasAkka(result.params.hasAkka === true);
+					app.hasPlay(result.params.hasPlay === true);
+					app.hasConsole(result.params.hasConsole === true);
 
 					self.logModel.debug("name=" + app.name() +
 							" hasAkka=" + app.hasAkka() +
