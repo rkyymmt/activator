@@ -126,6 +126,14 @@ define(['core/model', 'text!./run.html', 'core/pluginapi', 'core/widgets/log', '
 			this.loadMainClasses(function(data) {
 				// SUCCESS
 				console.log("GOT main class info ", data);
+
+				// hack because run-main doesn't work on Play right now.
+				if (model.snap.app.hasPlay) {
+					console.log("OVERRIDING main class info due to Play app; dropping it all");
+					data.name = '';
+					data.names = [];
+				}
+
 				self.defaultMainClass(data.name);
 				console.log("Set default main class to " + self.defaultMainClass());
 				// ensure the default configured class is in the menu
