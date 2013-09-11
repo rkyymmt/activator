@@ -83,7 +83,6 @@ define(['core/pluginapi'], function(api) {
 			if(config.autoLoad) {
 				self.loadInfo();
 			}
-			self.singleClickPending = false;
 			self.editing.subscribe(self.onEditingChanged.bind(self));
 			self.reloadSelf = self.loadInfo.bind(self);
 			if (typeof(config.reloadParent) == 'function') {
@@ -184,19 +183,20 @@ define(['core/pluginapi'], function(api) {
 		toString: function() {
 			return 'File['+this.location+']';
 		},
-		afterSingleClickTimeout: function() {
-			if (this.singleClickPending) {
-				this.singleClickPending = false;
-				// we didn't double click, so select the item
-				this.select();
-			}
-		},
-		onSingleClick: function() {
-			this.singleClickPending = true;
-			setTimeout(this.afterSingleClickTimeout.bind(this), 400);
+		onSingleClick: function(data, event) {
+			// do not follow the link right now. wait until a double-click
+
+			// for some reason we don't need to preventDefault, just having the listener prevents it
+			// but removing the listener makes clicking the link trigger a select / url change
+			// so we just do nothing here
+			//event.preventDefault();
 		},
 		onDoubleClick: function() {
-			this.singleClickPending = false;
+			this.select();
+		},
+		onContextMenu: function(data, event) {
+			console.log(event);
+			// todo: show a context menu with rename & delete options
 			this.startEditing();
 		},
 		onKeyUp: function(data, event) {
