@@ -48,7 +48,6 @@ define(['css!./fileselection.css', 'text!./fileselection.html', 'webjars!knockou
 			self.onCancel = config.onCancel || noop;
 			self.showFiles = ko.observable(cfg.showFiles || false);
 			self.shownDirectory = ko.observable(cfg.initialDir || '');
-			self.listingText = config.listingText || 'Listing';
 			self.currentFiles = ko.observableArray([]);
 			self.currentHighlight = ko.computed(function() {
 				return $.grep(self.currentFiles(), fileIsHighlighted)[0];
@@ -131,6 +130,9 @@ define(['css!./fileselection.css', 'text!./fileselection.html', 'webjars!knockou
 					});
 				}
 				fileConfigs.push.apply(fileConfigs, values.children || []);
+				fileConfigs.sort(function(fileConfig1, fileConfig2) {
+					return fileConfig1.name.toLowerCase() > fileConfig2.name.toLowerCase();
+				});
 				self.currentFiles($.map(fileConfigs, function(config) {
 					return new File(config);
 				}));

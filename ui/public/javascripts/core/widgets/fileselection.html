@@ -1,6 +1,5 @@
 <div class="fileselection">
 	<h2 data-bind="text: title"></h2>
-	<p class="currentDirectory"><span data-bind="text: listingText"> <span data-bind="text: shownDirectory"></span></p>
 	<div class="listing">
 		<ul data-bind="foreach: currentViewFiles" class="directories">
 			<li data-bind="css: {folder: isDirectory, file: isFile, highlight: highlighted }, click: function() { $parent.click($data); }">
