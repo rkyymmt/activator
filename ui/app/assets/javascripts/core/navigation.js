@@ -41,7 +41,7 @@ define([], function() {
 		})
 
 		// Close Pop-Overs on outside clicks
-		$('body').click(function(e) {
+		$('body').click(function(event) {
 			var d = $(event.target)
 
 			// don't close if the user is clicking:
