@@ -28,7 +28,7 @@
 <ul class="list directory" data-bind="foreach: files">
 	<li class="file" data-bind="css: {folder: isDirectory, file: !isDirectory()}">
 		<h2>
-		      <a data-bind="visible: !editing(), text: name, click: onSingleClick, event: { dblclick: onDoubleClick }, attr: {href: '#'+url()}"></a>
+		      <a data-bind="visible: !editing(), text: name, event: { contextmenu: onContextMenu, click: onSingleClick, dblclick: onDoubleClick }, attr: {href: '#'+url()}"></a>
 		      <input data-bind="visible: editing, value: editingText, event: { keyup: onKeyUp, blur: onBlur }, css: editClass"></input>
 		</h2>
 	</li>
