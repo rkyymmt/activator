@@ -128,7 +128,7 @@ define(['core/model', 'text!./run.html', 'core/pluginapi', 'core/widgets/log', '
 				console.log("GOT main class info ", data);
 
 				// hack because run-main doesn't work on Play right now.
-				if (model.snap.app.hasPlay) {
+				if (model.snap.app.hasPlay()) {
 					console.log("OVERRIDING main class info due to Play app; dropping it all");
 					data.name = '';
 					data.names = [];
