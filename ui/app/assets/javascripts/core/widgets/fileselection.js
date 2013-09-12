@@ -131,7 +131,11 @@ define(['css!./fileselection.css', 'text!./fileselection.html', 'webjars!knockou
 				}
 				fileConfigs.push.apply(fileConfigs, values.children || []);
 				fileConfigs.sort(function(fileConfig1, fileConfig2) {
-					return fileConfig1.name.toLowerCase() > fileConfig2.name.toLowerCase();
+					if (fileConfig1.name.toLowerCase() < fileConfig2.name.toLowerCase())
+						return -1;
+					if (fileConfig1.name.toLowerCase() > fileConfig2.name.toLowerCase())
+						return 1;
+					return 0;
 				});
 				self.currentFiles($.map(fileConfigs, function(config) {
 					return new File(config);
