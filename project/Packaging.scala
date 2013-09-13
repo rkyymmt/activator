@@ -21,8 +21,8 @@ object Packaging {
   // TODO - rename this to just template directory...
   val scriptTemplateDirectory = SettingKey[File]("script-template-directory")
   val scriptTemplateOutputDirectory = SettingKey[File]("script-template-output-directory")
-  val makeBashScript = TaskKey[File]("make-bash-script")
-  val makeBatScript = TaskKey[File]("make-bat-script")
+  val makeActivatorBashScript = taskKey[File]("make the 'activator' script")
+  val makeActivatorBatScript = taskKey[File]("make the 'activator.bat' script")
 
   val makeReadmeHtml = TaskKey[File]("make-readme-html")
   val makeLicensesHtml = TaskKey[File]("make-licenses-html")
@@ -80,8 +80,8 @@ object Packaging {
     mappings in Universal <+= (repackagedLaunchJar, version) map { (jar, v) =>
       jar -> ("activator-launch-%s.jar" format (v))
     },
-    mappings in Universal <+= makeBashScript map (_ -> "activator"),
-    mappings in Universal <+= makeBatScript map (_ -> "activator.bat"),
+    mappings in Universal <+= makeActivatorBashScript map (_ -> "activator"),
+    mappings in Universal <+= makeActivatorBatScript map (_ -> "activator.bat"),
     mappings in Universal <+= makeReadmeHtml map (_ -> "README.html"),
     mappings in Universal <+= makeLicensesHtml map (_ -> "LICENSE.html"),
     mappings in Universal <++= localRepoCreated map { repo =>
@@ -105,13 +105,13 @@ object Packaging {
 
     scriptTemplateDirectory <<= (sourceDirectory) apply (_ / "templates"),
     scriptTemplateOutputDirectory <<= (target in Compile) apply (_ / "templates"),
-    makeBashScript <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
+    makeActivatorBashScript <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
       val template = from / "activator"
       val script = to / "activator"
       copyBashTemplate(template, script, v)
       script
     },
-    makeBatScript <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
+    makeActivatorBatScript <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
       val template = from / "activator.bat"
       val script = to / "activator.bat"
       copyBatTemplate(template, script, v)

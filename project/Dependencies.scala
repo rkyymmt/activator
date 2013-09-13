@@ -1,5 +1,4 @@
 import sbt._
-import PlayProject._
 import Keys._
 
 object Dependencies {
@@ -9,9 +8,9 @@ object Dependencies {
   val scalaVersion = "2.10.2"
   val sbtSnapshotVersion = "0.13.0"
   val luceneVersion = "4.2.1"
-  val templateCacheVersion = "1.0-cd332dfce743e1c7d2258e0ceb674bea19344cad"
-  val sbtRcVersion = "1.0-7a9484492bcfe4dfe77c694886bd501cbc005aea"
-  val playVersion = "2.1.3"
+  val templateCacheVersion = "1.0-1afe2c4e3a15a1360ef44c3eb70e3d543d478ed6"
+  val sbtRcVersion = "1.0-34f158e00ad7e41475ee3f925f985a8b148c052c"
+  val playVersion = "2.2.0-RC1"
   val akkaVersion = "2.1.2"
 
   val activatorCommon      = "com.typesafe.activator" % "activator-common" % templateCacheVersion
@@ -71,7 +70,7 @@ object Dependencies {
 
   
   // WebJars for the Activator UI
-  val webjarsPlay3     = "org.webjars" %% "webjars-play" % "2.1.0-3"
+  val webjarsPlay3     = "org.webjars" %% "webjars-play" % Dependencies.playVersion
   val requirejs        = "org.webjars" % "requirejs" % "2.1.8"
   val jquery           = "org.webjars" % "jquery" % "2.0.3"
   val knockout         = "org.webjars" % "knockout" % "2.2.1"

@@ -24,10 +24,13 @@ object Events extends Controller {
   private val events: Enumerator[String] = EventStreamEnumerator()
 
   // TODO - We should probably take a SSEvent() class here, so we can support all the spec, including ids and retry and such.
-  private val toEventSource = Enumeratee.map[String] { msg =>
-    // We can't allow end lines in the messages, so we split on them, and then feed data.
-    // TODO - Better end-line splitting.
-    msg.split("[\\r]?[\\n]").mkString("data: ", "\ndata: ", "\n\n\n")
+  private val toEventSource = {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    Enumeratee.map[String] { msg =>
+      // We can't allow end lines in the messages, so we split on them, and then feed data.
+      // TODO - Better end-line splitting.
+      msg.split("[\\r]?[\\n]").mkString("data: ", "\ndata: ", "\n\n\n")
+    }
   }
 
   // Action that returns a new event source stream.
@@ -56,6 +59,7 @@ object EventStreamEnumerator {
   // However, onComplete and onError are *not* being called
   // when a connection is closed.   have to look into that.
   def apply(): Enumerator[String] = {
+    import scala.concurrent.ExecutionContext.Implicits.global
     val context = new EventActorContext(null)
     Concurrent.unicast(
       onStart = { channel =>

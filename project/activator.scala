@@ -1,6 +1,6 @@
 import sbt._
-import PlayProject._
 import Keys._
+import play.Project._
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import com.typesafe.sbt.SbtGit
@@ -58,7 +58,7 @@ object ActivatorBuild {
       makeFixWhitespace(Compile),
       makeFixWhitespace(Test),
       compileInputs in (Compile, compile) <<= (compileInputs in (Compile, compile)) dependsOn (fixWhitespace in Compile),
-      compileInputs in Test <<= (compileInputs in Test) dependsOn (fixWhitespace in Test)
+      compileInputs in (Test, compile) <<= (compileInputs in (Test, compile)) dependsOn (fixWhitespace in Test)
     )
 
   def sbtShimPluginSettings: Seq[Setting[_]] =

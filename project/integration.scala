@@ -126,7 +126,8 @@ case class IntegrationContext(launchJar: File,
     val boot = cwd / "boot"
     Process(Seq("java", 
         "-Dsbt.boot.properties=" + props.getAbsolutePath, 
-        "-Dsbt.boot.directory=" + boot.getAbsolutePath, 
+        "-Dsbt.boot.directory=" + boot.getAbsolutePath,
+        "-Dactivator.integration.playVersion=" + Dependencies.playVersion,
         "-Dactivator.home=" +cleanUriFileString(integrationHome.getAbsolutePath),
         "-jar", 
         launchJar.getAbsolutePath), cwd)
