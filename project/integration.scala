@@ -36,7 +36,6 @@ object integration {
     tests <<= (itContext, mains, streams) map { (ctx, ms, s) =>
       val results = ms map ctx.runTest
       handleResults(results, s)
-      results
     },	
     localRepoArtifacts <+= (Keys.projectID, Keys.scalaBinaryVersion, Keys.scalaVersion) apply {
       (id, sbv, sv) => CrossVersion(sbv,sv)(id)
