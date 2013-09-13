@@ -32,7 +32,6 @@ class SbtTest {
   import testUtil._
 
   implicit val timeout: Timeout = Timeout(120, TimeUnit.SECONDS)
-  import concurrent.ExecutionContext.Implicits.global
 
   private def deAsync(result: Future[SimpleResult]): SimpleResult = {
     Await.result(result, timeout.duration)
@@ -56,7 +55,7 @@ class SbtTest {
 
   private def routeExpectingAnError[B](req: FakeRequest[_], body: B)(implicit w: Writeable[B]): String = {
     route(req, body) map deAsync match {
-      case Some(result) if result.header.status != Status.OK => contentAsString(Future(result))(timeout)
+      case Some(result) if result.header.status != Status.OK => contentAsString(Future.successful(result))(timeout)
       case None =>
         throw new RuntimeException("got None back from request: " + req)
     }
@@ -64,9 +63,9 @@ class SbtTest {
 
   private def routeThrowingIfNotJson[B](req: FakeRequest[_], body: B)(implicit w: Writeable[B]): JsValue = {
     val result = routeThrowingIfNotSuccess(req, body)
-    if (contentType(Future(result))(timeout) != Some("application/json"))
-      throw new RuntimeException("Wrong content type: " + contentType(Future(result))(timeout))
-    Json.parse(contentAsString(Future(result))(timeout))
+    if (contentType(Future.successful(result))(timeout) != Some("application/json"))
+      throw new RuntimeException("Wrong content type: " + contentType(Future.successful(result))(timeout))
+    Json.parse(contentAsString(Future.successful(result))(timeout))
   }
 
   // we are supposed to fail to "import" an empty directory
