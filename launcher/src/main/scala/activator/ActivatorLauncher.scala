@@ -22,13 +22,13 @@ class ActivatorLauncher extends AppMain {
   case class Exit(val code: Int) extends xsbti.Exit
 
   def displayHelp(configuration: AppConfiguration) = {
-    System.err.println(s"""| Warning:  Could not detect a local ${SCRIPT_NAME} project.
+    System.err.println(s"""| Did not detect an ${SCRIPT_NAME} project in this directory.
                           |
-                          | If you'd like to run ${SCRIPT_NAME} in this directory, please:
+                          | There are three ways to run ${SCRIPT_NAME}:
                           |
-                          | 1. Run the UI with `${SCRIPT_NAME} ui`
-                          | 2. Create a project with `${SCRIPT_NAME} new`
-                          | 3. Move into a ${SCRIPT_NAME} project directory and re-run ${SCRIPT_NAME}.
+                          | 1. Recommended: try `${SCRIPT_NAME} ui` to create a project in the UI
+                          | 2. Use `${SCRIPT_NAME} new` to create a project on the command line
+                          | 3. Load an existing project by re-running ${SCRIPT_NAME} in a project directory
                           |""".stripMargin)
     Exit(1)
   }
