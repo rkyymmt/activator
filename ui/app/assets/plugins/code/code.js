@@ -60,7 +60,8 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 					alert("Saving this kind of file is not supported");
 			};
 			self.keybindings = [
-				[ 'ctrl-s', onSave, { preventDefault: true } ]
+				[ 'ctrl-s', onSave, { preventDefault: true } ],
+				[ 'defmod-s', onSave, { preventDefault: true } ]
 			];
 		},
 		setCrumbs: function(crumbs) {
