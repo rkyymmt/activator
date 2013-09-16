@@ -75,8 +75,8 @@ object TheActivatorBuild extends Build {
   def configureSbtTest(testKey: Scoped) = Seq(
     // set up embedded sbt for tests, we fork so we can set
     // system properties.
-    Keys.fork in testKey := true,
-    Keys.javaOptions in testKey <<= (
+    Keys.fork in Test in testKey := true,
+    Keys.javaOptions in Test in testKey <<= (
       SbtSupport.sbtLaunchJar,
       Keys.javaOptions in testKey,
       Keys.update) map {
