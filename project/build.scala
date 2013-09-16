@@ -17,7 +17,7 @@ object TheActivatorBuild extends Build {
       sys.props("activator.home") = bd.getAbsoluteFile.getAbsolutePath  // TODO - Make space friendly
       bd
     }
-  ) ++ play.Project.intellijCommandSettings(play.Project.SCALA) // workaround for #24
+  ) ++ play.Project.intellijCommandSettings
 
   val root = (
     Project("root", file("."))  // TODO - Oddities with clean..
@@ -75,8 +75,8 @@ object TheActivatorBuild extends Build {
   def configureSbtTest(testKey: Scoped) = Seq(
     // set up embedded sbt for tests, we fork so we can set
     // system properties.
-    Keys.fork in testKey := true,
-    Keys.javaOptions in testKey <<= (
+    Keys.fork in Test in testKey := true,
+    Keys.javaOptions in Test in testKey <<= (
       SbtSupport.sbtLaunchJar,
       Keys.javaOptions in testKey,
       Keys.update) map {
@@ -170,7 +170,7 @@ object TheActivatorBuild extends Build {
       dependsOnRemote(sbtLauncherInterface, sbtIo210, sbtrcRemoteController)
       dependsOn(props)
       settings(
-        com.typesafe.sbtidea.SbtIdeaPlugin.ideaIgnoreModule := true,
+        org.sbtidea.SbtIdeaPlugin.ideaIgnoreModule := true,
         Keys.publish := {}
       )
   )
@@ -232,12 +232,12 @@ object TheActivatorBuild extends Build {
         "org.scalatest" % "scalatest_2.10" % "1.9.1",
         "junit" % "junit" % "4.11",
         "com.novocode" % "junit-interface" % "0.7",
-        "org.webjars" % "webjars-play_2.10" % "2.1.0-3",
+        "org.webjars" % "webjars-play_2.10" % Dependencies.playVersion,
         "org.webjars" % "bootstrap" % "2.3.1",
         "org.webjars" % "flot" % "0.8.0",
-        "play" % "play-java_2.10" % "2.1.3",
-        "play" % "play-test_2.10" % "2.1.3",
-      
+        "play" % "play-java_2.10" % Dependencies.playVersion,
+        "play" % "play-test_2.10" % Dependencies.playVersion,
+
         // failed transatives
         "junit" % "junit" % "3.8.1",
         "com.jcraft" % "jsch" % "0.1.44-1",

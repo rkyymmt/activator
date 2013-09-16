@@ -1,6 +1,10 @@
 import sbt._
 import Keys._
 import SbtSupport.sbtLaunchJar
+import com.typesafe.sbt.packager.Keys.{
+  makeBashScript, makeBatScript
+}
+
 
 package sbt {
   object IvySbtCheater {
@@ -21,8 +25,6 @@ object Packaging {
   // TODO - rename this to just template directory...
   val scriptTemplateDirectory = SettingKey[File]("script-template-directory")
   val scriptTemplateOutputDirectory = SettingKey[File]("script-template-output-directory")
-  val makeBashScript = TaskKey[File]("make-bash-script")
-  val makeBatScript = TaskKey[File]("make-bat-script")
 
   val makeReadmeHtml = TaskKey[File]("make-readme-html")
   val makeLicensesHtml = TaskKey[File]("make-licenses-html")
@@ -80,16 +82,18 @@ object Packaging {
     mappings in Universal <+= (repackagedLaunchJar, version) map { (jar, v) =>
       jar -> ("activator-launch-%s.jar" format (v))
     },
-    mappings in Universal <+= makeBashScript map (_ -> "activator"),
-    mappings in Universal <+= makeBatScript map (_ -> "activator.bat"),
-    mappings in Universal <+= makeReadmeHtml map (_ -> "README.html"),
-    mappings in Universal <+= makeLicensesHtml map (_ -> "LICENSE.html"),
-    mappings in Universal <++= localRepoCreated map { repo =>
+    mappings in Universal ++= makeBashScript.value.toSeq map (_ -> "activator"),
+    mappings in Universal ++= makeBatScript.value.toSeq map (_ -> "activator.bat"),
+    mappings in Universal += makeReadmeHtml.value -> "README.html",
+    mappings in Universal += makeLicensesHtml.value -> "LICENSE.html",
+    mappings in Universal ++= {
+      val repo = localRepoCreated.value
       for {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
       } yield file -> ("repository/" + path)
     },
-    mappings in Universal <++= (LocalTemplateRepo.localTemplateCacheCreated in TheActivatorBuild.localTemplateRepo) map { repo =>
+    mappings in Universal ++= {
+      val repo = (LocalTemplateRepo.localTemplateCacheCreated in TheActivatorBuild.localTemplateRepo).value
       for {
         (file, path) <- (repo.*** --- repo) x relativeTo(repo)
       } yield file -> ("templates/" + path)
@@ -103,29 +107,29 @@ object Packaging {
     repackagedLaunchMappings := Seq.empty,
     repackagedLaunchMappings <+= (target, scalaVersion, version) map makeLauncherProps,
 
-    scriptTemplateDirectory <<= (sourceDirectory) apply (_ / "templates"),
-    scriptTemplateOutputDirectory <<= (target in Compile) apply (_ / "templates"),
-    makeBashScript <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
-      val template = from / "activator"
-      val script = to / "activator"
-      copyBashTemplate(template, script, v)
-      script
+    scriptTemplateDirectory := sourceDirectory.value / "templates",
+    scriptTemplateOutputDirectory := (target in Compile).value / "templates",
+    makeBashScript := {
+      val template = scriptTemplateDirectory.value / "activator"
+      val script = scriptTemplateOutputDirectory.value / "activator"
+      copyBashTemplate(template, script, version.value)
+      Some(script)
     },
-    makeBatScript <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
-      val template = from / "activator.bat"
-      val script = to / "activator.bat"
-      copyBatTemplate(template, script, v)
-      script
+    makeBatScript := {
+      val template = scriptTemplateDirectory.value / "activator.bat"
+      val script = scriptTemplateOutputDirectory.value / "activator.bat"
+      copyBatTemplate(template, script, version.value)
+      Some(script)
     },
-    makeReadmeHtml <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
-      val template = from / "README.md"
-      val output = to / "README.html"
+    makeReadmeHtml := {
+      val template = scriptTemplateDirectory.value / "README.md"
+      val output = scriptTemplateOutputDirectory.value / "README.html"
       Markdown.makeHtml(template, output, title="Activator")
       output
     },
-    makeLicensesHtml <<= (scriptTemplateDirectory, scriptTemplateOutputDirectory, version) map { (from, to, v) =>
-      val template = from / "LICENSE.md"
-      val output = to / "LICENSE.html"
+    makeLicensesHtml := {
+      val template = scriptTemplateDirectory.value / "LICENSE.md"
+      val output = scriptTemplateOutputDirectory.value / "LICENSE.html"
       Markdown.makeHtml(template, output, title="Activator License")
       output
     }

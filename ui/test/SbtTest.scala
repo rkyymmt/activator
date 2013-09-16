@@ -14,7 +14,7 @@ import snap.EnhancedURI._
 import language.implicitConversions
 import play.api.mvc._
 import play.api.http._
-import scala.concurrent.Await
+import scala.concurrent.{ Await, Future }
 import akka.util.Timeout
 import java.util.concurrent.TimeUnit
 import play.api.libs.iteratee._
@@ -23,18 +23,18 @@ import activator.ProcessResult
 import activator.ProcessSuccess
 import activator.ProcessFailure
 
+// TODO - With play's switch to everything being in a future, we botched up this code transition.
+// We should probably not use the de-asynch method as often as we do.
 class SbtTest {
 
   val testUtil = new com.typesafe.sbtrc.TestUtil(scratchDir = new File("ui/target/scratch"))
 
   import testUtil._
 
-  private def deAsync(result: Result): Result = result match {
-    case AsyncResult(p) => {
-      implicit val timeout = Timeout(120, TimeUnit.SECONDS)
-      deAsync(Await.result(p, timeout.duration))
-    }
-    case whatever => whatever
+  implicit val timeout: Timeout = Timeout(120, TimeUnit.SECONDS)
+
+  private def deAsync(result: Future[SimpleResult]): SimpleResult = {
+    Await.result(result, timeout.duration)
   }
 
   private def loadAppIdFromLocation(location: File): ProcessResult[String] = {
@@ -45,13 +45,9 @@ class SbtTest {
   // the "body" and "Writeable" args are a workaround for
   // https://play.lighthouseapp.com/projects/82401/tickets/770-fakerequestwithjsonbody-no-longer-works
   // TODO drop this hack when upgrading past Play 2.1-RC1
-  private def routeThrowingIfNotSuccess[B](req: FakeRequest[_], body: B)(implicit w: Writeable[B]): SimpleResult[_] = {
+  private def routeThrowingIfNotSuccess[B](req: FakeRequest[_], body: B)(implicit w: Writeable[B]): SimpleResult = {
     route(req, body) map deAsync match {
-      case Some(result: SimpleResult[_]) if result.header.status == Status.OK => result
-      case Some(whatever) =>
-        val message = try contentAsString(whatever)
-        catch { case e: Exception => "" }
-        throw new RuntimeException("unexpected result: " + whatever + ": " + message)
+      case Some(result) if result.header.status == Status.OK => result
       case None =>
         throw new RuntimeException("got None back from request: " + req)
     }
@@ -59,11 +55,7 @@ class SbtTest {
 
   private def routeExpectingAnError[B](req: FakeRequest[_], body: B)(implicit w: Writeable[B]): String = {
     route(req, body) map deAsync match {
-      case Some(result: SimpleResult[_]) if result.header.status != Status.OK => contentAsString(result)
-      case Some(whatever) =>
-        val message = try contentAsString(whatever)
-        catch { case e: Exception => "" }
-        throw new RuntimeException("unexpected result: " + whatever + ": " + message)
+      case Some(result) if result.header.status != Status.OK => contentAsString(Future.successful(result))(timeout)
       case None =>
         throw new RuntimeException("got None back from request: " + req)
     }
@@ -71,9 +63,9 @@ class SbtTest {
 
   private def routeThrowingIfNotJson[B](req: FakeRequest[_], body: B)(implicit w: Writeable[B]): JsValue = {
     val result = routeThrowingIfNotSuccess(req, body)
-    if (contentType(result) != Some("application/json"))
-      throw new RuntimeException("Wrong content type: " + contentType(result))
-    Json.parse(contentAsString(result))
+    if (contentType(Future.successful(result))(timeout) != Some("application/json"))
+      throw new RuntimeException("Wrong content type: " + contentType(Future.successful(result))(timeout))
+    Json.parse(contentAsString(Future.successful(result))(timeout))
   }
 
   // we are supposed to fail to "import" an empty directory

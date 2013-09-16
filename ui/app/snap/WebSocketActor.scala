@@ -39,7 +39,7 @@ abstract class WebSocketActor[MessageType](implicit frameFormatter: FrameFormatt
     // handleNextInput, which in turn computes the next iteratee based on
     // some input fed to us from the websocket. The next iteratee will
     // be another ActorIteratee, or a Done or an Error.
-    override def fold[B](folder: Step[In, Unit] => Future[B]): Future[B] = folder(Step.Cont(handleNextInput))
+    override def fold[B](folder: Step[In, Unit] => Future[B])(implicit ec: ExecutionContext): Future[B] = folder(Step.Cont(handleNextInput))
 
     private def handleNextInput(i: Input[In]): Iteratee[In, Unit] = {
       i match {

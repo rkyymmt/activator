@@ -36,7 +36,6 @@ object integration {
     tests <<= (itContext, mains, streams) map { (ctx, ms, s) =>
       val results = ms map ctx.runTest
       handleResults(results, s)
-      results
     },	
     localRepoArtifacts <+= (Keys.projectID, Keys.scalaBinaryVersion, Keys.scalaVersion) apply {
       (id, sbv, sv) => CrossVersion(sbv,sv)(id)
@@ -126,7 +125,8 @@ case class IntegrationContext(launchJar: File,
     val boot = cwd / "boot"
     Process(Seq("java", 
         "-Dsbt.boot.properties=" + props.getAbsolutePath, 
-        "-Dsbt.boot.directory=" + boot.getAbsolutePath, 
+        "-Dsbt.boot.directory=" + boot.getAbsolutePath,
+        "-Dactivator.integration.playVersion=" + Dependencies.playVersion,
         "-Dactivator.home=" +cleanUriFileString(integrationHome.getAbsolutePath),
         "-jar", 
         launchJar.getAbsolutePath), cwd)

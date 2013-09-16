@@ -48,7 +48,7 @@ package object tests {
     makeDummySbtProject(dir)
     val project = new java.io.File(dir, "project")
     val playPlugin = new java.io.File(project, "play.sbt")
-    createFile(playPlugin, s"""addSbtPlugin("play" % "sbt-plugin" % "2.1.0")\n""")
+    createFile(playPlugin, s"""addSbtPlugin("play" % "sbt-plugin" % Option(System.getProperty("activator.integration.playVersion")).getOrElse("playVersion property not set for integration tests")\n""")
     val playBuild = new java.io.File(project, "build.scala")
     createFile(playBuild, s"""|import sbt._
                               |object MyBuild extends Build {
