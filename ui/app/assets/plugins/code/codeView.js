@@ -58,8 +58,8 @@ define(["text!./viewCode.html", 'core/pluginapi'], function(template, api){
 		load: function() {
 			this.file().loadContents();
 		},
-		save: function() {
-			this.file().saveContents();
+		save: function(onDone, onCancel) {
+			this.file().saveContents(onDone, onCancel);
 		},
 		scrollToLine: function(line) {
 			// naughty knowledge of our view... not sure how else

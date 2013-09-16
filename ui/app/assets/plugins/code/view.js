@@ -114,6 +114,21 @@ define(["text!./viewWrapper.html", "text!./viewDefault.html", "./imageView", "./
 					alert('Failed to delete file: ' + err.responseText);
 				});
 			}
+		},
+		saveBeforeSwitchFiles: function(onDone, onCancel) {
+			var self = this;
+			if (self.file().isContentsDirty()) {
+				var result = window.confirm('Save changes to "' + self.file().name() + '"?');
+				if (result) {
+					self.subView().save(function() {
+						if (onDone) onDone();
+					}, onCancel);
+				} else {
+					if (onCancel) onCancel();
+				}
+			} else {
+				if (onDone) onDone();
+			}
 		}
 	});
 
