@@ -138,7 +138,7 @@ class ConfigTest {
         case e: Exception => e
       }
 
-      assertTrue("got the expected exception on bad json", e.getMessage().contains("validate.error.missing-path"))
+      assertTrue("got the expected exception on bad json (expecting error.path.missing, got '" + e.getMessage + "'", e.getMessage().contains("error.path.missing"))
 
       // bad json is still there, so things should still fail...
       val e2 = try {
@@ -148,7 +148,7 @@ class ConfigTest {
         case e: Exception => e
       }
 
-      assertTrue("got the expected exception on bad json", e2.getMessage().contains("validate.error.missing-path"))
+      assertTrue("got the expected exception on bad json (expecting error.path.missing, got '" + e.getMessage + "'", e.getMessage().contains("error.path.missing"))
 
       // delete the file... should now load the file fine
       if (!file.delete())
