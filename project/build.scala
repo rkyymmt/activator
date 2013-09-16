@@ -192,7 +192,7 @@ object TheActivatorBuild extends Build {
       // TODO - Should publish be pushing the S3 upload?
       Keys.publish := {},
       Keys.publishLocal := {},
-      Keys.scalaBinaryVersion <<= Keys.scalaVersion,
+      Keys.scalaBinaryVersion <<= Keys.scalaBinaryVersion in ui,
       Keys.resolvers ++= Seq(
         "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
         Resolver.url("typesafe-ivy-releases", new URL("http://repo.typesafe.com/typesafe/releases/"))(Resolver.ivyStylePatterns),
