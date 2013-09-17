@@ -50,13 +50,13 @@ define(['core/model', 'text!./run.html', 'core/pluginapi', 'core/widgets/log', '
 			this.atmosLink = ko.observable('');
 			this.atmosCompatible = model.snap.app.hasConsole;
 			this.runningWithAtmos = ko.computed(function() {
-				return this.haveActiveTask() && this.atmosLink() != '';
+				return this.haveActiveTask() && this.atmosLink() != '' && model.snap.signedIn();
 			}, this);
 			this.runningWithoutAtmos = ko.computed(function() {
-				return this.haveActiveTask() && this.atmosLink() == '';
+				return this.haveActiveTask() && this.atmosLink() == '' && model.snap.signedIn();
 			}, this);
-			this.notRunningAndNotSignedIn = ko.computed(function() {
-				return !this.haveActiveTask() && !model.snap.signedIn();
+			this.notSignedIn = ko.computed(function() {
+				return !model.snap.signedIn();
 			}, this);
 			this.notRunningAndSignedInAndAtmosEnabled = ko.computed(function() {
 				return !this.haveActiveTask() && this.runInConsole() && model.snap.signedIn();
