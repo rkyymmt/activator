@@ -11,6 +11,7 @@ object Dependencies {
   val templateCacheVersion = "1.0-1afe2c4e3a15a1360ef44c3eb70e3d543d478ed6"
   val sbtRcVersion = "1.0-a8ec2c13d63b40e4e7745fa3762b8a5d17f47edd"
   val playVersion = "2.2.0-RC2"
+  val webJarsVersion = "2.2.0-RC1"
   val akkaVersion = "2.1.2"
 
   val activatorCommon      = "com.typesafe.activator" % "activator-common" % templateCacheVersion
@@ -65,12 +66,12 @@ object Dependencies {
 
   // Embedded databases / index
   val lucene = "org.apache.lucene" % "lucene-core" % luceneVersion
-  val luceneAnalyzerCommon = "org.apache.lucene" % "lucene-analyzers-common" % luceneVersion
+  val luceneAnalyzerCommon = "org.apache.lucene" % "lucene-analyzers-co Dependencies.playVersionmmon" % luceneVersion
   val luceneQueryParser = "org.apache.lucene" % "lucene-queryparser" % luceneVersion
 
   
   // WebJars for the Activator UI
-  val webjarsPlay3     = "org.webjars" %% "webjars-play" % Dependencies.playVersion
+  val webjarsPlay3     = "org.webjars" %% "webjars-play" % Dependencies.webJarsVersion
   val requirejs        = "org.webjars" % "requirejs" % "2.1.8"
   val jquery           = "org.webjars" % "jquery" % "2.0.3"
   val knockout         = "org.webjars" % "knockout" % "2.2.1"
