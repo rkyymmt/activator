@@ -3,4 +3,4 @@ resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/release
 // remove this once Play is 2.2.0 final
 resolvers += Classpaths.typesafeSnapshots
 
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.2.0-RC1")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.2.0-RC2")

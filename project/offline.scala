@@ -71,7 +71,7 @@ object offline {
         "-Dsbt.override.build.repos=true",
         // TODO - Enough for fresh cache?
         "-Dsbt.ivy.home="+(globalBase / ".ivy2").getAbsolutePath,
-        "-Dsbt.version="+Dependencies.sbtVersion,
+        // TODO - we should consolidate on the two supported sbt versoins if we can.
         "-Dsbt.global.base="+globalBase.getAbsolutePath
       )
       val cmd = Seq("java") ++ jvmargs ++ Seq("-jar", launcher.getCanonicalPath) ++ args
