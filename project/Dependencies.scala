@@ -10,7 +10,7 @@ object Dependencies {
   val luceneVersion = "4.2.1"
   val templateCacheVersion = "1.0-1afe2c4e3a15a1360ef44c3eb70e3d543d478ed6"
   val sbtRcVersion = "1.0-a8ec2c13d63b40e4e7745fa3762b8a5d17f47edd"
-  val playVersion = "2.2.0-RC1"
+  val playVersion = "2.2.0-RC2"
   val akkaVersion = "2.1.2"
 
   val activatorCommon      = "com.typesafe.activator" % "activator-common" % templateCacheVersion
