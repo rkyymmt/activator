@@ -47,6 +47,6 @@ require([
 		startApp()
 	}
 	else {
-		addEventListener(visibilityChange, handleVisibilityChange, false)
+		document.addEventListener(visibilityChange, handleVisibilityChange, false)
 	}
 })
