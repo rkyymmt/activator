@@ -17,7 +17,7 @@ require.config({
 var handleVisibilityChange = function() {
 	if (!document[hidden]) {
 		startApp()
-		removeEventListener(visibilityChange, handleVisibilityChange)
+		document.removeEventListener(visibilityChange, handleVisibilityChange)
 	}
 }
 

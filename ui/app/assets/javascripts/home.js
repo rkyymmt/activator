@@ -27,14 +27,14 @@ require([
 		startApp()
 	}
 	else {
-		addEventListener(visibilityChange, handleVisibilityChange, false)
+		document.addEventListener(visibilityChange, handleVisibilityChange, false)
 	}
 })
 
 var handleVisibilityChange = function() {
 	if (!document[hidden]) {
 		startApp()
-		removeEventListener(visibilityChange, handleVisibilityChange)
+		document.removeEventListener(visibilityChange, handleVisibilityChange)
 	}
 }
 
