@@ -82,6 +82,17 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 			this.relativeCrumbs(crumbs);
 			if (line >= 0)
 				this.viewer.scrollToLine(line);
+		},
+		setCrumbsAfterSave: function(crumbs) {
+			var self = this;
+			this.viewer.saveBeforeSwitchFiles(function() {
+				console.log("Saved before switching to new file");
+				self.setCrumbs(crumbs);
+			}, function() {
+				console.log("File switch canceled or save failed");
+				// re-select the previous file
+				self.currentFile().select();
+			});
 		}
 	});
 
@@ -101,7 +112,7 @@ define(['core/pluginapi', 'text!./home.html', './files', './browse', './view', '
 				// DON'T UPDATE OBSERVABLES if they're the same.
 				// Otherwise, we reload junk and do all sorts of not-quite right behavior for remembering where we were....
 				if(home.relativeCrumbs().join('/') != bcs.rest.join('/')) {
-					home.setCrumbs(bcs.rest);
+					home.setCrumbsAfterSave(bcs.rest);
 				}
 			}
 		},
