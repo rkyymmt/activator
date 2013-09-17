@@ -66,7 +66,7 @@ object Packaging {
   )
   
   def settings: Seq[Setting[_]] = packagerSettings ++ useNativeZip ++ makeLocalRepoSettings(localRepoName) ++ Seq(
-    name <<= version apply ("activator-" + _),
+    name in Universal := s"activator-${version.value}",
     wixConfig := <wix/>,
     maintainer := "Josh Suereth <joshua.suereth@typesafe.com>",
     packageSummary := "Activator",
