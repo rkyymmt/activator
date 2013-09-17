@@ -8,11 +8,12 @@ object Dependencies {
   val scalaVersion = "2.10.2"
   val sbtSnapshotVersion = "0.13.0"
   val luceneVersion = "4.2.1"
-  val templateCacheVersion = "1.0-1afe2c4e3a15a1360ef44c3eb70e3d543d478ed6"
+  val templateCacheVersion = "1.0-da4206c233bdcbe9277d617a093fdc1888159a76"
   val sbtRcVersion = "1.0-a8ec2c13d63b40e4e7745fa3762b8a5d17f47edd"
   val playVersion = "2.2.0-RC2"
-  val webJarsVersion = "2.2.0-RC1"
+  val webJarsVersion = "2.2.0-RC1-1"
   val akkaVersion = "2.1.2"
+  val slickVersion = "1.0.1"
 
   val activatorCommon      = "com.typesafe.activator" % "activator-common" % templateCacheVersion
   val templateCache        = "com.typesafe.activator" % "activator-templates-cache" % templateCacheVersion
@@ -57,16 +58,22 @@ object Dependencies {
   val junitInterface       = "com.novocode" % "junit-interface" % "0.7"
   //val specs2               = "org.specs2" % "specs2_2.10" % "1.13"
 
-  // SBT plugins we have to shim
-  val playSbtPlugin        =  Defaults.sbtPluginExtra("play" % "sbt-plugin" % playVersion, sbtPluginVersion, sbtPluginScalaVersion)
-  val eclipseSbtPlugin     =  Defaults.sbtPluginExtra("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.2.0", sbtPluginVersion, sbtPluginScalaVersion)
-  val ideaSbtPlugin        =  Defaults.sbtPluginExtra("com.github.mpeltonen" % "sbt-idea" % "1.3.0", sbtPluginVersion, sbtPluginScalaVersion)
-  val pgpPlugin            =  Defaults.sbtPluginExtra("com.typesafe.sbt" % "sbt-pgp" % "0.8", sbtPluginVersion, sbtPluginScalaVersion)
+  // SBT 0.12 required plugins
+  val playSbtPlugin        =  Defaults.sbtPluginExtra("play" % "sbt-plugin" % "2.1.1", "0.12", "2.9.2")
+  val eclipseSbtPlugin     =  Defaults.sbtPluginExtra("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.2.0", "0.12", "2.9.2")
+  val ideaSbtPlugin        =  Defaults.sbtPluginExtra("com.github.mpeltonen" % "sbt-idea" % "1.3.0", "0.12", "2.9.2")
+  val pgpPlugin            =  Defaults.sbtPluginExtra("com.typesafe.sbt" % "sbt-pgp" % "0.8", "0.12", "2.9.2")
+
+
+  // SBT 0.13 required plugins
+  val playSbt13Plugin        =  Defaults.sbtPluginExtra("com.typesafe.play" % "sbt-plugin" % playVersion, "0.13", "2.10")
+  val eclipseSbt13Plugin     =  Defaults.sbtPluginExtra("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.2.0", "0.13", "2.10")
+  val ideaSbt13Plugin        =  Defaults.sbtPluginExtra("com.github.mpeltonen" % "sbt-idea" % "1.3.0", "0.13", "2.10")
 
 
   // Embedded databases / index
   val lucene = "org.apache.lucene" % "lucene-core" % luceneVersion
-  val luceneAnalyzerCommon = "org.apache.lucene" % "lucene-analyzers-co Dependencies.playVersionmmon" % luceneVersion
+  val luceneAnalyzerCommon = "org.apache.lucene" % "lucene-analyzers-common" % luceneVersion
   val luceneQueryParser = "org.apache.lucene" % "lucene-queryparser" % luceneVersion
 
   

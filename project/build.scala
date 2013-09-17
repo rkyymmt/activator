@@ -206,6 +206,7 @@ object TheActivatorBuild extends Build {
         
         // base dependencies
         "org.scala-sbt" % "sbt" % Dependencies.sbtVersion,
+        "org.scala-sbt" % "sbt" % Dependencies.sbtSnapshotVersion,
         "org.scala-lang" % "scala-compiler" % Dependencies.sbtPluginScalaVersion,
         "org.scala-lang" % "scala-compiler" % Dependencies.scalaVersion,
       
@@ -217,27 +218,35 @@ object TheActivatorBuild extends Build {
         sbtshimEclipse12,
         sbtshimIdea12,
   
-        // sbt plugins
+        // sbt 0.12 plugins
         playSbtPlugin,
         eclipseSbtPlugin,
         ideaSbtPlugin,
         pgpPlugin,
   
+        // sbt 0.13 plugins
+        playSbt13Plugin,
+        eclipseSbt13Plugin,
+        ideaSbt13Plugin,
   
         // featured template deps
         // note: do not use %% here
         "org.scalatest" % "scalatest_2.10" % "1.9.1",
-        "com.typesafe.akka" % "akka-actor_2.10" % "2.2.0",
-        "com.typesafe.akka" % "akka-testkit_2.10" % "2.2.0",
+        "com.typesafe.akka" % "akka-actor_2.10" % "2.2.1",
+        "com.typesafe.akka" % "akka-testkit_2.10" % "2.2.1",
+        "com.typesafe.akka" % "akka-slf4j_2.10" % "2.2.1",
         "org.scalatest" % "scalatest_2.10" % "1.9.1",
         "junit" % "junit" % "4.11",
         "com.novocode" % "junit-interface" % "0.7",
-        "org.webjars" % "webjars-play_2.10" % Dependencies.playVersion,
+        "org.webjars" % "webjars-play_2.10" % Dependencies.webJarsVersion,
         "org.webjars" % "bootstrap" % "2.3.1",
         "org.webjars" % "flot" % "0.8.0",
-        "play" % "play-java_2.10" % Dependencies.playVersion,
-        "play" % "play-test_2.10" % Dependencies.playVersion,
-
+        "com.typesafe.play" % "play-java_2.10" % Dependencies.playVersion,
+        "com.typesafe.play" % "play-test_2.10" % Dependencies.playVersion,
+        "com.typesafe.play" % "play-docs_2.10" % Dependencies.playVersion,
+        "com.typesafe.slick" % "slick_2.10" % Dependencies.slickVersion,
+        "org.slf4j" % "slf4j-nop" % "1.6.4",
+        "com.h2database" % "h2" % "1.3.166",
         // failed transatives
         "junit" % "junit" % "3.8.1",
         "com.jcraft" % "jsch" % "0.1.44-1",
