@@ -52,8 +52,11 @@ define(['core/model', 'text!./run.html', 'core/pluginapi', 'core/widgets/log', '
 			this.runningWithAtmos = ko.computed(function() {
 				return this.haveActiveTask() && this.atmosLink() != '' && model.snap.signedIn();
 			}, this);
-			this.runningWithoutAtmos = ko.computed(function() {
-				return this.haveActiveTask() && this.atmosLink() == '' && model.snap.signedIn();
+			this.runningWithoutAtmosButEnabled = ko.computed(function() {
+				return this.haveActiveTask() && this.atmosLink() == '' && model.snap.signedIn() && this.runInConsole();
+			}, this);
+			this.runningWithoutAtmosBecauseDisabled = ko.computed(function() {
+				return this.haveActiveTask() && this.atmosLink() == '' && model.snap.signedIn() && !this.runInConsole();
 			}, this);
 			this.notSignedIn = ko.computed(function() {
 				return !model.snap.signedIn();
