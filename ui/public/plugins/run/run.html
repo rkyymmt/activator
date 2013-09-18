@@ -17,8 +17,9 @@
             <p data-bind="text: status"></p>
             <p data-bind="visible: playAppStarted">Open the app: <a data-bind="attr: {href: playAppLink}, text: playAppLink" target="_blank"></a></p>
             <div data-bind="visible: atmosCompatible">
-                <span data-bind="visible: runningWithoutAtmos">Typesafe Console: Disabled <button data-bind="click: restartWithAtmos">Restart With Console</button></span>
-                <span data-bind="visible: runningWithAtmos">Typesafe Console: Enabled <a data-bind="attr: {href: atmosLink}, text: atmosLink" target="_blank"></a> <button data-bind="click: restartWithoutAtmos">Restart Without Console</button></span>
+                <span data-bind="visible: runningWithoutAtmosBecauseDisabled">Typesafe Console: Disabled <button data-bind="click: restartWithAtmos">Restart With Console</button></span>
+                <span data-bind="visible: runningWithoutAtmosButEnabled">Typesafe Console: Enabled (waiting for launch) <button data-bind="click: restartWithoutAtmos">Restart Without Console</button></span>
+                <span data-bind="visible: runningWithAtmos">Typesafe Console: running at <a data-bind="attr: {href: atmosLink}, text: atmosLink" target="_blank"></a> <button data-bind="click: restartWithoutAtmos">Restart Without Console</button></span>
                 <span data-bind="visible: notSignedIn">Typesafe Console: Free Typesafe.com Account Required (<a href="http://typesafe.com/platform/runtime/console#licensing" target="_blank" style="color: #246C7E">why?</a>) <button class="do-pop-over" data-bind="click: showLogin">Login to Typesafe.com</button></span>
                 <span data-bind="visible: notRunningAndSignedInAndAtmosEnabled">Typesafe Console: Enabled <button data-bind="click: disableAtmos">Turn Off Console</button></span>
                 <span data-bind="visible: notRunningAndSignedInAndAtmosDisabled">Typesafe Console: Disabled <button data-bind="click: enableAtmos">Turn On Console</button></span>
