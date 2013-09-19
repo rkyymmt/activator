@@ -2,15 +2,6 @@
 run
 */
 .run .subheader {
-  span {
-    float: right;
-    a {
-      color: #fff;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-  }
   p {
     display: inline-block;
     a {
@@ -20,26 +11,58 @@ run
       text-decoration: underline;
     }
   }
-  div {
-    display: inline-block;
-    float: right;
+  &.consoleAvailable {
+    border-bottom: 1px solid #E4EAEF;
   }
 }
 .run .wrapper {
 	background: #fff;
 }
 
-.run .wrapper > div {
-    height: 100%;
-    width: 50%;
+.run .wrapper > .subsubheader.consoleAvailable {
+  height: 40px;
+  background-color: #46BCD9;
+  line-height: 40px;
+  padding-left: 20px;
+  color: #246C7E;
+  p {
+    display: inline-block;
+    a {
+      color: #fff;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  }
+  button {
+    float: right;
+    margin-top: 5px;
+  }
+}
+
+.run .wrapper > .content {
     position: absolute;
     overflow: auto;
     font-family: Monaco, monospace;
     font-size: 12px;
     color: #6F7F89;
     line-height: 16px;
-    padding: 20px;
+    top: 0px;
+    right: 0px;
+    left: 0px;
+    bottom: 0px;
+    &.consoleAvailable {
+      top: 40px;
+    }
 }
+
+.run .wrapper > article > div {
+  height: 100%;
+  width: 50%;
+  position: absolute;
+  overflow: auto;
+}
+
 
 .run div.output {
     left: 0;

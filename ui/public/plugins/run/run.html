@@ -13,27 +13,29 @@
 			<button class="restart" data-bind="enable: haveActiveTask() && !restartPending(), click: restartButtonClicked">Restart</button>
 		</nav>
 		<h1>Run</h1>
-		<div class="subheader">
-            <p data-bind="visible: playAppStarted">Open the app: <a data-bind="attr: {href: playAppLink}, text: playAppLink" target="_blank"></a></p>
-            <div data-bind="visible: atmosCompatible">
-                <span data-bind="visible: runningWithoutAtmosBecauseDisabled">Typesafe Console: Disabled <button data-bind="click: restartWithAtmos">Restart With Console</button></span>
-                <span data-bind="visible: runningWithoutAtmosButEnabled">Typesafe Console: Enabled (waiting for launch) <button data-bind="click: restartWithoutAtmos">Restart Without Console</button></span>
-                <span data-bind="visible: runningWithAtmos">Typesafe Console: running at <a data-bind="attr: {href: atmosLink}, text: atmosLink" target="_blank"></a> <button data-bind="click: restartWithoutAtmos">Restart Without Console</button></span>
-                <span data-bind="visible: notSignedIn">Typesafe Console: Free Typesafe.com Account Required (<a href="http://typesafe.com/platform/runtime/console#licensing" target="_blank" style="color: #246C7E">why?</a>) <button class="do-pop-over" data-bind="click: showLogin">Login to Typesafe.com</button></span>
-                <span data-bind="visible: notRunningAndSignedInAndAtmosEnabled">Typesafe Console: Enabled <button data-bind="click: disableAtmos">Turn Off Console</button></span>
-                <span data-bind="visible: notRunningAndSignedInAndAtmosDisabled">Typesafe Console: Disabled <button data-bind="click: enableAtmos">Turn On Console</button></span>
-            </div>
+		<div class="subheader" data-bind="css: { consoleAvailable: atmosCompatible }">
             <p data-bind="text: status"></p>
+            <p data-bind="visible: playAppStarted">Open the app: <a data-bind="attr: {href: playAppLink}, text: playAppLink" target="_blank"></a></p>
 		</div>
 	</header>
 	<section class="wrapper">
-	    <div class="output">
-		    <div data-bind="snapView: outputModel" class="runapp">
-		    </div>
-		</div>
-		<div class="logs">
-		    <div class="runapp" data-bind="snapView: logModel">
-		    </div>
-		</div>
+        <header class="subheader subsubheader" data-bind="visible: atmosCompatible, css: { consoleAvailable: atmosCompatible }">
+            <span data-bind="visible: runningWithoutAtmosBecauseDisabled"><p>Typesafe Console: Disabled</p> <button data-bind="click: restartWithAtmos">Restart With Console</button></span>
+            <span data-bind="visible: runningWithoutAtmosButEnabled"><p>Typesafe Console: Enabled (waiting for launch)</p> <button data-bind="click: restartWithoutAtmos">Restart Without Console</button></span>
+            <span data-bind="visible: runningWithAtmos"><p>Typesafe Console: Running... <a data-bind="attr: {href: atmosLink}" target="_blank">Open the Console</a></p> <button data-bind="click: restartWithoutAtmos">Restart Without Console</button></span>
+            <span data-bind="visible: notSignedIn"><p>Typesafe Console: Free Typesafe.com Account Required (<a href="http://typesafe.com/platform/runtime/console#licensing" target="_blank">why?</a>)</p> <button class="do-pop-over" data-bind="click: showLogin">Login</button></span>
+            <span data-bind="visible: notRunningAndSignedInAndAtmosEnabled"><p>Typesafe Console: Enabled</p> <button data-bind="click: disableAtmos">Turn Off Console</button></span>
+            <span data-bind="visible: notRunningAndSignedInAndAtmosDisabled"><p>Typesafe Console: Disabled</p> <button data-bind="click: enableAtmos">Turn On Console</button></span>
+        </header>
+        <article class="content" data-bind="css: { consoleAvailable: atmosCompatible }">
+            <div class="output">
+                <div data-bind="snapView: outputModel" class="runapp">
+                </div>
+            </div>
+            <div class="logs">
+                <div class="runapp" data-bind="snapView: logModel">
+                </div>
+            </div>
+        </article>
 	</section>
 </article>
