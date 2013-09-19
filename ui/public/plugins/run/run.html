@@ -14,7 +14,6 @@
 		</nav>
 		<h1>Run</h1>
 		<div class="subheader">
-            <p data-bind="text: status"></p>
             <p data-bind="visible: playAppStarted">Open the app: <a data-bind="attr: {href: playAppLink}, text: playAppLink" target="_blank"></a></p>
             <div data-bind="visible: atmosCompatible">
                 <span data-bind="visible: runningWithoutAtmosBecauseDisabled">Typesafe Console: Disabled <button data-bind="click: restartWithAtmos">Restart With Console</button></span>
@@ -24,6 +23,7 @@
                 <span data-bind="visible: notRunningAndSignedInAndAtmosEnabled">Typesafe Console: Enabled <button data-bind="click: disableAtmos">Turn Off Console</button></span>
                 <span data-bind="visible: notRunningAndSignedInAndAtmosDisabled">Typesafe Console: Disabled <button data-bind="click: enableAtmos">Turn On Console</button></span>
             </div>
+            <p data-bind="text: status"></p>
 		</div>
 	</header>
 	<section class="wrapper">
