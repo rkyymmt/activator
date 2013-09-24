@@ -98,4 +98,5 @@ case class ApplicationID(
   mainClass: String,
   mainComponents: Array[String] = Array("xsbti"),
   crossVersioned: Boolean = false,
+  crossVersionedValue: xsbti.CrossValue = xsbti.CrossValue.Disabled,
   classpathExtra: Array[java.io.File] = Array.empty) extends xsbti.ApplicationID
