@@ -2,9 +2,9 @@ import sbt._
 import Keys._
 
 object Dependencies {
-  val sbtVersion = "0.12.4"
-  val sbtPluginVersion = "0.12"
-  val sbtPluginScalaVersion = "2.9.2"
+  val sbtVersion = "0.13.0"
+  val sbtPluginVersion = "0.13"
+  val sbtPluginScalaVersion = "2.10.2"
   val scalaVersion = "2.10.2"
   val sbtSnapshotVersion = "0.13.0"
   val luceneVersion = "4.2.1"
@@ -35,13 +35,6 @@ object Dependencies {
   val sbtrcProbe13           = "com.typesafe.sbtrc" % "sbt-rc-probe-0-13" % sbtRcVersion
   val sbtshimUiInterface13   = "com.typesafe.sbtrc" % "sbt-rc-ui-interface-0-13" % sbtRcVersion
 
-  val sbtrcProbe12           = "com.typesafe.sbtrc" % "sbt-rc-probe-0-12" % sbtRcVersion
-  val sbtshimUiInterface12   = "com.typesafe.sbtrc" % "sbt-rc-ui-interface-0-12" % sbtRcVersion
-  val sbtshimDefaults12      =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-rc-defaults-0-12" % sbtRcVersion, "0.12", "2.9.2")
-  val sbtshimPlay12          =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-rc-play-0-12" % sbtRcVersion, "0.12", "2.9.2")
-  val sbtshimEclipse12       =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-rc-eclipse-0-12" % sbtRcVersion, "0.12", "2.9.2")
-  val sbtshimIdea12          =  Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "sbt-rc-idea-0-12" % sbtRcVersion, "0.12", "2.9.2")
-  
   // TODO - Don't use a snapshot version for this...
   val sbtCompletion           = "org.scala-sbt" % "completion" % sbtSnapshotVersion
   
@@ -57,13 +50,6 @@ object Dependencies {
 
   val junitInterface       = "com.novocode" % "junit-interface" % "0.7"
   //val specs2               = "org.specs2" % "specs2_2.10" % "1.13"
-
-  // SBT 0.12 required plugins
-  val playSbtPlugin        =  Defaults.sbtPluginExtra("play" % "sbt-plugin" % "2.1.1", "0.12", "2.9.2")
-  val eclipseSbtPlugin     =  Defaults.sbtPluginExtra("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.2.0", "0.12", "2.9.2")
-  val ideaSbtPlugin        =  Defaults.sbtPluginExtra("com.github.mpeltonen" % "sbt-idea" % "1.3.0", "0.12", "2.9.2")
-  val pgpPlugin            =  Defaults.sbtPluginExtra("com.typesafe.sbt" % "sbt-pgp" % "0.8", "0.12", "2.9.2")
-
 
   // SBT 0.13 required plugins
   val playSbt13Plugin        =  Defaults.sbtPluginExtra("com.typesafe.play" % "sbt-plugin" % playVersion, "0.13", "2.10")
