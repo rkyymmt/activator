@@ -91,9 +91,6 @@ class UIMain extends AppMain {
     // First we check to see if a previous app is running..
     val alreadyRunning = PidDetector.checkRunning(lock)
 
-    // First set up the server port.
-    System.setProperty("http.port", serverPort.toString)
-
     // Play defaults to 0.0.0.0 which listens on all
     // interfaces, we want loopback only.
     System.setProperty("http.address", "127.0.0.1")
@@ -121,8 +118,21 @@ class UIMain extends AppMain {
     Exit(0)
   }
 
-  // TODO - make sure this is open!
-  lazy val serverPort: Int = 8888
+  val serverPort: Int = {
+    if (System.getProperty("http.port") eq null) {
+      // we are setting this for Play's benefit
+      System.setProperty("http.port", "8888")
+    }
+
+    Option(System.getProperty("http.port")) map { port =>
+      try Integer.parseInt(port) catch {
+        case e: NumberFormatException =>
+          throw new Exception(s"Bad http.port: ${e.getMessage}", e)
+      }
+    } getOrElse {
+      throw new Exception("http.port is not set even though we just set it?")
+    }
+  }
 
   def waitForServerStartup(): Unit = {
     import java.net._
