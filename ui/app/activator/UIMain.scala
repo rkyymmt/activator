@@ -169,16 +169,24 @@ class UIMain extends AppMain {
 
   // TODO - detect port?
   def openBrowser() = {
+    def iCannaeDoIt(): Unit =
+      showError("""|Unable to open a web browser!
+                   |Please point your browser at:
+                   | http://localhost:%d/""".stripMargin format (serverPort))
+
     val desktop: Option[Desktop] =
       if (Desktop.isDesktopSupported)
         Some(Desktop.getDesktop) filter (_ isSupported Desktop.Action.BROWSE)
       else None
 
     desktop match {
-      case Some(d) => d browse new java.net.URI(f"http://localhost:${serverPort}%d/")
-      case _ => showError("""|Unable to open a web browser!
-                                   |Please point your browser at:
-                                   | http://localhost:%d/""".stripMargin format (serverPort))
+      case Some(d) =>
+        try {
+          d browse new java.net.URI(f"http://localhost:${serverPort}%d/")
+        } catch {
+          case _: Exception => iCannaeDoIt()
+        }
+      case _ => iCannaeDoIt()
     }
   }
 
