@@ -101,8 +101,6 @@ object TheActivatorBuild extends Build {
       sbtLauncherInterface % "provided",
       sbtrcRemoteController % "compile;test->test",
       // Here we hack our probes into the UI project.
-      sbtrcProbe12 % "sbtprobes->default(compile)",
-      sbtshimUiInterface12 % "sbtprobes->default(compile)",
       sbtrcProbe13 % "sbtprobes->default(compile)",
       sbtshimUiInterface13 % "sbtprobes->default(compile)"
     )
@@ -212,17 +210,6 @@ object TheActivatorBuild extends Build {
       
         // sbt stuff
         sbtrcRemoteController,
-        sbtrcProbe12,
-        sbtshimDefaults12,
-        sbtshimPlay12,
-        sbtshimEclipse12,
-        sbtshimIdea12,
-  
-        // sbt 0.12 plugins
-        playSbtPlugin,
-        eclipseSbtPlugin,
-        ideaSbtPlugin,
-        pgpPlugin,
   
         // sbt 0.13 plugins
         playSbt13Plugin,
