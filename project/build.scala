@@ -21,7 +21,7 @@ object TheActivatorBuild extends Build {
 
   val root = (
     Project("root", file("."))  // TODO - Oddities with clean..
-    aggregate((publishedProjects.map(_.project) ++ 
+    aggregate((publishedProjects.map(_.project) ++
               Seq(dist.project, it.project, localTemplateRepo.project, offlinetests.project)):_*)
     settings(
       // Stub out commands we run frequently but don't want them to really do anything.
@@ -29,12 +29,12 @@ object TheActivatorBuild extends Build {
       Keys.publishLocal := {}
     )
   )
-  
+
   lazy val news: Project = (
     Project("news", file("news"))
     settings(NewsHelper.settings:_*)
   )
-  
+
   // This project helps us isolate creating the local template repository for testing.
   lazy val localTemplateRepo: Project = (
     Project("template-repository", file("template-repository"))
@@ -62,8 +62,8 @@ object TheActivatorBuild extends Build {
 
   val verboseSbtTests = false
 
-  
-  
+
+
   // Helpers to let us grab necessary sbt remote control artifacts, but not actually depend on them at
   // runtime.
   lazy val SbtProbesConfig = config("sbtprobes")
@@ -71,7 +71,7 @@ object TheActivatorBuild extends Build {
      val probeClasspath = update.matching(configurationFilter(SbtProbesConfig.name))
      Path.makeString(probeClasspath)
   }
-  
+
   def configureSbtTest(testKey: Scoped) = Seq(
     // set up embedded sbt for tests, we fork so we can set
     // system properties.
@@ -181,7 +181,7 @@ object TheActivatorBuild extends Build {
     )
     settings(offline.settings:_*)
   )
-  
+
   lazy val dist = (
     ActivatorProject("dist")
     settings(Packaging.settings:_*)
@@ -201,21 +201,21 @@ object TheActivatorBuild extends Build {
         (Keys.projectID in ref) apply { id => id }
       }).join,
       localRepoArtifacts ++= Seq(
-        
+
         // base dependencies
         "org.scala-sbt" % "sbt" % Dependencies.sbtVersion,
         "org.scala-sbt" % "sbt" % Dependencies.sbtSnapshotVersion,
         "org.scala-lang" % "scala-compiler" % Dependencies.sbtPluginScalaVersion,
         "org.scala-lang" % "scala-compiler" % Dependencies.scalaVersion,
-      
+
         // sbt stuff
         sbtrcRemoteController,
-  
+
         // sbt 0.13 plugins
         playSbt13Plugin,
         eclipseSbt13Plugin,
         ideaSbt13Plugin,
-  
+
         // featured template deps
         // note: do not use %% here
         "org.scalatest" % "scalatest_2.10" % "1.9.1",
@@ -224,6 +224,7 @@ object TheActivatorBuild extends Build {
         "com.typesafe.akka" % "akka-slf4j_2.10" % "2.2.1",
         "org.scalatest" % "scalatest_2.10" % "1.9.1",
         "junit" % "junit" % "4.11",
+        "org.fusesource.jansi" % "jansi" % "1.11",
         "com.novocode" % "junit-interface" % "0.7",
         "org.webjars" % "webjars-play_2.10" % Dependencies.webJarsVersion,
         "org.webjars" % "bootstrap" % "2.3.1",
